@@ -67,19 +67,19 @@ const CONTROLS = [
   { tab: 'style', group: 'Shape', path: 'style.radius', type: 'range', min: 0, max: 40, step: 1, unit: 'px', label: 'Corner radius' },
   { tab: 'style', group: 'Shape', path: 'style.glowSize', type: 'range', min: 0, max: 60, step: 1, unit: 'px', label: 'Glow size' },
   { tab: 'style', group: 'Text', path: 'style.fontFamily', type: 'font', label: 'Font family' },
-  { tab: 'style', group: 'Text', path: 'style.fontSize', type: 'range', min: 8, max: 48, step: 1, unit: 'px', label: 'Font size' },
+  { tab: 'style', group: 'Text', path: 'style.fontSize', type: 'range', min: 0, max: 48, step: 1, unit: 'px', label: 'Font size' },
   { tab: 'style', group: 'Text', path: 'style.fontWeight', type: 'range', min: 100, max: 900, step: 100, label: 'Font weight' },
   { tab: 'style', group: 'Text', path: 'style.textColor', type: 'color', label: 'Text (idle)' },
   { tab: 'style', group: 'Text', path: 'style.textColorPressed', type: 'color', label: 'Text (pressed)' },
   { tab: 'style', group: 'Size', path: 'style.keySize', type: 'range', min: 24, max: 120, step: 1, unit: 'px', label: 'Key size' },
   { tab: 'style', group: 'Size', path: 'style.gap', type: 'range', min: 0, max: 24, step: 1, unit: 'px', label: 'Key spacing' },
   { tab: 'style', group: 'Size', path: 'style.scale', type: 'range', min: 0.3, max: 3, step: 0.05, unit: '×', label: 'Overall scale' },
-  { tab: 'style', group: 'Size', path: 'style.opacity', type: 'range', min: 0.1, max: 1, step: 0.05, label: 'Opacity' },
+  { tab: 'style', group: 'Size', path: 'style.opacity', type: 'range', min: 0, max: 1, step: 0.05, label: 'Opacity' },
 
   { tab: 'animation', group: 'Animation', path: 'animation.type', type: 'select', options: () => reg.animations.map(a => [a.id, a.name]), label: 'Type' },
   { tab: 'animation', group: 'Animation', path: 'animation.speed', type: 'range', min: 0, max: 600, step: 10, unit: 'ms', label: 'Speed (duration)' },
   { tab: 'animation', group: 'Animation', path: 'animation.easing', type: 'select', options: () => [['default', 'Animation default'], ...reg.easings.map(e => [e.id, e.name])], label: 'Easing' },
-  { tab: 'animation', group: 'Animation', path: 'animation.intensity', type: 'range', min: 0.2, max: 2.5, step: 0.1, unit: '×', label: 'Intensity' },
+  { tab: 'animation', group: 'Animation', path: 'animation.intensity', type: 'range', min: 0, max: 2.5, step: 0.1, unit: '×', label: 'Intensity' },
 ];
 
 function colorCtl(c) {
@@ -137,12 +137,18 @@ const TABS = {
   layout() {
     const p = el('div');
     p.append(el('h2', { textContent: 'Keyboard layout' }),
-      el('p', { className: 'note', textContent: 'Layouts are JSON files. Drop your own into the layouts folder (see General → Open data folder) and restart the app.' }));
+      el('p', { className: 'note', textContent: 'Pick a layout, or click + to make your own from the full-size keyboard. Right-click a layout you made to delete it.' }));
     const cards = el('div', { className: 'cards' });
     for (const l of layouts) {
-      cards.append(el('div', { className: 'card' + (S.layout.id === l.id ? ' sel' : ''), onclick: () => { S.layout.id = l.id; selKey = null; changed(true); } },
+      cards.append(el('div', { className: 'card' + (S.layout.id === l.id ? ' sel' : ''), onclick: () => { S.layout.id = l.id; selKey = null; changed(true); },
+        oncontextmenu: e => showMenu(e, [l.user
+          ? { label: 'Delete layout', danger: true, run: async () => { await call('delete_layout', { id: l.id }); toast(l.name + ' deleted'); } }
+          : { label: 'Built-in layouts can’t be deleted', disabled: true }]) },
         el('b', { textContent: l.name }), el('span', { textContent: l.keys.length + ' keys' + (isCustom(l.id) ? ' · customized' : '') })));
     }
+    const mine = layouts.filter(l => l.user).length;
+    cards.append(el('div', { className: 'card add', title: 'Add a layout', onclick: addLayoutDialog },
+      el('span', { className: 'plus', textContent: '+' }), el('small', { textContent: `${mine}/${MAX_LAYOUTS} layouts` })));
     p.append(cards);
     return p;
   },
@@ -539,6 +545,7 @@ async function resync() {
   try { const s0 = await invoke('get_state'); obsUrl = s0.url; } catch { /* keep the old address */ }
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; try { await invoke('save_settings', { settings: S }); } catch {} }   // never lose a pending edit
   const st = await invoke('get_state');
+  try { layouts = await invoke('list_layouts'); } catch { /* keep the old list */ }
   S = st.settings; paused = st.paused; inputActive = st.inputActive; inputError = st.inputError; paintPause();
   const b = $('#banner');
   if (st.serverError) { b.hidden = false; b.textContent = st.serverError + ' — pick another port in General → Port.'; } else b.hidden = true;
@@ -608,3 +615,54 @@ let booted = false;
 setTimeout(async () => {
   try { const r = await invoke('auto_check_update'); if (r) setUpdate(r); } catch { /* offline: stay quiet */ }
 }, 700);
+
+// ------------------------------------------------------------------ right-click: no browser menu anywhere, just our own where it makes sense
+let menuEl = null;
+function hideMenu() { menuEl?.remove(); menuEl = null; }
+function showMenu(e, items) {
+  e.preventDefault(); e.stopPropagation(); hideMenu();
+  menuEl = el('div', { className: 'ctxmenu' }, items.map(it => el('button', {
+    type: 'button', className: it.danger ? 'danger' : '', textContent: it.label, disabled: !!it.disabled,
+    onclick: () => { hideMenu(); it.run && it.run(); } })));
+  document.body.append(menuEl);
+  const r = menuEl.getBoundingClientRect();
+  menuEl.style.left = Math.max(4, Math.min(e.clientX, innerWidth - r.width - 4)) + 'px';
+  menuEl.style.top = Math.max(4, Math.min(e.clientY, innerHeight - r.height - 4)) + 'px';
+}
+addEventListener('contextmenu', e => e.preventDefault());   // layout cards call showMenu first (it stops this)
+addEventListener('mousedown', e => { if (menuEl && !menuEl.contains(e.target)) hideMenu(); }, true);
+addEventListener('blur', hideMenu); addEventListener('resize', hideMenu);
+addEventListener('keydown', e => { if (e.key === 'Escape') hideMenu(); });
+addEventListener('dragstart', e => e.preventDefault());
+
+// ------------------------------------------------------------------ one dialog style for everything (same look as release notes / updates)
+const MAX_LAYOUTS = 20;
+function dialog({ title, body, buttons }) {
+  $('#dTitle').textContent = title;
+  $('#dBody').replaceChildren(...body);
+  const close = () => { $('#dlg').hidden = true; document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  $('#dFoot').replaceChildren(...buttons.map(b => el('button', { type: 'button', className: b.primary ? 'primary' : '', textContent: b.label,
+    onclick: async () => { if (!b.run || (await b.run()) !== false) close(); } })));
+  $('#dlg').hidden = false; document.addEventListener('keydown', onKey);
+  return close;
+}
+function addLayoutDialog() {
+  if (layouts.filter(l => l.user).length >= MAX_LAYOUTS) {
+    dialog({ title: 'Max layouts reached', body: [el('p', { textContent: `You can make up to ${MAX_LAYOUTS} layouts of your own. Right-click one you no longer need and choose Delete layout to free a spot.` })],
+      buttons: [{ label: 'OK', primary: true }] });
+    return;
+  }
+  const nameIn = el('input', { type: 'text', placeholder: 'Layout name', maxLength: 30 });
+  const make = async () => {
+    try {
+      const id = await invoke('create_layout', { name: nameIn.value });
+      layouts = await call('list_layouts'); S.layout.id = id; selKey = null; tab = 'keys';
+      toast('Layout created. Click keys to hide the ones you don’t want.'); render(); return true;
+    } catch (e) { toast(String(e), true); return false; }
+  };
+  nameIn.onkeydown = e => { if (e.key === 'Enter') $('#dFoot .primary').click(); };
+  dialog({ title: 'New layout', body: [el('p', { textContent: 'It starts as the full-size keyboard. You then pick which keys to keep or hide on the Keys tab.' }), nameIn],
+    buttons: [{ label: 'Cancel' }, { label: 'Create', primary: true, run: async () => (await make()) ? true : false }] });
+  nameIn.focus();
+}

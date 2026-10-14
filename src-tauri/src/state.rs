@@ -4,7 +4,7 @@ use crate::server::{ServerHandle, Shared};
 use serde_json::Value;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use tauri::menu::CheckMenuItem;
+use tauri::menu::{CheckMenuItem, Submenu};
 use tauri::{AppHandle, Emitter, Manager};
 
 /// GitHub repository that hosts releases and update manifests.
@@ -14,6 +14,7 @@ pub const REPO: &str = "nqble/keystroke-overlay";
 pub struct TrayItems {
     pub pause: CheckMenuItem<tauri::Wry>,
     pub layouts: Vec<(String, CheckMenuItem<tauri::Wry>)>,
+    pub layout_menu: Submenu<tauri::Wry>,
 }
 
 pub struct AppState {

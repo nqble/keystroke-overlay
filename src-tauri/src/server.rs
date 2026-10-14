@@ -177,6 +177,8 @@ pub fn layouts(paths: &Paths) -> Vec<Value> {
     if let Ok(rd) = std::fs::read_dir(paths.user("layouts")) {
         for e in rd.flatten() {
             if let Some(v) = std::fs::read_to_string(e.path()).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()).filter(valid_layout) {
+                let mut v = v;
+                v["user"] = Value::Bool(true);
                 out.retain(|o| o["id"] != v["id"]);
                 out.push(v);
             }

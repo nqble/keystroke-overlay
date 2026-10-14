@@ -20,7 +20,13 @@ export async function connect() {
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise(r => ws.onopen = r);
   let id = 0; const pending = new Map();
-  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } };
+  const contexts = [];   // JavaScript worlds (the settings page, the preview frame, ...) reported by the browser
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
+    else if (m.method === 'Runtime.executionContextCreated') contexts.push(m.params.context);
+    else if (m.method === 'Runtime.executionContextsCleared') contexts.length = 0;
+  };
   const send = (method, params = {}) => new Promise(res => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
   /** Run JavaScript in the settings page (async body, use `return`). */
   const ev = async body => {
@@ -30,8 +36,36 @@ export async function connect() {
   };
   /** Call a Tauri command; resolves to {ok} or {err}. */
   const invoke = (cmd, args) => ev(`try { return { ok: await window.__TAURI__.core.invoke(${JSON.stringify(cmd)}, ${JSON.stringify(args ?? {})}) } } catch (e) { return { err: String(e) } }`);
-  return { ev, send, invoke, q: expr => ev(`return ${expr}`), close: () => ws.close() };
+  await send('Runtime.enable');
+  /** Run JavaScript inside the page whose address contains `originPart` (e.g. the live preview frame). */
+  const evIn = async (originPart, body) => {
+    const c = [...contexts].reverse().find(c => (c.origin || '').includes(originPart) && c.auxData?.isDefault !== false);
+    if (c) {
+      const r = await send('Runtime.evaluate', { expression: `(async()=>{${body}})()`, awaitPromise: true, returnByValue: true, contextId: c.id });
+      if (r.result.exceptionDetails) throw new Error(JSON.stringify(r.result.exceptionDetails.exception?.description ?? r.result.exceptionDetails.text));
+      return r.result.result.value;
+    }
+    // When the frame runs in its own browser process (site isolation), it is a separate debug target: attach to it directly.
+    const t = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(x => x.type !== 'page' && (x.url || '').includes(originPart));
+    if (!t) throw new Error('no page found for ' + originPart);
+    const w2 = new WebSocket(t.webSocketDebuggerUrl); await new Promise(r => w2.onopen = r);
+    const out = await new Promise(res => {
+      w2.onmessage = e => { const m = JSON.parse(e.data); if (m.id === 1) res(m); };
+      w2.send(JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { expression: `(async()=>{${body}})()`, awaitPromise: true, returnByValue: true } }));
+    });
+    w2.close();
+    if (out.result.exceptionDetails) throw new Error(JSON.stringify(out.result.exceptionDetails.exception?.description ?? out.result.exceptionDetails.text));
+    return out.result.result.value;
+  };
+  return { ev, evIn, send, invoke, q: expr => ev(`return ${expr}`), close: () => ws.close() };
 }
+
+/** Move keyboard focus: 'app' (the settings window) or 'away' (Notepad). Resolves to true if that window really is in front. */
+export const focus = to => new Promise(r => {
+  let out = ''; const c = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', join(LIB, 'focus.ps1'), to]);
+  c.stdout.on('data', d => out += d); c.on('exit', () => r(/True/.test(out)));
+});
+export const closeNotepad = () => spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', join(LIB, 'unfocus-cleanup.ps1')], { stdio: 'ignore' });
 
 /** Inject real key presses (scenarios are defined in inject.ps1). */
 export const inject = (scenario, n = 1) => new Promise(r =>

@@ -64,7 +64,7 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## How the app uses this
 
-A background check runs when the settings window opens (at most every 6 hours, can be turned off). A green button appears
+A background check runs when the settings window opens (at most every 6 hours, can be turned off). A blue button appears
 if something newer exists; the user must click it and confirm. The installer is verified against the public key before it runs.
 
 ## Checks before publishing a public release

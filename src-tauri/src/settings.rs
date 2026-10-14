@@ -87,7 +87,7 @@ pub fn migrate(mut v: Value) -> Value {
 /// (path, min, max) for numeric settings. Anything out of range is clamped.
 const RANGES: &[(&str, f64, f64)] = &[
     ("general.port", 1024.0, 65535.0), ("style.borderWidth", 0.0, 20.0), ("style.radius", 0.0, 100.0),
-    ("style.fontSize", 6.0, 120.0), ("style.fontWeight", 100.0, 900.0), ("style.glowSize", 0.0, 100.0),
+    ("style.fontSize", 0.0, 120.0), ("style.fontWeight", 100.0, 900.0), ("style.glowSize", 0.0, 100.0),
     ("style.keySize", 16.0, 200.0), ("style.gap", 0.0, 60.0), ("style.scale", 0.2, 4.0),
     ("style.opacity", 0.0, 1.0), ("animation.speed", 0.0, 2000.0), ("animation.intensity", 0.0, 4.0),
 ];

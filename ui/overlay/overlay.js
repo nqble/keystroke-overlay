@@ -24,6 +24,8 @@ const getJson = async u => {
   return r.json();
 };
 if (PREVIEW) document.body.classList.add('preview');
+addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('selectstart', e => e.preventDefault());
 
 const stage = document.getElementById('stage');
 const root = document.documentElement;

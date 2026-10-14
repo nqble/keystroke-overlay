@@ -36,6 +36,23 @@ pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// Rebuilds the tray's Layout list after a layout was created or deleted.
+pub fn refresh_tray_layouts(app: &AppHandle) {
+    let st = app.state::<AppState>();
+    let cur = st.shared.settings.read().unwrap()["layout"]["id"].as_str().unwrap_or("").to_string();
+    let mut guard = st.tray.lock().unwrap();
+    let Some(t) = guard.as_mut() else { return };
+    for (_, it) in t.layouts.drain(..) { let _ = t.layout_menu.remove(&it); }
+    for l in server::layouts(&st.shared.paths) {
+        let id = l["id"].as_str().unwrap_or("").to_string();
+        let name = l["name"].as_str().unwrap_or(&id).to_string();
+        if let Ok(it) = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name).checked(id == cur).build(app) {
+            let _ = t.layout_menu.append(&it);
+            t.layouts.push((id, it));
+        }
+    }
+}
+
 /// Stops the overlay server and starts it again on the same port. The old listener needs a moment to
 /// release the port, so binding is retried briefly.
 pub fn restart_server_inner(app: &AppHandle) -> Result<(), String> {
@@ -83,7 +100,7 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         .separator()
         .item(&MenuItemBuilder::with_id("quit", "Quit").build(app)?)
         .build()?;
-    *app.state::<AppState>().tray.lock().unwrap() = Some(TrayItems { pause: pause_item, layouts: layout_items });
+    *app.state::<AppState>().tray.lock().unwrap() = Some(TrayItems { pause: pause_item, layouts: layout_items, layout_menu });
 
     TrayIconBuilder::new()
         .icon(app.default_window_icon().unwrap().clone())

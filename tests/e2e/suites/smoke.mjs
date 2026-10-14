@@ -12,7 +12,7 @@ check('settings UI rendered (6 tabs, content)', (await q(`document.querySelector
 check('header is just the title', (await q(`document.querySelector('.brand').textContent.trim()`)) === '⌨ Keystroke Overlay');
 const st = (await inv('get_state')).ok;
 check('get_state', st.version === VERSION && st.settings.version === 2 && st.paused === false);
-check('background update check found the mock update (green button visible)', await q(`!document.getElementById('updateBtn').hidden`));
+check('background update check found the mock update (update button visible)', await q(`!document.getElementById('updateBtn').hidden`));
 
 // ---- settings commands
 const sv = await inv('save_settings', { settings: { ...st.settings, style: { ...st.settings.style, radius: 21 } } });

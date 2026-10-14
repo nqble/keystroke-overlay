@@ -25,7 +25,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
   without the private key (wrong/missing key → 401, right key → allowed), the key never reaches the overlay, the live preview
   keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.
 - `smoke` — every command group, tray actions (pause / layout / restart server), settings broadcast over the WebSocket, the
-  green update button and dialog, path-traversal and link-blocking guards, a check that **every socket the app holds is
+  update button and dialog, path-traversal and link-blocking guards, a check that **every socket the app holds is
   loopback-only**, and a real signed update: download with progress → signature verified → installer launched.
 
 **Safety.** The test copy has its own identity (`com.keyoverlay.test`), its own data folder, port 7879 and a different

@@ -23,7 +23,6 @@
 <div id="pausebar" hidden>⏸ Overlay is paused — keystrokes are hidden in OBS. <button id="resumeBtn">Resume</button></div>
 <section class="preview" id="previewBox">
   <iframe id="preview" title="Live preview"></iframe>
-  <div class="previewHint">Live preview — type on your keyboard or click keys here</div>
 </section>
 <main>
   <nav id="tabs"></nav>
@@ -46,6 +45,13 @@
     <div class="bar" id="uBar" hidden><div class="fill" id="uFill"></div></div>
     <div class="hint" id="uText"></div>
     <div class="mfoot"><button id="uLater" type="button">Later</button><button id="uGo" type="button" class="primary">Update now</button></div>
+  </div>
+</div>
+<div id="dlg" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <h3 id="dTitle"></h3>
+    <div id="dBody"></div>
+    <div class="mfoot" id="dFoot"></div>
   </div>
 </div>
 <div id="toast" hidden></div>
