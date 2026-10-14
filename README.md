@@ -53,7 +53,7 @@ Under **General → Keyboard input** you choose how the app reads your keys. You
 | | When to use it |
 |---|---|
 | **Standard** (recommended, the default) | What the app has always used. Works with nearly every game. |
-| **Compatibility** (Windows Raw Input) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC (in testing it used *less* CPU under a heavy flood of key presses). |
+| **Compatibility** (Windows Raw Input) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC: both methods use about 0% CPU when idle and only a percent or two of one core even under an unrealistically heavy flood of key presses. |
 
 Both methods read keys the same way and never save or send them. If a game runs **as administrator**, start Keystroke Overlay
 as administrator too — Windows doesn't let normal programs see keys typed into an elevated window, whichever method you pick.
