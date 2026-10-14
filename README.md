@@ -36,12 +36,12 @@ If you change the port in settings, update the URL in OBS too.
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, TSB, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. |
+| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, TSB, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. **Export / Import layouts** share them as a file. |
 | **Keys** | Show or hide individual keys and give any key a custom label (e.g. Space → `⎵` or `Jump`). Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
 | **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
 | **Fonts** | Add your own TTF / OTF / WOFF fonts. |
-| **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, and program updates (channel, release notes). |
+| **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, program updates (channel, release notes), and **Reset all settings**. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
@@ -93,6 +93,8 @@ After an update, a **What's new** window shows the release notes once. You can r
 **In the app (easiest):** open the **Layout** tab and click the dashed **+** card. Give it a name and it starts as a copy of the
 full-size keyboard. Then, in the **Keys** tab, hide the keys you don't want and relabel the ones you do. You can make up to **20**
 layouts (a counter shows how many you've used). To remove one, **right-click it and choose Delete layout**. Built-in layouts can't be deleted.
+
+**Share layouts:** in the Layout tab, **Export layouts** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import layouts** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (a number is added to the name instead), and they count toward the 20-layout limit.
 
 **By hand (for full control):** a layout is a single JSON file. Put it in the app's `layouts` folder (**General → App → Open data folder → layouts**) and restart the app.
 
@@ -172,6 +174,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Open an issue naming the game and its anti-cheat.
+- **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
 - **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
 
 ## Building from source

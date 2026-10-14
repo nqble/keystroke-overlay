@@ -81,7 +81,7 @@ fn main() {
             commands::settings::quit_app, commands::settings::set_input_method,
             commands::settings::set_secure_link, commands::settings::regenerate_link_key,
             commands::assets::list_fonts, commands::assets::add_font, commands::assets::remove_font, commands::assets::open_folder,
-            commands::assets::create_layout, commands::assets::delete_layout, commands::assets::list_presets, commands::assets::save_preset, commands::assets::load_preset,
+            commands::assets::create_layout, commands::assets::export_layouts, commands::assets::import_layouts, commands::settings::reset_settings, commands::assets::delete_layout, commands::assets::list_presets, commands::assets::save_preset, commands::assets::load_preset,
             commands::assets::delete_preset, commands::assets::export_preset, commands::assets::import_preset,
             commands::actions::toggle_pause, commands::actions::set_layout, commands::actions::restart_server,
             commands::updates::check_update, commands::updates::auto_check_update, commands::updates::install_update,

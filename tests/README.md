@@ -43,6 +43,14 @@ harmless copy of `whoami.exe`, signed with a throwaway key made for the run. Don
 **Not in CI.** GitHub's hosted runners have no real desktop session for window and keyboard tests, so the end-to-end
 suites run on your machine. CI runs the privacy check, syntax checks and the Rust tests.
 
+## Clean install and upgrade test
+
+`node tests/install/run.mjs` builds the previous release (v1.1.2) and the current code as **real installers** under a throwaway identity
+(`KOTest`, `com.keyoverlay.test`), so an installed Keystroke Overlay is never touched. It then installs v1.1.2 on a clean slate, checks the first launch,
+creates user data, installs the current version over it (an upgrade) and checks that settings, layouts and key edits survived and the
+What's new popup appeared, uses the new features, and finally uninstalls (program and uninstall entry gone, your data folder kept).
+It needs ~4 GB temporarily in your TEMP folder and deletes everything when it finishes (`--keep` to keep it).
+
 ## Performance comparison
 
 `node tests/bench/run.mjs` builds v1.1.0, v1.1.1, v1.1.2 and the current code as throwaway test copies and measures them side by side:

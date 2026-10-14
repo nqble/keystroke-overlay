@@ -25,6 +25,8 @@ The same text is in [CHANGELOG.md](../CHANGELOG.md) under v1.2.0.
 
 **✨ New**
 - **Make your own layouts:** click the dashed **+** card in the Layout tab, name it, and it starts as the full-size keyboard. Then hide the keys you don't want in the Keys tab. You can have up to 20 (a counter shows how many you've used). Right-click a layout you made to delete it.
+- **Share layouts:** Layout tab → **Export layouts** saves everything you made (with your hidden keys and labels) to one file, and **Import layouts** adds layouts from a file a friend sent you. Bad or oversized files are cleaned up or skipped, never trusted.
+- **Reset all settings:** General → App → **Reset all settings…** puts every option back to its default after one confirmation. Your layouts, presets, fonts and port are kept.
 - **Keyboard input method:** General → Keyboard input lets you pick **Standard** (what the app always used) or **Compatibility** (Windows Raw Input). If keys don't light up in one particular game, try Compatibility. You can switch live, no restart.
 - **Secure link (optional):** a new toggle in General → Secure link. Off by default, so your OBS link stays simple. Turn it on and the link carries a private key, so only a program that knows the full link can read your key presses. Paste the new link into OBS once. Hit "Make a new key" to cut off old links.
 - **Update button:** a little accent-coloured circle appears in the corner when a new version is out. Click it, read the notes, hit **Update now**. It never installs behind your back.

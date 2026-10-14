@@ -14,7 +14,8 @@
     "release": "node tools/release.mjs",
     "test": "cargo test --manifest-path src-tauri/Cargo.toml && node tools/check-privacy.mjs",
     "check:privacy": "node tools/check-privacy.mjs",
-    "test:e2e": "node tests/e2e/run.mjs"
+    "test:e2e": "node tests/e2e/run.mjs",
+    "test:install": "node tests/install/run.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

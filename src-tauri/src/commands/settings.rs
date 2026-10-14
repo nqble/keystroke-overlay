@@ -119,5 +119,26 @@ pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
     Ok(obs_url(&app.state::<AppState>().shared))
 }
 
+/// Put every setting back to its default. The user's own layouts, presets and fonts are files and are kept.
+/// Turns off start-with-Windows, the secure link and the Compatibility input method, then restarts the server. The port is kept so the OBS link doesn't move.
+#[tauri::command]
+pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
+    let _ = app.autolaunch().disable();
+    {
+        let st = app.state::<AppState>();
+        let mut new = settings::defaults();
+        { let cur = st.shared.settings.read().unwrap(); for k in ["lastSeenVersion", "port"] { new["general"][k] = cur["general"][k].clone(); } }
+        let _ = st.shared.bus.set_method(crate::keyboard::Method::Hook);
+        settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
+        *st.shared.settings.write().unwrap() = new;
+        *st.update_cache.lock().unwrap() = None;
+    }
+    let a = app.clone();
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a)).await.map_err(|e| e.to_string())??;
+    crate::state::announce(&app);
+    sync_tray(&app);
+    Ok(obs_url(&app.state::<AppState>().shared))
+}
+
 #[tauri::command]
 pub fn quit_app(app: AppHandle) { app.exit(0); }

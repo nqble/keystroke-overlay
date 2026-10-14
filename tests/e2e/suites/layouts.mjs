@@ -36,6 +36,25 @@ check('right-click on a user layout shows just "Delete layout"', await p.q(`(() 
 await p.ev(`document.querySelector('.ctxmenu button').click()`); await sleep(1200);
 const gone = await api(); const st2 = (await p.invoke('get_state')).ok;
 check('delete removes it, the selection falls back to a built-in, the card disappears', !gone.some(l => l.name === 'My Board') && st2.settings.layout.id === 'tkl' && !(await p.q(`!!${cardOf('My Board')}`)));
+// ---- reset all settings (keeps layouts), and the Export / Import buttons exist
+await tab('Layout'); await sleep(300);
+check('Layout tab has Import and Export buttons', await p.q(`['Import layouts', 'Export layouts'].every(t => [...document.querySelectorAll('#pane button')].some(b => b.textContent === t))`));
+const keep = (await p.invoke('create_layout', { name: 'Keep Me' })).ok;
+const S1 = (await p.invoke('get_state')).ok.settings;
+await p.invoke('save_settings', { settings: { ...S1, style: { ...S1.style, radius: 33, opacity: 0.4 }, animation: { ...S1.animation, speed: 400 } } });
+await p.invoke('set_secure_link', { enabled: true }); await sleep(1500);
+await tab('General'); await sleep(300);
+await p.ev(`[...document.querySelectorAll('#pane button')].find(b => b.textContent.startsWith('Reset all settings')).click()`); await sleep(300);
+check('Reset opens a confirmation popup in the shared dialog style', await p.q(`!document.getElementById('dlg').hidden && document.getElementById('dTitle').textContent === 'Reset all settings?'`));
+await p.ev(`[...document.querySelectorAll('#dFoot button')].find(b => b.textContent === 'Cancel').click()`); await sleep(200);
+check('Cancel changes nothing', (await p.invoke('get_state')).ok.settings.style.radius === 33);
+await p.ev(`[...document.querySelectorAll('#pane button')].find(b => b.textContent.startsWith('Reset all settings')).click()`); await sleep(300);
+await p.ev(`[...document.querySelectorAll('#dFoot button')].find(b => b.textContent === 'Reset everything').click()`); await sleep(2500);
+const R = (await p.invoke('get_state')).ok;
+check('Reset restores defaults (style, animation, secure link off, plain link)', R.settings.style.radius === 8 && R.settings.style.opacity === 1 && R.settings.animation.speed === 120 && R.secureLink === false && R.url === 'http://localhost:7879/', JSON.stringify([R.settings.style.radius, R.secureLink, R.url]));
+check('Reset keeps the layouts you made', (await api()).some(l => l.id === keep) && R.settings.layout.id === 'tkl');
+await p.invoke('delete_layout', { id: keep });
+
 // ---- the 20 layout limit
 for (let i = 0; i < 20; i++) await p.invoke('create_layout', { name: 'Fill ' + i });
 await tab('Layout'); await sleep(400);

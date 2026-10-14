@@ -114,7 +114,7 @@ fn clean_labels(v: Option<&Value>) -> Value {
         .filter(|(k, x)| k.len() <= 40 && x.as_str().is_some_and(|s| s.chars().count() <= 16))
         .take(300).map(|(k, x)| (k.clone(), x.clone())).collect()).unwrap_or_default())
 }
-fn clean_profiles(v: &Value) -> Value {
+pub fn clean_profiles(v: &Value) -> Value {
     let mut out = Map::new();
     if let Some(o) = v.as_object() {
         for (id, p) in o.iter().filter(|(id, _)| is_id(id)).take(50) {

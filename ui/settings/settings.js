@@ -150,6 +150,18 @@ const TABS = {
     cards.append(el('div', { className: 'card add', title: 'Add a layout', onclick: addLayoutDialog },
       el('span', { className: 'plus', textContent: '+' }), el('small', { textContent: `${mine}/${MAX_LAYOUTS} layouts` })));
     p.append(cards);
+    const exp = el('button', { textContent: 'Export layouts', disabled: !layouts.some(l => l.user), title: 'Save the layouts you made (with their key edits) to a file',
+      onclick: async () => { try { const n = await invoke('export_layouts'); if (n) toast(`Exported ${n} layout${n === 1 ? '' : 's'}`); } catch (e) { toast(String(e), true); } } });
+    const imp = el('button', { textContent: 'Import layouts', title: 'Add layouts from a file someone shared (or that you exported)',
+      onclick: async () => {
+        try {
+          const r = await invoke('import_layouts'); if (!r) return;
+          const [added, skipped] = r;
+          toast(added ? `Imported ${added} layout${added === 1 ? '' : 's'}` + (skipped ? `, skipped ${skipped}` : '') : 'Nothing imported' + (skipped ? ` (${skipped} skipped: empty, or the 20-layout limit)` : ''), !added);
+          layouts = await call('list_layouts'); render();
+        } catch (e) { toast(String(e), true); }
+      } });
+    p.append(el('div', { className: 'btns' }, imp, exp));
     return p;
   },
 
@@ -388,6 +400,7 @@ const TABS = {
     p.append(toggle('general.openOnLaunch', 'Open this window on launch'));
     p.append(el('div', { className: 'btns' },
       el('button', { textContent: 'Open data folder', onclick: () => call('open_folder', { kind: 'root' }) }),
+      el('button', { className: 'danger', textContent: 'Reset all settings…', onclick: resetDialog }),
       el('button', { className: 'danger', textContent: 'Quit app', onclick: () => call('quit_app') })));
     // Group everything under its heading, then show the sections in a sensible order: connecting OBS first, updates last.
     const groups = new Map(); let cur = null;
@@ -646,7 +659,7 @@ function dialog({ title, body, buttons }) {
   $('#dBody').replaceChildren(...body);
   const close = () => { $('#dlg').hidden = true; document.removeEventListener('keydown', onKey); };
   const onKey = e => { if (e.key === 'Escape') close(); };
-  $('#dFoot').replaceChildren(...buttons.map(b => el('button', { type: 'button', className: b.primary ? 'primary' : '', textContent: b.label,
+  $('#dFoot').replaceChildren(...buttons.map(b => el('button', { type: 'button', className: b.primary ? 'primary' : b.danger ? 'danger' : '', textContent: b.label,
     onclick: async () => { if (!b.run || (await b.run()) !== false) close(); } })));
   $('#dlg').hidden = false; document.addEventListener('keydown', onKey);
   return close;
@@ -669,4 +682,16 @@ function addLayoutDialog() {
   dialog({ title: 'New layout', body: [el('p', { textContent: 'It starts as the full-size keyboard. You then pick which keys to keep or hide on the Keys tab.' }), nameIn],
     buttons: [{ label: 'Cancel' }, { label: 'Create', primary: true, run: async () => (await make()) ? true : false }] });
   nameIn.focus();
+}
+
+function resetDialog() {
+  dialog({
+    title: 'Reset all settings?',
+    body: [el('p', { textContent: 'Style, animation, key edits, keyboard input, secure link, start-with-Windows and the other options go back to their defaults. Your own layouts, presets and fonts are kept, and so is your port.' }),
+      el('p', { textContent: 'If the secure link was on, your OBS link goes back to the plain address, so paste it into OBS again.' })],
+    buttons: [{ label: 'Cancel' }, { label: 'Reset everything', danger: true, run: async () => {
+      try { obsUrl = await invoke('reset_settings'); frame.src = previewSrc(); updateObs(); toast('All settings reset'); return true; }
+      catch (e) { toast(String(e), true); return false; }
+    } }],
+  });
 }

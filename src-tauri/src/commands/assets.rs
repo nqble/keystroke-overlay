@@ -131,3 +131,137 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
     crate::state::sync_tray(&app);
     Ok(())
 }
+
+// ---------------------------------------------------------------- export / import of the layouts the user made
+const FILE_TAG: &str = "keystroke-overlay-layouts";
+const MAX_USER_LAYOUTS: usize = 20;
+
+fn slug(name: &str) -> String {
+    let s: String = name.to_lowercase().chars().map(|c| if c.is_ascii_alphanumeric() { c } else { '-' }).collect::<String>().trim_matches('-').chars().take(30).collect();
+    if s.is_empty() { "layout".into() } else { s }
+}
+
+/// The document written by "Export layouts": every layout the user made plus their key edits (hidden keys, labels).
+pub fn export_doc(all: &[Value], settings: &Value) -> Result<Value, String> {
+    let mine: Vec<&Value> = all.iter().filter(|l| l["user"] == true).collect();
+    if mine.is_empty() { return Err("You haven't made any layouts yet".into()); }
+    let layouts: Vec<Value> = mine.iter().map(|l| serde_json::json!({ "id": l["id"], "name": l["name"], "keys": l["keys"] })).collect();
+    let mut profiles = serde_json::Map::new();
+    for l in &mine {
+        if let Some(p) = l["id"].as_str().and_then(|id| settings["layout"]["profiles"].get(id)) { profiles.insert(l["id"].as_str().unwrap().to_string(), p.clone()); }
+    }
+    Ok(serde_json::json!({ "format": FILE_TAG, "version": 1, "layouts": layouts, "profiles": profiles }))
+}
+
+/// Reads an exported file (or a single hand-written layout), cleans it, and writes the new layouts into `dir`.
+/// Returns (imported ids with their cleaned key edits, number skipped). Ids that already exist get a number added.
+pub fn import_doc(top: &Value, existing: &[Value], dir: &std::path::Path) -> Result<(Vec<(String, Value)>, usize), String> {
+    let items: Vec<Value> = match top["layouts"].as_array() {
+        Some(a) => a.clone(),
+        None if top["keys"].is_array() => vec![top.clone()],
+        None => return Err("This file doesn't contain any layouts".into()),
+    };
+    let mut have: Vec<String> = existing.iter().filter_map(|l| l["id"].as_str().map(String::from)).collect();
+    let mut count = existing.iter().filter(|l| l["user"] == true).count();
+    let (mut out, mut skipped) = (Vec::new(), 0);
+    std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    for it in items.iter().take(MAX_USER_LAYOUTS) {
+        let name: String = it["name"].as_str().unwrap_or("Imported layout").trim().chars().filter(|c| !c.is_control()).take(30).collect();
+        let keys: Vec<Value> = it["keys"].as_array().map(|a| a.iter().take(300).filter(|k| {
+            k["code"].as_str().is_some_and(|c| !c.is_empty() && c.len() <= 40) && k["x"].is_number() && k["y"].is_number()
+        }).map(|k| {
+            let mut o = serde_json::json!({ "code": k["code"], "x": k["x"], "y": k["y"] });
+            for f in ["w", "h"] { if k[f].is_number() { o[f] = k[f].clone(); } }
+            if let Some(l) = k["label"].as_str() { o["label"] = Value::String(l.chars().take(16).collect()); }
+            o
+        }).collect()).unwrap_or_default();
+        if keys.is_empty() || name.is_empty() || count >= MAX_USER_LAYOUTS { skipped += 1; continue; }
+        let base = slug(it["id"].as_str().unwrap_or(&name));
+        let (mut id, mut n) = (base.clone(), 2);
+        while have.contains(&id) { id = format!("{base}-{n}"); n += 1; }
+        let doc = serde_json::json!({ "id": id, "name": name, "keys": keys });
+        std::fs::write(dir.join(format!("{id}.json")), serde_json::to_string_pretty(&doc).unwrap()).map_err(|e| e.to_string())?;
+        let old_id = it["id"].as_str().unwrap_or("");
+        let prof = crate::settings::clean_profiles(&serde_json::json!({ "x": top["profiles"].get(old_id).cloned().unwrap_or(Value::Null) }));
+        out.push((id.clone(), prof["x"].clone()));
+        have.push(id); count += 1;
+    }
+    Ok((out, skipped))
+}
+
+#[tauri::command]
+pub async fn export_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<Option<usize>, String> {
+    let all = server::layouts(&st.shared.paths);
+    let doc = export_doc(&all, &st.shared.settings.read().unwrap())?;
+    let Some(p) = app.dialog().file().add_filter("Keystroke Overlay layouts", &["json"]).set_file_name("my-layouts.json").blocking_save_file() else { return Ok(None) };
+    let path = p.into_path().map_err(|e| e.to_string())?;
+    std::fs::write(path, serde_json::to_string_pretty(&doc).unwrap()).map_err(|e| e.to_string())?;
+    Ok(Some(doc["layouts"].as_array().map_or(0, |a| a.len())))
+}
+
+/// Returns None if the user cancelled, otherwise (layouts added, layouts skipped).
+#[tauri::command]
+pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<Option<(usize, usize)>, String> {
+    let Some(p) = app.dialog().file().add_filter("Keystroke Overlay layouts", &["json"]).blocking_pick_file() else { return Ok(None) };
+    let path = p.into_path().map_err(|e| e.to_string())?;
+    if std::fs::metadata(&path).map_err(|e| e.to_string())?.len() > 2_000_000 { return Err("That file is too big to be a layout file".into()); }
+    let top: Value = serde_json::from_str(&std::fs::read_to_string(path).map_err(|e| e.to_string())?).map_err(|_| "That isn't a valid layout file")?;
+    let (added, skipped) = import_doc(&top, &server::layouts(&st.shared.paths), &st.shared.paths.user("layouts"))?;
+    {
+        let mut s = st.shared.settings.write().unwrap();
+        for (id, prof) in &added {
+            let empty = prof["disabledKeys"].as_array().is_none_or(|a| a.is_empty()) && prof["labels"].as_object().is_none_or(|o| o.is_empty());
+            if !empty { s["layout"]["profiles"][id] = prof.clone(); }
+        }
+        crate::settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+    }
+    crate::tray::refresh_tray_layouts(&app);
+    crate::state::announce(&app);
+    Ok(Some((added.len(), skipped)))
+}
+
+#[cfg(test)]
+mod layout_file_tests {
+    use super::*;
+    use serde_json::json;
+    fn tmp(name: &str) -> std::path::PathBuf { let d = std::env::temp_dir().join(format!("ko-test-{name}-{}", std::process::id())); let _ = std::fs::remove_dir_all(&d); d }
+    fn layout(id: &str, user: bool) -> Value { json!({ "id": id, "name": id, "user": user, "keys": [{ "code": "KeyA", "x": 0, "y": 0, "label": "A" }] }) }
+
+    #[test]
+    fn export_needs_a_user_layout_and_keeps_key_edits() {
+        assert!(export_doc(&[layout("tkl", false)], &json!({})).is_err());
+        let s = json!({ "layout": { "profiles": { "mine": { "disabledKeys": ["KeyB"], "labels": {} }, "tkl": { "disabledKeys": ["KeyC"], "labels": {} } } } });
+        let d = export_doc(&[layout("tkl", false), layout("mine", true)], &s).unwrap();
+        assert_eq!(d["layouts"].as_array().unwrap().len(), 1);
+        assert!(d["layouts"][0].get("user").is_none());
+        assert_eq!(d["profiles"]["mine"]["disabledKeys"], json!(["KeyB"]));
+        assert!(d["profiles"].get("tkl").is_none());
+    }
+
+    #[test]
+    fn import_round_trip_renames_clashes_and_cleans_bad_data() {
+        let dir = tmp("import");
+        let doc = json!({ "layouts": [
+            { "id": "tkl", "name": "Mine", "keys": [{ "code": "KeyA", "x": 0, "y": 0 }, { "code": 5, "x": 0, "y": 0 }, { "code": "KeyB" }] },
+            { "id": "empty", "name": "No keys", "keys": [] } ],
+            "profiles": { "tkl": { "disabledKeys": ["KeyA", 7], "labels": { "KeyA": "ok" } } } });
+        let (added, skipped) = import_doc(&doc, &[layout("tkl", false)], &dir).unwrap();
+        assert_eq!(skipped, 1);
+        assert_eq!(added[0].0, "tkl-2");
+        let saved: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("tkl-2.json")).unwrap()).unwrap();
+        assert_eq!(saved["keys"].as_array().unwrap().len(), 1);
+        assert_eq!(added[0].1["disabledKeys"], json!(["KeyA"]));
+        assert!(import_doc(&json!({ "nothing": 1 }), &[], &dir).is_err());
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn import_stops_at_twenty_layouts() {
+        let dir = tmp("cap");
+        let existing: Vec<Value> = (0..19).map(|i| layout(&format!("u{i}"), true)).collect();
+        let doc = json!({ "layouts": [ layout("a", true), layout("b", true), layout("c", true) ] });
+        let (added, skipped) = import_doc(&doc, &existing, &dir).unwrap();
+        assert_eq!((added.len(), skipped), (1, 2));
+        let _ = std::fs::remove_dir_all(dir);
+    }
+}

@@ -165,7 +165,7 @@ async fn api_modules(State(st): State<St>) -> Json<Value> {
 }
 
 /// A layout must have an id and a list of keys that each have a code and x/y position.
-fn valid_layout(v: &Value) -> bool {
+pub fn valid_layout(v: &Value) -> bool {
     v["id"].as_str().is_some_and(|s| !s.is_empty())
         && v["keys"].as_array().is_some_and(|k| k.iter().all(|k| k["code"].is_string() && k["x"].is_number() && k["y"].is_number()))
 }
