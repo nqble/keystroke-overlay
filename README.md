@@ -1,9 +1,6 @@
 # ⌨ Keystroke Overlay
 
-**Show your keystrokes on stream.** Keystroke Overlay puts a live on-screen keyboard into OBS. Press a key and the matching
-key lights up, so viewers can see exactly what you're doing, whether that's a speedrun, a gameplay clip, or a tutorial.
-It runs quietly in your system tray, works even while a game has focus, and the keyboard you see on stream is entirely yours
-to design: layout, colors, fonts and animations.
+A Windows app that shows your keyboard presses live in OBS, for streams and recordings. Customize the layout and style.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/nqble/keystroke-overlay)](../../releases/latest)
