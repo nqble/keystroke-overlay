@@ -6,6 +6,23 @@ import { animations, themes, easings } from '/overlay/registry.js';
 const PAD = 16; // room around the keys so glows aren't clipped
 const params = new URLSearchParams(location.search);
 const PREVIEW = params.has('preview') && window.parent !== window;
+
+// Optional secure link: the address carries ?key=... and every data request / the WebSocket must repeat it.
+const KEY = params.get('key');
+const withKey = u => KEY ? u + (u.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(KEY) : u;
+function showLocked() {
+  if (PREVIEW) parent.postMessage({ type: 'locked' }, '*');
+  if (document.getElementById('locked')) return;
+  const d = document.createElement('div'); d.id = 'locked';
+  d.style.cssText = 'position:fixed;left:8px;top:8px;max-width:420px;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",sans-serif';
+  d.textContent = '🔒 This overlay link is secured. Copy the current link from Keystroke Overlay (General → Secure link) into this OBS source.';
+  document.body.append(d);
+}
+const getJson = async u => {
+  const r = await fetch(withKey(u));
+  if (r.status === 401) { showLocked(); throw new Error('locked'); }
+  return r.json();
+};
 if (PREVIEW) document.body.classList.add('preview');
 
 const stage = document.getElementById('stage');
@@ -16,8 +33,8 @@ const held = new Set();     // codes currently down (kept across rebuilds)
 
 // ------------------------------------------------------------ module loading
 async function loadModules() {
-  const m = await (await fetch('/api/modules')).json();
-  await Promise.all([...m.animations, ...m.themes].map(u => import(u).catch(e => console.warn('module failed', u, e))));
+  const m = await getJson('/api/modules');
+  await Promise.all([...m.animations, ...m.themes].map(u => import(u.startsWith('/user/') ? withKey(u) : u).catch(e => console.warn('module failed', u, e))));
 }
 
 // ------------------------------------------------------------ rendering
@@ -25,7 +42,7 @@ function fontFaceCss(files) {
   return files.map(f => {
     const fam = f.replace(/\.[^.]+$/, '');
     const fmt = { ttf: 'truetype', otf: 'opentype', woff: 'woff', woff2: 'woff2' }[f.split('.').pop().toLowerCase()];
-    return `@font-face{font-family:"${fam}";src:url("/fonts/${encodeURIComponent(f)}")${fmt ? ` format("${fmt}")` : ''};font-display:block}`;
+    return `@font-face{font-family:"${fam}";src:url("${withKey('/fonts/' + encodeURIComponent(f))}")${fmt ? ` format("${fmt}")` : ''};font-display:block}`;
   }).join('\n');
 }
 
@@ -132,13 +149,13 @@ function releaseAll() { for (const c of [...held]) setKey(c, false); }
 
 // ------------------------------------------------------------ data + socket
 async function loadFonts() {
-  fontFiles = await (await fetch('/api/fonts')).json();
+  fontFiles = await getJson('/api/fonts');
   document.getElementById('fonts').textContent = fontFaceCss(fontFiles);
   // Ensure custom fonts are ready before measuring/painting.
   await Promise.all(fontFiles.map(f => document.fonts.load(`16px "${f.replace(/\.[^.]+$/, '')}"`).catch(() => {})));
 }
 async function refresh() {
-  const [cfg, ly] = await Promise.all([fetch('/api/config').then(r => r.json()), fetch('/api/layouts').then(r => r.json())]);
+  const [cfg, ly] = await Promise.all([getJson('/api/config'), getJson('/api/layouts')]);
   layouts = ly;
   await loadFonts();
   apply(cfg.settings);
@@ -147,7 +164,7 @@ async function refresh() {
 
 let ws, retry = 0;
 function connect() {
-  ws = new WebSocket(`ws://${location.host}/ws`);
+  ws = new WebSocket(withKey(`ws://${location.host}/ws`));
   ws.onopen = () => { retry = 0; };
   ws.onmessage = e => {
     const m = JSON.parse(e.data);

@@ -6,7 +6,7 @@
 //!   the WebSocket and watching your keystrokes.
 
 use crate::keyboard::{Bus, KeyEvent};
-use crate::settings::Paths;
+use crate::settings::{public_settings, Paths};
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{Path, Request, State};
 use axum::http::{header, HeaderValue, StatusCode};
@@ -86,9 +86,29 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
     if !host_ok || !origin_ok {
         return StatusCode::FORBIDDEN.into_response();
     }
+    // Optional secure link: the data endpoints and the key-press stream need the private key. The overlay's own page and
+    // scripts (/ and /overlay/*) are open-source code with nothing private in them, so they stay open.
+    if is_protected(req.uri().path()) && !key_ok(&st.shared.settings.read().unwrap(), req.uri().query()) {
+        return (StatusCode::UNAUTHORIZED, "This overlay link is secured. Copy the current link from Keystroke Overlay (General > Secure link).").into_response();
+    }
     let mut r = next.run(req).await;
     r.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     r
+}
+
+/// Paths that need the key when the secure link is on.
+fn is_protected(path: &str) -> bool {
+    path.starts_with("/api/") || path == "/ws" || path.starts_with("/fonts/") || path.starts_with("/user/")
+}
+
+/// True if the secure link is off, or the request carries the right `key=` (compared in constant time).
+pub fn key_ok(settings: &Value, query: Option<&str>) -> bool {
+    let g = &settings["general"];
+    if !g["secureLink"].as_bool().unwrap_or(false) { return true; }
+    let want = g["linkKey"].as_str().unwrap_or("");
+    if want.is_empty() { return false; }   // secure link on but no key: refuse everything rather than open up
+    let got = query.and_then(|q| q.split('&').find_map(|kv| kv.strip_prefix("key="))).unwrap_or("");
+    got.len() == want.len() && got.bytes().zip(want.bytes()).fold(0u8, |acc, (a, b)| acc | (a ^ b)) == 0
 }
 
 fn mime(name: &str) -> &'static str {
@@ -133,7 +153,7 @@ async fn serve_font(State(st): State<St>, Path(file): Path<String>) -> Response 
 }
 
 async fn api_config(State(st): State<St>) -> Json<Value> {
-    Json(json!({ "settings": *st.shared.settings.read().unwrap(), "port": st.port, "paused": st.shared.bus.paused.load(Ordering::Relaxed) }))
+    Json(json!({ "settings": public_settings(&st.shared.settings.read().unwrap()), "port": st.port, "paused": st.shared.bus.paused.load(Ordering::Relaxed) }))
 }
 async fn api_layouts(State(st): State<St>) -> Json<Value> { Json(json!(layouts(&st.shared.paths))) }
 async fn api_fonts(State(st): State<St>) -> Json<Value> { Json(json!(font_files(&st.shared.paths))) }
@@ -196,7 +216,7 @@ fn ev_msg(e: KeyEvent) -> Message {
 fn cfg_msg(st: &St, kind: &str) -> Message {
     if kind == "assets" { return Message::Text(r#"{"t":"assets"}"#.into()); }
     let paused = st.shared.bus.paused.load(Ordering::Relaxed);
-    Message::Text(json!({ "t": "cfg", "s": *st.shared.settings.read().unwrap(), "paused": paused }).to_string().into())
+    Message::Text(json!({ "t": "cfg", "s": public_settings(&st.shared.settings.read().unwrap()), "paused": paused }).to_string().into())
 }
 fn snapshot(st: &St) -> Message {
     let held: Vec<&str> = if st.shared.bus.paused.load(Ordering::Relaxed) { vec![] } else { st.shared.bus.held.lock().unwrap().iter().copied().collect() };
@@ -226,5 +246,37 @@ async fn client(mut sock: WebSocket, st: St) {
             _ = sd.changed() => break,
         };
         if sock.send(msg).await.is_err() { break; }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn cfg(on: bool, key: &str) -> Value { json!({ "general": { "secureLink": on, "linkKey": key } }) }
+    #[test]
+    fn open_when_secure_link_is_off() {
+        assert!(key_ok(&cfg(false, ""), None));
+        assert!(key_ok(&cfg(false, "abc"), Some("key=wrong")));
+    }
+    #[test]
+    fn requires_the_exact_key_when_on() {
+        let c = cfg(true, "0123456789abcdef0123456789abcdef");
+        assert!(key_ok(&c, Some("key=0123456789abcdef0123456789abcdef")));
+        assert!(key_ok(&c, Some("preview=1&key=0123456789abcdef0123456789abcdef")));
+        assert!(!key_ok(&c, None));
+        assert!(!key_ok(&c, Some("key=")));
+        assert!(!key_ok(&c, Some("key=0123456789abcdef0123456789abcdee")));
+        assert!(!key_ok(&c, Some("key=0123456789abcdef0123456789abcdef0")));
+        assert!(!key_ok(&c, Some("notkey=0123456789abcdef0123456789abcdef")));
+    }
+    #[test]
+    fn secure_link_on_without_a_key_refuses_everything() {
+        assert!(!key_ok(&cfg(true, ""), None));
+        assert!(!key_ok(&cfg(true, ""), Some("key=")));
+    }
+    #[test]
+    fn only_data_endpoints_are_protected() {
+        for p in ["/api/config", "/api/layouts", "/ws", "/fonts/a.ttf", "/user/animations/x.js"] { assert!(is_protected(p), "{p}"); }
+        for p in ["/", "/overlay/overlay.js", "/overlay/animations/glow.js"] { assert!(!is_protected(p), "{p}"); }
     }
 }

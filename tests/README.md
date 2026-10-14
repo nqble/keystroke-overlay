@@ -12,7 +12,7 @@ Three layers, from quick to thorough:
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -21,6 +21,9 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `input-methods` — Standard (hook) and Compatibility (Raw Input) deliver identical key sequences (repeats dropped,
   extended keys, overlapping keys, PrintScreen), switching live never doubles/loses events or leaks threads, a key held
   during a switch is released, an 8000-event flood is delivered, idle CPU is ~0, and the General-tab help text is right.
+- `secure-link` — the optional secure link: off by default; when on, data endpoints and the key-press stream are refused
+  without the private key (wrong/missing key → 401, right key → allowed), the key never reaches the overlay, the live preview
+  keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.
 - `smoke` — every command group, tray actions (pause / layout / restart server), settings broadcast over the WebSocket, the
   green update button and dialog, path-traversal and link-blocking guards, a check that **every socket the app holds is
   loopback-only**, and a real signed update: download with progress → signature verified → installer launched.

@@ -23,6 +23,10 @@ pub fn defaults() -> Value {
             "autoCheckUpdates": true,
             // How keys are read: "hook" (standard, default) or "rawinput" (compatibility, for games that block hooks).
             "inputMethod": "hook",
+            // Optional "secure link": when on, the overlay link carries a private key (?key=...) and the local server refuses
+            // requests without it. Off by default (plain link, no extra step). The key is never sent to the overlay itself.
+            "secureLink": false,
+            "linkKey": "",
             // "stable" = only releases that were promoted to the Stable channel; "latest" = every release.
             "updateChannel": "stable",
             // Last app version the user has seen the "What's new" window for (managed by the app).
@@ -161,6 +165,7 @@ pub fn sanitize(v: &mut Value, def: &Value) {
                     Some(s) if path == "layout.id" => is_id(s),
                     Some(s) if path == "general.updateChannel" => s == "stable" || s == "latest",
                     Some(s) if path == "general.inputMethod" => s == "hook" || s == "rawinput",
+                    Some(s) if path == "general.linkKey" => s.is_empty() || (s.len() >= 32 && s.len() <= 64 && s.chars().all(|c| c.is_ascii_hexdigit())),
                     Some(s) => is_ident(s),
                     None => false,
                 };
@@ -171,6 +176,20 @@ pub fn sanitize(v: &mut Value, def: &Value) {
         }
     }
     walk(v, def, "");
+}
+
+/// A fresh private link key: 128 bits from the operating system's secure random generator, as 32 hex characters.
+pub fn new_key() -> Result<String, String> {
+    let mut b = [0u8; 16];
+    getrandom::fill(&mut b).map_err(|e| format!("couldn't create a secure key: {e}"))?;
+    Ok(b.iter().map(|x| format!("{x:02x}")).collect())
+}
+
+/// Settings as the overlay is allowed to see them: everything except the private link key.
+pub fn public_settings(v: &Value) -> Value {
+    let mut s = v.clone();
+    if let Some(g) = s.get_mut("general").and_then(|g| g.as_object_mut()) { g.remove("linkKey"); }
+    s
 }
 
 /// Deep-merge `src` into `dst` (objects recurse, everything else replaces).
@@ -291,6 +310,29 @@ mod tests {
         assert_eq!(migrate(json!({ "version": 2, "general": { "inputMethod": "rawinput" } }))["general"]["inputMethod"], json!("rawinput"));
         assert_eq!(migrate(json!({ "version": 2, "general": { "inputMethod": "driver" } }))["general"]["inputMethod"], json!("hook"));
         assert_eq!(migrate(json!({ "version": 2, "general": { "inputMethod": 3 } }))["general"]["inputMethod"], json!("hook"));
+    }
+    #[test]
+    fn secure_link_defaults_off_and_key_is_validated() {
+        let m = migrate(json!({ "version": 2 }));
+        assert_eq!(m["general"]["secureLink"], json!(false));
+        assert_eq!(m["general"]["linkKey"], json!(""));
+        let good = "0123456789abcdef0123456789abcdef";
+        assert_eq!(migrate(json!({ "version": 2, "general": { "secureLink": true, "linkKey": good } }))["general"]["linkKey"], json!(good));
+        for bad in ["short", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "../../etc", &"a".repeat(65)] {
+            assert_eq!(migrate(json!({ "version": 2, "general": { "linkKey": bad } }))["general"]["linkKey"], json!(""), "{bad}");
+        }
+        assert_eq!(migrate(json!({ "version": 2, "general": { "secureLink": "yes" } }))["general"]["secureLink"], json!(false));
+    }
+    #[test]
+    fn new_keys_are_random_hex_and_never_shown_to_the_overlay() {
+        let (a, b) = (new_key().unwrap(), new_key().unwrap());
+        assert_eq!(a.len(), 32);
+        assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
+        assert_ne!(a, b);
+        let mut s = defaults(); s["general"]["linkKey"] = json!(a);
+        let p = public_settings(&s);
+        assert!(p["general"].get("linkKey").is_none());
+        assert_eq!(p["general"]["port"], s["general"]["port"]);   // everything else is kept
     }
     #[test]
     fn corrupt_settings_fall_back_to_the_backup() {

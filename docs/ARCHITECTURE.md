@@ -59,6 +59,10 @@ key press → capture method on its own thread:
   live: `Bus::set_method` stops the old source, releases any held keys, starts the new one, and falls back to the old one if
   the new one can't start. The framework's own Raw Input registration is disabled at startup (`device_event_filter(Always)`)
   because registrations are per process and would compete with ours.
+- **Secure link (optional, off by default):** `general.secureLink` + a random 128-bit `general.linkKey`. When on, `server.rs` requires
+  `?key=` (constant-time compare) on `/api/*`, `/ws`, `/fonts/*` and `/user/*`; the page and `/overlay/*` stay open (public code). `obs_url()`
+  appends the key, the overlay repeats it on every request and the WebSocket, and `public_settings()` strips the key from everything the
+  overlay receives. Toggling or regenerating restarts the server so old connections drop.
 - Only *state changes* are sent (OS key-repeat is filtered). Nothing is stored; see [PRIVACY.md](../PRIVACY.md).
 - When settings change, the server pushes them **inside the WebSocket message** (`{"t":"cfg","s":{…}}`), so the overlay
   doesn't re-fetch anything. Fonts/layout changes send `{"t":"assets"}` instead.

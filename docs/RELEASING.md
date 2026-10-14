@@ -31,7 +31,8 @@ The repository has a **Release** workflow (`.github/workflows/release.yml`) that
 One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): add the repository secret `TAURI_SIGNING_PRIVATE_KEY`
 (the text of your `updater.key`), and optionally an environment named `release` with yourself as a required reviewer.
 
-Each release:
+Each release (or just tell Claude "release v1.2.0": it can start the workflow for you with the GitHub command-line tool, and you only
+have to approve it — from the website or the GitHub phone app):
 1. Raise the version (`src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `package.json`) and add the CHANGELOG entry — Claude can do both.
 2. GitHub → **Actions → Release → Run workflow** → type the version to confirm → **Run** (or push a tag named `v<version>`).
 3. It checks the version/tag/CHANGELOG match and that the release doesn't already exist, runs `npm test`, builds and signs the

@@ -30,8 +30,12 @@ pub struct AppState {
 pub fn port_of(s: &Shared) -> u16 {
     s.settings.read().unwrap()["general"]["port"].as_u64().unwrap_or(7878) as u16
 }
+/// The address to paste into OBS. With the optional secure link on it carries the private key.
 pub fn obs_url(s: &Shared) -> String {
-    format!("http://localhost:{}/", port_of(s))
+    let base = format!("http://localhost:{}/", port_of(s));
+    let st = s.settings.read().unwrap();
+    let key = st["general"]["linkKey"].as_str().unwrap_or("");
+    if st["general"]["secureLink"].as_bool().unwrap_or(false) && !key.is_empty() { format!("{base}?key={key}") } else { base }
 }
 
 /// Re-check the tray's Pause / Layout items to match the real state.

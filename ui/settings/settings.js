@@ -267,6 +267,32 @@ const TABS = {
     p.append(el('h2', { textContent: 'OBS' }));
     p.append(row('Browser Source URL', el('input', { value: obsUrl, readOnly: true }), el('button', { className: 'primary', textContent: 'Copy', onclick: copyUrl })));
     p.append(el('p', { className: 'note', id: 'sizeNote', textContent: sizeText() }));
+    // ---- optional secure link
+    p.append(el('h2', { textContent: 'Secure link' }));
+    const SL_OFF = '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this PC can read your key presses through it. Turn this on if you share the PC or want that closed.';
+    const SL_ON = '**On:** your OBS link now contains a private key, and only a program that knows the full link can read your key presses. **Copy the new link into your OBS Browser Source once** — the old link stops working. Keep the link off your stream. “Make a new key” cuts off anyone who has the old one.';
+    const slCb = el('input', { type: 'checkbox', checked: !!S.general.secureLink });
+    const slNote = el('div', { className: 'note' });
+    const newKey = el('button', { className: 'danger', textContent: 'Make a new key' });
+    const slBtns = el('div', { className: 'btns', hidden: !S.general.secureLink }, el('button', { className: 'primary', textContent: 'Copy secure link', onclick: copyUrl }), newKey);
+    const paintSL = on => { slNote.replaceChildren(md(on ? SL_ON : SL_OFF)); slBtns.hidden = !on; };
+    const applyUrl = url => { obsUrl = url; updateObs(); frame.src = previewSrc(); };   // reload the live preview with the new link
+    slCb.onchange = async () => {
+      const want = slCb.checked; slCb.disabled = true;
+      try {
+        applyUrl(await invoke('set_secure_link', { enabled: want })); S.general.secureLink = want; updateObs();
+        toast(want ? 'Secure link on — copy the new link into OBS.' : 'Secure link off.');
+      } catch (e) { slCb.checked = !want; toast(String(e), true); }
+      slCb.disabled = false; paintSL(slCb.checked);
+    };
+    let armedKey = 0;
+    newKey.onclick = async () => {
+      if (!armedKey) { newKey.textContent = 'Click again to confirm'; armedKey = setTimeout(() => { armedKey = 0; newKey.textContent = 'Make a new key'; }, 3500); return; }
+      clearTimeout(armedKey); armedKey = 0; newKey.textContent = 'Make a new key';
+      try { applyUrl(await invoke('regenerate_link_key')); toast('New key made — copy the new link into OBS.'); } catch (e) { toast(String(e), true); }
+    };
+    paintSL(!!S.general.secureLink);
+    p.append(row('Secure my OBS link', slCb), slNote, slBtns);
     p.append(el('h2', { textContent: 'Server' }));
     const port = el('input', { type: 'number', min: 1024, max: 65535, value: S.general.port, style: 'width:100px' });
     p.append(row('Port', port, el('button', {
@@ -510,6 +536,7 @@ $('#uGo').onclick = async () => {
 function paintPause() { $('#pausebar').hidden = !paused; }
 $('#resumeBtn').onclick = async () => { await call('toggle_pause'); };
 async function resync() {
+  try { const s0 = await invoke('get_state'); obsUrl = s0.url; } catch { /* keep the old address */ }
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; try { await invoke('save_settings', { settings: S }); } catch {} }   // never lose a pending edit
   const st = await invoke('get_state');
   S = st.settings; paused = st.paused; inputActive = st.inputActive; inputError = st.inputError; paintPause();
@@ -523,13 +550,14 @@ ev.listen('settings-changed', resync);
 const sizeText = () => size ? `Recommended Browser Source size: ${size.w} × ${size.h}` : '';
 function updateObs() {
   $('#obsUrl').value = obsUrl;
+  $('#obsUrl').type = S?.general?.secureLink ? 'password' : 'text';   // a secured link is hidden on screen (Copy still copies it)
   $('#obsSize').textContent = size ? `Size: ${size.w}×${size.h}` : '';
   const n = $('#sizeNote'); if (n) n.textContent = sizeText();
 }
 async function copyUrl() { await call('copy_text', { text: obsUrl }); toast('OBS URL copied'); }
 $('#copyUrl').onclick = copyUrl;
 
-const previewSrc = () => obsUrl.replace(/\/$/, '') + '/?preview=1';
+const previewSrc = () => { const u = new URL(obsUrl); u.searchParams.set('preview', '1'); return u.toString(); };   // keeps ?key= when the link is secured
 async function reloadFonts() { customFonts = await call('list_fonts'); }
 
 // Scale the preview iframe to fit its box.

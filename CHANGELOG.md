@@ -6,6 +6,7 @@ All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-S
 
 **✨ New**
 - **Keyboard input method:** General → Keyboard input lets you pick **Standard** (what the app always used) or **Compatibility** (Windows Raw Input). If keys don't light up in one particular game, try Compatibility. You can switch live, no restart.
+- **Secure link (optional):** a new toggle in General → Secure link. Off by default, so your OBS link stays simple. Turn it on and the link carries a private key, so only a program that knows the full link can read your key presses. Paste the new link into OBS once. Hit "Make a new key" to cut off old links.
 - **Update button:** a little green circle appears in the corner when a new version is out. Click it, read the notes, hit **Update now**. It never installs behind your back.
 - **Stable or Latest:** pick your pace in General → Program updates. **Stable** gets the main releases (1.2.0, 1.3.0…) and is recommended; **Latest** also gets every small fix in between (1.2.1…).
 - **Automatic update check:** on by default, one click to turn off. It only peeks at GitHub, at most once every 6 hours.

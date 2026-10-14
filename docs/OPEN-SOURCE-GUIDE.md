@@ -55,14 +55,53 @@ Because the repo already has your placeholder README, GitHub Desktop may ask you
 
 ## 5. Releasing, with almost no input
 
-1. Ask Claude to prepare the release ("prepare v1.2.1"): it raises the version number and writes the CHANGELOG entry in
-   the friendly tone.
-2. On GitHub: **Actions → Release → Run workflow**, type the version number to confirm, press **Run**
-   (and press **Approve** if you added yourself as a reviewer).
-3. GitHub builds, tests, signs and publishes the release by itself, with the CHANGELOG text as the notes. A `x.y.0` version
-   (like 1.2.0) is also published to the **Stable** channel automatically; a patch (1.2.1) goes to **Latest** only.
+### The words, in plain language
 
-Details and the manual fallback are in [RELEASING.md](RELEASING.md).
+- **GitHub Actions** is GitHub's built-in helper robot. It runs jobs on GitHub's own computers, not yours.
+- A **workflow** is one job written down as a recipe. Ours is called **Release**. Its recipe is: *check everything is in order → run the tests → build the installer → sign it with your secret key → publish it on GitHub with the notes from the changelog*.
+- **"Run workflow"** is the button that tells the robot "do that recipe now". It exists so a release only happens when *you* decide.
+- **The approval** is the second safety lock. Your signing key is kept in a locked box that only a release you personally approve can open.
+
+### The easiest way: just ask Claude
+
+Say **"release v1.2.0"**. Claude starts the Release workflow for you (this is the "Run workflow" step) and tells you it's running.
+After a minute or two GitHub **asks for your approval** (see "Approving" below). You tap **Approve**, and about 8–12 minutes later the release is live.
+
+### Doing the "Run workflow" step yourself
+
+On a computer (the sure way):
+1. Open **github.com/nqble/keystroke-overlay**.
+2. Click the **Actions** tab (a row of tabs near the top: Code, Issues, Pull requests, **Actions**, …).
+3. In the list on the left, click **Release**.
+4. You'll see a grey bar with a **Run workflow** button on the right. Click it.
+5. A small form opens. Type the version you're releasing (for example `1.2.0`). This is a safety check: it must match the version inside the app, or nothing happens.
+6. Click the green **Run workflow** button in the form.
+
+On your phone:
+- The **GitHub website** in your phone's browser should work the same way (steps 1–6). If you don't see the Run workflow button, use your browser's menu and choose **Desktop site**. I haven't been able to verify this on a phone, so treat it as "try it".
+- The **GitHub app** is confirmed to work for the *approval* part below. I couldn't confirm it can start a release by itself, so the simplest phone routine is: **ask Claude to start it, then approve in the app.**
+
+### Approving (this works from the phone app)
+
+A few moments after the release starts, the run shows a yellow banner **"Waiting for review"** and you get a notification.
+- **GitHub app:** tap the notification (or open the *Notifications* tab) → **Review deployments** → tick **release** → **Approve and deploy**.
+- **Website:** open the run → click **Review deployments** → tick **release** → **Approve and deploy**.
+
+Until you approve, nothing is built or published, and your key stays locked. If you didn't start a release, press **Reject**.
+
+### What happens next
+
+1. The robot runs the tests, builds the installer, signs it, and publishes the release (about 8–12 minutes). You can watch it on the same page.
+2. A new release appears under **Releases** on GitHub with the installer and the changelog text as the notes.
+3. If the version ends in `.0` (like 1.2.0), it also updates the **Stable** channel automatically.
+4. People using the app see the green update button the next time they open settings.
+
+### If something goes wrong
+
+- A red ✗ on the run means it stopped. **Nothing was published**, because the publishing step comes last. Click the run to see which step failed and show it to Claude.
+- Typed the wrong version? The run stops immediately with a message. Run it again.
+- Changed your mind mid-run? On the run page click **Cancel workflow**.
+- Published something you shouldn't have? A release can be deleted from the Releases page; ask Claude to help clean up.
 
 ## 6. Rules that keep you safe
 

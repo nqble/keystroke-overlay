@@ -79,6 +79,7 @@ fn main() {
             commands::settings::get_state, commands::settings::save_settings, commands::settings::set_port,
             commands::settings::set_autostart, commands::settings::list_layouts, commands::settings::copy_text,
             commands::settings::quit_app, commands::settings::set_input_method,
+            commands::settings::set_secure_link, commands::settings::regenerate_link_key,
             commands::assets::list_fonts, commands::assets::add_font, commands::assets::remove_font, commands::assets::open_folder,
             commands::assets::list_presets, commands::assets::save_preset, commands::assets::load_preset,
             commands::assets::delete_preset, commands::assets::export_preset, commands::assets::import_preset,

@@ -5,7 +5,7 @@ use crate::settings;
 use crate::state::{obs_url, sync_tray, AppState};
 use serde_json::{json, Value};
 use std::sync::atomic::Ordering;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_autostart::ManagerExt as _;
 use tauri_plugin_clipboard_manager::ClipboardExt as _;
 
@@ -20,6 +20,7 @@ pub fn get_state(st: State<AppState>) -> Value {
         "whatsNew": st.whats_new.load(Ordering::Relaxed),
         "inputError": st.shared.bus.error(),
         "inputActive": st.shared.bus.method().id(),
+        "secureLink": st.shared.settings.read().unwrap()["general"]["secureLink"],
     })
 }
 
@@ -30,7 +31,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
     let mut new = settings::migrate(settings);
     {
         let cur = st.shared.settings.read().unwrap();
-        for k in ["port", "autostart", "lastSeenVersion", "inputMethod"] { new["general"][k] = cur["general"][k].clone(); }
+        for k in ["port", "autostart", "lastSeenVersion", "inputMethod", "secureLink", "linkKey"] { new["general"][k] = cur["general"][k].clone(); }
     }
     let channel_changed = st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
@@ -85,6 +86,37 @@ pub fn set_input_method(st: State<AppState>, method: String) -> Result<(), Strin
     s["general"]["inputMethod"] = json!(m.id());
     let _ = settings::save(&st.shared.paths.settings(), &s);
     Ok(())
+}
+
+/// Turn the optional secure link on or off. Turning it on creates a private key the first time. Existing overlay
+/// connections are dropped (the server restarts) so an old link stops working immediately. Returns the new OBS address.
+#[tauri::command]
+pub async fn set_secure_link(app: AppHandle, enabled: bool) -> Result<String, String> {
+    {
+        let st = app.state::<AppState>();
+        let mut s = st.shared.settings.write().unwrap();
+        if enabled && s["general"]["linkKey"].as_str().unwrap_or("").is_empty() { s["general"]["linkKey"] = json!(settings::new_key()?); }
+        s["general"]["secureLink"] = json!(enabled);
+        settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+    }
+    let a = app.clone();
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a)).await.map_err(|e| e.to_string())??;
+    Ok(obs_url(&app.state::<AppState>().shared))
+}
+
+/// Replace the private key: every link made with the old one stops working. Only meaningful while the secure link is on.
+#[tauri::command]
+pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
+    {
+        let st = app.state::<AppState>();
+        let mut s = st.shared.settings.write().unwrap();
+        if !s["general"]["secureLink"].as_bool().unwrap_or(false) { return Err("Turn the secure link on first".into()); }
+        s["general"]["linkKey"] = json!(settings::new_key()?);
+        settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+    }
+    let a = app.clone();
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a)).await.map_err(|e| e.to_string())??;
+    Ok(obs_url(&app.state::<AppState>().shared))
 }
 
 #[tauri::command]

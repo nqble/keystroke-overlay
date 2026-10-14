@@ -27,7 +27,7 @@ Only the latest release is supported. Update from inside the app (the green butt
 ## Known and documented limits (not vulnerabilities)
 
 See "The one limit you should know about" in [PRIVACY.md](PRIVACY.md): the local server is not authenticated against
-other programs on the same computer.
+other programs on the same computer unless the optional **Secure link** (General → Secure link) is turned on.
 
 ## Update signing
 
