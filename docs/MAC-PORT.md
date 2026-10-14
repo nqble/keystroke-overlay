@@ -22,7 +22,7 @@ keyboard hook, one memory call, and the way the app is packaged and signed.
    - Needs the **Input Monitoring** permission. A *listen-only* tap asks for Input Monitoring; a default tap asks for
      the broader Accessibility permission, so listen-only is the right choice (least privilege).
    - Add a **key-code map**: macOS virtual key codes → the same DOM names the layouts use (`KeyW`, `Space`, …). About
-     100 entries, physical-position based, same idea as `code_name()` in `keyhook.rs`.
+     100 entries, physical-position based, same idea as `code_name()` in `keyboard/keymap.rs`.
    - **Repeat filtering** and the stuck-key self-heal carry over (macOS exposes key state via `CGEventSourceKeyState`).
 2. **Permission flow (new first-run UX).** macOS will not deliver keys until the user ticks the app in
    *System Settings → Privacy & Security → Input Monitoring*, and the tap **fails silently** without it. So the app
@@ -54,7 +54,7 @@ Silicon Macs.
 
 Everything is already prepared: OS-specific calls are isolated in `platform.rs`, and the Rust code is split into modules.
 
-1. **Phase 1 — it runs.** Introduce a small `KeySource` interface; keep the Windows hook as `keyboard/windows.rs`; add
+1. **Phase 1 — it runs.** Introduce a small `KeySource` interface; keep the Windows methods (`keyboard/hook.rs`, `keyboard/rawinput.rs`) behind it; add
    `keyboard/macos.rs` (CGEventTap + key-code map + repeat filter). Gate Windows-only crates with
    `[target.'cfg(windows)'.dependencies]`. Add a `macos-latest` job to CI that builds (unsigned) and uploads the `.app`.
 2. **Phase 2 — it behaves.** Permission screen, Secure Input hint, menu-bar icon, Dock icon hidden, visual pass over

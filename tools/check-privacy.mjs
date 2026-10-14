@@ -33,7 +33,7 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
     if (file !== 'src-tauri/src/server.rs') bad(file, n, 'listening socket outside server.rs');
     else if (/bind\(/.test(l) && !/127\.0\.0\.1/.test(l)) bad(file, n, 'server must bind 127.0.0.1 only');
   });
-  scan(file, text, WRITE, (n) => { if (/\/(keyhook|server)\.rs$/.test(file)) bad(file, n, 'keyboard/server code must never write files'); });
+  scan(file, text, WRITE, (n) => { if (/\/keyboard\/|\/server\.rs$/.test(file)) bad(file, n, 'keyboard/server code must never write files'); });
   scan(file, text, LOG, (n) => bad(file, n, 'logging/printing is not allowed (keystrokes could leak)'));
 }
 

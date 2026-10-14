@@ -5,7 +5,7 @@
 //! See docs/ARCHITECTURE.md for how the pieces fit together.
 
 mod commands;
-mod keyhook;
+mod keyboard;
 mod platform;
 mod server;
 mod settings;
@@ -31,6 +31,9 @@ fn main() {
     std::mem::forget(rt);   // keep it alive for the whole process
 
     let app = tauri::Builder::default()
+        // Raw Input registrations are per process. Tauri's window layer registers its own at startup, which would
+        // compete with the Compatibility input method, so tell it to stand down (we never use its device events).
+        .device_event_filter(tauri::DeviceEventFilter::Always)
         .plugin(tauri_plugin_single_instance::init(|app, _, _| open_settings_async(app)))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -49,8 +52,10 @@ fn main() {
             let port = cfg["general"]["port"].as_u64().unwrap_or(7878) as u16;
             let open_on_launch = cfg["general"]["openOnLaunch"].as_bool().unwrap_or(true);
 
+            let method = keyboard::Method::parse(cfg["general"]["inputMethod"].as_str().unwrap_or("hook")).unwrap_or(keyboard::Method::Hook);
+
             let (cfg_tx, _) = broadcast::channel(8);
-            let shared = Arc::new(Shared { bus: keyhook::start(), settings: cfg.into(), paths, cfg_tx });
+            let shared = Arc::new(Shared { bus: keyboard::start(method), settings: cfg.into(), paths, cfg_tx });
             let (srv, err) = match server::start(shared.clone(), port) {
                 Ok(h) => (Some(h), None),
                 Err(e) => (None, Some(e)),
@@ -73,7 +78,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::settings::get_state, commands::settings::save_settings, commands::settings::set_port,
             commands::settings::set_autostart, commands::settings::list_layouts, commands::settings::copy_text,
-            commands::settings::quit_app,
+            commands::settings::quit_app, commands::settings::set_input_method,
             commands::assets::list_fonts, commands::assets::add_font, commands::assets::remove_font, commands::assets::open_folder,
             commands::assets::list_presets, commands::assets::save_preset, commands::assets::load_preset,
             commands::assets::delete_preset, commands::assets::export_preset, commands::assets::import_preset,

@@ -8,15 +8,22 @@ loads, and the settings window). No framework, no bundler.
 ```
 keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
-├── .github/            CI workflow, issue + PR templates, dependabot
-├── docs/               you are here (ARCHITECTURE, RELEASING, MAC-PORT, RELEASE-NOTES-STYLE, NEXT-RELEASE)
+├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
+├── docs/               you are here (ARCHITECTURE, RELEASING, OPEN-SOURCE-GUIDE, MAC-PORT, RELEASE-NOTES-STYLE, NEXT-RELEASE)
 ├── assets/             icon source image
-├── tools/              release.mjs (build + sign + manifests), check-privacy.mjs, gen-layouts.mjs, make-icon.ps1
+├── tests/              end-to-end suites + runner (see tests/README.md); Rust unit tests live next to the code
+├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes), check-privacy.mjs,
+│                       gen-layouts.mjs, make-icon.ps1
 ├── src-tauri/          the Rust app
 │   ├── tauri.conf.json   app + updater configuration
 │   └── src/
 │       ├── main.rs         entry point: starts everything (≈90 lines)
-│       ├── keyhook.rs      Windows keyboard hook + key dispatcher
+│       ├── keyboard/       key capture: two interchangeable methods feeding one pipeline
+│       │   ├── mod.rs        controller (switch methods live), key bus, dispatcher thread
+│       │   ├── hook.rs       Standard method: Windows low-level keyboard hook (WH_KEYBOARD_LL)
+│       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
+│       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
+│       │   └── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── settings.rs     settings file: defaults, versioned migrations, validation, backup
 │       ├── state.rs        shared app state + small helpers
@@ -40,12 +47,18 @@ keystroke-overlay/
 ## How a key press travels
 
 ```
-key press → WH_KEYBOARD_LL hook (own thread; tiny callback, never blocks input)
-          → channel → dispatcher thread (tracks held keys; drops everything while paused)
+key press → capture method on its own thread:
+              Standard      WH_KEYBOARD_LL hook (tiny callback, never blocks input)
+              Compatibility Raw Input (registers to receive a copy of keyboard input; nothing sits in the input path)
+          → KeyTracker (drops OS repeats, releases keys that are really up) → channel → dispatcher thread (tracks held keys; drops everything while paused)
           → tokio broadcast → each WebSocket client (/ws on 127.0.0.1)
           → overlay page (OBS) toggles a CSS class on the key; CSS transitions do the animation
 ```
 
+- The method is chosen in General → Keyboard input (`general.inputMethod`: `hook` default, `rawinput`) and can be switched
+  live: `Bus::set_method` stops the old source, releases any held keys, starts the new one, and falls back to the old one if
+  the new one can't start. The framework's own Raw Input registration is disabled at startup (`device_event_filter(Always)`)
+  because registrations are per process and would compete with ours.
 - Only *state changes* are sent (OS key-repeat is filtered). Nothing is stored; see [PRIVACY.md](../PRIVACY.md).
 - When settings change, the server pushes them **inside the WebSocket message** (`{"t":"cfg","s":{…}}`), so the overlay
   doesn't re-fetch anything. Fonts/layout changes send `{"t":"assets"}` instead.
@@ -53,7 +66,7 @@ key press → WH_KEYBOARD_LL hook (own thread; tiny callback, never blocks input
 
 ## Threads and idle cost
 
-Hook thread, dispatcher thread, two async worker threads (tokio), plus Tauri's own: ~9 threads at idle, ~13 MB working set,
+Capture thread (hook or Raw Input), dispatcher thread, two async worker threads (tokio), plus Tauri's own: ~9 threads at idle, ~13 MB working set,
 0.0% CPU. The settings window is created on demand and fully destroyed on close (the web view's processes exit), after which
 the app trims its working set.
 
@@ -68,7 +81,7 @@ main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
 
 - **Layout:** add `ui/overlay/layouts/mine.json` (`id`, `name`, `keys[]` with `code`, `label`, `x`, `y`, optional `w`, `h`).
   Users can also drop one into their data folder's `layouts/`. `code` is a DOM `KeyboardEvent.code` name (the table is
-  `code_name()` in `keyhook.rs`).
+  `code_name()` in `keyboard/keymap.rs`).
 - **Animation:** add `ui/overlay/animations/wobble.js`:
   ```js
   import { registerAnimation } from '/overlay/registry.js';
@@ -84,15 +97,17 @@ main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
 
 ## Updates
 
-The only code that uses the network is `commands/updates.rs`. Channels (Stable/Latest), the signed manifests and how to
-publish are in [RELEASING.md](RELEASING.md).
+The only code that uses the network is `commands/updates.rs`. Channels (Stable/Latest), the signed manifests, the versioning
+rule (`x.Y.0` = Stable, `x.y.Z` = Latest) and the one-click GitHub release workflow are in [RELEASING.md](RELEASING.md).
 
 ## Guard rails
 
 `npm run check:privacy` (also in CI) fails the build if network code appears outside `commands/updates.rs`, a server binds
 anything but `127.0.0.1`, the keyboard/server code writes files, anything logs or prints, or the UI calls an external address.
-`npm test` runs it together with the Rust unit tests (settings migration/validation, key mapping, update URLs, release notes).
+`npm test` runs it together with the Rust unit tests (settings migration/validation, key naming and tracking, Raw Input decoding,
+update URLs, release notes). `npm run test:e2e` builds a throwaway copy of the app and drives it for real (settings window, injected
+key presses through both input methods, a signed update download); it cleans up after itself — see [tests/README.md](../tests/README.md).
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the Windows keyboard hook is `keyhook.rs`. See [MAC-PORT.md](MAC-PORT.md).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. See [MAC-PORT.md](MAC-PORT.md).

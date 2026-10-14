@@ -18,6 +18,8 @@ pub fn get_state(st: State<AppState>) -> Value {
         "version": env!("CARGO_PKG_VERSION"),
         "paused": st.shared.bus.paused.load(Ordering::Relaxed),
         "whatsNew": st.whats_new.load(Ordering::Relaxed),
+        "inputError": st.shared.bus.error(),
+        "inputActive": st.shared.bus.method().id(),
     })
 }
 
@@ -28,7 +30,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
     let mut new = settings::migrate(settings);
     {
         let cur = st.shared.settings.read().unwrap();
-        for k in ["port", "autostart", "lastSeenVersion"] { new["general"][k] = cur["general"][k].clone(); }
+        for k in ["port", "autostart", "lastSeenVersion", "inputMethod"] { new["general"][k] = cur["general"][k].clone(); }
     }
     let channel_changed = st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
@@ -71,6 +73,18 @@ pub fn list_layouts(st: State<AppState>) -> Vec<Value> { server::layouts(&st.sha
 #[tauri::command]
 pub fn copy_text(app: AppHandle, text: String) -> Result<(), String> {
     app.clipboard().write_text(text).map_err(|e| e.to_string())
+}
+
+/// Switch how keys are read ("hook" or "rawinput"). Takes effect immediately; if the new method can't start,
+/// the old one keeps running and an error is returned. Saved only on success.
+#[tauri::command]
+pub fn set_input_method(st: State<AppState>, method: String) -> Result<(), String> {
+    let m = crate::keyboard::Method::parse(&method).ok_or("Unknown input method")?;
+    st.shared.bus.set_method(m)?;
+    let mut s = st.shared.settings.write().unwrap();
+    s["general"]["inputMethod"] = json!(m.id());
+    let _ = settings::save(&st.shared.paths.settings(), &s);
+    Ok(())
 }
 
 #[tauri::command]

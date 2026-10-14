@@ -21,6 +21,8 @@ pub fn defaults() -> Value {
             // Background update check when the settings window opens (at most every 6 hours). Updates are
             // never installed without the user clicking the update button.
             "autoCheckUpdates": true,
+            // How keys are read: "hook" (standard, default) or "rawinput" (compatibility, for games that block hooks).
+            "inputMethod": "hook",
             // "stable" = only releases that were promoted to the Stable channel; "latest" = every release.
             "updateChannel": "stable",
             // Last app version the user has seen the "What's new" window for (managed by the app).
@@ -158,6 +160,7 @@ pub fn sanitize(v: &mut Value, def: &Value) {
                     Some(s) if path == "general.lastSeenVersion" => is_version(s),
                     Some(s) if path == "layout.id" => is_id(s),
                     Some(s) if path == "general.updateChannel" => s == "stable" || s == "latest",
+                    Some(s) if path == "general.inputMethod" => s == "hook" || s == "rawinput",
                     Some(s) => is_ident(s),
                     None => false,
                 };
@@ -281,6 +284,13 @@ mod tests {
         assert_eq!(migrate(json!({ "version": 2, "general": { "updateChannel": "latest" } }))["general"]["updateChannel"], json!("latest"));
         assert_eq!(migrate(json!({ "version": 2, "general": { "updateChannel": "nightly" } }))["general"]["updateChannel"], json!("stable"));
         assert_eq!(migrate(json!({ "version": 2, "general": { "updateChannel": 5 } }))["general"]["updateChannel"], json!("stable"));
+    }
+    #[test]
+    fn input_method_is_limited_to_hook_or_rawinput() {
+        assert_eq!(migrate(json!({ "version": 2 }))["general"]["inputMethod"], json!("hook"));
+        assert_eq!(migrate(json!({ "version": 2, "general": { "inputMethod": "rawinput" } }))["general"]["inputMethod"], json!("rawinput"));
+        assert_eq!(migrate(json!({ "version": 2, "general": { "inputMethod": "driver" } }))["general"]["inputMethod"], json!("hook"));
+        assert_eq!(migrate(json!({ "version": 2, "general": { "inputMethod": 3 } }))["general"]["inputMethod"], json!("hook"));
     }
     #[test]
     fn corrupt_settings_fall_back_to_the_backup() {

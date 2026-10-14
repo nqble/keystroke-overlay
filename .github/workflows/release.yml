@@ -1,0 +1,81 @@
+name: Release
+
+# One click (or one tag) builds, signs and publishes a release. See docs/RELEASING.md.
+#
+#   Option A (easiest):  GitHub -> Actions -> "Release" -> Run workflow -> type the version (e.g. 1.2.0) -> Run
+#   Option B:            push a tag named v<version> (e.g. v1.2.0)
+#
+# The version comes from src-tauri/tauri.conf.json and must have an entry in CHANGELOG.md (that text becomes the release notes).
+# x.y.0 versions are also promoted to the Stable channel automatically; x.y.z patch releases are Latest-only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, typed to confirm (must match tauri.conf.json, e.g. 1.2.0)"
+        required: true
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency: release
+
+jobs:
+  release:
+    runs-on: windows-latest
+    environment: release        # optional protection: Settings -> Environments -> release -> "Required reviewers" = you
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+
+      - name: Work out the version and make sure it is safe to release
+        id: v
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then echo "stable=true" >> "$GITHUB_OUTPUT"; else echo "stable=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.version }}" != "$VERSION" ]; then
+            echo "::error::You typed '${{ inputs.version }}' but the app's version is '$VERSION'. Nothing was released."; exit 1; fi
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" != "v$VERSION" ]; then
+            echo "::error::Tag '${{ github.ref_name }}' does not match the app version v$VERSION. Nothing was released."; exit 1; fi
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "::error::Release v$VERSION already exists. Nothing was released."; exit 1; fi
+          node tools/changelog-section.mjs "$VERSION" > notes.md   # fails if CHANGELOG.md has no entry for this version
+
+      - name: Tests and privacy check
+        run: npm test
+
+      - name: Build, sign, and write the update manifests
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: node tools/release.mjs "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}' --title)"
+
+      - name: Publish the GitHub release
+        shell: bash
+        run: |
+          V='${{ steps.v.outputs.version }}'
+          gh release create "v$V" "release/$V/Keystroke-Overlay_${V}_x64-setup.exe" "release/$V/latest.json" \
+            --title "v$V" --notes-file notes.md --target "${{ github.sha }}"
+
+      - name: Promote to the Stable channel (x.y.0 releases only)
+        if: steps.v.outputs.stable == 'true'
+        shell: bash
+        run: |
+          V='${{ steps.v.outputs.version }}'
+          gh release view channel-stable > /dev/null 2>&1 || gh release create channel-stable --prerelease \
+            --title "Stable channel" --notes "Holds stable.json for the Stable update channel. Managed automatically; please do not edit."
+          gh release upload channel-stable "release/$V/stable.json" --clobber

@@ -1,5 +1,5 @@
 //! The few operating-system-specific operations, kept in one place so porting means editing one file
-//! (plus the keyboard hook in `keyhook.rs`).
+//! (plus the keyboard capture methods in `keyboard/`).
 
 use std::path::Path;
 

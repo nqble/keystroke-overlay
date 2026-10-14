@@ -12,7 +12,7 @@ let layouts = [];             // [{id,name,keys}]
 let reg = { animations: [], themes: [], easings: [], layouts: [] };
 let tab = 'layout';
 let selKey = null;            // selected key in the Keys tab
-let obsUrl = '', size = null, appVersion = '', lastUpdate = null, paused = false, upProg = null;
+let obsUrl = '', size = null, appVersion = '', lastUpdate = null, paused = false, upProg = null, inputActive = 'hook', inputError = null;
 
 // ------------------------------------------------------------------ helpers
 const get = (o, p) => p.split('.').reduce((a, k) => a?.[k], o);
@@ -283,6 +283,31 @@ const TABS = {
       },
     })));
     p.append(el('p', { className: 'note', textContent: 'The server only listens on 127.0.0.1 (this PC). Keystrokes are never saved or sent anywhere. OBS reconnects by itself after a restart.' }));
+    // ---- keyboard input method
+    p.append(el('h2', { textContent: 'Keyboard input' }));
+    const METHODS = { hook: 'Standard (keyboard hook) — recommended', rawinput: 'Compatibility (Raw Input)' };
+    const INFO = {
+      hook: '**Standard** is what the app has always used: it listens to your keys through a Windows keyboard hook. It works with nearly every game, so keep it unless keys stop lighting up in one particular game.',
+      rawinput: '**Compatibility** reads your keys straight from the keyboard (Windows Raw Input) instead of hooking into Windows. Some games and anti-cheat tools block the standard method but not this one, so try it if keys don’t light up in a certain game. It uses the same tiny amount of CPU. If anything looks off, switch back to Standard.',
+    };
+    const inSel = el('select', {}, Object.entries(METHODS).map(([v, n]) => el('option', { value: v, textContent: n })));
+    inSel.value = inputActive;
+    const inInfo = el('div', { className: 'note' }), inErr = el('div', { className: 'errnote', hidden: !inputError, textContent: inputError || '' });
+    const showInfo = () => inInfo.replaceChildren(md(INFO[inSel.value]));
+    inSel.onchange = async () => {
+      const want = inSel.value;
+      try {
+        await invoke('set_input_method', { method: want });
+        inputActive = want; S.general.inputMethod = want; inputError = null; inErr.hidden = true;
+        toast('Keyboard input: ' + METHODS[want].replace(' — recommended', ''));
+      } catch (e) {
+        inSel.value = inputActive; inputError = String(e); inErr.textContent = inputError; inErr.hidden = false; toast(inputError, true);
+      }
+      showInfo();
+    };
+    showInfo();
+    p.append(row('Input method', inSel), inErr, inInfo,
+      el('p', { className: 'note', textContent: 'Both methods read keys the same way and never save or send them. If a game runs as administrator, start Keystroke Overlay as administrator too. Not sure? Leave it on Standard.' }));
     p.append(el('h2', { textContent: 'Program updates' }));
     p.append(row('Current version', el('b', { textContent: 'v' + appVersion }),
       el('button', { textContent: 'View release notes', onclick: () => showNotes(appVersion) })));
@@ -319,7 +344,7 @@ const TABS = {
       setUpdate(null); status.textContent = 'Checking…';
       try { showResult(setUpdate(await invoke('check_update'))); } catch (e) { status.textContent = String(e); }
     };
-    p.append(row('Update channel', chSel), el('p', { className: 'note', textContent: 'Stable: only releases promoted as stable (recommended). Latest: every release as soon as it is published, including small fixes in between.' }));
+    p.append(row('Update channel', chSel), el('p', { className: 'note', textContent: 'Stable: the main, well-tested releases (like 1.2.0 or 1.3.0) — recommended. Latest: every release as soon as it is published, including the small fixes in between (like 1.2.1).' }));
     const bar = el('div', { className: 'bar', id: 'upBar', hidden: true }, el('div', { className: 'fill', id: 'upFill' }));
     p.append(row('Software update', checkBtn, installBtn), el('div', { className: 'row' }, el('label'), el('div', { className: 'ctl', style: 'flex-direction:column;align-items:stretch;gap:6px' }, status, bar, el('span', { className: 'hint', id: 'upText' }))), note);
     p.append(toggle('general.autoCheckUpdates', 'Check for updates automatically'));
@@ -487,7 +512,7 @@ $('#resumeBtn').onclick = async () => { await call('toggle_pause'); };
 async function resync() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; try { await invoke('save_settings', { settings: S }); } catch {} }   // never lose a pending edit
   const st = await invoke('get_state');
-  S = st.settings; paused = st.paused; paintPause();
+  S = st.settings; paused = st.paused; inputActive = st.inputActive; inputError = st.inputError; paintPause();
   const b = $('#banner');
   if (st.serverError) { b.hidden = false; b.textContent = st.serverError + ' — pick another port in General → Port.'; } else b.hidden = true;
   push(); render();
@@ -533,6 +558,7 @@ let booted = false;
   // afterwards in the background, so it never delays the first paint.
   const [st, ly, fonts] = await Promise.all([call('get_state'), call('list_layouts'), call('list_fonts')]);
   S = st.settings; obsUrl = st.url; appVersion = st.version; paused = st.paused; layouts = ly; customFonts = fonts;
+  inputActive = st.inputActive; inputError = st.inputError;
   paintPause(); updateObs();
   if (st.serverError) {
     const b = $('#banner'); b.hidden = false;

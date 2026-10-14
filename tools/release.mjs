@@ -1,5 +1,5 @@
 // Builds a signed installer and writes the files to upload to a GitHub Release.
-//   npm run release -- "What changed in this version"          (normal, installs in-app)
+//   npm run release -- "What changed in this version"          (installs in-app; x.y.0 versions also go to Stable)
 //   npm run release -- --manual "What changed"                  (user must run the setup .exe)
 // Output: release/<ver>/Keystroke-Overlay_<ver>_x64-setup.exe  +  release/<ver>/latest.json
 import { execSync } from 'node:child_process';
@@ -9,18 +9,23 @@ import { join } from 'node:path';
 
 const REPO = 'nqble/keystroke-overlay';
 const KEY = join(homedir(), '.keystroke-overlay-keys', 'updater.key');   // keep OUT of the project/OneDrive
-const TARGET = join(homedir(), 'keyoverlay-target');                    // build output (large, not synced)
+const TARGET = process.env.CARGO_TARGET_DIR ?? join(homedir(), 'keyoverlay-target');   // build output (large, not synced)
+// On GitHub the key comes from the TAURI_SIGNING_PRIVATE_KEY secret; on your PC it is read from the key file above.
+const keyText = process.env.TAURI_SIGNING_PRIVATE_KEY || (existsSync(KEY) ? readFileSync(KEY, 'utf8') : null);
 // --manual: this update can't be applied in-app; the app will send users to the GitHub installer instead.
-// --stable: also promote this release to the Stable channel (writes stable.json; see README "Channels").
-const args = process.argv.slice(2), manual = args.includes('--manual'), stable = args.includes('--stable');
-const notes = args.filter(a => a !== '--manual' && a !== '--stable').join(' ') || 'Bug fixes and improvements.';
+// Stable/Latest is decided by the version number (see docs/RELEASING.md): x.y.0 -> also writes stable.json.
+const args = process.argv.slice(2), manual = args.includes('--manual');
+const notes = args.filter(a => !a.startsWith('--')).join(' ') || 'Bug fixes and improvements.';
 
-if (!existsSync(KEY)) { console.error('Signing key not found at ' + KEY); process.exit(1); }
+if (!keyText) { console.error('Signing key not found: set TAURI_SIGNING_PRIVATE_KEY or create ' + KEY); process.exit(1); }
 const version = JSON.parse(readFileSync('src-tauri/tauri.conf.json', 'utf8')).version;
+// Versioning rule: x.Y.0 releases (the middle number went up) are STABLE; x.y.Z patch releases are Latest-only.
+// --stable / --latest-only override the rule for the rare exception.
+const stable = args.includes('--stable') || (!args.includes('--latest-only') && /^\d+\.\d+\.0$/.test(version));
 
 execSync('npx tauri build', {
   stdio: 'inherit',
-  env: { ...process.env, CARGO_TARGET_DIR: TARGET, TAURI_SIGNING_PRIVATE_KEY: readFileSync(KEY, 'utf8'), TAURI_SIGNING_PRIVATE_KEY_PASSWORD: '' },
+  env: { ...process.env, CARGO_TARGET_DIR: TARGET, TAURI_SIGNING_PRIVATE_KEY: keyText, TAURI_SIGNING_PRIVATE_KEY_PASSWORD: process.env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD ?? '' },
 });
 
 const dir = join(TARGET, 'release', 'bundle', 'nsis');

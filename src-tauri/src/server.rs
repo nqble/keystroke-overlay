@@ -5,7 +5,7 @@
 //! * Host/Origin checks stop DNS-rebinding and other websites from opening
 //!   the WebSocket and watching your keystrokes.
 
-use crate::keyhook::{Bus, KeyEvent};
+use crate::keyboard::{Bus, KeyEvent};
 use crate::settings::Paths;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{Path, Request, State};

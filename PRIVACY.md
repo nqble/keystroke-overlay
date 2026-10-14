@@ -19,7 +19,7 @@ and how you can check every claim yourself instead of trusting it.
 ## What the app can see
 
 While it is running, the app can see **every key you press or release on this computer, in any program** — including
-games, password boxes and private chats. That is unavoidable: the Windows keyboard hook that makes the overlay work in
+games, password boxes and private chats. That is unavoidable: the Windows keyboard hook (or, if you choose the Compatibility input method, Windows Raw Input) that makes the overlay work in
 games sees all keys, exactly like any other keystroke-display tool.
 
 What it records about each event is only *which physical key* and *down or up* (for example `KeyW`, down). It does not
@@ -32,11 +32,18 @@ forwards nothing at all.
 ## Where keystrokes go
 
 ```
-keyboard  ->  Windows keyboard hook  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
+keyboard  ->  Windows keyboard hook (or Raw Input)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
 ```
 
 Every step happens on your PC, in memory. When the key is released the event is gone. There is no step that writes
 to disk and no step that uses the network.
+
+### The two input methods (General → Keyboard input)
+
+- **Standard** reads keys through a Windows *keyboard hook*. **Compatibility** reads them through Windows *Raw Input*.
+- They differ only in *how Windows hands the key events to the app*. Both see the same keys, record the same two facts
+  (which key, down or up), keep nothing, and send nothing anywhere except the local overlay page. Choosing one over the other
+  changes nothing about your privacy.
 
 ## What is stored on disk
 

@@ -133,3 +133,6 @@ button.danger:hover { border-color: var(--danger); color: var(--danger); }
   6% { transform: translateX(-2px) rotate(-7deg); } 8% { transform: translateX(2px) rotate(5deg); } 10% { transform: translateX(-1px) rotate(-2deg); }
 }
 @media (prefers-reduced-motion: reduce) { .upd { animation: none; } }
+
+.errnote { color: #ffc9cf; background: #3a1b21; border: 1px solid #7a2c38; border-radius: 8px; padding: 8px 12px; margin: 6px 0; max-width: 640px; }
+.errnote[hidden] { display: none; }

@@ -2,11 +2,12 @@
 
 All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-STYLE.md](docs/RELEASE-NOTES-STYLE.md).
 
-## v1.1.3 — the "no more white flash" update *(unreleased)*
+## v1.2.0 — the first Stable release *(unreleased)*
 
 **✨ New**
+- **Keyboard input method:** General → Keyboard input lets you pick **Standard** (what the app always used) or **Compatibility** (Windows Raw Input). If keys don't light up in one particular game, try Compatibility. You can switch live, no restart.
 - **Update button:** a little green circle appears in the corner when a new version is out. Click it, read the notes, hit **Update now**. It never installs behind your back.
-- **Stable or Latest:** pick your pace in General → Program updates. Stable only gets releases that have been tested for a while (recommended); Latest gets everything the moment it ships.
+- **Stable or Latest:** pick your pace in General → Program updates. **Stable** gets the main releases (1.2.0, 1.3.0…) and is recommended; **Latest** also gets every small fix in between (1.2.1…).
 - **Automatic update check:** on by default, one click to turn off. It only peeks at GitHub, at most once every 6 hours.
 
 **🛠 Improved**
@@ -18,6 +19,7 @@ All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-S
 
 **🐛 Fixed**
 - **Stuck-key check** now only looks at the keys you're actually holding, instead of scanning every possible key on every press.
+- **Pause key** no longer shares a slot with Ctrl, so holding Ctrl can't swallow it.
 
 ## v1.1.2 — the "quick actions" update
 
