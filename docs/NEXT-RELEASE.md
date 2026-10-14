@@ -17,21 +17,34 @@ The same text is in [CHANGELOG.md](../CHANGELOG.md) under v1.2.0.
 ```
 **v1.2.0 — the first Stable release**
 
+**⚡ Performance — v1.2.0 vs v1.1.2** *(same PC, same test, median of 5 runs)*
+- **Settings window ready in 469 ms**, down from 550 ms: about **15% faster**, and it no longer flashes white first.
+- **Background threads: 9, down from 23**: that's **61% fewer** things running while you game.
+- **Idle memory: 2.9 MB, down from 3.8 MB** (about 24% less), with idle CPU at 0%.
+- **Settings window memory: 342 MB, down from 385 MB** (about 11% less), using one fewer helper process.
+- **Typing stays featherweight:** 8,000 key presses cost **0.25% of one CPU core**, a **4× drop** from v1.1.2's 1.04%.
+- Program size: 6.1 MB (v1.1.2 was 6.0 MB). Tiny, and it now does more.
+
 **✨ New**
+- **Make your own layouts:** click the dashed **+** card in the Layout tab, name it, and it starts as the full-size keyboard. Then hide the keys you don't want in the Keys tab. You can have up to 20 (a counter shows how many you've used). Right-click a layout you made to delete it.
 - **Keyboard input method:** General → Keyboard input lets you pick **Standard** (what the app always used) or **Compatibility** (Windows Raw Input). If keys don't light up in one particular game, try Compatibility. You can switch live, no restart.
 - **Secure link (optional):** a new toggle in General → Secure link. Off by default, so your OBS link stays simple. Turn it on and the link carries a private key, so only a program that knows the full link can read your key presses. Paste the new link into OBS once. Hit "Make a new key" to cut off old links.
-- **Update button:** a little blue circle appears in the corner when a new version is out. Click it, read the notes, hit **Update now**. It never installs behind your back.
+- **Update button:** a little accent-coloured circle appears in the corner when a new version is out. Click it, read the notes, hit **Update now**. It never installs behind your back.
 - **Stable or Latest:** pick your pace in General → Program updates. **Stable** gets the main releases (1.2.0, 1.3.0…) and is recommended; **Latest** also gets every small fix in between (1.2.1…).
 - **Automatic update check:** on by default, one click to turn off. It only peeks at GitHub, at most once every 6 hours.
+- **Sliders go all the way to zero:** opacity, animation intensity and font size can hit 0 on purpose (no border, no movement, no text. Your call).
 
 **🛠 Improved**
-- **Instant, dark startup:** the settings window used to flash white like a camera. Now it opens dark, and the controls are drawn and usable in about 0.7 s.
+- **Instant, dark startup:** the settings window used to flash white like a camera. Now it opens dark, and the controls are drawn and usable in under half a second.
+- **Cleaner, roomier settings:** a bit more breathing room between sections, and General is now in a sensible order: OBS, Server, Secure link, Keyboard input, App, then Updates.
+- **Feels like a real app:** only text boxes can be selected, and right-click shows a small custom menu instead of the browser's. The live preview no longer carries a hint caption.
+- **One popup style everywhere:** release notes, updates, new layouts and warnings all look and behave the same.
 - **These very notes:** three loading dots, then a quick typing animation. Fancy, and under a second.
 - **Tidier popups:** long release notes now scroll inside the popup, with breathing room around the text.
-- **Lighter on your PC:** background threads went from 23 to 9 and idle memory dropped, so your game keeps more of your PC.
 - **Fewer web requests:** the overlay now gets new settings in the same message that announces them, instead of going back to ask.
 
 **🐛 Fixed**
+- **Keys didn't show while the settings window was in front:** the preview (and OBS) went blind whenever you clicked the app. Fixed. Keys light up whether or not the window has focus.
 - **Stuck-key check** now only looks at the keys you're actually holding, instead of scanning every possible key on every press.
 - **Pause key** no longer shares a slot with Ctrl, so holding Ctrl can't swallow it.
 

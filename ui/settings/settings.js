@@ -389,6 +389,10 @@ const TABS = {
     p.append(el('div', { className: 'btns' },
       el('button', { textContent: 'Open data folder', onclick: () => call('open_folder', { kind: 'root' }) }),
       el('button', { className: 'danger', textContent: 'Quit app', onclick: () => call('quit_app') })));
+    // Group everything under its heading, then show the sections in a sensible order: connecting OBS first, updates last.
+    const groups = new Map(); let cur = null;
+    for (const n of [...p.children]) { if (n.tagName === 'H2') { cur = []; groups.set(n.textContent, cur); } cur.push(n); }
+    p.replaceChildren(...['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates'].flatMap(k => groups.get(k) ?? []));
     return p;
   },
 };
