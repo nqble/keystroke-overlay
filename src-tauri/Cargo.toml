@@ -24,7 +24,7 @@ axum = { version = "0.8", default-features = false, features = ["http1", "tokio"
 include_dir = "0.7"
 getrandom = "0.3"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
-windows = { version = "0.61", features = [
+windows = { version = "0.62", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
   "Win32_System_LibraryLoader",
