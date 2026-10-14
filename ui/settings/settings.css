@@ -157,12 +157,3 @@ button, .card, .kmk, nav button, select, input[type=checkbox], input[type=range]
 .card.add:hover { border-color: #5a6482; color: var(--text); background: rgba(255,255,255,.02); }
 .card.add .plus { font-size: 26px; line-height: 1; font-weight: 300; }
 .card.add small { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
-
-/* Font presets (Fonts tab) */
-.presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; max-width: 760px; }
-.fpre { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; text-align: left; font: inherit; color: var(--text); display: flex; flex-direction: column; gap: 2px; }
-.fpre:hover { border-color: #46506a; }
-.fpre.sel { border-color: var(--accent); background: #1c2438; }
-.fpre .aa { font-size: 26px; line-height: 1.15; }
-.fpre b { font-size: 12px; }
-.fpre span { color: var(--dim); font-size: 11px; }

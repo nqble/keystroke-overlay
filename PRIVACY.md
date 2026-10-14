@@ -60,8 +60,8 @@ Nothing in there contains keystrokes. To remove everything: uninstall, then dele
 Exactly three things, all with `github.com` / `api.github.com`, and all visible in the settings window:
 
 1. **Update check** — fetches a small manifest file (`latest.json` or `stable.json`) from this project's GitHub releases.
-   Runs when you click *Check for updates*, and — if you leave *Check for updates automatically* on — when the settings
-   window opens, at most once every 6 hours. Turn the setting off and the app **never** checks by itself.
+   Runs when you click *Check for updates*, and — if you leave *Check for updates automatically* on — about once an hour
+   while the app is running (and when the settings window opens). Turn the setting off and the app **never** checks by itself.
 2. **Update download** — only after you click *Update now*. The download is verified against a signing key built into
    the app; a file that does not match is rejected and never run.
 3. **Release notes** — the "What's new" window / *View release notes* fetches the notes for one version from

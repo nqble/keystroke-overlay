@@ -14,6 +14,13 @@ const st = (await inv('get_state')).ok;
 check('get_state', st.version === VERSION && st.settings.version === 2 && st.paused === false);
 check('background update check found the mock update (update button visible)', await q(`!document.getElementById('updateBtn').hidden`));
 
+check('the tray got its update indicator (orange dot + "Update available" entry)', (await inv('get_state')).ok.updateBadge === true);
+// the tray entry opens General: simulate the event the app sends to an already-open window
+await p.ev(`window.__TAURI__.event.emit('goto-tab', 'keys')`); await sleep(500);
+check('a "goto-tab" request switches the open window to that tab', await q(`document.querySelector('nav button.active').textContent`) === 'Keys');
+await p.ev(`window.__TAURI__.event.emit('goto-tab', 'general')`); await sleep(500);
+check('...and the General tab shows the pending update with its Install button', await q(`document.querySelector('nav button.active').textContent`) === 'General' && await q(`[...document.querySelectorAll('#pane button')].some(b => b.textContent === 'Install update' && !b.hidden)`));
+
 // ---- settings commands
 const sv = await inv('save_settings', { settings: { ...st.settings, style: { ...st.settings.style, radius: 21 } } });
 check('save_settings', sv.ok === null && (await inv('get_state')).ok.settings.style.radius === 21);

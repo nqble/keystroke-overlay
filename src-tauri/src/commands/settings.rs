@@ -21,6 +21,8 @@ pub fn get_state(st: State<AppState>) -> Value {
         "inputError": st.shared.bus.error(),
         "inputActive": st.shared.bus.method().id(),
         "secureLink": st.shared.settings.read().unwrap()["general"]["secureLink"],
+        "gotoTab": st.pending_tab.lock().unwrap().take(),
+        "updateBadge": st.tray.lock().unwrap().as_ref().is_some_and(|t| t.update_shown),
     })
 }
 

@@ -64,8 +64,9 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## How the app uses this
 
-A background check runs when the settings window opens (at most every 6 hours, can be turned off). A blue button appears
-if something newer exists; the user must click it and confirm. The installer is verified against the public key before it runs.
+A background check runs about once an hour while the app is running, and when the settings window opens (can be turned off).
+If something newer exists, the tray icon gets an orange dot and an "Update available" entry at the top of its menu (it opens
+General), and a button appears in the settings window; the user must click it and confirm. The installer is verified against the public key before it runs.
 
 ## Checks before publishing a public release
 

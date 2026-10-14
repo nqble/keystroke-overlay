@@ -9,6 +9,8 @@ use std::sync::atomic::Ordering;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_updater::UpdaterExt as _;
 
+/// How often the background check runs, and how long a result is reused when the settings window opens.
+const CHECK_EVERY_SECS: u64 = 3600;
 const GITHUB: &str = "https://github.com/nqble/keystroke-overlay/releases";
 const RELEASES_URL: &str = "https://github.com/nqble/keystroke-overlay/releases/latest";
 
@@ -46,7 +48,22 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
         Err(e) => return Err(format!("Couldn't check for updates ({e}). You may be offline, or no {channel} release has been published yet.")),
     };
     *app.state::<AppState>().update_cache.lock().unwrap() = Some((std::time::Instant::now(), channel, result.clone()));
+    crate::tray::set_update_badge(app, result["available"].as_bool().unwrap_or(false));
+    let _ = app.emit("update-result", result.clone());   // an open settings window shows its update button right away
     Ok(result)
+}
+
+/// While the app runs it quietly asks GitHub about once an hour (if "Check for updates automatically" is on), so an
+/// update shows up on the tray icon even when the settings window is closed. Nothing is ever installed by this.
+pub fn start_background_check(app: AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_secs(45)).await;
+        loop {
+            let on = app.state::<AppState>().shared.settings.read().unwrap()["general"]["autoCheckUpdates"].as_bool().unwrap_or(false);
+            if on { let _ = do_check(&app).await; }
+            tokio::time::sleep(std::time::Duration::from_secs(CHECK_EVERY_SECS)).await;
+        }
+    });
 }
 
 /// Manual "Check for updates".
@@ -54,14 +71,14 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
 pub async fn check_update(app: AppHandle) -> Result<Value, String> { do_check(&app).await }
 
 /// Background check when the settings window opens: only if enabled, and it reuses a result from the
-/// last 6 hours so opening the window repeatedly doesn't keep contacting GitHub. Returns null if disabled.
+/// last hour so opening the window repeatedly doesn't keep contacting GitHub. Returns null if disabled.
 #[tauri::command]
 pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
     let st = app.state::<AppState>();
     if !st.shared.settings.read().unwrap()["general"]["autoCheckUpdates"].as_bool().unwrap_or(false) { return Ok(Value::Null); }
     let ch = channel_of(&app);
     if let Some((t, c, v)) = st.update_cache.lock().unwrap().as_ref() {
-        if *c == ch && t.elapsed() < std::time::Duration::from_secs(6 * 3600) { return Ok(v.clone()); }
+        if *c == ch && t.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) { return Ok(v.clone()); }
     }
     do_check(&app).await
 }

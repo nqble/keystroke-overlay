@@ -139,7 +139,7 @@ Exactly three things, all with GitHub, all optional or user-triggered, and none 
 
 | What | When | What is sent |
 |---|---|---|
-| **Update check** | When you click *Check for updates*, or — if you leave *Check for updates automatically* on — when the settings window opens, at most every 6 hours. Turn that setting off and the app **never** checks by itself. | An ordinary web request for a small file (`latest.json` / `stable.json`). GitHub sees your IP address, the time, and the app's name and version. |
+| **Update check** | When you click *Check for updates*, or — if you leave *Check for updates automatically* on — about once an hour while the app is running (and when the settings window opens). Turn that setting off and the app **never** checks by itself. | An ordinary web request for a small file (`latest.json` / `stable.json`). GitHub sees your IP address, the time, and the app's name and version. |
 | **Update download** | Only after you click *Update now*. The file is verified against a signing key built into the app; anything that doesn't match is rejected and never run. | An ordinary file download. |
 | **Release notes** | When the *What's new* window or *View release notes* opens. | An ordinary request for one version's notes. |
 

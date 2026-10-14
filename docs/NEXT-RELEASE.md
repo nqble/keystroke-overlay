@@ -27,12 +27,13 @@ The same text is in [CHANGELOG.md](../CHANGELOG.md) under v1.2.0.
 - **Make your own layouts:** click the dashed **+** card in the Layout tab, name it, and it starts as the full-size keyboard. Then hide the keys you don't want in the Keys tab. You can have up to 20 (a counter shows how many you've used). Right-click a layout you made to delete it.
 - **Share layouts:** Layout tab → **Export layouts** saves everything you made (with your hidden keys and labels) to one file, and **Import layouts** adds layouts from a file a friend sent you. Bad or oversized files are cleaned up or skipped, never trusted.
 - **Reset all settings:** General → App → **Reset all settings…** puts every option back to its default after one confirmation. Your layouts, presets, fonts and port are kept.
-- **Font presets:** Fonts tab → ten ready-made looks (Clean, Gamer, Code, Terminal, Bold and more), each shown in its own font. One click applies it.
+- **More fonts, easier to pick:** Style → Font family is now a dropdown of 23 Windows fonts (each shown in its own font) plus your own added fonts, with an "Other" option to type any name.
 - **Keyboard input method:** General → Keyboard input lets you pick **Standard** (what the app always used) or **Compatibility** (Windows Raw Input). If keys don't light up in one particular game, try Compatibility. You can switch live, no restart.
 - **Secure link (optional):** a new toggle in General → Secure link. Off by default, so your OBS link stays simple. Turn it on and the link carries a private key, so only a program that knows the full link can read your key presses. Paste the new link into OBS once. Hit "Make a new key" to cut off old links.
+- **Update dot in the tray:** when a new version is out, the tray icon gets a small orange dot and the right-click menu gets **Update available** at the very top. Click it to jump straight to General → Program updates.
 - **Update button:** a little accent-coloured circle appears in the corner when a new version is out. Click it, read the notes, hit **Update now**. It never installs behind your back.
 - **Stable or Latest:** pick your pace in General → Program updates. **Stable** gets the main releases (1.2.0, 1.3.0…) and is recommended; **Latest** also gets every small fix in between (1.2.1…).
-- **Automatic update check:** on by default, one click to turn off. It only peeks at GitHub, at most once every 6 hours.
+- **Automatic update check:** on by default, one click to turn off. It only peeks at GitHub, about once an hour while the app runs.
 - **Sliders go all the way to zero:** opacity, animation intensity and font size can hit 0 on purpose (no border, no movement, no text. Your call).
 
 **🛠 Improved**

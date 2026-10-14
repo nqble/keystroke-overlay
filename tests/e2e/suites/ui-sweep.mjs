@@ -17,11 +17,13 @@ check('the header shows the logo image', await p.q(`(() => { const i = document.
 await tab('Style');
 check('Layout and Style tabs have the same Import / Export buttons', await p.q(`['Import from file…', 'Export to file…'].every(t => [...document.querySelectorAll('#pane button')].some(b => b.textContent === t))`));
 check('clicking a slider shows no focus outline', await p.q(`(() => { const r = document.querySelector('#pane input[type=range]'); r.focus(); return getComputedStyle(r).outlineStyle === 'none' || getComputedStyle(r).outlineWidth === '0px'; })()`));
-await tab('Fonts');
-await p.ev(`[...document.querySelectorAll('.fpre')].find(b => b.title === 'Bahnschrift').click()`); await sleep(500);
-const fs = (await p.invoke('get_state')).ok.settings.style;
-check('a font preset applies its font and weight', fs.fontFamily === 'Bahnschrift' && fs.fontWeight === 600 && (await p.q(`document.querySelectorAll('.fpre').length`)) === 10);
-await p.ev(`[...document.querySelectorAll('.fpre')].find(b => b.title === 'Segoe UI').click()`); await sleep(300);
+check('the Fonts tab no longer has presets', await (async () => { await tab('Fonts'); return !(await p.q(`!!document.querySelector('.fpre')`)); })());
+await tab('Style');
+const fontOpts = await p.q(`(() => { const s = [...document.querySelectorAll('#pane select')].find(x => [...x.options].some(o => o.value === 'Bahnschrift')); return s ? [...s.options].map(o => o.value) : null; })()`);
+check('Style -> Font family is a dropdown with the Windows fonts and an "Other" option', Array.isArray(fontOpts) && fontOpts.length >= 20 && fontOpts.includes('Consolas') && fontOpts.includes('__custom'));
+await p.ev(`const s = [...document.querySelectorAll('#pane select')].find(x => [...x.options].some(o => o.value === 'Bahnschrift')); s.value = 'Bahnschrift'; s.dispatchEvent(new Event('change', { bubbles: true }))`); await sleep(500);
+check('picking a font from the dropdown applies it', (await p.invoke('get_state')).ok.settings.style.fontFamily === 'Bahnschrift');
+await p.ev(`const s = [...document.querySelectorAll('#pane select')].find(x => [...x.options].some(o => o.value === 'Bahnschrift')); s.value = 'Segoe UI'; s.dispatchEvent(new Event('change', { bubbles: true }))`); await sleep(300);
 
 // every layout, with a key edit and a revert
 const ids = (await p.invoke('list_layouts')).ok.map(l => l.id);

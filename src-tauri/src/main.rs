@@ -64,10 +64,11 @@ fn main() {
             };
             app.manage(AppState {
                 shared: shared.clone(), server: Mutex::new(srv), server_error: Mutex::new(err),
-                tray: Mutex::new(None), update_cache: Mutex::new(None), whats_new: AtomicBool::new(pending),
+                tray: Mutex::new(None), update_cache: Mutex::new(None), whats_new: AtomicBool::new(pending), pending_tab: Mutex::new(None),
             });
 
             tray::build(app, shared)?;
+            commands::updates::start_background_check(app.handle().clone());
 
             let autostarted = std::env::args().any(|a| a == "--autostart");
             let server_failed = app.state::<AppState>().server_error.lock().unwrap().is_some();

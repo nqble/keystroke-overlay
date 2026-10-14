@@ -4,7 +4,9 @@ use crate::server::{ServerHandle, Shared};
 use serde_json::Value;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use tauri::menu::{CheckMenuItem, Submenu};
+use tauri::image::Image;
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, Submenu};
+use tauri::tray::TrayIcon;
 use tauri::{AppHandle, Emitter, Manager};
 
 /// GitHub repository that hosts releases and update manifests.
@@ -15,6 +17,13 @@ pub struct TrayItems {
     pub pause: CheckMenuItem<tauri::Wry>,
     pub layouts: Vec<(String, CheckMenuItem<tauri::Wry>)>,
     pub layout_menu: Submenu<tauri::Wry>,
+    /// The tray menu, the "Update available" entry that is added at its top while an update exists, and the two icons.
+    pub menu: Menu<tauri::Wry>,
+    pub update_item: MenuItem<tauri::Wry>,
+    pub update_shown: bool,
+    pub icon: Image<'static>,
+    pub icon_badged: Image<'static>,
+    pub tray: TrayIcon<tauri::Wry>,
 }
 
 pub struct AppState {
@@ -22,10 +31,12 @@ pub struct AppState {
     pub server: Mutex<Option<ServerHandle>>,
     pub server_error: Mutex<Option<String>>,
     pub tray: Mutex<Option<TrayItems>>,
-    /// Last update-check result (checked at, channel, result) so the background check runs at most every 6 hours.
+    /// Last update-check result (checked at, channel, result) so the check runs at most once an hour.
     pub update_cache: Mutex<Option<(std::time::Instant, String, Value)>>,
     /// True until the user has been shown the "What's new" window for this version.
     pub whats_new: AtomicBool,
+    /// A settings tab to open as soon as a freshly created settings window is ready (set by the tray's "Update available").
+    pub pending_tab: Mutex<Option<String>>,
 }
 
 pub fn port_of(s: &Shared) -> u16 {

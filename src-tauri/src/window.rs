@@ -1,7 +1,7 @@
 //! The settings window: created on demand, destroyed on close (so no WebView2 process runs while it is closed).
 
 use crate::state::AppState;
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 pub fn open_settings(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("settings") {
@@ -22,6 +22,18 @@ pub fn open_settings(app: &AppHandle) {
         // Tauri's default WebView2 flags.
         .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1")
         .build();
+}
+
+/// Opens the settings window on a specific tab (used by the tray's "Update available" entry).
+/// An already open window is told to switch tab; a new one reads the request when it starts.
+pub fn open_settings_tab(app: &AppHandle, tab: &str) {
+    if app.get_webview_window("settings").is_some() {
+        open_settings(app);
+        let _ = app.emit("goto-tab", tab.to_string());
+    } else {
+        *app.state::<AppState>().pending_tab.lock().unwrap() = Some(tab.to_string());
+        open_settings_async(app);
+    }
 }
 
 /// Window creation must not run on the thread handling a tray click, so it is spawned.

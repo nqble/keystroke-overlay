@@ -56,20 +56,7 @@ addEventListener('pagehide', flush);
 addEventListener('beforeunload', flush);
 
 // ------------------------------------------------------------------ controls
-// Ready-made looks for the key text. Every font here ships with Windows 10/11, so it also works in OBS on the same PC.
-const FONT_PRESETS = [
-  { name: 'Clean', note: 'Windows default', family: 'Segoe UI', weight: 600 },
-  { name: 'Gamer', note: 'Sharp and techy', family: 'Bahnschrift', weight: 600 },
-  { name: 'Code', note: 'Monospace', family: 'Consolas', weight: 700 },
-  { name: 'Terminal', note: 'Modern monospace', family: 'Cascadia Mono', weight: 600 },
-  { name: 'Bold', note: 'Loud and heavy', family: 'Impact', weight: 400 },
-  { name: 'Friendly', note: 'Soft and round', family: 'Trebuchet MS', weight: 700 },
-  { name: 'Classic', note: 'Serif', family: 'Georgia', weight: 700 },
-  { name: 'Retro', note: 'Typewriter', family: 'Courier New', weight: 700 },
-  { name: 'Playful', note: 'Casual', family: 'Comic Sans MS', weight: 700 },
-  { name: 'Wide', note: 'Easy to read', family: 'Verdana', weight: 600 },
-];
-const COMMON_FONTS = ['Segoe UI', 'Arial', 'Consolas', 'Courier New', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Georgia', 'Impact', 'Comic Sans MS', 'Bahnschrift', 'Cascadia Mono'];
+const WINDOWS_FONTS = ['Segoe UI', 'Segoe UI Semibold', 'Segoe UI Black', 'Bahnschrift', 'Arial', 'Arial Black', 'Calibri', 'Candara', 'Cascadia Code', 'Cascadia Mono', 'Consolas', 'Corbel', 'Courier New', 'Franklin Gothic Medium', 'Georgia', 'Impact', 'Lucida Console', 'Palatino Linotype', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana', 'Comic Sans MS'];   // all ship with Windows 10/11
 const CONTROLS = [
   { tab: 'style', group: 'Key colors', path: 'style.keyFill', type: 'color', label: 'Fill (idle)' },
   { tab: 'style', group: 'Key colors', path: 'style.keyFillPressed', type: 'color', label: 'Fill (pressed)' },
@@ -123,12 +110,22 @@ function selectCtl(c) {
 }
 let customFonts = [];
 function fontCtl(c) {
-  const id = 'fontlist';
-  const inp = el('input', { type: 'text', value: get(S, c.path), placeholder: 'Font name' });
-  inp.setAttribute('list', id);
-  const dl = el('datalist', { id }, [...customFonts.map(f => f.replace(/\.[^.]+$/, '')), ...COMMON_FONTS].map(f => el('option', { value: f })));
+  const cur = get(S, c.path);
+  const mine = customFonts.map(f => f.replace(/\.[^.]+$/, ''));
+  const known = new Set([...mine, ...WINDOWS_FONTS]);
+  const opt = f => el('option', { value: f, textContent: f, style: `font-family:"${f}", "Segoe UI", sans-serif` });   // each name is shown in its own font
+  const sel = el('select', {}, [
+    mine.length ? el('optgroup', { label: 'Your fonts' }, mine.map(opt)) : null,
+    el('optgroup', { label: 'Windows fonts' }, WINDOWS_FONTS.map(opt)),
+    el('option', { value: '__custom', textContent: 'Other (type a name)…' })].filter(Boolean));
+  const inp = el('input', { type: 'text', value: cur, placeholder: 'Font name', hidden: known.has(cur) });
+  sel.value = known.has(cur) ? cur : '__custom';
+  sel.onchange = () => {
+    if (sel.value === '__custom') { inp.hidden = false; inp.focus(); return; }
+    inp.hidden = true; inp.value = sel.value; put(S, c.path, sel.value); changed();
+  };
   inp.oninput = () => { put(S, c.path, inp.value); changed(); };
-  return [inp, dl];
+  return [sel, inp];
 }
 /** The Import / Export pair, identical in the Layout and Style tabs. */
 const shareRow = (label, onImport, onExport, exportDisabled = false, tips = {}) => row(label,
@@ -285,19 +282,8 @@ const TABS = {
 
   async fonts() {
     const p = el('div');
-    p.append(el('h2', { textContent: 'Font presets' }),
-      el('p', { className: 'note', textContent: 'Click one to use it for the key text. You can still fine-tune the font and weight in the Style tab.' }));
-    const pre = el('div', { className: 'presets' });
-    for (const f of FONT_PRESETS) {
-      const on = S.style.fontFamily === f.family;
-      pre.append(el('button', { type: 'button', className: 'fpre' + (on ? ' sel' : ''), title: f.family,
-        onclick: () => { S.style.fontFamily = f.family; S.style.fontWeight = f.weight; changed(true); } },
-        el('div', { className: 'aa', style: `font-family:"${f.family}", "Segoe UI", sans-serif;font-weight:${f.weight}`, textContent: 'Aa 123' }),
-        el('b', { textContent: f.name }), el('span', { textContent: f.family })));
-    }
-    p.append(pre);
-    p.append(el('h2', { textContent: 'Your own fonts' }),
-      el('p', { className: 'note', textContent: 'Add TTF, OTF or WOFF files. They are copied into the app’s fonts folder. After adding, type the font’s file name (without extension) in Style → Font family, or click Use.' }));
+    p.append(el('h2', { textContent: 'Custom fonts' }),
+      el('p', { className: 'note', textContent: 'Add TTF, OTF or WOFF files. They are copied into the app’s fonts folder. After adding, pick it in Style → Font family (under “Your fonts”), or click Use.' }));
     p.append(el('div', { className: 'btns' },
       el('button', { className: 'primary', textContent: 'Add font…', onclick: async () => { const n = await call('add_font'); if (n) { toast('Added ' + n); await reloadFonts(); render(); } } }),
       el('button', { textContent: 'Open fonts folder', onclick: () => call('open_folder', { kind: 'fonts' }) })));
@@ -425,7 +411,7 @@ const TABS = {
     const bar = el('div', { className: 'bar', id: 'upBar', hidden: true }, el('div', { className: 'fill', id: 'upFill' }));
     p.append(row('Software update', checkBtn, installBtn), el('div', { className: 'row' }, el('label'), el('div', { className: 'ctl', style: 'flex-direction:column;align-items:stretch;gap:6px' }, status, bar, el('span', { className: 'hint', id: 'upText' }))), note);
     p.append(toggle('general.autoCheckUpdates', 'Check for updates automatically'));
-    p.append(el('p', { className: 'note', textContent: 'Updates are never installed without your click. The app only contacts GitHub for the update check (when this window opens, at most every 6 hours) and for release notes, and sends nothing except its version. Your keystrokes never leave this PC.' }));
+    p.append(el('p', { className: 'note', textContent: 'Updates are never installed without your click. The app only contacts GitHub for the update check (about once an hour while the app runs, and when this window opens) and for release notes, and sends nothing except its version. Your keystrokes never leave this PC.' }));
     setTimeout(paintProgress, 0);
     p.append(el('h2', { textContent: 'App' }));
     p.append(toggle('general.autostart', 'Start with Windows', async on => { try { await invoke('set_autostart', { enabled: on }); } catch (e) { toast(String(e), true); S.general.autostart = !on; render(); } }));
@@ -602,6 +588,13 @@ async function resync() {
   push(); render();
 }
 ev.listen('settings-changed', resync);
+ev.listen('goto-tab', e => { if (TAB_NAMES[e.payload]) { tab = e.payload; render(); } });
+ev.listen('update-result', e => showUpdateResult(e.payload));   // the hourly background check found something
+function showUpdateResult(r) {
+  const changedResult = JSON.stringify(r) !== JSON.stringify(lastUpdate);
+  setUpdate(r);
+  if (changedResult && tab === 'general') render();   // so General shows the new update right away
+}
 
 // ------------------------------------------------------------------ OBS bits
 const sizeText = () => size ? `Recommended Browser Source size: ${size.w} × ${size.h}` : '';
@@ -644,6 +637,7 @@ let booted = false;
   const [st, ly, fonts] = await Promise.all([call('get_state'), call('list_layouts'), call('list_fonts')]);
   S = st.settings; obsUrl = st.url; appVersion = st.version; paused = st.paused; layouts = ly; customFonts = fonts;
   inputActive = st.inputActive; inputError = st.inputError;
+  if (st.gotoTab && TAB_NAMES[st.gotoTab]) tab = st.gotoTab;   // e.g. the tray's "Update available" opens General
   paintPause(); updateObs();
   if (st.serverError) {
     const b = $('#banner'); b.hidden = false;
@@ -661,9 +655,9 @@ let booted = false;
 })();
 
 // Background update check shortly after the window is up (setting: "Check for updates automatically").
-// The Rust side skips it when disabled and reuses a result from the last 6 hours.
+// The Rust side skips it when disabled and reuses a result from the last hour.
 setTimeout(async () => {
-  try { const r = await invoke('auto_check_update'); if (r) setUpdate(r); } catch { /* offline: stay quiet */ }
+  try { const r = await invoke('auto_check_update'); if (r) showUpdateResult(r); } catch { /* offline: stay quiet */ }
 }, 700);
 
 // ------------------------------------------------------------------ right-click: no browser menu anywhere, just our own where it makes sense

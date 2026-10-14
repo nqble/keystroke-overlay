@@ -18,7 +18,7 @@ pub fn defaults() -> Value {
         "version": CURRENT_VERSION,
         "general": {
             "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
-            // Background update check when the settings window opens (at most every 6 hours). Updates are
+            // Background update check (about once an hour while the app runs, and when the settings window opens). Updates are
             // never installed without the user clicking the update button.
             "autoCheckUpdates": true,
             // How keys are read: "hook" (standard, default) or "rawinput" (compatibility, for games that block hooks).

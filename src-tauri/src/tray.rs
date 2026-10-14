@@ -3,10 +3,11 @@
 use crate::server::{self, Shared};
 use crate::settings;
 use crate::state::{announce, obs_url, port_of, sync_tray, AppState, TrayItems};
-use crate::window::open_settings_async;
+use crate::window::{open_settings_async, open_settings_tab};
 use serde_json::json;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use tauri::image::Image;
 use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, IsMenuItem, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager};
@@ -34,6 +35,40 @@ pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
     announce(app);
     sync_tray(app);
     Ok(())
+}
+
+/// Draws a small orange dot (with a dark ring so it stays visible on any taskbar) in the top right corner of an RGBA icon.
+pub fn badge_rgba(rgba: &[u8], w: u32, h: u32) -> Vec<u8> {
+    let mut out = rgba.to_vec();
+    let (cx, cy, r) = (w as f32 * 0.76, h as f32 * 0.24, w as f32 * 0.21);
+    let mut blend = |x: u32, y: u32, c: [u8; 3], cover: f32| {
+        let i = ((y * w + x) * 4) as usize;
+        let a = cover.clamp(0.0, 1.0);
+        for k in 0..3 { out[i + k] = (out[i + k] as f32 * (1.0 - a) + c[k] as f32 * a) as u8; }
+        out[i + 3] = out[i + 3].max((a * 255.0) as u8);
+    };
+    for y in 0..h {
+        for x in 0..w {
+            let d = ((x as f32 + 0.5 - cx).powi(2) + (y as f32 + 0.5 - cy).powi(2)).sqrt();
+            let ring = (r * 1.3 - d + 0.5).clamp(0.0, 1.0);      // soft edge, about one pixel wide
+            if ring > 0.0 { blend(x, y, [26, 29, 38], ring); }
+            let dot = (r - d + 0.5).clamp(0.0, 1.0);
+            if dot > 0.0 { blend(x, y, [255, 138, 0], dot); }
+        }
+    }
+    out
+}
+
+/// Shows or hides the update indicator: an orange dot on the tray icon and an "Update available" entry at the top of the menu.
+pub fn set_update_badge(app: &AppHandle, available: bool) {
+    let st = app.state::<AppState>();
+    let mut guard = st.tray.lock().unwrap();
+    let Some(t) = guard.as_mut() else { return };
+    if t.update_shown == available { return; }
+    t.update_shown = available;
+    let _ = t.tray.set_icon(Some(if available { t.icon_badged.clone() } else { t.icon.clone() }));
+    let _ = t.tray.set_tooltip(Some(if available { "Keystroke Overlay: update available" } else { "Keystroke Overlay" }));
+    if available { let _ = t.menu.insert(&t.update_item, 0); } else { let _ = t.menu.remove(&t.update_item); }
 }
 
 /// Rebuilds the tray's Layout list after a layout was created or deleted.
@@ -100,10 +135,12 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         .separator()
         .item(&MenuItemBuilder::with_id("quit", "Quit").build(app)?)
         .build()?;
-    *app.state::<AppState>().tray.lock().unwrap() = Some(TrayItems { pause: pause_item, layouts: layout_items, layout_menu });
+    let icon = app.default_window_icon().unwrap().clone();
+    let icon_badged = Image::new_owned(badge_rgba(icon.rgba(), icon.width(), icon.height()), icon.width(), icon.height());
+    let update_item = MenuItemBuilder::with_id("update", "Update available").build(app)?;
 
-    TrayIconBuilder::new()
-        .icon(app.default_window_icon().unwrap().clone())
+    let tray = TrayIconBuilder::new()
+        .icon(icon.clone())
         .tooltip("Keystroke Overlay")
         .menu(&menu)
         .show_menu_on_left_click(false)
@@ -114,6 +151,7 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
                 "copy" => { let _ = app.clipboard().write_text(obs_url(&shared)); }
                 "pause" => { toggle_pause_inner(app); }
                 "restart" => { let a = app.clone(); std::thread::spawn(move || { let _ = restart_server_inner(&a); }); }
+                "update" => open_settings_tab(app, "general"),
                 "quit" => app.exit(0),
                 other => if let Some(l) = other.strip_prefix("layout:") {
                     if set_layout_inner(app, l).is_err() { sync_tray(app); }
@@ -126,5 +164,21 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
             }
         })
         .build(app)?;
+    *app.state::<AppState>().tray.lock().unwrap() = Some(TrayItems { pause: pause_item, layouts: layout_items, layout_menu, menu, update_item, update_shown: false, icon: icon.to_owned(), icon_badged, tray });
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::badge_rgba;
+    #[test]
+    fn badge_paints_an_orange_dot_top_right_and_leaves_the_rest() {
+        let (w, h) = (64u32, 64u32);
+        let base = vec![40u8; (w * h * 4) as usize];
+        let out = badge_rgba(&base, w, h);
+        let px = |x: u32, y: u32| { let i = ((y * w + x) * 4) as usize; [out[i], out[i + 1], out[i + 2]] };
+        assert_eq!(px((w as f32 * 0.76) as u32, (h as f32 * 0.24) as u32), [255, 138, 0]);
+        assert_eq!(px(2, h - 3), [40, 40, 40]);
+        assert_eq!(out.len(), base.len());
+    }
 }
