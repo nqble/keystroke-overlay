@@ -36,6 +36,18 @@
     <div class="mfoot"><button id="mOk" class="primary">OK</button></div>
   </div>
 </div>
+<button id="updateBtn" class="upd" type="button" hidden aria-label="New update" data-tip="New update">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg>
+</button>
+<div id="updModal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="uTitle">
+    <h3 id="uTitle"></h3>
+    <div id="uBody"></div>
+    <div class="bar" id="uBar" hidden><div class="fill" id="uFill"></div></div>
+    <div class="hint" id="uText"></div>
+    <div class="mfoot"><button id="uLater" type="button">Later</button><button id="uGo" type="button" class="primary">Update now</button></div>
+  </div>
+</div>
 <div id="toast" hidden></div>
 <script src="settings.js"></script>
 </body>

@@ -30,6 +30,8 @@ struct AppState {
     server: Mutex<Option<ServerHandle>>,
     server_error: Mutex<Option<String>>,
     tray: Mutex<Option<TrayItems>>,
+    /// Last update-check result (checked at, channel, result) so the background check runs at most every 6 hours.
+    update_cache: Mutex<Option<(std::time::Instant, String, Value)>>,
     /// True until the user has been shown the "What's new" window for this version.
     whats_new: AtomicBool,
 }
@@ -58,6 +60,10 @@ fn open_settings(app: &AppHandle) {
         // Same colour as the page: the window appears instantly dark instead of flashing white
         // while WebView2 loads.
         .background_color(tauri::window::Color(18, 20, 26, 255))
+        // One renderer process for the settings page + its preview frame instead of two (about 55 MB less
+        // while the window is open, measured). Both pages are our own local content. The first flag keeps
+        // Tauri's default WebView2 flags.
+        .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1")
         .build();
 }
 fn open_settings_async(app: &AppHandle) {
@@ -106,8 +112,10 @@ fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Result
         let cur = st.shared.settings.read().unwrap();
         for k in ["port", "autostart", "lastSeenVersion"] { new["general"][k] = cur["general"][k].clone(); }
     }
+    let channel_changed = st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
     *st.shared.settings.write().unwrap() = new;
+    if channel_changed { *st.update_cache.lock().unwrap() = None; }   // a different channel needs a fresh check
     let _ = st.shared.cfg_tx.send("cfg");
     sync_tray(&app);
     Ok(())
@@ -308,21 +316,61 @@ async fn import_preset(app: AppHandle) -> Result<Option<Value>, String> {
     Ok(Some(v))
 }
 
-// ---- updates (only contacts GitHub when asked; sends nothing but the version header)
-#[tauri::command]
-async fn check_update(app: AppHandle) -> Result<Value, String> {
-    let upd = app.updater().map_err(|e| e.to_string())?;
-    match upd.check().await.map_err(|e| format!("Couldn't check for updates: {e}"))? {
-        Some(u) => {
-            // latest.json may carry "manual": true (+ "manual_url") for updates the in-app installer can't apply.
+// ---- updates (contacts GitHub only for the optional background check or when asked; sends nothing but the version)
+const GITHUB: &str = "https://github.com/nqble/keystroke-overlay/releases";
+const RELEASES_URL: &str = "https://github.com/nqble/keystroke-overlay/releases/latest";
+
+/// Where each channel's update manifest lives:
+///   latest -> latest.json on the newest GitHub release (uploaded with every release)
+///   stable -> stable.json on the fixed "channel-stable" release (replaced only when you promote a release)
+/// KEYOVERLAY_TEST_UPDATE_BASE is a build-time override used by test builds only; release builds never set it.
+fn manifest_url(channel: &str) -> String {
+    if let Some(base) = option_env!("KEYOVERLAY_TEST_UPDATE_BASE") {
+        return format!("{base}/{}.json", if channel == "latest" { "latest" } else { "stable" });
+    }
+    if channel == "latest" { format!("{GITHUB}/latest/download/latest.json") } else { format!("{GITHUB}/download/channel-stable/stable.json") }
+}
+fn channel_of(app: &AppHandle) -> String {
+    app.state::<AppState>().shared.settings.read().unwrap()["general"]["updateChannel"].as_str().unwrap_or("stable").to_string()
+}
+fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::Updater, String> {
+    let url: tauri::Url = manifest_url(channel).parse().map_err(|_| "Bad update address".to_string())?;
+    app.updater_builder().endpoints(vec![url]).map_err(|e| e.to_string())?.build().map_err(|e| e.to_string())
+}
+
+async fn do_check(app: &AppHandle) -> Result<Value, String> {
+    let channel = channel_of(app);
+    let upd = updater_for(app, &channel)?;
+    let result = match upd.check().await {
+        Ok(Some(u)) => {
+            // The manifest may carry "manual": true (+ "manual_url") for updates the in-app installer can't apply.
             let manual = u.raw_json.get("manual").and_then(|v| v.as_bool()).unwrap_or(false);
             let url = u.raw_json.get("manual_url").and_then(|v| v.as_str()).unwrap_or(RELEASES_URL);
-            Ok(json!({ "available": true, "version": u.version, "notes": u.body, "current": u.current_version, "manual": manual, "url": url }))
+            json!({ "available": true, "version": u.version, "notes": u.body, "current": u.current_version, "manual": manual, "url": url, "channel": channel })
         }
-        None => Ok(json!({ "available": false, "current": env!("CARGO_PKG_VERSION") })),
-    }
+        Ok(None) => json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": channel }),
+        Err(e) => return Err(format!("Couldn't check for updates ({e}). You may be offline, or no {channel} release has been published yet.")),
+    };
+    *app.state::<AppState>().update_cache.lock().unwrap() = Some((std::time::Instant::now(), channel, result.clone()));
+    Ok(result)
 }
-const RELEASES_URL: &str = "https://github.com/nqble/keystroke-overlay/releases/latest";
+
+/// Manual "Check for updates".
+#[tauri::command]
+async fn check_update(app: AppHandle) -> Result<Value, String> { do_check(&app).await }
+
+/// Background check when the settings window opens: only if enabled, and it reuses a result from the
+/// last 6 hours so opening the window repeatedly doesn't keep contacting GitHub. Returns null if disabled.
+#[tauri::command]
+async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
+    let st = app.state::<AppState>();
+    if !st.shared.settings.read().unwrap()["general"]["autoCheckUpdates"].as_bool().unwrap_or(false) { return Ok(Value::Null); }
+    let ch = channel_of(&app);
+    if let Some((t, c, v)) = st.update_cache.lock().unwrap().as_ref() {
+        if *c == ch && t.elapsed() < std::time::Duration::from_secs(6 * 3600) { return Ok(v.clone()); }
+    }
+    do_check(&app).await
+}
 
 /// Opens the project's GitHub page in the default browser. Only this repo's URLs are allowed.
 #[tauri::command]
@@ -332,9 +380,11 @@ fn open_release_page(url: String) -> Result<(), String> {
 }
 
 /// Downloads, verifies the signature, installs, then restarts into the new version.
+/// Only ever called from the user clicking "Update now".
 #[tauri::command]
 async fn install_update(app: AppHandle) -> Result<(), String> {
-    let upd = app.updater().map_err(|e| e.to_string())?;
+    let channel = channel_of(&app);
+    let upd = updater_for(&app, &channel)?;
     let Some(u) = upd.check().await.map_err(|e| e.to_string())? else { return Err("Already up to date".into()) };
     let (a1, a2) = (app.clone(), app.clone());
     let mut done: u64 = 0;
@@ -384,7 +434,7 @@ fn main() {
             };
             app.manage(AppState {
                 shared: shared.clone(), server: Mutex::new(srv), server_error: Mutex::new(err),
-                tray: Mutex::new(None), whats_new: AtomicBool::new(pending),
+                tray: Mutex::new(None), update_cache: Mutex::new(None), whats_new: AtomicBool::new(pending),
             });
 
             // ---- tray
@@ -463,7 +513,7 @@ fn main() {
             get_state, save_settings, set_port, set_autostart, list_layouts, copy_text,
             list_fonts, add_font, remove_font, open_folder,
             list_presets, save_preset, load_preset, delete_preset, export_preset, import_preset, quit_app,
-            check_update, install_update, open_release_page,
+            check_update, auto_check_update, install_update, open_release_page,
             toggle_pause, set_layout, restart_server, ack_whats_new, get_release_notes
         ])
         .build(tauri::generate_context!())

@@ -50,6 +50,30 @@ registerAnimation({ id: 'wobble', name: 'Wobble',
 Use only `transform`/`opacity` so it stays on the GPU. It appears in Animation → Type automatically.
 Built-in themes work the same way with `registerTheme`.
 
+## Update channels (Stable / Latest) and the update button
+The settings window checks for updates in the background when it opens (at most every 6 hours; setting
+"Check for updates automatically", on by default). If a newer version exists, a green circular download
+button appears in the bottom-left corner. Clicking it opens a dialog (release notes + "Update now" / "Later");
+nothing is downloaded or installed until the user confirms. The download is verified against the public key in
+`tauri.conf.json` before it runs.
+
+Each channel has its own manifest:
+- **Latest** reads `latest.json` from the newest GitHub release (uploaded with every release, as before).
+- **Stable** reads `stable.json` from a fixed GitHub release tagged **`channel-stable`**.
+  Users on Stable only move when you replace that file.
+
+One-time setup: GitHub → Releases → Draft a new release → tag `channel-stable` → tick "Set as a pre-release"
+(so it never becomes "latest") → title "Stable channel" → publish (no files needed yet).
+
+Releasing:
+- Normal release (Latest channel only): `npm run release -- "notes"` and upload the installer + `latest.json` to `v<version>`.
+- Promote to Stable: `npm run release -- --stable "notes"`, upload as above, and ALSO upload `stable.json`
+  to the `channel-stable` release (delete the old `stable.json` asset first). Suggested rule: promote the
+  releases you have tested for a while (for example x.y.0 releases) and leave quick patch releases on Latest only.
+- A user on Stable is never downgraded; if Latest is newer than Stable they simply stay put until Stable catches up.
+- Test builds can point at a local mock server with the build-time env var `KEYOVERLAY_TEST_UPDATE_BASE`
+  (release builds never set it).
+
 ## Settings format (v2)
 Per-layout key edits live in `layout.profiles[layoutId] = { disabledKeys, labels }`. v1 files (one global
 list) are migrated automatically (`v1_to_v2` in settings.rs, covered by unit tests). `general.lastSeenVersion`

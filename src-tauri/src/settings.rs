@@ -18,7 +18,11 @@ pub fn defaults() -> Value {
         "version": CURRENT_VERSION,
         "general": {
             "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
-            "autoCheckUpdates": false,
+            // Background update check when the settings window opens (at most every 6 hours). Updates are
+            // never installed without the user clicking the update button.
+            "autoCheckUpdates": true,
+            // "stable" = only releases that were promoted to the Stable channel; "latest" = every release.
+            "updateChannel": "stable",
             // Last app version the user has seen the "What's new" window for (managed by the app).
             "lastSeenVersion": ""
         },
@@ -153,6 +157,7 @@ pub fn sanitize(v: &mut Value, def: &Value) {
                     Some(s) if path == "style.fontFamily" => !s.is_empty() && s.len() <= 80 && !s.contains(['"', '\\', '{', '}', ';', '<', '>']),
                     Some(s) if path == "general.lastSeenVersion" => is_version(s),
                     Some(s) if path == "layout.id" => is_id(s),
+                    Some(s) if path == "general.updateChannel" => s == "stable" || s == "latest",
                     Some(s) => is_ident(s),
                     None => false,
                 };
@@ -269,6 +274,13 @@ mod tests {
         assert_eq!(m["layout"]["profiles"]["tsb"]["disabledKeys"], json!(["KeyQ"]));
         assert_eq!(m["layout"]["profiles"]["tsb"]["labels"]["Space"], json!("Jump"));
         assert!(m["layout"].get("disabledKeys").is_none() && m["layout"].get("labels").is_none());
+    }
+    #[test]
+    fn update_channel_is_limited_to_stable_or_latest() {
+        assert_eq!(migrate(json!({ "version": 2 }))["general"]["updateChannel"], json!("stable"));
+        assert_eq!(migrate(json!({ "version": 2, "general": { "updateChannel": "latest" } }))["general"]["updateChannel"], json!("latest"));
+        assert_eq!(migrate(json!({ "version": 2, "general": { "updateChannel": "nightly" } }))["general"]["updateChannel"], json!("stable"));
+        assert_eq!(migrate(json!({ "version": 2, "general": { "updateChannel": 5 } }))["general"]["updateChannel"], json!("stable"));
     }
     #[test]
     fn corrupt_settings_fall_back_to_the_backup() {

@@ -102,3 +102,32 @@ button.danger:hover { border-color: var(--danger); color: var(--danger); }
 @keyframes dot2 { 0% { opacity: 0; } 42.857% { opacity: 1; } 100% { opacity: 1; } }
 @keyframes dot3 { 0% { opacity: 0; } 85.714% { opacity: 1; } 100% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: 1; } #pane { animation: none; } }
+
+/* Update dialog (same look as the What's new window) */
+#updModal { position: fixed; inset: 0; background: rgba(5, 7, 12, .66); display: flex; align-items: center; justify-content: center; z-index: 21; }
+#updModal[hidden] { display: none; }
+#uBody { padding: 0 22px 8px; overflow-y: auto; line-height: 1.55; }
+#uBody h4 { margin: 12px 0 4px; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+#uBody p { margin: 6px 0; } #uBody ul { margin: 6px 0; padding-left: 20px; } #uBody code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; }
+#updModal .bar { margin: 4px 22px 0; max-width: none; }
+#uText { padding: 6px 22px 0; min-height: 18px; }
+#updModal .mfoot { gap: 10px; }
+
+/* Corner update button: white download icon on a #91E048 circle. Shakes briefly every 7.5 s
+   (transform only), tooltip on hover. */
+.upd { position: fixed; left: 14px; bottom: 14px; z-index: 15; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%;
+  background: #91E048; display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 10px rgba(145, 224, 72, .35);
+  animation: upd-shake 7.5s ease-in-out infinite; }
+.upd[hidden] { display: none; }
+.upd:hover { background: #a0ea5a; animation-play-state: paused; }
+.upd:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.upd::after { content: attr(data-tip); position: absolute; left: 46px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+  background: #0d0f14; color: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; font-size: 12px;
+  opacity: 0; pointer-events: none; transition: opacity .12s; }
+.upd:hover::after, .upd:focus-visible::after { opacity: 1; }
+@keyframes upd-shake {
+  0%, 12%, 100% { transform: translateX(0) rotate(0); }
+  2% { transform: translateX(-3px) rotate(-12deg); } 4% { transform: translateX(3px) rotate(10deg); }
+  6% { transform: translateX(-2px) rotate(-7deg); } 8% { transform: translateX(2px) rotate(5deg); } 10% { transform: translateX(-1px) rotate(-2deg); }
+}
+@media (prefers-reduced-motion: reduce) { .upd { animation: none; } }

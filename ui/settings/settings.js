@@ -306,21 +306,24 @@ const TABS = {
     };
     checkBtn.onclick = async () => {
       checkBtn.disabled = true; status.textContent = 'Checking…';
-      try { showResult(lastUpdate = await invoke('check_update')); } catch (e) { status.textContent = String(e); }
+      try { showResult(setUpdate(await invoke('check_update'))); } catch (e) { status.textContent = String(e); }
       checkBtn.disabled = false;
     };
-    installBtn.onclick = async () => {
-      if (manualUrl) { try { await invoke('open_release_page', { url: manualUrl }); } catch (e) { status.textContent = String(e); } return; }
-      try { if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; } await invoke('save_settings', { settings: S }); } catch {}   // make sure nothing is pending before the app restarts
-      installBtn.disabled = checkBtn.disabled = true; status.textContent = 'Downloading…';
-      upProg = { pct: 0, text: 'Starting download…' }; paintProgress();
-      try { await invoke('install_update'); } catch (e) { upProg = null; status.textContent = String(e); installBtn.disabled = checkBtn.disabled = false; paintProgress(); }
-    };
+    installBtn.onclick = () => openUpdateDialog();   // same confirm dialog as the corner button
     if (lastUpdate) showResult(lastUpdate);
+    const chSel = el('select', {}, el('option', { value: 'stable', textContent: 'Stable (recommended)' }), el('option', { value: 'latest', textContent: 'Latest' }));
+    chSel.value = S.general.updateChannel;
+    chSel.onchange = async () => {
+      S.general.updateChannel = chSel.value;
+      try { await invoke('save_settings', { settings: S }); } catch {}   // the check below must see the new channel
+      setUpdate(null); status.textContent = 'Checking…';
+      try { showResult(setUpdate(await invoke('check_update'))); } catch (e) { status.textContent = String(e); }
+    };
+    p.append(row('Update channel', chSel), el('p', { className: 'note', textContent: 'Stable: only releases promoted as stable (recommended). Latest: every release as soon as it is published, including small fixes in between.' }));
     const bar = el('div', { className: 'bar', id: 'upBar', hidden: true }, el('div', { className: 'fill', id: 'upFill' }));
     p.append(row('Software update', checkBtn, installBtn), el('div', { className: 'row' }, el('label'), el('div', { className: 'ctl', style: 'flex-direction:column;align-items:stretch;gap:6px' }, status, bar, el('span', { className: 'hint', id: 'upText' }))), note);
-    p.append(toggle('general.autoCheckUpdates', 'Check when this window opens'));
-    p.append(el('p', { className: 'note', textContent: 'The app only contacts GitHub when it checks for updates or shows release notes, and sends nothing except its version. Your keystrokes never leave this PC.' }));
+    p.append(toggle('general.autoCheckUpdates', 'Check for updates automatically'));
+    p.append(el('p', { className: 'note', textContent: 'Updates are never installed without your click. The app only contacts GitHub for the update check (when this window opens, at most every 6 hours) and for release notes, and sends nothing except its version. Your keystrokes never leave this PC.' }));
     setTimeout(paintProgress, 0);
     p.append(el('h2', { textContent: 'App' }));
     p.append(toggle('general.autostart', 'Start with Windows', async on => { try { await invoke('set_autostart', { enabled: on }); } catch (e) { toast(String(e), true); S.general.autostart = !on; render(); } }));
@@ -345,6 +348,13 @@ async function render() {
 
 // ------------------------------------------------------------------ update progress
 function paintProgress() {
+  const ub = $('#uBar');   // the update dialog's own bar
+  if (ub) {
+    ub.hidden = !upProg;
+    $('#uFill').style.width = (upProg ? Math.max(0, upProg.pct) : 0) + '%';
+    $('#uFill').classList.toggle('indet', !!upProg && upProg.pct < 0);
+    if (upProg) $('#uText').textContent = upProg.text;
+  }
   const bar = $('#upBar'), fill = $('#upFill'), txt = $('#upText');
   if (!bar) return;
   bar.hidden = !upProg;
@@ -432,6 +442,40 @@ async function showNotes(version, heading) {
 }
 $('#mOk').onclick = closeModal;
 
+// ------------------------------------------------------------------ update button + dialog
+// The corner button only appears when a newer version exists. Nothing is downloaded or installed
+// until the user clicks it and confirms in the dialog.
+function setUpdate(r) {
+  lastUpdate = r;
+  $('#updateBtn').hidden = !(r && r.available);
+  return r;
+}
+let updBusy = false;
+function openUpdateDialog() {
+  const r = lastUpdate; if (!r?.available) return;
+  $('#uTitle').textContent = `Update available — v${r.version}`;
+  const body = $('#uBody'); body.replaceChildren(...[
+    el('p', { className: 'hint', textContent: `You have v${r.current} · ${r.channel === 'latest' ? 'Latest' : 'Stable'} channel` }),
+    r.manual ? el('p', { textContent: 'This update needs a manual install: download the new installer from GitHub, close this app, and run it. Your settings are kept.' }) : null,
+    r.notes ? md(r.notes) : null].filter(Boolean));   // replaceChildren would print "null" for empty slots
+  $('#uGo').textContent = r.manual ? 'Open GitHub installer' : 'Update now';
+  $('#uGo').disabled = $('#uLater').disabled = false; updBusy = false;
+  upProg = null; paintProgress(); $('#uText').textContent = '';
+  $('#updModal').hidden = false; $('#uGo').focus();
+}
+$('#updateBtn').onclick = openUpdateDialog;
+$('#uLater').onclick = () => { if (!updBusy) $('#updModal').hidden = true; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !updBusy && !$('#updModal').hidden) $('#updModal').hidden = true; });
+$('#uGo').onclick = async () => {
+  const r = lastUpdate; if (!r?.available) return;
+  if (r.manual) { try { await invoke('open_release_page', { url: r.url }); } catch (e) { toast(String(e), true); } return; }
+  updBusy = true; $('#uGo').disabled = $('#uLater').disabled = true;
+  try { if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; } await invoke('save_settings', { settings: S }); } catch {}   // nothing pending when the app restarts
+  upProg = { pct: 0, text: 'Starting download…' }; paintProgress();
+  try { await invoke('install_update'); }   // downloads, verifies the signature, installs, restarts
+  catch (e) { updBusy = false; upProg = null; paintProgress(); $('#uText').textContent = String(e); $('#uGo').disabled = $('#uLater').disabled = false; }
+};
+
 // ------------------------------------------------------------------ pause bar + changes made elsewhere (tray)
 function paintPause() { $('#pausebar').hidden = !paused; }
 $('#resumeBtn').onclick = async () => { await call('toggle_pause'); };
@@ -500,11 +544,8 @@ let booted = false;
   }
 })();
 
-// Optional: check for updates when the window opens (off by default).
+// Background update check shortly after the window is up (setting: "Check for updates automatically").
+// The Rust side skips it when disabled and reuses a result from the last 6 hours.
 setTimeout(async () => {
-  if (!S?.general.autoCheckUpdates) return;
-  try {
-    lastUpdate = await invoke('check_update');
-    if (lastUpdate.available) toast(`Update ${lastUpdate.version} available — see General → Program updates`);
-  } catch { /* offline: stay quiet */ }
-}, 1500);
+  try { const r = await invoke('auto_check_update'); if (r) setUpdate(r); } catch { /* offline: stay quiet */ }
+}, 700);

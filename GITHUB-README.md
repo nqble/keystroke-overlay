@@ -50,7 +50,11 @@ Right-click the tray icon for quick actions without opening settings:
 
 ## Updating
 
-Open **General → Program updates** and click **Check for updates**.
+When a new version is available, a small green download button appears in the bottom-left corner of the settings window (hover it: "New update"). Click it, read the notes, and choose **Update now** — nothing is ever installed without your click. You can also use **General → Program updates → Check for updates** any time.
+
+**Update channel** (General → Program updates):
+- **Stable (recommended)** — only releases that have been promoted as stable.
+- **Latest** — every release as soon as it is published, including small fixes in between.
 
 - Most updates install right inside the app: click **Install update**, watch the download progress bar, and the app restarts.
 - If an update needs a manual install, the app tells you and the button opens the download page here. Download the new installer, close the app, and run it. Your settings are kept.
