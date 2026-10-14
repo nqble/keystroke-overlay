@@ -81,14 +81,17 @@ button.danger:hover { border-color: var(--danger); color: var(--danger); }
 @keyframes slide { from { transform: translateX(0); } to { transform: translateX(150%); } }
 
 #modal { position: fixed; inset: 0; background: rgba(5, 7, 12, .66); display: flex; align-items: center; justify-content: center; z-index: 20; }
-.dialog { width: min(560px, calc(100vw - 48px)); max-height: calc(100vh - 80px); display: flex; flex-direction: column;
+.dialog { width: min(560px, calc(100vw - 48px)); max-height: calc(100vh - 64px); display: flex; flex-direction: column; overflow: hidden;
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, .55); }
-.dialog h3 { margin: 0; padding: 18px 22px 12px; font-size: 17px; }
-#mBody { padding: 0 22px 12px; overflow-y: auto; line-height: 1.55; }
+.dialog h3 { margin: 0; padding: 20px 22px 12px; font-size: 17px; overflow-wrap: anywhere; flex: none; }
+/* Scrolling body: text keeps 22px from both borders; when the notes are taller than the dialog a slim
+   scrollbar appears inset from the edge (never touching the border), and the dialog never outgrows the window. */
+#mBody, #uBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; line-height: 1.55;
+  padding: 2px 16px 16px 22px; margin-right: 6px; overflow-wrap: anywhere; scrollbar-width: thin; scrollbar-color: #3a4156 transparent; }
 #mBody h4 { margin: 14px 0 4px; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
 #mBody p { margin: 6px 0; } #mBody ul { margin: 6px 0; padding-left: 20px; } #mBody li { margin: 3px 0; }
 #mBody code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; }
-.mfoot { padding: 12px 22px 18px; display: flex; justify-content: flex-end; border-top: 1px solid var(--line); }
+.mfoot { flex: none; padding: 12px 22px 18px; display: flex; justify-content: flex-end; border-top: 1px solid var(--line); }
 
 #pane { animation: fadein .18s ease-out; }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
@@ -106,7 +109,6 @@ button.danger:hover { border-color: var(--danger); color: var(--danger); }
 /* Update dialog (same look as the What's new window) */
 #updModal { position: fixed; inset: 0; background: rgba(5, 7, 12, .66); display: flex; align-items: center; justify-content: center; z-index: 21; }
 #updModal[hidden] { display: none; }
-#uBody { padding: 0 22px 8px; overflow-y: auto; line-height: 1.55; }
 #uBody h4 { margin: 12px 0 4px; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
 #uBody p { margin: 6px 0; } #uBody ul { margin: 6px 0; padding-left: 20px; } #uBody code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; }
 #updModal .bar { margin: 4px 22px 0; max-width: none; }

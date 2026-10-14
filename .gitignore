@@ -5,3 +5,6 @@ release/
 dist/
 *.key
 *.log
+.claude/
+*.tmp
+.DS_Store

@@ -424,6 +424,11 @@ function typeIn(root) {
     if (shown < total) requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
+  // Safety net: if the browser throttles animation frames (hidden/background window), still finish.
+  setTimeout(() => {
+    if (run !== typingRun) return;
+    for (const p of parts) { p.typed.nodeValue = p.full; p.rest.remove(); }
+  }, dur + 400);
 }
 function loadingDots() {   // pure-CSS animation (opacity only): '.' 0.3s, '..' 0.3s, '...' 0.1s, repeat
   return el('p', { className: 'dots', role: 'status', ariaLabel: 'Loading release notes' }, el('span', { textContent: '.' }), el('span', { textContent: '.' }), el('span', { textContent: '.' }));

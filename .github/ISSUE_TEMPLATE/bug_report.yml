@@ -1,0 +1,35 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown in General -> Program updates
+      placeholder: "1.1.3"
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open ...\n2. Click ...\n3. ..."
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it happen?
+      options: [Overlay in OBS, Settings window, Tray menu, Installer / updates, Other]
+  - type: input
+    id: system
+    attributes:
+      label: Windows version and OBS version
+      placeholder: "Windows 11 23H2, OBS 31"
+  - type: markdown
+    attributes:
+      value: "Please don't paste anything private. The app never logs keystrokes, so there is nothing sensitive to attach."

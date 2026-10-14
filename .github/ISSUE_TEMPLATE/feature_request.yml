@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest an idea
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: Describe the problem you're trying to solve, not just the solution.
+    validations: { required: true }
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you've tried or considered?
+  - type: markdown
+    attributes:
+      value: "Heads up: ideas that need network access or storing anything about keystrokes won't be accepted. See PRIVACY.md."

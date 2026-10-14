@@ -1,115 +1,130 @@
-# Keystroke Overlay
+# ⌨ Keystroke Overlay
 
-Tray app that shows your keystrokes in OBS. A global keyboard hook feeds a local
-web server; OBS loads `http://localhost:7878/` as a Browser Source.
-Nothing is drawn on your screen, and keystrokes are never written to disk or sent
-off-machine (the server binds to 127.0.0.1 only and rejects foreign Host/Origin headers).
+A tiny Windows tray app that shows your keystrokes in **OBS** — like the keyboard overlays you see in Minecraft and
+gameplay streams. Nothing appears on your own screen; the keys only show up in your recording or stream.
 
-## OBS setup
-1. Run the app (tray icon). Click **Copy OBS URL** (default `http://localhost:7878/`).
-2. OBS → Sources → **+** → **Browser** → paste the URL.
-3. Set Width/Height to the size shown in the settings header (e.g. 1085×403 for TKL).
-4. Leave "Custom CSS" empty (the page is already transparent). Done.
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/nqble/keystroke-overlay)](../../releases/latest)
 
-## Layout of the code
-```
-src-tauri/src/main.rs      tray, windows, Tauri commands (settings, presets, fonts)
-src-tauri/src/keyhook.rs   WH_KEYBOARD_LL hook thread + dispatcher thread
-src-tauri/src/server.rs    axum: overlay files, read-only API, /ws WebSocket
-src-tauri/src/settings.rs  defaults, versioned JSON, migrations
-ui/overlay/                what OBS loads (served from the exe)
-  layouts/*.json           one file per keyboard layout
-  animations/*.js          one file per animation (registerAnimation)
-  themes/*.js              one file per built-in theme (registerTheme)
-  registry.js              the registration helpers + easings
-ui/settings/               the settings window (created on demand)
-```
-User data lives in `%APPDATA%\com.keyoverlay.app\` (settings.json, fonts/, presets/,
-and optional layouts/ animations/ themes/ folders that are loaded in addition to the built-ins).
+Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaScript, with the help of [Claude Code](https://claude.com/claude-code).
 
-## Add a layout
-Create `ui/overlay/layouts/mine.json` (or drop it in the user `layouts/` folder, no rebuild needed):
+- **Lightweight:** about 13 MB of RAM and ~0% CPU while idle. The installer is about 2 MB.
+- **Works in games:** a global keyboard hook sees your keys even when a game has focus.
+- **Fully customizable:** layouts, colors, fonts, animations, per-key labels.
+- **Private by design:** keystrokes are never saved or sent anywhere — see [Privacy](#privacy).
+- **Open source** under the [MIT license](LICENSE).
+
+## Install
+
+1. Go to the [**Releases**](../../releases/latest) page.
+2. Download `Keystroke-Overlay_x.y.z_x64-setup.exe` and run it.
+3. Windows may show a SmartScreen warning because the installer isn't code-signed. Click **More info → Run anyway**.
+
+The app starts in your system tray (bottom-right of the taskbar). Click the tray icon to open settings.
+Prefer to build it yourself? See [Building from source](#building-from-source).
+
+## Add it to OBS
+
+1. In the app, click **Copy OBS URL** (default: `http://localhost:7878/`).
+2. In OBS: **Sources → + → Browser**, then paste the URL.
+3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale.
+4. Leave Custom CSS empty — the page is already transparent.
+
+If you change the port in settings, update the URL in OBS too.
+
+## Settings
+
+| Tab | What it does |
+|---|---|
+| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, TSB, or your own. |
+| **Keys** | Show or hide individual keys and give any key a custom label (e.g. Space → `⎵` or `Jump`). Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
+| **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Built-in themes plus your own saved presets (export/import supported). |
+| **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
+| **Fonts** | Add your own TTF / OTF / WOFF fonts. |
+| **General** | Port, restart server, start with Windows, minimize to tray, update channel, program updates, and release notes. |
+
+A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
+
+## Tray menu
+
+Right-click the tray icon for quick actions without opening settings:
+
+- **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume.
+- **Layout** — switch between layouts.
+- **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
+- **Open settings**, **Copy OBS URL**, **Quit**.
+
+## Updating
+
+When a new version is available, a small green download button appears in the bottom-left corner of the settings window (hover it: "New update"). Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Program updates → Check for updates** any time.
+
+**Update channel** (General → Program updates):
+- **Stable (recommended)** — only releases that have been promoted as stable.
+- **Latest** — every release as soon as it is published, including small fixes in between.
+
+After an update, a **What's new** window shows the release notes once. You can reopen them anytime with **General → View release notes**.
+
+## Make your own layout
+
+A layout is a single JSON file. Put it in the app's `layouts` folder (**General → Open data folder → layouts**) and restart the app.
+
 ```json
-{ "id": "mine", "name": "My layout",
-  "keys": [ { "code": "KeyW", "label": "W", "x": 1, "y": 0 },
-            { "code": "Space", "label": "", "x": 0, "y": 1, "w": 3 } ] }
+{
+  "id": "mine",
+  "name": "My layout",
+  "keys": [
+    { "code": "KeyW", "label": "W", "x": 1, "y": 0 },
+    { "code": "KeyA", "label": "A", "x": 0, "y": 1 },
+    { "code": "Space", "label": "", "x": 0, "y": 2, "w": 3 }
+  ]
+}
 ```
-`x/y/w/h` are in key units. `code` is a DOM `KeyboardEvent.code` name (see `code_name` in keyhook.rs).
 
-## Add an animation
-Create `ui/overlay/animations/wobble.js`:
-```js
-import { registerAnimation } from '/overlay/registry.js';
-registerAnimation({ id: 'wobble', name: 'Wobble',
-  apply: ({ ms, intensity }) => ({
-    down: `rotate(${3 * intensity}deg)`,            // transform when pressed
-    press:   { ms: ms * 0.5, ease: 'ease-out' },
-    release: { ms: ms * 2,   ease: 'cubic-bezier(.34,1.9,.64,1)' },
-    glow: 0 }) });                                   // 0..1 glow opacity
-```
-Use only `transform`/`opacity` so it stays on the GPU. It appears in Animation → Type automatically.
-Built-in themes work the same way with `registerTheme`.
+`x` / `y` are the key's position and `w` / `h` its size, in key units (1 = one normal key). `code` uses standard key names such as `KeyW`, `Digit1`, `ShiftLeft`, `Space`, `ArrowUp`, `Numpad5`.
 
-## Update channels (Stable / Latest) and the update button
-The settings window checks for updates in the background when it opens (at most every 6 hours; setting
-"Check for updates automatically", on by default). If a newer version exists, a green circular download
-button appears in the bottom-left corner. Clicking it opens a dialog (release notes + "Update now" / "Later");
-nothing is downloaded or installed until the user confirms. The download is verified against the public key in
-`tauri.conf.json` before it runs.
+## Privacy
 
-Each channel has its own manifest:
-- **Latest** reads `latest.json` from the newest GitHub release (uploaded with every release, as before).
-- **Stable** reads `stable.json` from a fixed GitHub release tagged **`channel-stable`**.
-  Users on Stable only move when you replace that file.
+This app has to watch your keyboard to work, so here is exactly what it does with that access:
 
-One-time setup: GitHub → Releases → Draft a new release → tag `channel-stable` → tick "Set as a pre-release"
-(so it never becomes "latest") → title "Stable channel" → publish (no files needed yet).
+- Keystrokes are **never written to disk** — not in a file, a log, a cache or a history.
+- Keystrokes are **never sent over the internet**. They go only to a local page on **your own PC** that OBS reads.
+- There is **no telemetry, analytics, crash reporting, account or ad code** of any kind.
+- The overlay server listens on **127.0.0.1 only**, and refuses requests coming from websites.
+- The **only** internet contact is GitHub: the update check, the update download (only after you click *Update now*), and release notes. Never keystrokes, never your settings. You can turn the automatic check off.
 
-Releasing:
-- Normal release (Latest channel only): `npm run release -- "notes"` and upload the installer + `latest.json` to `v<version>`.
-- Promote to Stable: `npm run release -- --stable "notes"`, upload as above, and ALSO upload `stable.json`
-  to the `channel-stable` release (delete the old `stable.json` asset first). Suggested rule: promote the
-  releases you have tested for a while (for example x.y.0 releases) and leave quick patch releases on Latest only.
-- A user on Stable is never downgraded; if Latest is newer than Stable they simply stay put until Stable catches up.
-- Test builds can point at a local mock server with the build-time env var `KEYOVERLAY_TEST_UPDATE_BASE`
-  (release builds never set it).
+Two honest limits: the app can see *every* key you press while it runs (including in password boxes; use **Pause overlay**), and other programs on the same PC — including other logged-in Windows users — can connect to the local overlay port.
 
-## Settings format (v2)
-Per-layout key edits live in `layout.profiles[layoutId] = { disabledKeys, labels }`. v1 files (one global
-list) are migrated automatically (`v1_to_v2` in settings.rs, covered by unit tests). `general.lastSeenVersion`
-is app-managed (it decides when "What's new" is shown) and is never overwritten by the settings window.
-`settings.json.bak` is the last good copy and is used automatically if the main file is corrupt.
+**Don't trust, verify:** the full explanation is in [PRIVACY.md](PRIVACY.md), including how to check each claim yourself
+(read the code, watch its network sockets, block it in your firewall). The promises are also enforced in code:
+`npm run check:privacy` fails the build if network access, file writes, logging or external requests appear where they shouldn't.
 
-## Tray quick actions
-Implemented in `main.rs` (`toggle_pause_inner`, `set_layout_inner`, `restart_server_inner`) and exposed as
-commands, so the settings window can call the same code. Pause is a flag on the key bus (`Bus.paused`).
+## Troubleshooting
 
-## Add a setting
-1. Default value in `defaults()` in `settings.rs` (additive changes need no migration).
-2. A line in `CONTROLS` in `ui/settings/settings.js` (renders the control + live preview).
-3. Use it in `ui/overlay/overlay.js` (`applyVars` for style values).
-Renaming/moving a setting: bump `CURRENT_VERSION` and add a step to `MIGRATIONS` in `settings.rs`.
+- **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
+- **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
+- **Keys don't light up in a certain game:** some games with anti-cheat block keyboard hooks. If that happens, the overlay can't see keys in that game.
+- **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
 
-## Develop / build
-```
+## Building from source
+
+You need Windows 10/11, [Rust](https://rustup.rs) (MSVC toolchain) with Visual Studio Build Tools, and [Node.js](https://nodejs.org) 20+.
+
+```bash
+git clone https://github.com/nqble/keystroke-overlay.git
+cd keystroke-overlay
 npm install
-set CARGO_TARGET_DIR=C:\some\normal\folder   # recommended
-npx tauri dev            # run
-npx tauri build          # installer in <target>\release\bundle\nsis
+npm run dev      # run it
+npm test         # unit tests + privacy check
+npm run build    # installer in src-tauri/target/release/bundle/nsis/
 ```
 
-## Releasing an update (in-app updater)
-Users click **General → Updates → Check for updates**; the app reads
-`https://github.com/nqble/keystroke-overlay/releases/latest/download/latest.json`,
-verifies the download against the public key in `tauri.conf.json`, installs and restarts.
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organised:
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). A Mac port has been researched: [docs/MAC-PORT.md](docs/MAC-PORT.md).
 
-1. Raise `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` (same number).
-   Write the release notes in the GitHub release description in step 3. The in-app "What's new" window
-   fetches the notes for tag `v<version>` from GitHub's API (markdown: headings, bullets, **bold**, `code`).
-2. `npm run release -- "What changed"` → builds, signs, and writes `release/<version>/`.
-3. On GitHub: Releases → Draft a new release → tag `v<version>` → upload BOTH files from `release/<version>/` → Publish.
+## Requirements
 
-The private signing key lives at `%USERPROFILE%\.keystroke-overlay-keys\updater.key` (NOT in this project).
-Back it up somewhere private. If it is lost, installed copies can never auto-update again and must be reinstalled
-with the setup .exe; if it leaks, anyone could ship updates to your users — never commit or upload it.
-Changes the updater can't handle (rare) can always be shipped by sharing the setup .exe instead.
+Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current versions of Windows.
+
+## License
+
+[MIT](LICENSE) © 2026 Jordan Phoutthavone. Third-party components keep their own licenses.

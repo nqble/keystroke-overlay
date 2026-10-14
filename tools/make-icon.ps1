@@ -1,5 +1,5 @@
-# Generates icon-source.png (run `npx tauri icon icon-source.png -o src-tauri/icons` afterwards).
-param([string]$Out = "icon-source.png")
+# Generates icon-source.png (run `npx tauri icon assets/icon-source.png -o src-tauri/icons` afterwards).
+param([string]$Out = "assets/icon-source.png")
 Add-Type -AssemblyName System.Drawing
 $bmp = New-Object System.Drawing.Bitmap 1024,1024
 $g = [System.Drawing.Graphics]::FromImage($bmp); $g.SmoothingMode = 'AntiAlias'; $g.TextRenderingHint = 'AntiAliasGridFit'
