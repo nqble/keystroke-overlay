@@ -9,7 +9,7 @@ const { invoke: inv, q } = p;
 
 // ---- window + UI
 check('settings UI rendered (6 tabs, content)', (await q(`document.querySelectorAll('nav button').length`)) === 6 && (await q(`document.getElementById('pane').children.length`)) > 0);
-check('header is just the title', (await q(`document.querySelector('.brand').textContent.trim()`)) === '⌨ Keystroke Overlay');
+check('header is just the title', (await q(`document.querySelector('.brand').textContent.trim()`)) === 'Keystroke Overlay');
 const st = (await inv('get_state')).ok;
 check('get_state', st.version === VERSION && st.settings.version === 2 && st.paused === false);
 check('background update check found the mock update (update button visible)', await q(`!document.getElementById('updateBtn').hidden`));
@@ -18,7 +18,7 @@ check('background update check found the mock update (update button visible)', a
 const sv = await inv('save_settings', { settings: { ...st.settings, style: { ...st.settings.style, radius: 21 } } });
 check('save_settings', sv.ok === null && (await inv('get_state')).ok.settings.style.radius === 21);
 await inv('save_settings', { settings: st.settings });
-check('list_layouts', (await inv('list_layouts')).ok.length >= 5);
+check('list_layouts', (await inv('list_layouts')).ok.length >= 4);
 const sp = await inv('set_port', { port: 7881 });
 check('set_port moves the server', sp.ok === 'http://localhost:7881/' && await fetch('http://localhost:7881/api/config').then(r => r.ok).catch(() => false));
 check('set_port back', (await inv('set_port', { port: PORT })).ok === `http://localhost:${PORT}/`);

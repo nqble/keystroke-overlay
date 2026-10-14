@@ -38,7 +38,7 @@ const gone = await api(); const st2 = (await p.invoke('get_state')).ok;
 check('delete removes it, the selection falls back to a built-in, the card disappears', !gone.some(l => l.name === 'My Board') && st2.settings.layout.id === 'tkl' && !(await p.q(`!!${cardOf('My Board')}`)));
 // ---- reset all settings (keeps layouts), and the Export / Import buttons exist
 await tab('Layout'); await sleep(300);
-check('Layout tab has Import and Export buttons', await p.q(`['Import layouts', 'Export layouts'].every(t => [...document.querySelectorAll('#pane button')].some(b => b.textContent === t))`));
+check('Layout tab has Import and Export buttons', await p.q(`['Import from file…', 'Export to file…'].every(t => [...document.querySelectorAll('#pane button')].some(b => b.textContent === t))`));
 const keep = (await p.invoke('create_layout', { name: 'Keep Me' })).ok;
 const S1 = (await p.invoke('get_state')).ok.settings;
 await p.invoke('save_settings', { settings: { ...S1, style: { ...S1.style, radius: 33, opacity: 0.4 }, animation: { ...S1.animation, speed: 400 } } });

@@ -48,6 +48,8 @@ fn main() {
             let current = env!("CARGO_PKG_VERSION");
             let pending = existed && cfg["general"]["lastSeenVersion"].as_str() != Some(current);
             if !existed { cfg["general"]["lastSeenVersion"] = json!(current); }
+            // A layout that no longer exists (for example the retired TSB layout) falls back to Tenkeyless.
+            if !server::layouts(&paths).iter().any(|l| l["id"] == cfg["layout"]["id"]) { cfg["layout"]["id"] = json!("tkl"); }
             let _ = settings::save(&paths.settings(), &cfg); // persists migrations/new defaults
             let port = cfg["general"]["port"].as_u64().unwrap_or(7878) as u16;
             let open_on_launch = cfg["general"]["openOnLaunch"].as_bool().unwrap_or(true);

@@ -56,6 +56,19 @@ addEventListener('pagehide', flush);
 addEventListener('beforeunload', flush);
 
 // ------------------------------------------------------------------ controls
+// Ready-made looks for the key text. Every font here ships with Windows 10/11, so it also works in OBS on the same PC.
+const FONT_PRESETS = [
+  { name: 'Clean', note: 'Windows default', family: 'Segoe UI', weight: 600 },
+  { name: 'Gamer', note: 'Sharp and techy', family: 'Bahnschrift', weight: 600 },
+  { name: 'Code', note: 'Monospace', family: 'Consolas', weight: 700 },
+  { name: 'Terminal', note: 'Modern monospace', family: 'Cascadia Mono', weight: 600 },
+  { name: 'Bold', note: 'Loud and heavy', family: 'Impact', weight: 400 },
+  { name: 'Friendly', note: 'Soft and round', family: 'Trebuchet MS', weight: 700 },
+  { name: 'Classic', note: 'Serif', family: 'Georgia', weight: 700 },
+  { name: 'Retro', note: 'Typewriter', family: 'Courier New', weight: 700 },
+  { name: 'Playful', note: 'Casual', family: 'Comic Sans MS', weight: 700 },
+  { name: 'Wide', note: 'Easy to read', family: 'Verdana', weight: 600 },
+];
 const COMMON_FONTS = ['Segoe UI', 'Arial', 'Consolas', 'Courier New', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Georgia', 'Impact', 'Comic Sans MS', 'Bahnschrift', 'Cascadia Mono'];
 const CONTROLS = [
   { tab: 'style', group: 'Key colors', path: 'style.keyFill', type: 'color', label: 'Fill (idle)' },
@@ -117,6 +130,10 @@ function fontCtl(c) {
   inp.oninput = () => { put(S, c.path, inp.value); changed(); };
   return [inp, dl];
 }
+/** The Import / Export pair, identical in the Layout and Style tabs. */
+const shareRow = (label, onImport, onExport, exportDisabled = false, tips = {}) => row(label,
+  el('button', { textContent: 'Import from file…', title: tips.imp || '', onclick: onImport }),
+  el('button', { textContent: 'Export to file…', title: tips.exp || '', disabled: exportDisabled, onclick: onExport }));
 function renderControls(tabName, parent) {
   let group = null;
   for (const c of CONTROLS.filter(c => c.tab === tabName)) {
@@ -150,18 +167,19 @@ const TABS = {
     cards.append(el('div', { className: 'card add', title: 'Add a layout', onclick: addLayoutDialog },
       el('span', { className: 'plus', textContent: '+' }), el('small', { textContent: `${mine}/${MAX_LAYOUTS} layouts` })));
     p.append(cards);
-    const exp = el('button', { textContent: 'Export layouts', disabled: !layouts.some(l => l.user), title: 'Save the layouts you made (with their key edits) to a file',
-      onclick: async () => { try { const n = await invoke('export_layouts'); if (n) toast(`Exported ${n} layout${n === 1 ? '' : 's'}`); } catch (e) { toast(String(e), true); } } });
-    const imp = el('button', { textContent: 'Import layouts', title: 'Add layouts from a file someone shared (or that you exported)',
-      onclick: async () => {
+    p.append(el('h2', { textContent: 'Share' }));
+    p.append(shareRow('Layouts you made',
+      async () => {
         try {
           const r = await invoke('import_layouts'); if (!r) return;
           const [added, skipped] = r;
           toast(added ? `Imported ${added} layout${added === 1 ? '' : 's'}` + (skipped ? `, skipped ${skipped}` : '') : 'Nothing imported' + (skipped ? ` (${skipped} skipped: empty, or the 20-layout limit)` : ''), !added);
           layouts = await call('list_layouts'); render();
         } catch (e) { toast(String(e), true); }
-      } });
-    p.append(el('div', { className: 'btns' }, imp, exp));
+      },
+      async () => { try { const n = await invoke('export_layouts'); if (n) toast(`Exported ${n} layout${n === 1 ? '' : 's'}`); } catch (e) { toast(String(e), true); } },
+      !layouts.some(l => l.user),
+      { imp: 'Add layouts from a file someone shared (or that you exported)', exp: 'Save the layouts you made, with their key edits, to a file' }));
     return p;
   },
 
@@ -171,7 +189,10 @@ const TABS = {
     const V = viewProf();
     p.append(el('h2', { textContent: 'Keys — ' + L.name }),
       el('p', { className: 'note', textContent: 'Click a key to edit it. Disabled keys are hidden in the overlay. Changes are saved automatically for each layout.' }));
-    const U = 38, minX = Math.min(...L.keys.map(k => k.x)), minY = Math.min(...L.keys.map(k => k.y));
+    const minX = Math.min(...L.keys.map(k => k.x)), minY = Math.min(...L.keys.map(k => k.y));
+    const spanX = Math.max(...L.keys.map(k => k.x + (k.w ?? 1))) - minX;
+    const avail = ($('#pane').clientWidth || 860) - 26 * 2 - 2;               // the pane's inner width, minus the box border
+    const U = Math.max(14, Math.min(38, Math.floor((avail - 16) / spanX)));   // shrink keys so the whole keyboard fits the box
     const map = el('div', { className: 'keymap' });
     let mw = 0, mh = 0;
     for (const k of L.keys) {
@@ -180,12 +201,12 @@ const TABS = {
       mw = Math.max(mw, left + w + 8); mh = Math.max(mh, top + h + 8);
       map.append(el('div', {
         className: 'kmk' + (off ? ' off' : '') + (selKey === k.code ? ' sel' : ''),
-        style: `left:${left}px;top:${top}px;width:${w}px;height:${h}px`,
+        style: `left:${left}px;top:${top}px;width:${w}px;height:${h}px;font-size:${Math.max(8, Math.round(11 * U / 38))}px`,
         textContent: V.labels[k.code] ?? k.label, title: k.code,
         onclick: () => { selKey = k.code; render(); },
       }));
     }
-    map.style.height = mh + 'px'; map.firstChild && (map.style.minWidth = mw + 'px');
+    map.style.height = (mh + 2) + 'px';   // +2 for the box border, otherwise the box scrolls by 2px
     const inner = el('div', { style: `position:relative;width:${mw}px;height:${mh}px` }, [...map.childNodes]);
     map.replaceChildren(inner);
     p.append(map);
@@ -247,9 +268,10 @@ const TABS = {
         await call('save_preset', { name: nm.value, data: { style: S.style, animation: S.animation } }); toast('Preset saved'); render();
       },
     })));
-    p.append(el('div', { className: 'btns' },
-      el('button', { textContent: 'Export to file…', onclick: async () => { if (await call('export_preset', { data: { style: S.style, animation: S.animation } })) toast('Exported'); } }),
-      el('button', { textContent: 'Import from file…', onclick: async () => { const d = await call('import_preset'); if (d) { apply(d); toast('Imported'); } } })));
+    p.append(shareRow('Share style',
+      async () => { const d = await call('import_preset'); if (d) { apply(d); toast('Imported'); } },
+      async () => { if (await call('export_preset', { data: { style: S.style, animation: S.animation } })) toast('Exported'); },
+      false, { imp: 'Load a style from a file someone shared', exp: 'Save the current style and animation to a file' }));
     renderControls('style', p);
     return p;
   },
@@ -263,7 +285,18 @@ const TABS = {
 
   async fonts() {
     const p = el('div');
-    p.append(el('h2', { textContent: 'Custom fonts' }),
+    p.append(el('h2', { textContent: 'Font presets' }),
+      el('p', { className: 'note', textContent: 'Click one to use it for the key text. You can still fine-tune the font and weight in the Style tab.' }));
+    const pre = el('div', { className: 'presets' });
+    for (const f of FONT_PRESETS) {
+      const on = S.style.fontFamily === f.family;
+      pre.append(el('button', { type: 'button', className: 'fpre' + (on ? ' sel' : ''), title: f.family,
+        onclick: () => { S.style.fontFamily = f.family; S.style.fontWeight = f.weight; changed(true); } },
+        el('div', { className: 'aa', style: `font-family:"${f.family}", "Segoe UI", sans-serif;font-weight:${f.weight}`, textContent: 'Aa 123' }),
+        el('b', { textContent: f.name }), el('span', { textContent: f.family })));
+    }
+    p.append(pre);
+    p.append(el('h2', { textContent: 'Your own fonts' }),
       el('p', { className: 'note', textContent: 'Add TTF, OTF or WOFF files. They are copied into the app’s fonts folder. After adding, type the font’s file name (without extension) in Style → Font family, or click Use.' }));
     p.append(el('div', { className: 'btns' },
       el('button', { className: 'primary', textContent: 'Add font…', onclick: async () => { const n = await call('add_font'); if (n) { toast('Added ' + n); await reloadFonts(); render(); } } }),
@@ -695,3 +728,7 @@ function resetDialog() {
     } }],
   });
 }
+
+// The Keys tab sizes its keyboard to the window, so redraw it when the window is resized.
+let rzT = 0;
+addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (tab === 'keys') render(); }, 150); });

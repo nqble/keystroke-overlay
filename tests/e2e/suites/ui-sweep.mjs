@@ -12,11 +12,24 @@ const tab = async n => { await p.ev(`[...document.querySelectorAll('nav button')
 for (const t of ['Layout', 'Keys', 'Style', 'Animation', 'Fonts', 'General']) { await tab(t); check(`tab ${t} renders content`, await p.q(`document.getElementById('pane').innerText.length > 40`)); }
 check('General sections are in the tidy order', JSON.stringify(await p.q(`[...document.querySelectorAll('#pane h2')].map(h => h.textContent)`)) === JSON.stringify(['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates']));
 
+// header logo, share buttons, font presets, slider focus
+check('the header shows the logo image', await p.q(`(() => { const i = document.querySelector('.brand .logo'); return !!i && i.complete && i.naturalWidth > 0; })()`));
+await tab('Style');
+check('Layout and Style tabs have the same Import / Export buttons', await p.q(`['Import from file…', 'Export to file…'].every(t => [...document.querySelectorAll('#pane button')].some(b => b.textContent === t))`));
+check('clicking a slider shows no focus outline', await p.q(`(() => { const r = document.querySelector('#pane input[type=range]'); r.focus(); return getComputedStyle(r).outlineStyle === 'none' || getComputedStyle(r).outlineWidth === '0px'; })()`));
+await tab('Fonts');
+await p.ev(`[...document.querySelectorAll('.fpre')].find(b => b.title === 'Bahnschrift').click()`); await sleep(500);
+const fs = (await p.invoke('get_state')).ok.settings.style;
+check('a font preset applies its font and weight', fs.fontFamily === 'Bahnschrift' && fs.fontWeight === 600 && (await p.q(`document.querySelectorAll('.fpre').length`)) === 10);
+await p.ev(`[...document.querySelectorAll('.fpre')].find(b => b.title === 'Segoe UI').click()`); await sleep(300);
+
 // every layout, with a key edit and a revert
 const ids = (await p.invoke('list_layouts')).ok.map(l => l.id);
 for (const id of ids) {
   await p.invoke('set_layout', { id }); await sleep(250); await tab('Keys');
   await p.ev(`const k = document.querySelector('.kmk'); k && k.click()`); await sleep(150);
+  const fit = await p.q(`(() => { const m = document.querySelector('.keymap'); return m.scrollWidth <= m.clientWidth + 1 && m.scrollHeight <= m.clientHeight + 1; })()`);
+  check(`Keys tab: the whole "${id}" keyboard fits its box (no scrolling)`, fit);
 }
 check(`all ${ids.length} layouts open in the Keys tab`, (await errs()).length === 0, JSON.stringify(await errs()));
 await p.invoke('set_layout', { id: 'tkl' });
