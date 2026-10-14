@@ -31,22 +31,33 @@ If you change the port in settings, update the URL in OBS too.
 | Tab | What it does |
 |---|---|
 | **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, TSB, or your own. |
-| **Keys** | Show or hide individual keys and give any key a custom label (e.g. Space → `⎵` or `Jump`). |
+| **Keys** | Show or hide individual keys and give any key a custom label (e.g. Space → `⎵` or `Jump`). Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
 | **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Built-in themes plus your own saved presets (export/import supported). |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
 | **Fonts** | Add your own TTF / OTF / WOFF fonts. |
-| **General** | Port, start with Windows, minimize to tray, and program updates. |
+| **General** | Port, restart server, start with Windows, minimize to tray, program updates, and release notes. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
+
+## Tray menu
+
+Right-click the tray icon for quick actions without opening settings:
+
+- **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume.
+- **Layout** — switch between layouts.
+- **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
+- **Open settings**, **Copy OBS URL**, **Quit**.
 
 ## Updating
 
 Open **General → Program updates** and click **Check for updates**.
 
-- Most updates install right inside the app: click **Install update** and the app restarts.
+- Most updates install right inside the app: click **Install update**, watch the download progress bar, and the app restarts.
 - If an update needs a manual install, the app tells you and the button opens the download page here. Download the new installer, close the app, and run it. Your settings are kept.
 
-The app only contacts GitHub when you check for updates (or if you turn on the automatic check), and sends nothing but its version number.
+After an update, a **What's new** window shows the release notes once (click **OK** to close it). You can reopen them anytime with **General → View release notes**.
+
+The app only contacts GitHub when you check for updates, when release notes are shown (or if you turn on the automatic check), and sends nothing but its version number.
 
 ## Make your own layout
 

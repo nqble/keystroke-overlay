@@ -13,6 +13,7 @@
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::sync::mpsc::{channel, Sender};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use tokio::sync::broadcast;
 use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
@@ -30,6 +31,8 @@ pub struct KeyEvent {
 pub struct Bus {
     pub tx: broadcast::Sender<KeyEvent>,
     pub held: Mutex<HashSet<&'static str>>,
+    /// When true, key events are dropped (tray "Pause overlay"). The hook keeps tracking state.
+    pub paused: AtomicBool,
 }
 
 static HOOK_TX: OnceLock<Sender<KeyEvent>> = OnceLock::new();
@@ -41,13 +44,14 @@ thread_local! {
 
 pub fn start() -> Arc<Bus> {
     let (btx, _) = broadcast::channel(256);
-    let bus = Arc::new(Bus { tx: btx, held: Mutex::new(HashSet::new()) });
+    let bus = Arc::new(Bus { tx: btx, held: Mutex::new(HashSet::new()), paused: AtomicBool::new(false) });
     let (tx, rx) = channel::<KeyEvent>();
     let _ = HOOK_TX.set(tx);
 
     let b = bus.clone();
     std::thread::Builder::new().name("key-dispatch".into()).spawn(move || {
         while let Ok(ev) = rx.recv() {
+            if b.paused.load(Ordering::Relaxed) { continue; }   // paused: forward nothing
             {
                 let mut h = b.held.lock().unwrap();
                 if ev.down { h.insert(ev.code); } else { h.remove(ev.code); }

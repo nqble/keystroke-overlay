@@ -50,6 +50,16 @@ registerAnimation({ id: 'wobble', name: 'Wobble',
 Use only `transform`/`opacity` so it stays on the GPU. It appears in Animation → Type automatically.
 Built-in themes work the same way with `registerTheme`.
 
+## Settings format (v2)
+Per-layout key edits live in `layout.profiles[layoutId] = { disabledKeys, labels }`. v1 files (one global
+list) are migrated automatically (`v1_to_v2` in settings.rs, covered by unit tests). `general.lastSeenVersion`
+is app-managed (it decides when "What's new" is shown) and is never overwritten by the settings window.
+`settings.json.bak` is the last good copy and is used automatically if the main file is corrupt.
+
+## Tray quick actions
+Implemented in `main.rs` (`toggle_pause_inner`, `set_layout_inner`, `restart_server_inner`) and exposed as
+commands, so the settings window can call the same code. Pause is a flag on the key bus (`Bus.paused`).
+
 ## Add a setting
 1. Default value in `defaults()` in `settings.rs` (additive changes need no migration).
 2. A line in `CONTROLS` in `ui/settings/settings.js` (renders the control + live preview).
@@ -70,6 +80,8 @@ Users click **General → Updates → Check for updates**; the app reads
 verifies the download against the public key in `tauri.conf.json`, installs and restarts.
 
 1. Raise `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` (same number).
+   Write the release notes in the GitHub release description in step 3. The in-app "What's new" window
+   fetches the notes for tag `v<version>` from GitHub's API (markdown: headings, bullets, **bold**, `code`).
 2. `npm run release -- "What changed"` → builds, signs, and writes `release/<version>/`.
 3. On GitHub: Releases → Draft a new release → tag `v<version>` → upload BOTH files from `release/<version>/` → Publish.
 

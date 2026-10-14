@@ -50,12 +50,19 @@ function applyVars(s) {
   set('--ms-up', (r.ms ?? an.speed) + 'ms'); set('--ease-up', user ?? r.ease ?? 'ease-out');
 }
 
+// Each layout keeps its own disabled keys + custom labels (settings.layout.profiles[layoutId]).
+function profileOf(s, layout) {
+  const p = s.layout.profiles?.[layout?.id] ?? {};
+  return { disabledKeys: p.disabledKeys ?? [], labels: p.labels ?? {} };
+}
+
 function build(s) {
   const layout = layouts.find(l => l.id === s.layout.id) ?? layouts[0];
   stage.textContent = '';
   keyEls.clear();
   if (!layout) return;
-  const off = new Set(s.layout.disabledKeys);
+  const prof = profileOf(s, layout);
+  const off = new Set(prof.disabledKeys);
   const keys = layout.keys.filter(k => !off.has(k.code));
   if (!keys.length) { reportSize(0, 0); return; }
   const { keySize, gap } = s.style, pitch = keySize + gap;
@@ -65,7 +72,7 @@ function build(s) {
   for (const k of keys) {
     const w = (k.w ?? 1) * pitch - gap, h = (k.h ?? 1) * pitch - gap;
     maxX = Math.max(maxX, (k.x - minX) * pitch + w); maxY = Math.max(maxY, (k.y - minY) * pitch + h);
-    const label = s.layout.labels[k.code] ?? k.label ?? '';
+    const label = prof.labels[k.code] ?? k.label ?? '';
     const el = document.createElement('div');
     el.className = 'key';
     el.dataset.code = k.code;
@@ -98,13 +105,21 @@ function reportSize(w, h) {
 
 function apply(s) {
   settings = s;
-  const key = JSON.stringify([s.layout, s.style.keySize, s.style.gap, s.style.fontSize, s.style.scale]);
+  const layout = layouts.find(l => l.id === s.layout.id) ?? layouts[0];
+  const key = JSON.stringify([layout?.id, profileOf(s, layout), s.style.keySize, s.style.gap, s.style.fontSize, s.style.scale]);
   applyVars(s);
   if (key !== structKey) { structKey = key; build(s); }
 }
 
 // ------------------------------------------------------------ key state
+let paused = false;   // tray "Pause overlay": show nothing, ignore keys
+function setPaused(p) {
+  paused = p;
+  stage.style.visibility = p ? 'hidden' : '';
+  if (p) releaseAll();
+}
 function setKey(code, down) {
+  if (paused && down) return;
   down ? held.add(code) : held.delete(code);
   keyEls.get(code)?.classList.toggle('down', down);
 }
@@ -127,6 +142,7 @@ async function refresh() {
   layouts = ly;
   await loadFonts();
   apply(cfg.settings);
+  setPaused(!!cfg.paused);
 }
 
 let ws, retry = 0;

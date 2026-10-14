@@ -16,6 +16,7 @@ use axum::routing::get;
 use axum::{Json, Router};
 use include_dir::{include_dir, Dir};
 use serde_json::{json, Value};
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, RwLock};
 use tokio::sync::{broadcast, watch};
 
@@ -44,7 +45,7 @@ struct St { shared: Arc<Shared>, port: u16, sd: watch::Receiver<bool> }
 
 pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
     let std_l = std::net::TcpListener::bind(("127.0.0.1", port))
-        .map_err(|e| format!("Port {port} unavailable: {e}"))?;
+        .map_err(|e| if e.kind() == std::io::ErrorKind::AddrInUse { format!("Port {port} is already in use by another program") } else { format!("Port {port} unavailable: {e}") })?;
     std_l.set_nonblocking(true).map_err(|e| e.to_string())?;
     let (sd_tx, sd_rx) = watch::channel(false);
     let st = St { shared, port, sd: sd_rx.clone() };
@@ -131,7 +132,7 @@ async fn serve_font(State(st): State<St>, Path(file): Path<String>) -> Response 
 }
 
 async fn api_config(State(st): State<St>) -> Json<Value> {
-    Json(json!({ "settings": *st.shared.settings.read().unwrap(), "port": st.port }))
+    Json(json!({ "settings": *st.shared.settings.read().unwrap(), "port": st.port, "paused": st.shared.bus.paused.load(Ordering::Relaxed) }))
 }
 async fn api_layouts(State(st): State<St>) -> Json<Value> { Json(json!(layouts(&st.shared.paths))) }
 async fn api_fonts(State(st): State<St>) -> Json<Value> { Json(json!(font_files(&st.shared.paths))) }
@@ -190,7 +191,7 @@ fn ev_msg(e: KeyEvent) -> Message {
     Message::Text(format!(r#"{{"t":"{}","k":"{}"}}"#, if e.down { "d" } else { "u" }, e.code).into())
 }
 fn snapshot(st: &St) -> Message {
-    let held: Vec<&str> = st.shared.bus.held.lock().unwrap().iter().copied().collect();
+    let held: Vec<&str> = if st.shared.bus.paused.load(Ordering::Relaxed) { vec![] } else { st.shared.bus.held.lock().unwrap().iter().copied().collect() };
     Message::Text(json!({ "t": "snap", "down": held }).to_string().into())
 }
 
@@ -203,6 +204,7 @@ async fn client(mut sock: WebSocket, st: St) {
     loop {
         let msg = tokio::select! {
             r = keys.recv() => match r {
+                Ok(_) if st.shared.bus.paused.load(Ordering::Relaxed) => continue,
                 Ok(e) => ev_msg(e),
                 Err(broadcast::error::RecvError::Lagged(_)) => snapshot(&st), // resync, no stuck keys
                 Err(_) => break,

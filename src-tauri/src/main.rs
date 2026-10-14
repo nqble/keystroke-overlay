@@ -8,21 +8,33 @@ mod settings;
 use serde_json::{json, Value};
 use server::{ServerHandle, Shared};
 use settings::Paths;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use tauri::menu::{MenuBuilder, MenuItemBuilder};
+use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, IsMenuItem, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager, RunEvent, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, RunEvent, State, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_autostart::ManagerExt as _;
 use tauri_plugin_clipboard_manager::ClipboardExt as _;
 use tauri_plugin_dialog::DialogExt as _;
 use tauri_plugin_updater::UpdaterExt as _;
 use tokio::sync::broadcast;
 
+/// Tray menu items we need to re-check when settings change from elsewhere.
+struct TrayItems {
+    pause: CheckMenuItem<tauri::Wry>,
+    layouts: Vec<(String, CheckMenuItem<tauri::Wry>)>,
+}
+
 struct AppState {
     shared: Arc<Shared>,
     server: Mutex<Option<ServerHandle>>,
     server_error: Mutex<Option<String>>,
+    tray: Mutex<Option<TrayItems>>,
+    /// True until the user has been shown the "What's new" window for this version.
+    whats_new: AtomicBool,
 }
+
+const REPO: &str = "nqble/keystroke-overlay";
 
 fn port_of(s: &Shared) -> u16 {
     s.settings.read().unwrap()["general"]["port"].as_u64().unwrap_or(7878) as u16
@@ -58,23 +70,137 @@ fn get_state(st: State<AppState>) -> Value {
         "url": obs_url(&st.shared),
         "serverError": *st.server_error.lock().unwrap(),
         "version": env!("CARGO_PKG_VERSION"),
+        "paused": st.shared.bus.paused.load(Ordering::Relaxed),
+        "whatsNew": st.whats_new.load(Ordering::Relaxed),
     })
+}
+
+/// Re-check the tray's Pause / Layout items to match the real state.
+fn sync_tray(app: &AppHandle) {
+    let st = app.state::<AppState>();
+    let cur = st.shared.settings.read().unwrap()["layout"]["id"].as_str().unwrap_or("").to_string();
+    let paused = st.shared.bus.paused.load(Ordering::Relaxed);
+    let guard = st.tray.lock().unwrap();
+    if let Some(t) = guard.as_ref() {
+        let _ = t.pause.set_checked(paused);
+        for (id, it) in &t.layouts { let _ = it.set_checked(*id == cur); }
+    }
+}
+/// Tell overlays (WebSocket) and the settings window that something changed.
+fn announce(app: &AppHandle) {
+    let st = app.state::<AppState>();
+    let _ = st.shared.cfg_tx.send(());
+    let _ = app.emit("settings-changed", ());
 }
 
 /// Persist settings from the UI. Port & autostart have dedicated commands
 /// (they have side effects), so they are preserved here.
 #[tauri::command]
-fn save_settings(st: State<AppState>, settings: Value) -> Result<(), String> {
+fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Result<(), String> {
     let mut new = settings::migrate(settings);
     {
+        // These have their own commands (side effects / app-managed), so the UI's copy never overwrites them.
         let cur = st.shared.settings.read().unwrap();
-        new["general"]["port"] = cur["general"]["port"].clone();
-        new["general"]["autostart"] = cur["general"]["autostart"].clone();
+        for k in ["port", "autostart", "lastSeenVersion"] { new["general"][k] = cur["general"][k].clone(); }
     }
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
     *st.shared.settings.write().unwrap() = new;
     let _ = st.shared.cfg_tx.send(());
+    sync_tray(&app);
     Ok(())
+}
+
+// ---- tray quick actions (also callable from the settings window)
+fn toggle_pause_inner(app: &AppHandle) -> bool {
+    let st = app.state::<AppState>();
+    let now = !st.shared.bus.paused.load(Ordering::Relaxed);
+    st.shared.bus.paused.store(now, Ordering::Relaxed);
+    if now { st.shared.bus.held.lock().unwrap().clear(); }
+    announce(app);
+    sync_tray(app);
+    now
+}
+fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
+    let st = app.state::<AppState>();
+    if !server::layouts(&st.shared.paths).iter().any(|l| l["id"] == id) { return Err(format!("Unknown layout: {id}")); }
+    {
+        let mut s = st.shared.settings.write().unwrap();
+        s["layout"]["id"] = json!(id);
+        settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+    }
+    announce(app);
+    sync_tray(app);
+    Ok(())
+}
+/// Stops the overlay server and starts it again on the same port. The old listener needs a moment to
+/// release the port, so binding is retried briefly.
+fn restart_server_inner(app: &AppHandle) -> Result<(), String> {
+    let st = app.state::<AppState>();
+    let port = port_of(&st.shared);
+    if let Some(old) = st.server.lock().unwrap().take() { old.stop(); }
+    let mut last = String::new();
+    for _ in 0..40 {
+        match server::start(st.shared.clone(), port) {
+            Ok(h) => {
+                *st.server.lock().unwrap() = Some(h);
+                *st.server_error.lock().unwrap() = None;
+                let _ = app.emit("settings-changed", ());
+                return Ok(());
+            }
+            Err(e) => { last = e; std::thread::sleep(std::time::Duration::from_millis(100)); }
+        }
+    }
+    *st.server_error.lock().unwrap() = Some(last.clone());
+    let _ = app.emit("settings-changed", ());
+    open_settings_async(app); // make the problem visible
+    Err(last)
+}
+
+#[tauri::command]
+fn toggle_pause(app: AppHandle) -> bool { toggle_pause_inner(&app) }
+#[tauri::command]
+fn set_layout(app: AppHandle, id: String) -> Result<(), String> { set_layout_inner(&app, &id) }
+#[tauri::command]
+async fn restart_server(app: AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || restart_server_inner(&app)).await.map_err(|e| e.to_string())?
+}
+
+// ---- "What's new"
+#[tauri::command]
+fn ack_whats_new(st: State<AppState>) {
+    st.whats_new.store(false, Ordering::Relaxed);
+    let mut s = st.shared.settings.write().unwrap();
+    s["general"]["lastSeenVersion"] = json!(env!("CARGO_PKG_VERSION"));
+    let _ = settings::save(&st.shared.paths.settings(), &s);
+}
+
+fn release_notes_from(j: &Value, ver: &str) -> Value {
+    let body: String = j["body"].as_str().unwrap_or("").chars().take(20000).collect();
+    json!({
+        "version": ver,
+        "title": j["name"].as_str().filter(|s| !s.is_empty()).map(String::from).unwrap_or_else(|| format!("v{ver}")),
+        "body": body,
+        "url": j["html_url"].as_str().unwrap_or("")
+    })
+}
+
+/// Fetches the GitHub release notes for a version (default: the running one). Contacts GitHub only
+/// when the user opens "What's new" / "View release notes".
+#[tauri::command]
+async fn get_release_notes(version: Option<String>) -> Result<Value, String> {
+    let ver = version.unwrap_or_else(|| env!("CARGO_PKG_VERSION").to_string());
+    if ver.is_empty() || !ver.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-') { return Err("Bad version".into()); }
+    let client = reqwest::Client::builder()
+        .user_agent(concat!("KeystrokeOverlay/", env!("CARGO_PKG_VERSION")))
+        .timeout(std::time::Duration::from_secs(8))
+        .build().map_err(|e| e.to_string())?;
+    let resp = client.get(format!("https://api.github.com/repos/{REPO}/releases/tags/v{ver}"))
+        .header("Accept", "application/vnd.github+json").send().await
+        .map_err(|_| "Couldn't reach GitHub. Check your internet connection.".to_string())?;
+    if resp.status() == reqwest::StatusCode::NOT_FOUND { return Err(format!("No release notes are published for v{ver} yet.")); }
+    if !resp.status().is_success() { return Err(format!("GitHub returned an error ({}).", resp.status())); }
+    let j: Value = resp.json().await.map_err(|_| "GitHub sent something unexpected.".to_string())?;
+    Ok(release_notes_from(&j, &ver))
 }
 
 #[tauri::command]
@@ -207,7 +333,12 @@ fn open_release_page(url: String) -> Result<(), String> {
 async fn install_update(app: AppHandle) -> Result<(), String> {
     let upd = app.updater().map_err(|e| e.to_string())?;
     let Some(u) = upd.check().await.map_err(|e| e.to_string())? else { return Err("Already up to date".into()) };
-    u.download_and_install(|_, _| {}, || {}).await.map_err(|e| format!("Update failed: {e}"))?;
+    let (a1, a2) = (app.clone(), app.clone());
+    let mut done: u64 = 0;
+    u.download_and_install(
+        move |chunk, total| { done += chunk as u64; let _ = a1.emit("update-progress", json!({ "done": done, "total": total })); },
+        move || { let _ = a2.emit("update-installing", ()); },
+    ).await.map_err(|e| format!("Update failed: {e}"))?;
     app.restart();
 }
 
@@ -226,7 +357,12 @@ fn main() {
             let root = app.path().app_data_dir()?;
             let paths = Paths { root };
             paths.ensure();
-            let cfg = settings::load(&paths.settings());
+            let existed = paths.settings().exists();
+            let mut cfg = settings::load(&paths.settings());
+            // "What's new" is shown once after an update. A fresh install has nothing to show.
+            let current = env!("CARGO_PKG_VERSION");
+            let pending = existed && cfg["general"]["lastSeenVersion"].as_str() != Some(current);
+            if !existed { cfg["general"]["lastSeenVersion"] = json!(current); }
             let _ = settings::save(&paths.settings(), &cfg); // persists migrations/new defaults
             let port = cfg["general"]["port"].as_u64().unwrap_or(7878) as u16;
             let open_on_launch = cfg["general"]["openOnLaunch"].as_bool().unwrap_or(true);
@@ -237,25 +373,51 @@ fn main() {
                 Ok(h) => (Some(h), None),
                 Err(e) => (None, Some(e)),
             };
-            app.manage(AppState { shared: shared.clone(), server: Mutex::new(srv), server_error: Mutex::new(err) });
+            app.manage(AppState {
+                shared: shared.clone(), server: Mutex::new(srv), server_error: Mutex::new(err),
+                tray: Mutex::new(None), whats_new: AtomicBool::new(pending),
+            });
 
             // ---- tray
+            let cur_layout = shared.settings.read().unwrap()["layout"]["id"].as_str().unwrap_or("").to_string();
+            let pause_item = CheckMenuItemBuilder::with_id("pause", "Pause overlay").checked(false).build(app)?;
+            let mut layout_items: Vec<(String, CheckMenuItem<tauri::Wry>)> = Vec::new();
+            for l in server::layouts(&shared.paths) {
+                let id = l["id"].as_str().unwrap_or("").to_string();
+                let name = l["name"].as_str().unwrap_or(&id).to_string();
+                let it = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name).checked(id == cur_layout).build(app)?;
+                layout_items.push((id, it));
+            }
+            let refs: Vec<&dyn IsMenuItem<tauri::Wry>> = layout_items.iter().map(|(_, i)| i as &dyn IsMenuItem<tauri::Wry>).collect();
+            let layout_menu = SubmenuBuilder::new(app, "Layout").items(&refs).build()?;
             let menu = MenuBuilder::new(app)
                 .item(&MenuItemBuilder::with_id("open", "Open settings").build(app)?)
                 .item(&MenuItemBuilder::with_id("copy", "Copy OBS URL").build(app)?)
                 .separator()
+                .item(&pause_item)
+                .item(&layout_menu)
+                .item(&MenuItemBuilder::with_id("restart", "Restart server").build(app)?)
+                .separator()
                 .item(&MenuItemBuilder::with_id("quit", "Quit").build(app)?)
                 .build()?;
+            *app.state::<AppState>().tray.lock().unwrap() = Some(TrayItems { pause: pause_item, layouts: layout_items });
             TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .tooltip("Keystroke Overlay")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
-                .on_menu_event(move |app, ev| match ev.id().as_ref() {
-                    "open" => open_settings_async(app),
-                    "copy" => { let _ = app.clipboard().write_text(obs_url(&shared)); }
-                    "quit" => app.exit(0),
-                    _ => {}
+                .on_menu_event(move |app, ev| {
+                    let id = ev.id().as_ref().to_string();
+                    match id.as_str() {
+                        "open" => open_settings_async(app),
+                        "copy" => { let _ = app.clipboard().write_text(obs_url(&shared)); }
+                        "pause" => { toggle_pause_inner(app); }
+                        "restart" => { let a = app.clone(); std::thread::spawn(move || { let _ = restart_server_inner(&a); }); }
+                        "quit" => app.exit(0),
+                        other => if let Some(l) = other.strip_prefix("layout:") {
+                            if set_layout_inner(app, l).is_err() { sync_tray(app); }
+                        },
+                    }
                 })
                 .on_tray_icon_event(|tray, ev| {
                     if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = ev {
@@ -267,7 +429,8 @@ fn main() {
             let autostarted = std::env::args().any(|a| a == "--autostart");
             let server_failed = app.state::<AppState>().server_error.lock().unwrap().is_some();
             // Always show the window if the overlay server couldn't start (e.g. port taken), so the problem is visible.
-            if server_failed || (open_on_launch && !autostarted) { open_settings_async(app.handle()); }
+            // Also show it after an update, so the "What's new" window can appear.
+            if server_failed || pending || (open_on_launch && !autostarted) { open_settings_async(app.handle()); }
             Ok(())
         })
         .on_window_event(|win, ev| {
@@ -291,7 +454,8 @@ fn main() {
             get_state, save_settings, set_port, set_autostart, list_layouts, copy_text,
             list_fonts, add_font, remove_font, open_folder,
             list_presets, save_preset, load_preset, delete_preset, export_preset, import_preset, quit_app,
-            check_update, install_update, open_release_page
+            check_update, install_update, open_release_page,
+            toggle_pause, set_layout, restart_server, ack_whats_new, get_release_notes
         ])
         .build(tauri::generate_context!())
         .expect("failed to build app");
@@ -302,4 +466,19 @@ fn main() {
             if code.is_none() { api.prevent_exit(); }
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn release_notes_parse() {
+        let j = json!({ "name": "v1.2.3", "body": "- one\n- two", "html_url": "https://github.com/x/y/releases/tag/v1.2.3" });
+        let n = release_notes_from(&j, "1.2.3");
+        assert_eq!(n["title"], "v1.2.3");
+        assert_eq!(n["body"], "- one\n- two");
+        let empty = release_notes_from(&json!({ "name": "", "body": null }), "9.9.9");
+        assert_eq!(empty["title"], "v9.9.9");
+        assert_eq!(empty["body"], "");
+    }
 }
