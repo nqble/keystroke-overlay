@@ -60,32 +60,43 @@ pub fn badge_rgba(rgba: &[u8], w: u32, h: u32) -> Vec<u8> {
 }
 
 /// Shows or hides the update indicator: an orange dot on the tray icon and an "Update available" entry at the top of the menu.
+/// The tray lock is released before touching the tray itself: those calls hop to the main thread, and the main thread
+/// may be waiting for the same lock (a tray click), which would freeze the app.
 pub fn set_update_badge(app: &AppHandle, available: bool) {
     let st = app.state::<AppState>();
-    let mut guard = st.tray.lock().unwrap();
-    let Some(t) = guard.as_mut() else { return };
-    if t.update_shown == available { return; }
-    t.update_shown = available;
-    let _ = t.tray.set_icon(Some(if available { t.icon_badged.clone() } else { t.icon.clone() }));
-    let _ = t.tray.set_tooltip(Some(if available { "Keystroke Overlay: update available" } else { "Keystroke Overlay" }));
-    if available { let _ = t.menu.insert(&t.update_item, 0); } else { let _ = t.menu.remove(&t.update_item); }
+    let (tray, menu, item, icon) = {
+        let mut guard = st.tray.lock().unwrap();
+        let Some(t) = guard.as_mut() else { return };
+        if t.update_shown == available { return; }
+        t.update_shown = available;
+        (t.tray.clone(), t.menu.clone(), t.update_item.clone(), if available { t.icon_badged.clone() } else { t.icon.clone() })
+    };
+    let _ = tray.set_icon(Some(icon));
+    let _ = tray.set_tooltip(Some(if available { "Keystroke Overlay: update available" } else { "Keystroke Overlay" }));
+    if available { let _ = menu.insert(&item, 0); } else { let _ = menu.remove(&item); }
 }
 
-/// Rebuilds the tray's Layout list after a layout was created or deleted.
+/// Rebuilds the tray's Layout list after a layout was created or deleted (same lock rule as above).
 pub fn refresh_tray_layouts(app: &AppHandle) {
     let st = app.state::<AppState>();
     let cur = st.shared.settings.read().unwrap()["layout"]["id"].as_str().unwrap_or("").to_string();
-    let mut guard = st.tray.lock().unwrap();
-    let Some(t) = guard.as_mut() else { return };
-    for (_, it) in t.layouts.drain(..) { let _ = t.layout_menu.remove(&it); }
+    let (submenu, old) = {
+        let mut guard = st.tray.lock().unwrap();
+        let Some(t) = guard.as_mut() else { return };
+        (t.layout_menu.clone(), std::mem::take(&mut t.layouts))
+    };
+    for (_, it) in &old { let _ = submenu.remove(it); }
+    let mut fresh = Vec::new();
     for l in server::layouts(&st.shared.paths) {
         let id = l["id"].as_str().unwrap_or("").to_string();
         let name = l["name"].as_str().unwrap_or(&id).to_string();
         if let Ok(it) = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name).checked(id == cur).build(app) {
-            let _ = t.layout_menu.append(&it);
-            t.layouts.push((id, it));
+            let _ = submenu.append(&it);
+            fresh.push((id, it));
         }
     }
+    let mut guard = st.tray.lock().unwrap();
+    if let Some(t) = guard.as_mut() { t.layouts = fresh; }
 }
 
 /// Stops the overlay server and starts it again on the same port. The old listener needs a moment to

@@ -117,7 +117,7 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
         std::fs::read_to_string(p).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()).is_some_and(|v| v["id"] == id.as_str())
     }).ok_or("Built-in layouts can't be deleted")?;
     std::fs::remove_file(file).map_err(|e| e.to_string())?;
-    let was_current = {
+    {
         let mut s = st.shared.settings.write().unwrap();
         if let Some(p) = s["layout"]["profiles"].as_object_mut() { p.remove(&id); }
         let cur = s["layout"]["id"] == id.as_str();
@@ -126,7 +126,6 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
         cur
     };
     crate::tray::refresh_tray_layouts(&app);
-    let _ = was_current;
     crate::state::announce(&app);
     crate::state::sync_tray(&app);
     Ok(())

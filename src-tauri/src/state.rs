@@ -55,11 +55,14 @@ pub fn sync_tray(app: &AppHandle) {
     let st = app.state::<AppState>();
     let cur = st.shared.settings.read().unwrap()["layout"]["id"].as_str().unwrap_or("").to_string();
     let paused = st.shared.bus.paused.load(Ordering::Relaxed);
-    let guard = st.tray.lock().unwrap();
-    if let Some(t) = guard.as_ref() {
-        let _ = t.pause.set_checked(paused);
-        for (id, it) in &t.layouts { let _ = it.set_checked(*id == cur); }
-    }
+    // Copy the items out and release the lock first: setting a check mark hops to the main thread, which may be
+    // waiting for this same lock (a tray click), and holding it here could freeze the app.
+    let (pause, layouts) = {
+        let guard = st.tray.lock().unwrap();
+        match guard.as_ref() { Some(t) => (t.pause.clone(), t.layouts.clone()), None => return }
+    };
+    let _ = pause.set_checked(paused);
+    for (id, it) in &layouts { let _ = it.set_checked(*id == cur); }
 }
 
 /// Tell overlays (WebSocket) and the settings window that something changed.
