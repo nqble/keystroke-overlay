@@ -154,7 +154,8 @@ function connect() {
     if (m.t === 'd') setKey(m.k, true);
     else if (m.t === 'u') setKey(m.k, false);
     else if (m.t === 'snap') snapshot(m.down);
-    else if (m.t === 'cfg') refresh();
+    else if (m.t === 'cfg') { if (m.s) { apply(m.s); setPaused(!!m.paused); } else refresh(); }   // settings arrive inline: no HTTP round trips
+    else if (m.t === 'assets') refresh();                                                       // fonts/layouts changed: re-fetch those
   };
   ws.onclose = () => {
     releaseAll(); // never leave keys stuck if the app goes away

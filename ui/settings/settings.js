@@ -384,14 +384,51 @@ function md(src) {   // tiny, safe markdown: headings, bullets, **bold**, `code`
 }
 function closeModal() { $('#modal').hidden = true; document.removeEventListener('keydown', escClose); }
 const escClose = e => { if (e.key === 'Escape' || e.key === 'Enter') closeModal(); };
+// "Typing" reveal for the release notes. Each text node is split into [typed part][hidden remainder];
+// the hidden remainder still takes up its space, so nothing shifts or re-wraps while typing. Only the
+// text at the cursor is touched each frame, it runs on requestAnimationFrame for under a second, and
+// there is no timer once it finishes.
+let typingRun = 0;
+function typeIn(root) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const run = ++typingRun, nodes = [], walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n; (n = walker.nextNode());) if (n.nodeValue) nodes.push(n);
+  const parts = nodes.map(n => {
+    const full = n.nodeValue, typed = document.createTextNode(''), rest = el('span', { textContent: full });
+    rest.style.visibility = 'hidden'; n.replaceWith(typed, rest);
+    return { full, typed, rest, done: 0 };
+  });
+  const total = parts.reduce((a, p) => a + p.full.length, 0);
+  if (!total) return;
+  const dur = Math.min(800, Math.max(300, total * 7));   // always under one second
+  let shown = 0, idx = 0, t0 = 0;
+  const frame = now => {
+    if (run !== typingRun || $('#modal').hidden) return;
+    t0 ||= now;
+    const want = Math.min(total, Math.ceil(total * (now - t0) / dur));
+    while (shown < want && idx < parts.length) {
+      const p = parts[idx], take = Math.min(p.full.length - p.done, want - shown);
+      if (take > 0) { p.done += take; shown += take; p.typed.nodeValue = p.full.slice(0, p.done); p.rest.textContent = p.full.slice(p.done); }
+      if (p.done >= p.full.length) { p.rest.remove(); idx++; } else break;
+    }
+    if (shown < total) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+function loadingDots() {   // pure-CSS animation (opacity only): '.' 0.3s, '..' 0.3s, '...' 0.1s, repeat
+  return el('p', { className: 'dots', role: 'status', ariaLabel: 'Loading release notes' }, el('span', { textContent: '.' }), el('span', { textContent: '.' }), el('span', { textContent: '.' }));
+}
 async function showNotes(version, heading) {
+  typingRun++;   // cancel any typing still in progress
   $('#mTitle').textContent = heading || `Release notes — v${version}`;
-  const body = $('#mBody'); body.replaceChildren(el('p', { className: 'hint', textContent: 'Loading release notes from GitHub…' }));
+  const body = $('#mBody'); body.replaceChildren(loadingDots());
   $('#modal').hidden = false; document.addEventListener('keydown', escClose); $('#mOk').focus();
   try {
     const n = await invoke('get_release_notes', { version });
+    if ($('#modal').hidden) return;
     body.replaceChildren(n.body.trim() ? md(n.body) : el('p', { className: 'hint', textContent: 'This release has no written notes.' }));
-  } catch (e) { body.replaceChildren(el('p', { className: 'hint', textContent: String(e) })); }
+    typeIn(body);
+  } catch (e) { if (!$('#modal').hidden) body.replaceChildren(el('p', { className: 'hint', textContent: String(e) })); }
 }
 $('#mOk').onclick = closeModal;
 
@@ -437,25 +474,26 @@ addEventListener('message', e => {
   if (e.source !== frame.contentWindow) return;
   const m = e.data || {};
   if (m.type === 'ready') { push(); frame.contentWindow.postMessage({ type: 'getRegistry' }, '*'); }
-  else if (m.type === 'registry') { reg = m; if (!booted) { booted = true; render(); } else render(); }
+  else if (m.type === 'registry') { reg = m; if (booted && (tab === 'style' || tab === 'animation')) render(); }   // only these tabs need the lists
   else if (m.type === 'size') { size = m; fit(); updateObs(); }
 });
 let booted = false;
 
 (async () => {
-  const st = await call('get_state');
-  S = st.settings; obsUrl = st.url; appVersion = st.version; paused = st.paused; paintPause();
-  layouts = await call('list_layouts');
-  await reloadFonts();
-  updateObs();
+  // Three independent IPC calls at once, then draw the UI immediately. The live preview loads
+  // afterwards in the background, so it never delays the first paint.
+  const [st, ly, fonts] = await Promise.all([call('get_state'), call('list_layouts'), call('list_fonts')]);
+  S = st.settings; obsUrl = st.url; appVersion = st.version; paused = st.paused; layouts = ly; customFonts = fonts;
+  paintPause(); updateObs();
   if (st.serverError) {
     const b = $('#banner'); b.hidden = false;
     b.textContent = st.serverError + ' — pick another port in General → Port.';
-    tab = 'general'; booted = true; render();   // overlay can't load; still allow fixing the port
-  } else {
-    frame.src = previewSrc();
-    setTimeout(() => { if (!booted) { booted = true; render(); } }, 4000); // safety net
+    tab = 'general';   // overlay can't load; still allow fixing the port
   }
+  booted = true;
+  await render();
+  window.__uiReady = performance.timeOrigin + performance.now();   // for startup measurements
+  if (!st.serverError) requestAnimationFrame(() => { frame.src = previewSrc(); });
   if (st.whatsNew) {   // shown once after an update
     await invoke('ack_whats_new');
     showNotes(appVersion, `What's new in v${appVersion}`);

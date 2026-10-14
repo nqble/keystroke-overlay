@@ -37,9 +37,14 @@ pub struct Bus {
 
 static HOOK_TX: OnceLock<Sender<KeyEvent>> = OnceLock::new();
 
+/// Hook-thread-only state: which keys are down, plus a tiny list of just those keys so the
+/// "stuck key" check below costs O(keys held) per event instead of scanning the whole table.
+struct HookState {
+    down: [Option<(u32, &'static str)>; 512],   // indexed by scancode | extended<<8 -> (virtual key, name)
+    held: Vec<usize>,
+}
 thread_local! {
-    // Per-key "is down" table (virtual-key + name), only touched from the hook thread.
-    static DOWN: RefCell<[Option<(u32, &'static str)>; 512]> = const { RefCell::new([None; 512]) };
+    static STATE: RefCell<HookState> = RefCell::new(HookState { down: [None; 512], held: Vec::with_capacity(8) });
 }
 
 pub fn start() -> Arc<Bus> {
@@ -85,21 +90,29 @@ unsafe extern "system" fn proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRE
             if let Some(name) = code_name(k.vkCode, k.scanCode, ext) {
                 let idx = (k.scanCode as usize & 0xFF) | if ext { 0x100 } else { 0 };
                 if let Some(tx) = HOOK_TX.get() {
-                    DOWN.with(|d| {
-                        let mut d = d.borrow_mut();
+                    STATE.with(|s| {
+                        let mut guard = s.borrow_mut();
+                        let st = &mut *guard;
                         // Self-heal: a key released while the PC was locked (Win+L, Ctrl+Alt+Del)
                         // never sends a key-up to us. If Windows says a key we think is held is
                         // up, release it now so the overlay can't get stuck.
-                        for (i, slot) in d.iter_mut().enumerate() {
-                            if let Some((vk, n)) = *slot {
-                                if i != idx && (GetAsyncKeyState(vk as i32) as u16) & 0x8000 == 0 {
-                                    *slot = None;
-                                    let _ = tx.send(KeyEvent { down: false, code: n });
+                        let mut i = 0;
+                        while i < st.held.len() {
+                            let h = st.held[i];
+                            if h != idx {
+                                if let Some((vk, n)) = st.down[h] {
+                                    if (GetAsyncKeyState(vk as i32) as u16) & 0x8000 == 0 {
+                                        st.down[h] = None;
+                                        st.held.swap_remove(i);
+                                        let _ = tx.send(KeyEvent { down: false, code: n });
+                                        continue;
+                                    }
                                 }
                             }
+                            i += 1;
                         }
-                        if down && d[idx].is_some() { return; }          // OS key-repeat: ignore
-                        if up && d[idx].is_none() {
+                        if down && st.down[idx].is_some() { return; }          // OS key-repeat: ignore
+                        if up && st.down[idx].is_none() {
                             // Windows only reports the release of PrintScreen: show it as a tap.
                             if name == "PrintScreen" {
                                 let _ = tx.send(KeyEvent { down: true, code: name });
@@ -107,7 +120,13 @@ unsafe extern "system" fn proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRE
                             }
                             return;                                      // other spurious releases
                         }
-                        d[idx] = if down { Some((k.vkCode, name)) } else { None };
+                        if down {
+                            st.down[idx] = Some((k.vkCode, name));
+                            st.held.push(idx);
+                        } else {
+                            st.down[idx] = None;
+                            if let Some(p) = st.held.iter().position(|&x| x == idx) { st.held.swap_remove(p); }
+                        }
                         let _ = tx.send(KeyEvent { down, code: name });
                     });
                 }

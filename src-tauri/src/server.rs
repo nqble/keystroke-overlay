@@ -28,8 +28,9 @@ pub struct Shared {
     pub bus: Arc<Bus>,
     pub settings: RwLock<Value>,
     pub paths: Paths,
-    /// Fired whenever settings change so overlays re-fetch /api/config.
-    pub cfg_tx: broadcast::Sender<()>,
+    /// "cfg" = settings/pause changed (overlays get the new settings in the message itself);
+    /// "assets" = fonts or layouts changed (overlays re-fetch them).
+    pub cfg_tx: broadcast::Sender<&'static str>,
 }
 
 pub struct ServerHandle {
@@ -190,6 +191,13 @@ async fn ws_upgrade(State(st): State<St>, ws: WebSocketUpgrade) -> Response {
 fn ev_msg(e: KeyEvent) -> Message {
     Message::Text(format!(r#"{{"t":"{}","k":"{}"}}"#, if e.down { "d" } else { "u" }, e.code).into())
 }
+/// One WebSocket message describing a settings change. Sending the settings inline saves the overlay
+/// three HTTP requests per change (it used to re-fetch config, layouts and fonts every time).
+fn cfg_msg(st: &St, kind: &str) -> Message {
+    if kind == "assets" { return Message::Text(r#"{"t":"assets"}"#.into()); }
+    let paused = st.shared.bus.paused.load(Ordering::Relaxed);
+    Message::Text(json!({ "t": "cfg", "s": *st.shared.settings.read().unwrap(), "paused": paused }).to_string().into())
+}
 fn snapshot(st: &St) -> Message {
     let held: Vec<&str> = if st.shared.bus.paused.load(Ordering::Relaxed) { vec![] } else { st.shared.bus.held.lock().unwrap().iter().copied().collect() };
     Message::Text(json!({ "t": "snap", "down": held }).to_string().into())
@@ -210,7 +218,8 @@ async fn client(mut sock: WebSocket, st: St) {
                 Err(_) => break,
             },
             r = cfg.recv() => match r {
-                Ok(_) | Err(broadcast::error::RecvError::Lagged(_)) => Message::Text(r#"{"t":"cfg"}"#.into()),
+                Ok(kind) => cfg_msg(&st, kind),
+                Err(broadcast::error::RecvError::Lagged(_)) => cfg_msg(&st, "cfg"),
                 Err(_) => break,
             },
             m = sock.recv() => match m { Some(Ok(Message::Close(_))) | None | Some(Err(_)) => break, _ => continue },

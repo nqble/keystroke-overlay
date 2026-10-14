@@ -55,6 +55,9 @@ fn open_settings(app: &AppHandle) {
         .inner_size(1060.0, 800.0)
         .min_inner_size(820.0, 600.0)
         .theme(Some(tauri::Theme::Dark))
+        // Same colour as the page: the window appears instantly dark instead of flashing white
+        // while WebView2 loads.
+        .background_color(tauri::window::Color(18, 20, 26, 255))
         .build();
 }
 fn open_settings_async(app: &AppHandle) {
@@ -89,7 +92,7 @@ fn sync_tray(app: &AppHandle) {
 /// Tell overlays (WebSocket) and the settings window that something changed.
 fn announce(app: &AppHandle) {
     let st = app.state::<AppState>();
-    let _ = st.shared.cfg_tx.send(());
+    let _ = st.shared.cfg_tx.send("cfg");
     let _ = app.emit("settings-changed", ());
 }
 
@@ -105,7 +108,7 @@ fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Result
     }
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
     *st.shared.settings.write().unwrap() = new;
-    let _ = st.shared.cfg_tx.send(());
+    let _ = st.shared.cfg_tx.send("cfg");
     sync_tray(&app);
     Ok(())
 }
@@ -215,7 +218,7 @@ fn set_port(st: State<AppState>, port: u16) -> Result<String, String> {
     s["general"]["port"] = json!(port);
     let _ = settings::save(&st.shared.paths.settings(), &s);
     drop(s);
-    let _ = st.shared.cfg_tx.send(());
+    let _ = st.shared.cfg_tx.send("cfg");
     Ok(obs_url(&st.shared))
 }
 
@@ -247,14 +250,14 @@ async fn add_font(app: AppHandle, st: State<'_, AppState>) -> Result<Option<Stri
     let src = p.into_path().map_err(|e| e.to_string())?;
     let name = src.file_name().and_then(|n| n.to_str()).ok_or("bad file name")?.to_string();
     std::fs::copy(&src, st.shared.paths.fonts().join(&name)).map_err(|e| e.to_string())?;
-    let _ = st.shared.cfg_tx.send(());
+    let _ = st.shared.cfg_tx.send("assets");
     Ok(Some(name))
 }
 #[tauri::command]
 fn remove_font(st: State<AppState>, name: String) -> Result<(), String> {
     if name.contains(['/', '\\']) { return Err("bad name".into()); }
     std::fs::remove_file(st.shared.paths.fonts().join(name)).map_err(|e| e.to_string())?;
-    let _ = st.shared.cfg_tx.send(());
+    let _ = st.shared.cfg_tx.send("assets");
     Ok(())
 }
 #[tauri::command]
@@ -347,6 +350,12 @@ fn quit_app(app: AppHandle) { app.exit(0); }
 
 // ---------------------------------------------------------------- main
 fn main() {
+    // Tauri's default async runtime starts one worker thread per CPU core (16 here). This app does
+    // almost no async work, so two are plenty: fewer threads = less memory and a faster start.
+    let rt = tokio::runtime::Builder::new_multi_thread().worker_threads(2).thread_name("ko-async").enable_all().build().expect("async runtime");
+    tauri::async_runtime::set(rt.handle().clone());
+    std::mem::forget(rt);   // keep it alive for the whole process
+
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| open_settings_async(app)))
         .plugin(tauri_plugin_dialog::init())
