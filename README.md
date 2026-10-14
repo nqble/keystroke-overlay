@@ -102,7 +102,7 @@ Two honest limits: the app can see *every* key you press while it runs (includin
 
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
-- **Keys don't light up in a certain game:** some games with anti-cheat block keyboard hooks. If that happens, the overlay can't see keys in that game.
+- **Keys don't light up in a certain game:** the most common cause is that the **game runs as administrator** (or its launcher does). Windows doesn't let a normal program see keys typed into an elevated window. Try starting Keystroke Overlay as administrator (right-click → *Run as administrator*) and see if the keys come back. Less often, an anti-cheat system blocks keyboard hooks; if keys still don't show, please open an issue naming the game and anti-cheat so we can investigate.
 - **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
 
 ## Building from source
