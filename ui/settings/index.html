@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keystroke Overlay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="settings.css">
+</head>
+<body>
+<header>
+  <div class="brand">⌨ Keystroke Overlay</div>
+  <div class="obs">
+    <span class="lbl">OBS Browser Source URL</span>
+    <input id="obsUrl" readonly>
+    <button id="copyUrl" class="primary">Copy OBS URL</button>
+    <span id="obsSize" class="hint"></span>
+  </div>
+</header>
+<div id="banner" hidden></div>
+<section class="preview" id="previewBox">
+  <iframe id="preview" title="Live preview"></iframe>
+  <div class="previewHint">Live preview — type on your keyboard or click keys here</div>
+</section>
+<main>
+  <nav id="tabs"></nav>
+  <div id="pane"></div>
+</main>
+<div id="toast" hidden></div>
+<script src="settings.js"></script>
+</body>
+</html>

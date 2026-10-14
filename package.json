@@ -1,0 +1,8 @@
+{
+  "name": "keyoverlay",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": { "dev": "tauri dev", "build": "tauri build",
+    "release": "node tools/release.mjs" },
+  "devDependencies": { "@tauri-apps/cli": "^2" }
+}

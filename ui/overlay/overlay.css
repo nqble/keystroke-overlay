@@ -1,0 +1,54 @@
+/* Overlay styles. Everything that animates is transform or opacity only.
+   Colours/sizes come from CSS variables set by overlay.js from the settings. */
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+body { user-select: none; -webkit-user-select: none; }
+
+/* Settings-window preview: checkerboard so transparency is visible. */
+body.preview {
+  background-color: #1a1d24;
+  background-image: linear-gradient(45deg, #232730 25%, transparent 25%, transparent 75%, #232730 75%),
+                    linear-gradient(45deg, #232730 25%, transparent 25%, transparent 75%, #232730 75%);
+  background-size: 20px 20px; background-position: 0 0, 10px 10px;
+}
+
+#stage { position: absolute; transform-origin: 0 0; opacity: var(--opacity, 1); }
+
+.key {
+  position: absolute;
+  transform: var(--t-idle, none);
+  transition: transform var(--ms-up, 120ms) var(--ease-up, ease-out);
+}
+.key.down {
+  transform: var(--t-down, none);
+  transition: transform var(--ms-down, 70ms) var(--ease-down, ease-out);
+}
+
+.face, .glow {
+  position: absolute; inset: 0; box-sizing: border-box;
+  border-radius: var(--radius, 8px);
+}
+.face {
+  display: flex; align-items: center; justify-content: center;
+  border: var(--bw, 2px) solid;
+  font-family: var(--font, sans-serif); font-weight: var(--fw, 600);
+  font-size: var(--fs, 18px); line-height: 1; white-space: nowrap; overflow: hidden;
+  transition: opacity var(--ms-up, 120ms) var(--ease-up, ease-out);
+}
+.face > span { font-size: calc(var(--fs, 18px) * var(--f, 1)); }
+.face.idle { background: var(--fill); border-color: var(--bc); color: var(--tc); }
+.face.on   { background: var(--fill-on); border-color: var(--bc-on); color: var(--tc-on); opacity: 0; }
+.glow {
+  box-shadow: 0 0 var(--glow-size, 18px) calc(var(--glow-size, 18px) / 3) var(--glow-color, #4f8cff);
+  opacity: 0;
+  transition: opacity var(--ms-up, 120ms) var(--ease-up, ease-out);
+}
+
+.key.down .face, .key.down .glow {
+  transition-duration: var(--ms-down, 70ms);
+  transition-timing-function: var(--ease-down, ease-out);
+}
+.key.down .face.on { opacity: 1; }
+.key.down .face.idle { opacity: 0; }
+.key.down .glow { opacity: var(--glow-down, 0); }
+
+body.preview .key { cursor: pointer; }

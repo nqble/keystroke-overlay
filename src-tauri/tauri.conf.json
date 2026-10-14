@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Keystroke Overlay",
+  "version": "1.1.0",
+  "identifier": "com.keyoverlay.app",
+  "build": { "frontendDist": "../ui/settings" },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.ico"],
+    "windows": {
+      "nsis": { "installMode": "currentUser" }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI2M0FBN0NENTQ5QzM5REQKUldUZE9aeFV6YWM2SnBCWHVJdzVpaVR3MFV3V09CMXdPWVhHN3IxUWoyeHR6aFFDUzVIZGUyQVEK",
+      "endpoints": ["https://github.com/nqble/keystroke-overlay/releases/latest/download/latest.json"],
+      "windows": { "installMode": "passive" }
+    }
+  }
+}

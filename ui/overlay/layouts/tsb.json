@@ -1,0 +1,19 @@
+{
+  "id": "tsb",
+  "name": "TSB",
+  "keys": [
+    { "code": "Digit1", "label": "1", "x": 1.5, "y": 0 },
+    { "code": "Digit2", "label": "2", "x": 2.5, "y": 0 },
+    { "code": "Digit3", "label": "3", "x": 3.5, "y": 0 },
+    { "code": "Digit4", "label": "4", "x": 4.5, "y": 0 },
+    { "code": "KeyQ", "label": "Q", "x": 1.5, "y": 1 },
+    { "code": "KeyW", "label": "W", "x": 2.5, "y": 1 },
+    { "code": "KeyR", "label": "R", "x": 4.5, "y": 1 },
+    { "code": "ShiftLeft", "label": "Shift", "x": 0, "y": 2, "w": 1.5 },
+    { "code": "KeyA", "label": "A", "x": 1.5, "y": 2 },
+    { "code": "KeyS", "label": "S", "x": 2.5, "y": 2 },
+    { "code": "KeyD", "label": "D", "x": 3.5, "y": 2 },
+    { "code": "KeyF", "label": "F", "x": 4.5, "y": 2 },
+    { "code": "Space", "label": "", "x": 1.5, "y": 3, "w": 4 }
+  ]
+}
