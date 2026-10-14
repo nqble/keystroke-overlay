@@ -346,6 +346,7 @@ let booted = false;
 (async () => {
   const st = await call('get_state');
   S = st.settings; obsUrl = st.url; appVersion = st.version;
+  $('.brand').textContent = '⌨ Keystroke Overlay  v' + appVersion;
   layouts = await call('list_layouts');
   await reloadFonts();
   updateObs();

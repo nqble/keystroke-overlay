@@ -1,7 +1,7 @@
 // Builds a signed installer and writes the files to upload to a GitHub Release.
 //   npm run release -- "What changed in this version"          (normal, installs in-app)
 //   npm run release -- --manual "What changed"                  (user must run the setup .exe)
-// Output: release/Keystroke-Overlay_<ver>_x64-setup.exe  +  release/latest.json
+// Output: release/<ver>/Keystroke-Overlay_<ver>_x64-setup.exe  +  release/<ver>/latest.json
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, copyFileSync, mkdirSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -25,11 +25,12 @@ execSync('npx tauri build', {
 const dir = join(TARGET, 'release', 'bundle', 'nsis');
 const src = join(dir, `Keystroke Overlay_${version}_x64-setup.exe`);
 const name = `Keystroke-Overlay_${version}_x64-setup.exe`;   // no spaces: GitHub rewrites spaces in asset names
-mkdirSync('release', { recursive: true });
-copyFileSync(src, join('release', name));
+const out = join('release', version);          // release/<version>/ so older versions are never overwritten
+mkdirSync(out, { recursive: true });
+copyFileSync(src, join(out, name));
 const signature = readFileSync(src + '.sig', 'utf8').trim();
-writeFileSync(join('release', 'latest.json'), JSON.stringify({
+writeFileSync(join(out, 'latest.json'), JSON.stringify({
   version, notes, ...(manual && { manual: true, manual_url: `https://github.com/${REPO}/releases/tag/v${version}` }), pub_date: new Date().toISOString(),
   platforms: { 'windows-x86_64': { signature, url: `https://github.com/${REPO}/releases/download/v${version}/${name}` } },
 }, null, 2));
-console.log(`\nDone. Upload release/${name} and release/latest.json to a GitHub release tagged v${version}.`);
+console.log(`\nDone. Upload release/${version}/${name} and release/${version}/latest.json to a GitHub release tagged v${version}.`);

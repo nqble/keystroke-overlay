@@ -70,8 +70,8 @@ Users click **General → Updates → Check for updates**; the app reads
 verifies the download against the public key in `tauri.conf.json`, installs and restarts.
 
 1. Raise `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` (same number).
-2. `npm run release -- "What changed"` → builds, signs, and writes `release/`.
-3. On GitHub: Releases → Draft a new release → tag `v<version>` → upload BOTH files from `release/` → Publish.
+2. `npm run release -- "What changed"` → builds, signs, and writes `release/<version>/`.
+3. On GitHub: Releases → Draft a new release → tag `v<version>` → upload BOTH files from `release/<version>/` → Publish.
 
 The private signing key lives at `%USERPROFILE%\.keystroke-overlay-keys\updater.key` (NOT in this project).
 Back it up somewhere private. If it is lost, installed copies can never auto-update again and must be reinstalled

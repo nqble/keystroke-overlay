@@ -1,6 +1,6 @@
 [package]
 name = "keyoverlay"
-version = "1.1.0"
+version = "1.1.1"
 description = "Keystroke overlay for streaming (OBS Browser Source)"
 edition = "2021"
 
