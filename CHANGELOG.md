@@ -4,13 +4,11 @@ All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-S
 
 ## v1.2.0 — the first Stable release *(unreleased)*
 
-**⚡ Performance — v1.2.0 vs v1.1.2** *(same PC, same test, median of 5 runs)*
-- **Settings window ready in 469 ms**, down from 550 ms: about **15% faster**, and it no longer flashes white first.
-- **Background threads: 9, down from 23**: that's **61% fewer** things running while you game.
-- **Idle memory: 2.9 MB, down from 3.8 MB** (about 24% less), with idle CPU at 0%.
-- **Settings window memory: 342 MB, down from 385 MB** (about 11% less), using one fewer helper process.
-- **Typing stays featherweight:** 8,000 key presses cost **0.25% of one CPU core**, a **4× drop** from v1.1.2's 1.04%.
-- Program size: 6.1 MB (v1.1.2 was 6.0 MB). Tiny, and it now does more.
+**⚡ Performance — v1.2.0 vs v1.1.2**
+- **15% faster** to open (469 ms vs 550 ms)
+- **61% fewer** background threads (9 vs 23)
+- **24% less** idle memory (2.9 MB vs 3.8 MB)
+- **4× lighter** on your CPU while typing (0.25% vs 1.04% of one core)
 
 **✨ New**
 - **Make your own layouts:** click the dashed **+** card in the Layout tab, name it, and it starts as the full-size keyboard. Then hide the keys you don't want in the Keys tab. You can have up to 20 (a counter shows how many you've used). Right-click a layout you made to delete it.

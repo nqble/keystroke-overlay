@@ -12,7 +12,7 @@ Three layers, from quick to thorough:
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | ui-sweep
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -24,6 +24,9 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `secure-link` — the optional secure link: off by default; when on, data endpoints and the key-press stream are refused
   without the private key (wrong/missing key → 401, right key → allowed), the key never reaches the overlay, the live preview
   keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.
+- `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
+- `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
+- `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
 - `smoke` — every command group, tray actions (pause / layout / restart server), settings broadcast over the WebSocket, the
   update button and dialog, path-traversal and link-blocking guards, a check that **every socket the app holds is
   loopback-only**, and a real signed update: download with progress → signature verified → installer launched.
@@ -39,6 +42,12 @@ harmless copy of `whoami.exe`, signed with a throwaway key made for the run. Don
 
 **Not in CI.** GitHub's hosted runners have no real desktop session for window and keyboard tests, so the end-to-end
 suites run on your machine. CI runs the privacy check, syntax checks and the Rust tests.
+
+## Performance comparison
+
+`node tests/bench/run.mjs` builds v1.1.0, v1.1.1, v1.1.2 and the current code as throwaway test copies and measures them side by side:
+startup time, background threads, idle memory, settings-window memory and CPU while 8,000 key presses flood in (median of 5 runs).
+It needs ~6 GB temporarily in your TEMP folder; delete `keyoverlay-bench` there when it finishes.
 
 ## Adding a test
 

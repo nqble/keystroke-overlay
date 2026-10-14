@@ -1,17 +1,19 @@
 # ⌨ Keystroke Overlay
 
-A tiny Windows tray app that shows your keystrokes in **OBS** — like the keyboard overlays you see in Minecraft and
-gameplay streams. Nothing appears on your own screen; the keys only show up in your recording or stream.
+**Show your keystrokes on stream.** Keystroke Overlay puts a live on-screen keyboard into OBS. Press a key and the matching
+key lights up, so viewers can see exactly what you're doing, whether that's a speedrun, a gameplay clip, or a tutorial.
+It runs quietly in your system tray, works even while a game has focus, and the keyboard you see on stream is entirely yours
+to design: layout, colors, fonts and animations.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/nqble/keystroke-overlay)](../../releases/latest)
 
 Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaScript, with the help of [Claude Code](https://claude.com/claude-code).
 
-- **Lightweight:** about 13 MB of RAM and ~0% CPU while idle. The installer is about 2 MB.
+- **Lightweight:** about 3 MB of RAM and ~0% CPU while idle. The installer is about 2 MB.
 - **Works in games:** a global keyboard reader sees your keys even when a game has focus, with a second
   "Compatibility" method for games that block the standard one.
-- **Fully customizable:** layouts, colors, fonts, animations, per-key labels.
+- **Fully customizable:** pick or build your own layouts, then change colors, fonts, animations and per-key labels.
 - **Private by design:** keystrokes are never saved or sent anywhere — see [Privacy](#privacy).
 - **Open source** under the [MIT license](LICENSE).
 
@@ -37,12 +39,12 @@ If you change the port in settings, update the URL in OBS too.
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, TSB, or your own. |
+| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, TSB, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. |
 | **Keys** | Show or hide individual keys and give any key a custom label (e.g. Space → `⎵` or `Jump`). Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
-| **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Built-in themes plus your own saved presets (export/import supported). |
+| **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
 | **Fonts** | Add your own TTF / OTF / WOFF fonts. |
-| **General** | Port, restart server, **keyboard input method**, **secure link**, start with Windows, minimize to tray, update channel, program updates, and release notes. |
+| **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, and program updates (channel, release notes). |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
@@ -81,7 +83,7 @@ Right-click the tray icon for quick actions without opening settings:
 
 ## Updating
 
-When a new version is available, a small blue download button appears in the bottom-left corner of the settings window (hover it: "New update"). Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Program updates → Check for updates** any time.
+When a new version is available, a small download button in the app's accent color appears in the bottom-left corner of the settings window (hover it: "New update"). Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Program updates → Check for updates** any time.
 
 **Update channel** (General → Program updates). Version numbers look like `x.y.z`: **the middle number is Stable, the last number is Latest.**
 - **Stable (recommended)** — the main, well-tested releases (the middle number goes up: 1.2.0, 1.3.0, …).
@@ -91,7 +93,11 @@ After an update, a **What's new** window shows the release notes once. You can r
 
 ## Make your own layout
 
-A layout is a single JSON file. Put it in the app's `layouts` folder (**General → Open data folder → layouts**) and restart the app.
+**In the app (easiest):** open the **Layout** tab and click the dashed **+** card. Give it a name and it starts as a copy of the
+full-size keyboard. Then, in the **Keys** tab, hide the keys you don't want and relabel the ones you do. You can make up to **20**
+layouts (a counter shows how many you've used). To remove one, **right-click it and choose Delete layout**. Built-in layouts can't be deleted.
+
+**By hand (for full control):** a layout is a single JSON file. Put it in the app's `layouts` folder (**General → App → Open data folder → layouts**) and restart the app.
 
 ```json
 {
