@@ -2,6 +2,8 @@
 
 A tiny Windows tray app that shows your keystrokes in **OBS** — like the keyboard overlays you see in Minecraft and gameplay streams. Nothing appears on your own screen; the keys only show up in your recording or stream.
 
+Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaScript, with the help of [Claude Code](https://claude.com/claude-code).
+
 - **Lightweight:** about 12–19 MB of RAM and ~0% CPU while idle. The installer is about 2 MB.
 - **Works in games:** a global keyboard hook sees your keys even when a game has focus.
 - **Fully customizable:** layouts, colors, fonts, animations, per-key labels.
