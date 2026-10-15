@@ -12,6 +12,12 @@ const tab = async n => { await p.ev(`[...document.querySelectorAll('nav button')
 for (const t of ['Layout', 'Keys', 'Style', 'Animation', 'Fonts', 'General']) { await tab(t); check(`tab ${t} renders content`, await p.q(`document.getElementById('pane').innerText.length > 40`)); }
 check('General sections are in the tidy order', JSON.stringify(await p.q(`[...document.querySelectorAll('#pane h2')].map(h => h.textContent)`)) === JSON.stringify(['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates']));
 
+// the overlay as OBS loads it (no ?preview) skips the theme files; the settings preview still loads them
+await p.ev(`const f = document.createElement('iframe'); f.id = 'obsview'; f.style.display = 'none'; f.src = 'http://localhost:7879/'; document.body.append(f);`); await sleep(3500);
+const obsLoaded = await p.evIn('localhost:7879', `return performance.getEntriesByType('resource').map(r => r.name)`).catch(() => []);
+await p.ev(`document.getElementById('obsview').remove()`);
+check('the OBS overlay does not download theme files (animations and layouts still load)', obsLoaded.some(u => u.includes('/overlay/animations/')) && !obsLoaded.some(u => u.includes('/overlay/themes/')), obsLoaded.filter(u => /themes|animations/.test(u)).length + ' module requests');
+check('the settings preview still lists the themes', (await p.q(`reg.themes.length`)) >= 5);
 
 // header logo, share buttons, font presets, slider focus
 check('the header shows the logo image', await p.q(`(() => { const i = document.querySelector('.brand .logo'); return !!i && i.complete && i.naturalWidth > 0; })()`));

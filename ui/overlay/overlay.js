@@ -36,7 +36,9 @@ const held = new Set();     // codes currently down (kept across rebuilds)
 // ------------------------------------------------------------ module loading
 async function loadModules() {
   const m = await getJson('/api/modules');
-  await Promise.all([...m.animations, ...m.themes].map(u => import(u.startsWith('/user/') ? withKey(u) : u).catch(e => console.warn('module failed', u, e))));
+  // Themes are only listed in the settings window's Style tab, so OBS (which never asks for them) skips loading them.
+  const urls = PREVIEW ? [...m.animations, ...m.themes] : m.animations;
+  await Promise.all(urls.map(u => import(u.startsWith('/user/') ? withKey(u) : u).catch(e => console.warn('module failed', u, e))));
 }
 
 // ------------------------------------------------------------ rendering
