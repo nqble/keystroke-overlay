@@ -157,6 +157,119 @@ check(
   JSON.stringify([sizeBefore.s, sizeAfter.s]),
 );
 
+// ---- selecting several keys and moving them as a group
+const selectedCodes = () => p.q(`[...document.querySelectorAll('.kmk.sel')].map(n => n.dataset.code).sort()`);
+const clickKey = (code, ctrl = false) =>
+  p.ev(
+    `document.querySelector('.kmk[data-code="${code}"]').dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: ${ctrl} }))`,
+  );
+const clickButton = (selector) => p.ev(`document.querySelector('${selector}').click()`);
+const placeOf = async (code) => ((await profile(id)).positions ?? {})[code] ?? { x: orig[code].x, y: orig[code].y };
+
+await clickKey('KeyA');
+await sleep(300);
+check('a plain click selects one key', JSON.stringify(await selectedCodes()) === '["KeyA"]');
+await clickKey('KeyS', true);
+await sleep(300);
+check(
+  'Ctrl-click adds a second key to the selection',
+  JSON.stringify(await selectedCodes()) === '["KeyA","KeyS"]',
+  JSON.stringify(await selectedCodes()),
+);
+check(
+  'the toolbar and the panel say two keys are selected',
+  (await p.q(`document.querySelector('.sel-summary').textContent`)) === '2 keys selected' &&
+    (await p.q(`document.querySelector('.editor b').textContent`)) === '2 keys selected',
+);
+
+const groupBefore = {
+  A: await placeOf('KeyA'),
+  S: await placeOf('KeyS'),
+  D: await placeOf('KeyD'),
+  W: await placeOf('KeyW'),
+};
+await drag('KeyA', 1, 1);
+await sleep(700);
+const groupAfter = {
+  A: await placeOf('KeyA'),
+  S: await placeOf('KeyS'),
+  D: await placeOf('KeyD'),
+  W: await placeOf('KeyW'),
+};
+const moveA = { x: groupAfter.A.x - groupBefore.A.x, y: groupAfter.A.y - groupBefore.A.y };
+const moveS = { x: groupAfter.S.x - groupBefore.S.x, y: groupAfter.S.y - groupBefore.S.y };
+check(
+  'dragging one selected key moves the whole selection by the same amount',
+  moveA.x > 0.7 && moveA.y > 0.7 && Math.abs(moveA.x - moveS.x) < 1e-6 && Math.abs(moveA.y - moveS.y) < 1e-6,
+  JSON.stringify({ moveA, moveS }),
+);
+check(
+  'keys that were not selected stayed where they were',
+  JSON.stringify([groupAfter.D, groupAfter.W]) === JSON.stringify([groupBefore.D, groupBefore.W]),
+);
+
+await clickButton('.keytools button[title^="Move right"]');
+await sleep(500);
+const nudged = { A: await placeOf('KeyA'), S: await placeOf('KeyS') };
+check(
+  'the → button moves the whole selection a quarter key',
+  Math.abs(nudged.A.x - (groupAfter.A.x + 0.25)) < 1e-6 && Math.abs(nudged.S.x - (groupAfter.S.x + 0.25)) < 1e-6,
+  JSON.stringify([groupAfter.A, nudged.A]),
+);
+await clickButton('#nudgeWhole');
+await clickButton('.keytools button[title^="Move up"]');
+await sleep(500);
+const nudgedUp = { A: await placeOf('KeyA'), S: await placeOf('KeyS') };
+check(
+  'with "Whole key" ticked the ↑ button moves them a whole key',
+  Math.abs(nudgedUp.A.y - (nudged.A.y - 1)) < 1e-6 && Math.abs(nudgedUp.S.y - (nudged.S.y - 1)) < 1e-6,
+  JSON.stringify([nudged, nudgedUp]),
+);
+
+await p.ev(`document.querySelector('.editor input[type=checkbox]').click()`);
+await sleep(500);
+const hiddenNow = (await profile(id)).disabledKeys ?? [];
+check('"Show these keys" hides both selected keys at once', hiddenNow.includes('KeyA') && hiddenNow.includes('KeyS'));
+await p.ev(`document.querySelector('.editor input[type=checkbox]').click()`);
+await sleep(500);
+const shownAgain = (await profile(id)).disabledKeys ?? [];
+check('...and shows them again', !shownAgain.includes('KeyA') && !shownAgain.includes('KeyS'));
+
+await clickButton('.keytools .toolgroup .btns button');
+await sleep(300);
+check('Clear selection deselects everything', (await selectedCodes()).length === 0);
+check(
+  'the nudge buttons are disabled while nothing is selected',
+  await p.q(`[...document.querySelectorAll('.keytools button.nudge')].every(b => b.disabled)`),
+);
+
+// a box drawn on the empty background selects exactly the keys it touches (checked against the real on-screen positions)
+const boxResult = await p.ev(`
+  const map = document.querySelector('.keymap'), r = map.getBoundingClientRect();
+  const x0 = r.right - 6, y0 = r.bottom - 6, x1 = r.left + r.width * 0.55, y1 = r.top + r.height * 0.55;
+  const ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 9 });
+  map.dispatchEvent(ev('pointerdown', x0, y0));
+  for (let i = 1; i <= 4; i++) map.dispatchEvent(ev('pointermove', x0 + (x1 - x0) * i / 4, y0 + (y1 - y0) * i / 4));
+  map.dispatchEvent(ev('pointerup', x1, y1));
+  const L = Math.min(x0, x1), R = Math.max(x0, x1), T = Math.min(y0, y1), B = Math.max(y0, y1);
+  const expected = [...document.querySelectorAll('.kmk')].filter(n => { const q = n.getBoundingClientRect(); return q.left < R && q.right > L && q.top < B && q.bottom > T; }).map(n => n.dataset.code).sort();
+  return { expected };`);
+await sleep(400);
+const boxed = await selectedCodes();
+check(
+  'dragging a box on the background selects exactly the keys it touches',
+  boxResult.expected.length > 0 &&
+    boxResult.expected.length < 104 &&
+    JSON.stringify(boxed) === JSON.stringify(boxResult.expected),
+  `${boxed.length} selected, ${boxResult.expected.length} expected`,
+);
+await p.ev(`
+  const map = document.querySelector('.keymap'), r = map.getBoundingClientRect();
+  const ev = (t) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: r.right - 5, clientY: r.bottom - 5, button: 0, pointerId: 10 });
+  map.dispatchEvent(ev('pointerdown')); map.dispatchEvent(ev('pointerup'));`);
+await sleep(400);
+check('clicking the empty background clears the selection', (await selectedCodes()).length === 0);
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {

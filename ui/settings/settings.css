@@ -943,3 +943,54 @@ input[type='range'] {
 .kmk.moved:not(.off) {
   border-color: var(--accent);
 }
+
+/* Keys tab: the selection toolbar above the keyboard picture, and the selection box. */
+.keytools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 8px 0;
+}
+.toolgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.toolgroup .btns {
+  margin: 0;
+}
+.toolgroup-label {
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sel-summary {
+  color: var(--dim);
+  font-size: 13px;
+  min-width: 108px;
+}
+button.nudge {
+  min-width: 34px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+label.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--dim);
+  cursor: pointer;
+}
+.keymap {
+  cursor: crosshair;
+  touch-action: none;
+}
+.marquee {
+  position: absolute;
+  z-index: 4;
+  border: 1px solid var(--accent);
+  background: rgba(79, 140, 255, 0.16);
+  pointer-events: none;
+}

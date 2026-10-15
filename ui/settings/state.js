@@ -10,7 +10,8 @@ export let layouts = []; // every layout: [{ id, name, keys, user }]
 export let customFonts = []; // font files the user added
 export let registry = { animations: [], themes: [], easings: [], layouts: [] }; // lists the live preview sends us
 export let tab = 'layout'; // which tab is showing
-export let selectedKey = null; // the key selected in the Keys tab
+export let selectedKeys = new Set(); // the keys selected in the Keys tab (by key code)
+export let selectedKey = null; // the one selected key, or null when none or several are selected (the editor shows it)
 export let booted = false; // true once the first screen is drawn
 export let obsUrl = ''; // the OBS Browser Source address (it carries ?key=... when the secure link is on)
 export let size = null; // the overlay's recommended size, reported by the live preview: { w, h }
@@ -36,8 +37,14 @@ export function setRegistry(value) {
 export function setTab(value) {
   tab = value;
 }
-export function setSelectedKey(value) {
-  selectedKey = value;
+/** Select exactly these keys (an array or Set of key codes). An empty list clears the selection. */
+export function setSelectedKeys(codes) {
+  selectedKeys = new Set(codes);
+  selectedKey = selectedKeys.size === 1 ? [...selectedKeys][0] : null;
+}
+/** Select one key, or pass null to clear the selection. */
+export function setSelectedKey(code) {
+  setSelectedKeys(code ? [code] : []);
 }
 export function setBooted(value) {
   booted = value;

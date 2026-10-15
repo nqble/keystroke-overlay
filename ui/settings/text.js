@@ -24,8 +24,13 @@ export const TEXT = {
     'Pick a layout, or click + to make your own from the full-size keyboard. Right-click a layout you ' +
     'made to delete it.',
   keysTabHelp:
-    'Click a key to edit it, drag it to move it. Disabled keys are hidden in the overlay. Changes are ' +
-    'saved automatically for each layout.',
+    'Click a key to edit it and drag it to move it. To work with several keys at once, drag a box around them ' +
+    '(or Ctrl-click keys one by one), then drag any of them or use the arrows. Disabled keys are hidden in the ' +
+    'overlay. Changes are saved automatically for each layout.',
+  nothingSelected: 'No keys selected',
+  groupEditorTip:
+    'Drag any selected key to move them all together, or use the arrow buttons above. Click an empty spot to ' +
+    'clear the selection.',
   animationTabNote:
     'Only transform and opacity are animated (GPU friendly). Click keys in the preview to try an ' + 'animation.',
   fontsTabHelp:
