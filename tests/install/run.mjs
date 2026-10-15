@@ -13,6 +13,7 @@ import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { connect, check, finish, sleep } from '../e2e/lib/cdp.mjs';
+import { acquire } from '../lib/lock.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = resolve(HERE, '../..');
 const keep = process.argv.includes('--keep');
@@ -49,6 +50,7 @@ async function build(label, ref, version) {
 }
 const installer = (exe) => { const r = spawnSync(exe, ['/S', `/D=${INSTALL}`], { stdio: 'ignore' }); return r.status; };
 
+const lock = await acquire('install and upgrade test', { expectedMinutes: 12 });
 mkdirSync(WORK, { recursive: true });
 let failed = false;
 try {

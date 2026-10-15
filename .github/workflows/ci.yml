@@ -25,9 +25,13 @@ jobs:
       - run: npm ci
       - name: Privacy promises (see PRIVACY.md)
         run: npm run check:privacy
+      - name: Code style (tabs, trailing spaces)
+        run: npm run check:style
       - name: JavaScript syntax
         shell: bash
         run: for f in ui/overlay/*.js ui/overlay/*/*.js ui/settings/*.js tools/*.mjs; do node --check "$f"; done
+      - name: Rust lints (clippy, warnings are errors)
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
       - name: Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml
       - name: Build the app (no installer)

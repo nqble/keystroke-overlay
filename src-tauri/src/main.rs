@@ -77,7 +77,7 @@ fn main() {
             if server_failed || pending || (open_on_launch && !autostarted) { open_settings_async(app.handle()); }
             Ok(())
         })
-        .on_window_event(|win, ev| window::on_event(win, ev))
+        .on_window_event(window::on_event)
         .invoke_handler(tauri::generate_handler![
             commands::settings::get_state, commands::settings::save_settings, commands::settings::set_port,
             commands::settings::set_autostart, commands::settings::list_layouts, commands::settings::copy_text,

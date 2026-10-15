@@ -2,7 +2,7 @@
 //!
 //!   * `hook`     – Windows low-level keyboard hook (WH_KEYBOARD_LL). The default; works with nearly every game.
 //!   * `rawinput` – Windows Raw Input. Reads keys straight from the keyboard instead of hooking into key delivery;
-//!                  some games / anti-cheat tools block hooks but not this.
+//!     some games / anti-cheat tools block hooks but not this.
 //!
 //! Both feed `KeyTracker` (repeat filtering, stuck-key protection) → one channel → the dispatcher thread
 //! (tracks held keys, drops everything while paused) → broadcast to WebSocket clients.

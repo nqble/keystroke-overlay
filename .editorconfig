@@ -1,0 +1,24 @@
+# https://editorconfig.org : makes every editor use the same basics. Most editors read this automatically.
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.rs]
+indent_size = 4
+max_line_length = 160
+
+[*.{js,mjs,css,html,json,yml,yaml}]
+indent_size = 2
+
+[*.ps1]
+indent_size = 2
+end_of_line = crlf
+
+[*.md]
+trim_trailing_whitespace = false

@@ -1,0 +1,4 @@
+# Matches the existing code style as closely as stable rustfmt allows (wide lines, compact structs).
+# `cargo fmt` is not enforced yet: ~115 spots would still be re-laid-out.
+max_width = 160
+use_small_heuristics = "Max"

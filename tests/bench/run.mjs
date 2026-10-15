@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync, copyFileSync, statSync, s
 import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { acquire } from '../lib/lock.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = resolve(HERE, '../..'), E2E = join(ROOT, 'tests/e2e/lib');
 const args = process.argv.slice(2);
@@ -22,6 +23,7 @@ const tree = () => ps(join(HERE, 'tree.ps1')).split(' ').map(Number);           
 const proc = () => ps(join(E2E, 'proc.ps1')).split(' ').map(s => +s.replace(/,/g, ''));      // [threads, handles, workingSetMB, cpuMs]
 const median = a => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
 
+const lock = await acquire('performance comparison', { expectedMinutes: 25 });
 mkdirSync(WORK, { recursive: true });
 const cfg = join(WORK, 'cfg.json'); writeFileSync(cfg, JSON.stringify({ identifier: 'com.keyoverlay.test' }));
 
@@ -71,6 +73,7 @@ const inject = n => spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy
 const R = Object.fromEntries(VERSIONS.map(v => [v.name, { usable: [], tray: [], win: [], flood: [], idle: [] }]));
 for (let run = 1; run <= RUNS; run++) {
   for (const v of VERSIONS) {
+    lock.stage(`measuring ${v.name}, round ${run} of ${RUNS}`);
     process.stdout.write(`run ${run}/${RUNS} ${v.name} ... `);
     const t0 = await launch(v, true); const ms = await usableMs(t0); await sleep(6000);          // settings window opening on launch
     R[v.name].usable.push(ms); R[v.name].win.push(tree());

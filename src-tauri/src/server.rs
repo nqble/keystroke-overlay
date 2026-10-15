@@ -80,7 +80,7 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
     let host_ok = req.headers().get(header::HOST).and_then(|h| h.to_str().ok()).is_some_and(|h| {
         h == format!("localhost:{p}") || h == format!("127.0.0.1:{p}")
     });
-    let origin_ok = req.headers().get(header::ORIGIN).map_or(true, |o| {
+    let origin_ok = req.headers().get(header::ORIGIN).is_none_or(|o| {
         o.to_str().is_ok_and(|o| o == format!("http://localhost:{p}") || o == format!("http://127.0.0.1:{p}"))
     });
     if !host_ok || !origin_ok {

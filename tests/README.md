@@ -57,6 +57,18 @@ It needs ~4 GB temporarily in your TEMP folder and deletes everything when it fi
 startup time, background threads, idle memory, settings-window memory and CPU while 8,000 key presses flood in (median of 5 runs).
 It needs ~6 GB temporarily in your TEMP folder; delete `keyoverlay-bench` there when it finishes.
 
+## One test run at a time
+
+All the runners (end-to-end, install, benchmark) use the same ports and press real keys, so they take a shared lock
+(`tests/lib/lock.mjs`). If another run is in progress, a new one waits its turn and prints who is ahead: what it is,
+which step it is on, its process, folder, start time and roughly when it should finish. An abandoned lock (its process is
+gone, or it is over 3 hours old) is taken over automatically.
+
+```bash
+npm run test:lock                  # who holds the lock right now?  (add "-- --clear" to remove an abandoned one)
+KO_TEST_LOCK=fail npm run test:e2e # fail immediately instead of waiting
+```
+
 ## Adding a test
 
 Copy a suite in `tests/e2e/suites/`, use the helpers in `tests/e2e/lib/cdp.mjs` (`connect`, `invoke`, `inject`,

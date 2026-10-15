@@ -10,10 +10,13 @@
   },
   "scripts": {
     "dev": "tauri dev",
+    "dev:debug": "node tools/dev-debug.mjs",
     "build": "tauri build",
     "release": "node tools/release.mjs",
     "test": "cargo test --manifest-path src-tauri/Cargo.toml && node tools/check-privacy.mjs",
     "check:privacy": "node tools/check-privacy.mjs",
+    "check:style": "node tools/check-style.mjs",
+    "test:lock": "node tests/lib/lock.mjs",
     "test:e2e": "node tests/e2e/run.mjs",
     "test:install": "node tests/install/run.mjs"
   },

@@ -28,7 +28,13 @@ Useful commands:
 |---|---|
 | `npm test` | Rust unit tests + the privacy check |
 | `npm run check:privacy` | Verifies the promises in [PRIVACY.md](PRIVACY.md) |
+| `npm run check:style` | No tabs, no trailing spaces, files end with a newline (CI runs it) |
+| `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings` | Rust lints; CI requires zero warnings |
 | `npm run build` | Builds the app + installer into `src-tauri/target/release/bundle/` |
+
+Editor settings are in `.editorconfig` (most editors pick them up automatically). The code uses wide lines (up to ~160 characters)
+and compact one-line structs; `src-tauri/rustfmt.toml` matches that as closely as stable rustfmt allows, but `cargo fmt` is not
+enforced yet, so please don't reformat code you aren't changing.
 
 Tip: if the linker complains about opening files, build outside OneDrive/synced folders, or set `CARGO_TARGET_DIR`
 to a normal local folder.

@@ -18,11 +18,13 @@ const ROOT = resolve(HERE, '../..');
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
 const only = args.includes('--suite') ? args[args.indexOf('--suite') + 1] : 'all';
-const SUITES = ['input-methods', 'secure-link', 'focus', 'layouts', 'ui-sweep', 'csp', 'soak', 'whats-new', 'smoke'];          // smoke LAST: it ends by installing an update, which exits the app
+const SUITES = ['input-methods', 'secure-link', 'focus', 'layouts', 'ui-sweep', 'csp', 'soak', 'whats-new', 'debug', 'smoke'];          // smoke LAST: it ends by installing an update, which exits the app
 const WORK = process.env.E2E_WORK ?? join(tmpdir(), 'keystroke-overlay-e2e');
 const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
 const EXE = join(WORK, 'kotest-e2e.exe');
 const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
+import { acquire } from '../lib/lock.mjs';
+let lock;   // the shared test lock (see tests/lib/lock.mjs)
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const log = m => console.log(`\n\x1b[36m▶ ${m}\x1b[0m`);
 
@@ -63,7 +65,7 @@ async function main() {
   // ---- run the suites
   const failed = [];
   for (const name of SUITES.filter(s => only === 'all' || only === s)) {
-    log(`Suite: ${name}`);
+    log(`Suite: ${name}`); lock?.stage(`suite ${name}`);
     killApp(); await sleep(1500);
     rmSync(DATA, { recursive: true, force: true }); mkdirSync(DATA, { recursive: true });
     const autoCheck = name === 'smoke';     // the smoke suite needs the background update check; the key suite doesn't
@@ -77,6 +79,8 @@ async function main() {
 }
 
 let failed = [], error;
+lock = await acquire(`end-to-end tests (${only === 'all' ? 'all suites' : 'suite ' + only})`, { expectedMinutes: only === 'all' ? 14 : 5 });
+lock.stage('building the test copy');
 try { failed = await main(); } catch (e) { error = e; }
 finally {
   log('Cleaning up');
