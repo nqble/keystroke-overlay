@@ -1,7 +1,8 @@
 // Suite: smoke test of every command group, the tray actions, the WebSocket, the privacy guarantees and a
 // real signed update (download with progress -> verify -> hand-off). Uses the local mock update server.
 import { execSync } from 'node:child_process';
-import { connect, listenKeys, appAlive, check, finish, sleep, EXE_NAME, PORT } from '../lib/cdp.mjs';
+import net from 'node:net';
+import { connect, byTest, listenKeys, appAlive, check, finish, sleep, EXE_NAME, PORT } from '../lib/cdp.mjs';
 
 const VERSION = process.env.E2E_VERSION; // the app's real version, provided by run.mjs
 const p = await connect();
@@ -11,20 +12,20 @@ const { invoke: inv, q } = p;
 // ---- window + UI
 check(
   'settings UI rendered (6 tabs, content)',
-  (await q(`document.querySelectorAll('nav button').length`)) === 6 &&
-    (await q(`document.getElementById('pane').children.length`)) > 0,
+  (await q(`document.querySelectorAll('${byTest('tab')}').length`)) === 6 &&
+    (await q(`document.querySelector('${byTest('pane')}').children.length`)) > 0,
 );
 check(
   'header shows the logo and title on the left and the three window buttons on the right',
   await q(
-    `document.querySelector('.brand span').textContent.trim() === 'Keystroke Overlay' && document.querySelectorAll('header .winbtns button').length === 3`,
+    `document.querySelector('${byTest('brand-title')}').textContent.trim() === 'Keystroke Overlay' && !!document.querySelector('${byTest('window-minimize')}') && !!document.querySelector('${byTest('window-maximize')}') && !!document.querySelector('${byTest('window-close')}')`,
   ),
 );
 const st = (await inv('get_state')).ok;
 check('get_state', st.version === VERSION && st.settings.version === 2 && st.paused === false);
 check(
   'background update check found the mock update (update button visible)',
-  await q(`!document.getElementById('updateBtn').hidden`),
+  await q(`!document.querySelector('${byTest('update-button')}').hidden`),
 );
 
 check(
@@ -36,15 +37,15 @@ await p.ev(`window.__TAURI__.event.emit('goto-tab', 'keys')`);
 await sleep(500);
 check(
   'a "goto-tab" request switches the open window to that tab',
-  (await q(`document.querySelector('nav button.active').textContent`)) === 'Keys',
+  (await q(`document.querySelector('${byTest('tab', '.active')}').dataset.tab`)) === 'keys',
 );
 await p.ev(`window.__TAURI__.event.emit('goto-tab', 'general')`);
 await sleep(500);
 check(
   '...and the General tab shows the pending update with its Install button',
-  (await q(`document.querySelector('nav button.active').textContent`)) === 'General' &&
+  (await q(`document.querySelector('${byTest('tab', '.active')}').dataset.tab`)) === 'general' &&
     (await q(
-      `[...document.querySelectorAll('#pane button')].some(b => b.textContent === 'Install update' && !b.hidden)`,
+      `(() => { const b = document.querySelector('${byTest('update-install')}'); return !!b && b.textContent === 'Install update' && !b.hidden; })()`,
     )),
 );
 
@@ -53,11 +54,18 @@ const sv = await inv('save_settings', { settings: { ...st.settings, style: { ...
 check('save_settings', sv.ok === null && (await inv('get_state')).ok.settings.style.radius === 21);
 await inv('save_settings', { settings: st.settings });
 check('list_layouts', (await inv('list_layouts')).ok.length >= 4);
-const sp = await inv('set_port', { port: 7881 });
+// a port nobody is using (7881 is the devbuild's own port, so a devbuild running on this PC would get in the way)
+const freePort = await new Promise((resolve) => {
+  const probe = net.createServer().listen(0, '127.0.0.1', () => {
+    const port = probe.address().port;
+    probe.close(() => resolve(port));
+  });
+});
+const sp = await inv('set_port', { port: freePort });
 check(
   'set_port moves the server',
-  sp.ok === 'http://localhost:7881/' &&
-    (await fetch('http://localhost:7881/api/config')
+  sp.ok === `http://localhost:${freePort}/` &&
+    (await fetch(`http://localhost:${freePort}/api/config`)
       .then((r) => r.ok)
       .catch(() => false)),
 );
@@ -150,16 +158,16 @@ check('every socket the app holds is loopback-only', external.length === 0, `${s
 
 // ---- the update itself (must be last: the app exits after handing off to the installer)
 await p.ev(
-  `window.__prog = []; window.__TAURI__.event.listen('update-progress', e => window.__prog.push(e.payload.done)); document.getElementById('updateBtn').click()`,
+  `window.__prog = []; window.__TAURI__.event.listen('update-progress', e => window.__prog.push(e.payload.done)); document.querySelector('${byTest('update-button')}').click()`,
 );
 await sleep(300);
 check(
   'update dialog opens from the button',
   await q(
-    `!document.getElementById('updModal').hidden && document.getElementById('uTitle').textContent.includes('1.1.4')`,
+    `!document.querySelector('${byTest('update-popup')}').hidden && document.querySelector('${byTest('update-title')}').textContent.includes('1.1.4')`,
   ),
 );
-await p.ev(`document.getElementById('uGo').click()`);
+await p.ev(`document.querySelector('${byTest('update-go')}').click()`);
 let progress = 0;
 for (let i = 0; i < 300 && appAlive(); i++) {
   try {
