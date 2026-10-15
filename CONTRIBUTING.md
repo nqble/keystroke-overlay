@@ -2,6 +2,8 @@
 
 Thanks for helping! This is a small, fast, privacy-first app, and the bar for changes is "keep it that way".
 
+Code conventions (for people and AI sessions alike) are in [CLAUDE.md](CLAUDE.md).
+
 ## The three rules
 
 1. **Privacy first.** Keystrokes must never touch disk, logs or the network. `npm run check:privacy` enforces this
