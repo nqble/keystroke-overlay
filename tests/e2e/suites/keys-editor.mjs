@@ -396,6 +396,119 @@ await p.ev(`${arrangeButton('Undo')}.click()`);
 await sleep(600);
 check('...and Undo shows them again', !((await profile(id)).disabledKeys ?? []).includes('KeyD'));
 
+// ---- snap menu, grid, drag readout and status line
+const editorChoices = async () => (await state()).settings.layout.editor;
+const choicesAre = async (snap, grid) => {
+  const choices = await editorChoices();
+  return choices.snap === snap && choices.grid === grid;
+};
+const pickSnap = async (value) => {
+  await p.ev(
+    `const m = document.getElementById('snapMenu'); m.value = '${value}'; m.dispatchEvent(new Event('change', { bubbles: true }))`,
+  );
+  await sleep(600);
+};
+check(
+  'the Keys tab starts with quarter-key snapping and no grid',
+  await choicesAre(0.25, false),
+  JSON.stringify(await editorChoices()),
+);
+check(
+  'the Snap menu offers Off, Quarter, Half and Whole key',
+  (await p.q(`[...document.querySelectorAll('#snapMenu option')].map(o => o.textContent).join('|')`)) ===
+    'Off|Quarter key|Half key|Whole key',
+);
+await clickKey('KeyD');
+await sleep(300);
+await pickSnap(1);
+check(
+  'choosing Whole key is saved in the settings',
+  (await editorChoices()).snap === 1,
+  JSON.stringify(await editorChoices()),
+);
+const beforeWhole = await placeOf('KeyD');
+await drag('KeyD', 1.4, 0);
+await sleep(600);
+const afterWhole = await placeOf('KeyD');
+check(
+  'with Whole key snapping a drag lands on a whole number',
+  Math.abs(afterWhole.x - Math.round(afterWhole.x)) < 1e-6 && afterWhole.x > beforeWhole.x,
+  JSON.stringify([beforeWhole, afterWhole]),
+);
+await pickSnap(0);
+const beforeFree = await placeOf('KeyD');
+await drag('KeyD', 0.37, 0);
+await sleep(600);
+const afterFree = await placeOf('KeyD');
+const moved = afterFree.x - beforeFree.x;
+check(
+  'with snapping Off a drag can land between the grid steps',
+  moved > 0.2 && moved < 0.5 && Math.abs(moved * 4 - Math.round(moved * 4)) > 0.05,
+  JSON.stringify([beforeFree, afterFree]),
+);
+if (await p.q(`document.getElementById('nudgeWhole').checked`)) await clickButton('#nudgeWhole'); // left ticked by the align checks above
+await p.ev(`document.querySelector('.keytools button[title^="Move right"]').click()`);
+await sleep(500);
+const afterFine = await placeOf('KeyD');
+check(
+  'with snapping Off the arrow button moves a fine step (0.05)',
+  Math.abs(afterFine.x - (afterFree.x + 0.05)) < 1e-6,
+  JSON.stringify([afterFree, afterFine]),
+);
+
+await pickSnap(0.5);
+await p.ev(`document.getElementById('showGrid').click()`);
+await sleep(600);
+check('ticking Show grid is saved', (await editorChoices()).grid === true && (await editorChoices()).snap === 0.5);
+check(
+  'the picture draws grid dots at the snap spacing',
+  await p.q(
+    `(() => { const s = document.querySelector('.keymap > div').style; return s.backgroundImage.includes('radial-gradient') && parseFloat(s.backgroundSize) > 0; })()`,
+  ),
+);
+await p.ev(`await __ko.resync()`);
+await sleep(600);
+check(
+  'the choices come back after the window re-reads its settings',
+  (await p.q(`document.getElementById('snapMenu').value`)) === '0.5' &&
+    (await p.q(`document.getElementById('showGrid').checked`)),
+);
+
+// while a key is being dragged a small label shows its position; it goes away when the key is dropped
+const readoutDuring = await p.ev(`
+  const n = document.querySelector('.kmk[data-code="KeyW"]'), r = n.getBoundingClientRect(), unit = n.offsetWidth + 3;
+  const ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 11 });
+  n.dispatchEvent(ev('pointerdown', r.left + 4, r.top + 4));
+  n.dispatchEvent(ev('pointermove', r.left + 4 + unit, r.top + 4));
+  const label = document.querySelector('.readout');
+  return label ? label.textContent : null;`);
+check(
+  'a label with the key position follows a key while it is dragged',
+  /^x [\d.-]+\s+y [\d.-]+$/.test(readoutDuring ?? ''),
+  String(readoutDuring),
+);
+await p.ev(
+  `document.querySelector('.kmk[data-code="KeyW"]').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 11 }))`,
+);
+await sleep(600);
+check(
+  '...and it disappears when the key is dropped',
+  (await p.q(`document.querySelectorAll('.readout').length`)) === 0,
+);
+
+await clickKey('KeyW');
+await sleep(300);
+const statusText = await p.q(`document.querySelector('.keystatus').textContent`);
+check(
+  'the line under the picture shows the selected key position and how many keys are moved',
+  /^KeyW at x [\d.]+, y [\d.]+ · \d+ keys? moved from the layout file$/.test(statusText),
+  statusText,
+);
+await pickSnap(0.25);
+await p.ev(`document.getElementById('showGrid').click()`);
+await sleep(500);
+check('snap and grid are put back for the rest of the suite', await choicesAre(0.25, false));
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {

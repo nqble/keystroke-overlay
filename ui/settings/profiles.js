@@ -62,9 +62,27 @@ export function restoreProfile(id, snapshot) {
   else settings.layout.profiles[id] = edits;
 }
 
-export const SNAP = 0.25; // keys snap to quarter-key steps
+export const SNAP = 0.25; // the default snap step, and the one "Tidy up" always uses (a quarter key)
+export const FINE_STEP = 0.05; // how far the arrow buttons move a key while snapping is off
 
-export const snap = (v) => Math.round(v / SNAP) * SNAP;
+/** The Snap menu: [step in key widths, label]. 0 means off. Keep in step with SNAP_CHOICES in settings.rs. */
+export const SNAP_CHOICES = [
+  [0, 'Off'],
+  [0.25, 'Quarter key'],
+  [0.5, 'Half key'],
+  [1, 'Whole key'],
+];
+
+/** The snap step chosen in the Keys tab (saved in settings.layout.editor). */
+export const snapStep = () => settings.layout.editor?.snap ?? SNAP;
+
+export const gridShown = () => settings.layout.editor?.grid ?? false;
+
+/** How far one press of an arrow button or arrow key moves keys: the snap step, or a fine step when snapping is off. */
+export const nudgeStep = () => snapStep() || FINE_STEP;
+
+/** Round to the nearest snap step (the chosen one unless told otherwise). With snapping off the value is unchanged. */
+export const snap = (v, step = snapStep()) => (step === 0 ? v : Math.round(v / step) * step);
 
 export const round2 = (v) => Math.round(v * 100) / 100;
 
@@ -119,6 +137,7 @@ export function tidyPositions(layout, profile) {
       (it) => it.k.h ?? 1,
     );
   const out = {};
-  for (const it of keys) out[it.k.code] = { x: Math.max(0, snap(newX(it))), y: Math.max(0, snap(newY(it))) };
+  for (const it of keys)
+    out[it.k.code] = { x: Math.max(0, snap(newX(it), SNAP)), y: Math.max(0, snap(newY(it), SNAP)) };
   return out;
 }

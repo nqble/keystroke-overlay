@@ -994,3 +994,25 @@ label.inline {
   background: rgba(79, 140, 255, 0.16);
   pointer-events: none;
 }
+
+/* Keys tab: the label that follows a key while it is dragged, and the line under the picture. */
+.readout {
+  position: absolute;
+  z-index: 5;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 11px;
+  white-space: pre;
+  pointer-events: none;
+}
+.keystatus {
+  margin: -6px 0 10px;
+  color: var(--dim);
+  font-size: 12px;
+}
+.toolgroup select {
+  margin-left: 2px;
+}

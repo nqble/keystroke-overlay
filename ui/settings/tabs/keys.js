@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  The Keys tab: show / hide keys, rename them, and select and move them (one at a time or as a group).
 // =====================================================================================================================
-import { $, button, confirmTwice, el, heading, note, row, toast } from '../helpers.js';
+import { $, button, confirmTwice, el, heading, note, plural, row, toast } from '../helpers.js';
 import { changed } from '../preview.js';
 import {
   SNAP,
@@ -9,6 +9,7 @@ import {
   editProf,
   isCustom,
   keyPos,
+  nudgeStep,
   profileSnapshot,
   round2,
   setKeyPos,
@@ -31,7 +32,7 @@ export function keysTab() {
   observe(layout.id, profileSnapshot(layout.id)); // undo / redo: notice what changed since the last draw
   const profile = viewProf();
   page.append(heading('Keys — ' + layout.name), note(TEXT.keysTabHelp));
-  page.append(selectionTools(layout), keyboardMap(layout, profile), keyButtons(layout));
+  page.append(selectionTools(layout), keyboardMap(layout, profile), statusLine(layout, profile), keyButtons(layout));
   const selected = selectedKey && layout.keys.find((k) => k.code === selectedKey);
   if (selected) page.append(keyEditor(selected, profile));
   else if (selectedKeys.size > 1) page.append(groupEditor(layout, profile));
@@ -49,11 +50,24 @@ addEventListener('keydown', (keyEvent) => {
   const layout = curLayout();
   if (typingOrPopup || !layout) return;
   keyEvent.preventDefault();
-  const step = keyEvent.shiftKey ? 1 : SNAP;
+  const step = keyEvent.shiftKey ? 1 : nudgeStep();
   const dx = { ArrowLeft: -1, ArrowRight: 1 }[keyEvent.key] ?? 0;
   const dy = { ArrowUp: -1, ArrowDown: 1 }[keyEvent.key] ?? 0;
   nudgeSelection(layout, dx * step, dy * step);
 });
+
+/** One line under the picture: where the selected key is (when exactly one is selected), and how many keys are moved. */
+function statusLine(layout, profile) {
+  const parts = [];
+  const selected = selectedKey && layout.keys.find((key) => key.code === selectedKey);
+  if (selected) {
+    const at = keyPos(selected, profile);
+    parts.push(`${selected.code} at x ${round2(at.x)}, y ${round2(at.y)}`);
+  }
+  const movedCount = Object.keys(profile.positions).length;
+  parts.push(movedCount === 0 ? TEXT.noKeysMoved : `${plural(movedCount, 'key')} moved from the layout file`);
+  return el('p', { className: 'keystatus', textContent: parts.join(' · ') });
+}
 
 /** Enable all / Disable all / Reset all labels / Tidy up / Reset positions / Revert to Default. */
 function keyButtons(layout) {

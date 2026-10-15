@@ -6,7 +6,7 @@
 // =====================================================================================================================
 import { $, el } from '../helpers.js';
 import { changed, push } from '../preview.js';
-import { keyPos, setKeyPos, snap, viewProf } from '../profiles.js';
+import { gridShown, keyPos, round2, setKeyPos, snap, snapStep, viewProf } from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
 import { clampMove, movedPositions } from './keys-arrange.js';
@@ -14,6 +14,7 @@ import { clampMove, movedPositions } from './keys-arrange.js';
 const PICTURE_MARGIN = 8; // pixels of room around the keys inside the picture
 const MAX_KEY_PIXELS = 38; // pixels per key unit at most
 const MIN_KEY_PIXELS = 14; // ... and at least
+const MIN_GRID_SPACING = 6; // pixels: dots closer together than this are thinned out so the grid stays readable
 const DRAG_START_DISTANCE = 5; // pixels the pointer must move before a press counts as a drag, not a click
 
 /** True while the pointer was just released after a drag, so the click that follows must not also change the selection. */
@@ -91,6 +92,7 @@ export function keyboardMap(layout, profile) {
     picture.nodes.set(item.key.code, node);
     inner.append(node);
   }
+  if (gridShown() && snapStep() > 0) drawGrid(inner, grid);
   inner.style.width = grid.spanX * grid.unit + PICTURE_MARGIN * 2 + 'px';
   inner.style.height = grid.spanY * grid.unit + PICTURE_MARGIN * 2 + 'px';
   const box = el('div', { className: 'keymap' }, inner);
@@ -99,6 +101,20 @@ export function keyboardMap(layout, profile) {
   // A press on the empty background (a key stops its own presses) starts drawing a selection box.
   box.onpointerdown = (pointerEvent) => startMarquee(pointerEvent, box, inner, picture);
   return box;
+}
+
+/** Faint dots at every snap step, lined up with the places a snapped key can land. */
+function drawGrid(inner, grid) {
+  let spacing = snapStep() * grid.unit;
+  let every = 1; // thin the dots out (every 2nd, 4th, ...) when they would be too close
+  while (spacing * every < MIN_GRID_SPACING) every *= 2;
+  spacing *= every;
+  const offsetOf = (min) => (((-min % snapStep()) + snapStep()) % snapStep()) * grid.unit + PICTURE_MARGIN;
+  Object.assign(inner.style, {
+    backgroundImage: 'radial-gradient(circle, var(--dim) 0.8px, transparent 1.4px)',
+    backgroundSize: `${spacing}px ${spacing}px`,
+    backgroundPosition: `${offsetOf(grid.minX)}px ${offsetOf(grid.minY)}px`,
+  });
 }
 
 /** One key on the picture, with its click and drag handling. */
@@ -156,6 +172,7 @@ function dragKeys(pointerEvent, node, pressedKey, picture) {
   const startY = pointerEvent.clientY;
   let moving = false;
   let lastMove = null;
+  let readout = null; // the small "x 3.25  y 1" label that follows the key while dragging
   try {
     node.setPointerCapture(pointerEvent.pointerId);
   } catch {
@@ -170,6 +187,8 @@ function dragKeys(pointerEvent, node, pressedKey, picture) {
       moving = true;
       if (!selectedKeys.has(pressedKey.code)) setSelectedKeys([pressedKey.code]);
       for (const box of boxes) nodes.get(box.code).classList.add('drag');
+      readout = el('div', { className: 'readout' });
+      node.parentElement.append(readout);
     }
     // the pressed key snaps to the grid; the rest of the group moves by the same amount
     const wishedX = snap(pressed.x + pixelsX / grid.unit) - pressed.x;
@@ -184,9 +203,11 @@ function dragKeys(pointerEvent, node, pressedKey, picture) {
       style.top = (position.y - grid.minY) * grid.unit + PICTURE_MARGIN + 'px';
       setKeyPos(keysByCode.get(code), position.x, position.y);
     }
+    showReadout(readout, node, positions[pressed.code]);
     push();
   };
   const done = () => {
+    readout?.remove();
     node.removeEventListener('pointermove', move);
     node.removeEventListener('pointerup', done);
     node.removeEventListener('pointercancel', done);
@@ -197,6 +218,14 @@ function dragKeys(pointerEvent, node, pressedKey, picture) {
   node.addEventListener('pointermove', move);
   node.addEventListener('pointerup', done);
   node.addEventListener('pointercancel', done);
+}
+
+/** Update the drag label: the dragged key's position, drawn just above it (or below when it is at the top). */
+function showReadout(readout, node, position) {
+  readout.textContent = `x ${round2(position.x)}   y ${round2(position.y)}`;
+  const above = node.offsetTop - readout.offsetHeight - 4;
+  readout.style.left = node.offsetLeft + 'px';
+  readout.style.top = (above >= 0 ? above : node.offsetTop + node.offsetHeight + 4) + 'px';
 }
 
 // ---- Selecting with a box -------------------------------------------------------------------------------------------

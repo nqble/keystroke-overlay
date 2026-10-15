@@ -4,9 +4,9 @@
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
 import { changed } from '../preview.js';
-import { SNAP, restoreProfile, setKeyPos } from '../profiles.js';
+import { SNAP_CHOICES, gridShown, nudgeStep, restoreProfile, setKeyPos, snapStep } from '../profiles.js';
 import { render } from '../settings.js';
-import { selectedKey, selectedKeys, setSelectedKey } from '../state.js';
+import { selectedKey, selectedKeys, setSelectedKey, settings } from '../state.js';
 import { TEXT } from '../text.js';
 import { alignPositions, clampMove, distributePositions, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
@@ -50,7 +50,7 @@ function nudgePad(layout) {
     nudgeByWholeKey = wholeKey.checked;
   };
   const move = (dx, dy) => () => {
-    const step = nudgeByWholeKey ? 1 : SNAP;
+    const step = nudgeByWholeKey ? 1 : nudgeStep();
     nudgeSelection(layout, dx * step, dy * step);
   };
   const arrows = [
@@ -114,6 +114,26 @@ function distributeButtons(layout) {
   );
 }
 
+/** Save one of the Keys tab's remembered choices (settings.layout.editor) and redraw. */
+function setEditorChoice(name, value) {
+  settings.layout.editor = { ...settings.layout.editor, [name]: value };
+  changed(true);
+}
+
+/** The Snap menu and the Show grid tickbox. Both are remembered between sessions. */
+function viewControls() {
+  const menu = el('select', { id: 'snapMenu', title: TEXT.snapMenuHelp });
+  for (const [step, label] of SNAP_CHOICES) menu.append(el('option', { value: String(step), textContent: label }));
+  menu.value = String(snapStep());
+  menu.onchange = () => setEditorChoice('snap', Number(menu.value));
+  const snapLabel = el('label', { className: 'inline', title: TEXT.snapMenuHelp }, 'Snap ', menu);
+  const grid = el('input', { type: 'checkbox', id: 'showGrid', checked: gridShown() });
+  grid.onchange = () => setEditorChoice('grid', grid.checked);
+  const gridLabel = el('label', { className: 'inline', title: TEXT.gridHelp }, grid);
+  gridLabel.append(' Show grid');
+  return [snapLabel, gridLabel];
+}
+
 /** Put back the edits from one step earlier (undo) or later (redo), then redraw. */
 function stepHistory(layout, step) {
   const snapshot = step();
@@ -151,5 +171,6 @@ export function selectionTools(layout) {
     toolGroup('Align', ...alignButtons(layout)),
     toolGroup('Space evenly', ...distributeButtons(layout)),
     toolGroup('History', ...historyButtons(layout)),
+    toolGroup('View', ...viewControls()),
   );
 }

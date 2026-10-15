@@ -28,6 +28,11 @@ export const TEXT = {
     '(or Ctrl-click keys one by one), then drag any of them or use the arrows. Disabled keys are hidden in the ' +
     'overlay. Changes are saved automatically for each layout.',
   nothingSelected: 'No keys selected',
+  noKeysMoved: 'No keys moved from the layout file',
+  snapMenuHelp:
+    'How far a key jumps while you drag it or use the arrow buttons. Off lets you place a key anywhere. ' +
+    'Remembered next time.',
+  gridHelp: 'Show faint dots at every snap step. Remembered next time.',
   groupEditorTip:
     'Drag any selected key to move them all together, or use the arrow buttons above. Click an empty spot to ' +
     'clear the selection.',
