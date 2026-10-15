@@ -71,10 +71,10 @@ function applyVars(s) {
   set('--ms-up', (r.ms ?? an.speed) + 'ms'); set('--ease-up', user ?? r.ease ?? 'ease-out');
 }
 
-// Each layout keeps its own disabled keys + custom labels (settings.layout.profiles[layoutId]).
+// Each layout keeps its own disabled keys, custom labels and moved keys (settings.layout.profiles[layoutId]).
 function profileOf(s, layout) {
   const p = s.layout.profiles?.[layout?.id] ?? {};
-  return { disabledKeys: p.disabledKeys ?? [], labels: p.labels ?? {} };
+  return { disabledKeys: p.disabledKeys ?? [], labels: p.labels ?? {}, positions: p.positions ?? {} };
 }
 
 function build(s) {
@@ -84,7 +84,9 @@ function build(s) {
   if (!layout) return;
   const prof = profileOf(s, layout);
   const off = new Set(prof.disabledKeys);
-  const keys = layout.keys.filter(k => !off.has(k.code));
+  // A key the user moved is drawn at its saved position; every other key stays where the layout file puts it. The overlay's
+  // size below comes from the keys actually drawn (their positions and widths), so a compact layout is a compact overlay in OBS.
+  const keys = layout.keys.filter(k => !off.has(k.code)).map(k => { const m = prof.positions[k.code]; return m ? { ...k, x: m.x, y: m.y } : k; });
   if (!keys.length) { reportSize(0, 0); return; }
   const { keySize, gap } = s.style, pitch = keySize + gap;
   const minX = Math.min(...keys.map(k => k.x)), minY = Math.min(...keys.map(k => k.y));

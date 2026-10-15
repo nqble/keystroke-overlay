@@ -37,7 +37,7 @@ If you change the port in settings, update the URL in OBS too.
 | Tab | What it does |
 |---|---|
 | **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. **Export / Import layouts** share them as a file. |
-| **Keys** | Show or hide individual keys and give any key a custom label (e.g. Space → `⎵` or `Jump`). Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
+| **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere (they snap to quarter-key steps; arrow keys nudge the selected key, and X / Y fields give exact spots). **Tidy up** closes the gaps left by hidden keys while keeping the keyboard's shape. Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
 | **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
 | **Fonts** | Add your own TTF / OTF / WOFF fonts. |

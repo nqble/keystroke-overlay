@@ -184,3 +184,9 @@ button, .card, .kmk, nav button, select, input[type=checkbox], input[type=range]
 .winbtns button:active { background: rgba(255, 255, 255, .05); }
 .winbtns #wClose:hover { background: #e81123; color: #fff; }
 .winbtns #wClose:active { background: #f1707a; color: #fff; }
+
+/* Keys tab: keys can be dragged. */
+.kmk, .kmk.sel { cursor: grab; touch-action: none; }
+.kmk.drag { cursor: grabbing; z-index: 3; box-shadow: 0 6px 16px rgba(0, 0, 0, .5); }
+.kmk.clash { box-shadow: 0 0 0 2px var(--danger); }
+.kmk.moved:not(.off) { border-color: var(--accent); }

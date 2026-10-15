@@ -27,6 +27,8 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
   keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.
 - `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
+- `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay).
+- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Tidy up (keeps the shape, closes gaps), Reset positions, that the preview and overlay size follow, and that junk positions are cleaned.
 - `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
 - `csp` — the settings window's content-security policy: normal use (every tab, dialogs, the live preview) causes no policy violations,
   while injected scripts, scripts or frames from other websites, outside fetches and object embeds are blocked.

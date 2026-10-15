@@ -116,6 +116,23 @@ fn clean_labels(v: Option<&Value>) -> Value {
         .filter(|(k, x)| k.len() <= 40 && x.as_str().is_some_and(|s| s.chars().count() <= 16))
         .take(300).map(|(k, x)| (k.clone(), x.clone())).collect()).unwrap_or_default())
 }
+/// Where the user dragged keys to in one layout: { "KeyW": { "x": 1.25, "y": 0 } } in key units. Anything that is not a
+/// pair of finite numbers is dropped; numbers are limited to 0..100 and rounded to 2 decimals.
+fn clean_positions(v: Option<&Value>) -> Value {
+    let mut out = Map::new();
+    if let Some(o) = v.and_then(|x| x.as_object()) {
+        for (k, p) in o.iter().filter(|(k, _)| !k.is_empty() && k.len() <= 40).take(300) {
+            if let (Some(x), Some(y)) = (p.get("x").and_then(Value::as_f64), p.get("y").and_then(Value::as_f64)) {
+                if x.is_finite() && y.is_finite() {
+                    let r = |n: f64| (n.clamp(0.0, 100.0) * 100.0).round() / 100.0;
+                    out.insert(k.clone(), json!({ "x": r(x), "y": r(y) }));
+                }
+            }
+        }
+    }
+    Value::Object(out)
+}
+
 pub fn clean_profiles(v: &Value) -> Value {
     let mut out = Map::new();
     if let Some(o) = v.as_object() {
@@ -123,6 +140,8 @@ pub fn clean_profiles(v: &Value) -> Value {
             let mut e = Map::new();
             e.insert("disabledKeys".into(), clean_strings(p.get("disabledKeys")));
             e.insert("labels".into(), clean_labels(p.get("labels")));
+            let positions = clean_positions(p.get("positions"));
+            if positions.as_object().is_some_and(|m| !m.is_empty()) { e.insert("positions".into(), positions); }   // only when keys were moved
             out.insert(id.clone(), Value::Object(e));
         }
     }
@@ -407,7 +426,13 @@ mod robustness_tests {
         let font = m["style"]["fontFamily"].as_str().unwrap();
         assert!(!font.is_empty() && font.len() <= 80 && !font.contains(['"', '\\', '{', '}', ';', '<', '>']), "seed {seed}: font {font:?}");
         assert!(is_id(m["layout"]["id"].as_str().unwrap()), "seed {seed}: layout id");
-        for id in m["layout"]["profiles"].as_object().unwrap().keys() { assert!(is_id(id), "seed {seed}: profile id {id:?}"); }
+        for (id, p) in m["layout"]["profiles"].as_object().unwrap() {
+            assert!(is_id(id), "seed {seed}: profile id {id:?}");
+            for (code, pos) in p.get("positions").and_then(|x| x.as_object()).into_iter().flatten() {
+                let (x, y) = (pos["x"].as_f64().unwrap(), pos["y"].as_f64().unwrap());
+                assert!(code.len() <= 40 && (0.0..=100.0).contains(&x) && (0.0..=100.0).contains(&y), "seed {seed}: position of {code:?}");
+            }
+        }
         let key = g["linkKey"].as_str().unwrap();
         assert!(key.is_empty() || (key.len() >= 32 && key.chars().all(|c| c.is_ascii_hexdigit())), "seed {seed}: link key");
         assert!(matches!(g["inputMethod"].as_str(), Some("hook" | "rawinput")) && matches!(g["updateChannel"].as_str(), Some("stable" | "latest")), "seed {seed}");
@@ -507,5 +532,23 @@ mod devbuild_tests {
         let mut real = defaults();
         apply_devbuild_defaults("com.keyoverlay.app", &mut real);
         assert_eq!(real, defaults());
+    }
+}
+
+#[cfg(test)]
+mod position_tests {
+    use super::*;
+    #[test]
+    fn moved_keys_are_kept_clamped_and_junk_is_dropped() {
+        let raw = json!({ "wasd": { "positions": {
+            "KeyW": { "x": 1.256, "y": 0 }, "KeyA": { "x": -5, "y": 1e9 }, "KeyS": { "x": "1", "y": 2 }, "KeyD": { "x": 3 }, "": { "x": 1, "y": 1 } } } });
+        let out = clean_profiles(&raw);
+        let pos = &out["wasd"]["positions"];
+        assert_eq!(pos["KeyW"], json!({ "x": 1.26, "y": 0.0 }));
+        assert_eq!(pos["KeyA"], json!({ "x": 0.0, "y": 100.0 }));
+        assert!(pos.get("KeyS").is_none() && pos.get("KeyD").is_none() && pos.get("").is_none());
+        // A profile without moved keys has no "positions" entry at all (old settings files stay byte-identical).
+        assert!(clean_profiles(&json!({ "x": { "positions": {} } }))["x"].get("positions").is_none());
+        assert!(clean_profiles(&json!({ "x": { "positions": "nope" } }))["x"].get("positions").is_none());
     }
 }

@@ -142,18 +142,77 @@ addEventListener('beforeunload', flushPendingSave);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 4. Per-layout key edits
-//    Every layout has its own hidden keys and labels in S.layout.profiles[layoutId] = { disabledKeys: [], labels: {} }.
+//    Every layout has its own hidden keys, labels and moved keys in
+//    S.layout.profiles[layoutId] = { disabledKeys: [], labels: {}, positions: { KeyW: { x, y } } }.
+//    `positions` only lists keys the user moved; every other key stays where the layout file puts it. Units are key widths.
 // ---------------------------------------------------------------------------------------------------------------------
-const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {} });
+const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {}, positions: {} });
 const curLayout = () => layouts.find(l => l.id === S.layout.id) ?? layouts[0];
-const viewProf = () => S.layout.profiles[curLayout()?.id] ?? EMPTY_PROFILE();        // for reading only
-const editProf = () => (S.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());     // creates the profile on the first edit
-const isCustom = id => { const p = S.layout.profiles[id]; return !!p && (p.disabledKeys.length > 0 || Object.keys(p.labels).length > 0); };
+/** For reading only. Always has all three parts, even for settings saved by older versions. */
+const viewProf = () => {
+  const p = S.layout.profiles[curLayout()?.id];
+  return p ? { disabledKeys: p.disabledKeys ?? [], labels: p.labels ?? {}, positions: p.positions ?? {} } : EMPTY_PROFILE();
+};
+/** For changing: creates the profile on the first edit. */
+const editProf = () => {
+  const p = (S.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());
+  p.positions ??= {};
+  return p;
+};
+const isCustom = id => {
+  const p = S.layout.profiles[id];
+  return !!p && (p.disabledKeys?.length > 0 || Object.keys(p.labels ?? {}).length > 0 || Object.keys(p.positions ?? {}).length > 0);
+};
 
 /** Forget an edited profile that no longer differs from the default, so "customized" only shows when it should. */
 function tidyProf() {
   const id = curLayout().id, p = S.layout.profiles[id];
-  if (p && !p.disabledKeys.length && !Object.keys(p.labels).length) delete S.layout.profiles[id];
+  if (p && !p.disabledKeys.length && !Object.keys(p.labels).length && !Object.keys(p.positions ?? {}).length) delete S.layout.profiles[id];
+}
+
+const SNAP = 0.25;                                       // keys snap to quarter-key steps
+const snap = v => Math.round(v / SNAP) * SNAP;
+const round2 = v => Math.round(v * 100) / 100;
+/** Where a key is drawn: its saved position if the user moved it, otherwise the layout file's. */
+const keyPos = (key, profile) => profile.positions[key.code] ?? { x: key.x, y: key.y };
+/** Save a key's position (dropping the entry when it is back where the layout file has it). */
+function setKeyPos(key, x, y) {
+  const prof = editProf();
+  x = round2(x); y = round2(y);
+  if (Math.abs(x - key.x) < 1e-6 && Math.abs(y - key.y) < 1e-6) delete prof.positions[key.code]; else prof.positions[key.code] = { x, y };
+  tidyProf();
+}
+
+/**
+ * "Tidy up": close the dead space left by hidden keys while keeping the keyboard's shape. Every key keeps its place relative to the
+ * others; empty gaps of about a key or more close completely, then everything moves to the top-left corner and snaps to quarter steps.
+ * Hidden keys are left alone. Returns { code: { x, y } } for the visible keys.
+ */
+function tidyPositions(layout, profile) {
+  const hidden = new Set(profile.disabledKeys);
+  const keys = layout.keys.filter(k => !hidden.has(k.code)).map(k => ({ k, ...keyPos(k, profile) }));
+  if (!keys.length) return {};
+  /** For one axis: a function giving a key's new coordinate once the empty gaps are closed. */
+  const closeGaps = (start, size) => {
+    const spans = keys.map(it => [start(it), start(it) + size(it)]).sort((a, b) => a[0] - b[0]);
+    const groups = [];                                            // stretches of the axis that at least one key covers
+    for (const [from, to] of spans) {
+      const g = groups[groups.length - 1];
+      if (g && from <= g.end + 1e-6) g.end = Math.max(g.end, to); else groups.push({ start: from, end: to, shift: 0 });
+    }
+    let shift = groups[0].start;                                  // the first stretch moves to 0
+    groups[0].shift = shift;
+    for (let i = 1; i < groups.length; i++) {
+      const gap = groups[i].start - groups[i - 1].end;
+      if (gap >= 0.75) shift += gap;                              // a gap of about a key or more closes completely
+      groups[i].shift = shift;
+    }
+    return it => start(it) - groups.find(g => start(it) >= g.start - 1e-6 && start(it) <= g.end + 1e-6).shift;
+  };
+  const newX = closeGaps(it => it.x, it => it.k.w ?? 1), newY = closeGaps(it => it.y, it => it.k.h ?? 1);
+  const out = {};
+  for (const it of keys) out[it.k.code] = { x: Math.max(0, snap(newX(it))), y: Math.max(0, snap(newY(it))) };
+  return out;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -558,7 +617,7 @@ const TABS = {
     if (!layout) return page;
     const profile = viewProf();
     page.append(heading('Keys — ' + layout.name),
-      note('Click a key to edit it. Disabled keys are hidden in the overlay. Changes are saved automatically for each layout.'));
+      note('Click a key to edit it, drag it to move it. Disabled keys are hidden in the overlay. Changes are saved automatically for each layout.'));
     page.append(keyboardMap(layout, profile), keyButtons(layout));
     const selected = selKey && layout.keys.find(k => k.code === selKey);
     if (selected) page.append(keyEditor(selected, profile));
@@ -679,49 +738,113 @@ async function exportLayouts() {
 }
 
 // ---- Keys tab pieces --------------------------------------------------------------------------------------------------------
-/** The picture of the keyboard. Keys are scaled so the whole layout always fits the box without scrolling. */
+/** True while the pointer was just released after dragging a key, so the click that follows must not also select it. */
+let justDragged = false;
+
+/** The picture of the keyboard. Keys are scaled so the whole layout (plus one spare key of room) fits the box without scrolling. */
 function keyboardMap(layout, profile) {
-  const minX = Math.min(...layout.keys.map(k => k.x));
-  const minY = Math.min(...layout.keys.map(k => k.y));
-  const widthInKeys = Math.max(...layout.keys.map(k => k.x + (k.w ?? 1))) - minX;
+  const placed = layout.keys.map(k => ({ k, ...keyPos(k, profile) }));
+  const minX = Math.min(...placed.map(p => p.x)), minY = Math.min(...placed.map(p => p.y));
+  // One spare key of room on the right and at the bottom, so a key can be dragged outwards to make the layout bigger.
+  const spanX = Math.max(...placed.map(p => p.x + (p.k.w ?? 1))) - minX + 1;
+  const spanY = Math.max(...placed.map(p => p.y + (p.k.h ?? 1))) - minY + 1;
   const available = ($('#pane').clientWidth || 860) - 26 * 2 - 2;              // the pane's inner width minus the box border
-  const unit = Math.max(14, Math.min(38, Math.floor((available - 16) / widthInKeys)));   // pixels per key, 38 at most
+  const unit = Math.max(14, Math.min(38, Math.floor((available - 16) / spanX)));   // pixels per key, 38 at most
+  const grid = { unit, minX, minY, spanX, spanY };
+  const hidden = new Set(profile.disabledKeys);
+
+  // Visible keys that overlap each other get a red outline.
+  const visible = placed.filter(p => !hidden.has(p.k.code));
+  const clash = new Set();
+  for (let i = 0; i < visible.length; i++) for (let j = i + 1; j < visible.length; j++) {
+    const a = visible[i], b = visible[j], e = 1e-6;
+    if (a.x < b.x + (b.k.w ?? 1) - e && b.x < a.x + (a.k.w ?? 1) - e && a.y < b.y + (b.k.h ?? 1) - e && b.y < a.y + (a.k.h ?? 1) - e) { clash.add(a.k.code); clash.add(b.k.code); }
+  }
 
   const inner = el('div', { style: 'position:relative' });
-  let width = 0, height = 0;
-  for (const k of layout.keys) {
-    const w = (k.w ?? 1) * unit - 3, h = (k.h ?? 1) * unit - 3;
-    const left = (k.x - minX) * unit + 8, top = (k.y - minY) * unit + 8;
-    width = Math.max(width, left + w + 8); height = Math.max(height, top + h + 8);
-    inner.append(el('div', {
-      className: 'kmk' + (profile.disabledKeys.includes(k.code) ? ' off' : '') + (selKey === k.code ? ' sel' : ''),
-      style: `left:${left}px;top:${top}px;width:${w}px;height:${h}px;font-size:${Math.max(8, Math.round(11 * unit / 38))}px`,
-      textContent: profile.labels[k.code] ?? k.label, title: k.code,
-      onclick: () => { selKey = k.code; render(); },
-    }));
+  for (const p of placed) {
+    const k = p.k, w = (k.w ?? 1) * unit - 3, h = (k.h ?? 1) * unit - 3;
+    const node = el('div', {
+      className: 'kmk' + (hidden.has(k.code) ? ' off' : '') + (selKey === k.code ? ' sel' : '') + (clash.has(k.code) ? ' clash' : '') + (profile.positions[k.code] ? ' moved' : ''),
+      style: `left:${(p.x - minX) * unit + 8}px;top:${(p.y - minY) * unit + 8}px;width:${w}px;height:${h}px;font-size:${Math.max(8, Math.round(11 * unit / 38))}px`,
+      textContent: profile.labels[k.code] ?? k.label, title: k.code + ' (drag to move)',
+    });
+    node.dataset.code = k.code;
+    node.onclick = () => { if (justDragged) return; selKey = k.code; render(); };
+    node.onpointerdown = e => dragKey(e, node, k, grid);
+    inner.append(node);
   }
-  inner.style.width = width + 'px'; inner.style.height = height + 'px';
+  inner.style.width = (spanX * unit + 16) + 'px'; inner.style.height = (spanY * unit + 16) + 'px';
   const box = el('div', { className: 'keymap' }, inner);
-  box.style.height = (height + 2) + 'px';                                       // +2 for the box border, or it scrolls by 2px
+  box.style.height = (spanY * unit + 16 + 2) + 'px';                            // +2 for the box border, or it scrolls by 2px
   return box;
 }
 
-/** Enable all / Disable all / Reset all labels / Revert to Default. */
+/** Drag a key to a new place: snaps to quarter-key steps, stays inside the box, and the live preview follows while you drag. */
+function dragKey(e, node, key, grid) {
+  if (e.button !== 0) return;
+  const startX = e.clientX, startY = e.clientY, from = keyPos(key, viewProf());
+  let moving = false, last = null;
+  try { node.setPointerCapture(e.pointerId); } catch { /* not a real pointer (tests): events still arrive on the key itself */ }
+  const move = ev => {
+    const dx = ev.clientX - startX, dy = ev.clientY - startY;
+    if (!moving && Math.hypot(dx, dy) < 5) return;                              // a click, not a drag
+    if (!moving) { moving = true; node.classList.add('drag'); selKey = key.code; }
+    const maxX = grid.minX + grid.spanX - (key.w ?? 1), maxY = grid.minY + grid.spanY - (key.h ?? 1);
+    const x = round2(Math.min(maxX, Math.max(grid.minX, snap(from.x + dx / grid.unit))));
+    const y = round2(Math.min(maxY, Math.max(grid.minY, snap(from.y + dy / grid.unit))));
+    node.style.left = ((x - grid.minX) * grid.unit + 8) + 'px'; node.style.top = ((y - grid.minY) * grid.unit + 8) + 'px';
+    if (!last || last.x !== x || last.y !== y) { last = { x, y }; setKeyPos(key, x, y); push(); }
+  };
+  const done = () => {
+    node.removeEventListener('pointermove', move); node.removeEventListener('pointerup', done); node.removeEventListener('pointercancel', done);
+    if (moving) { justDragged = true; setTimeout(() => { justDragged = false; }, 0); changed(true); }
+  };
+  node.addEventListener('pointermove', move); node.addEventListener('pointerup', done); node.addEventListener('pointercancel', done);
+}
+
+// Arrow keys nudge the selected key (Shift = a whole key). Ignored while typing in a field or while a popup is open.
+addEventListener('keydown', e => {
+  if (tab !== 'keys' || !selKey || !e.key.startsWith('Arrow')) return;
+  if (e.target.closest?.('input, select, textarea, button') || !$('#dlg').hidden || !$('#modal').hidden || !$('#updModal').hidden) return;
+  const layout = curLayout(), key = layout?.keys.find(k => k.code === selKey);
+  if (!key) return;
+  e.preventDefault();
+  const step = e.shiftKey ? 1 : SNAP, at = keyPos(key, viewProf());
+  const dx = ({ ArrowLeft: -1, ArrowRight: 1 })[e.key] ?? 0, dy = ({ ArrowUp: -1, ArrowDown: 1 })[e.key] ?? 0;
+  setKeyPos(key, Math.max(0, at.x + dx * step), Math.max(0, at.y + dy * step));
+  changed(true);
+});
+
+/** Enable all / Disable all / Reset all labels / Tidy up / Reset positions / Revert to Default. */
 function keyButtons(layout) {
   const revert = el('button', { className: 'danger', textContent: 'Revert to Default', disabled: !isCustom(layout.id),
-    title: 'Undo all key edits (hidden keys and labels) for this layout' });
+    title: 'Undo all key edits (hidden keys, labels and moved keys) for this layout' });
   confirmTwice(revert, 'Revert to Default', () => {
     delete S.layout.profiles[layout.id]; selKey = null; changed(true);
     toast(layout.name + ' reverted to default');
   });
+  const moved = Object.keys(viewProf().positions).length > 0;
+  const tidy = button('Tidy up', () => {
+    const prof = editProf(), next = tidyPositions(layout, viewProf());
+    for (const k of layout.keys) {                                              // keep only positions that differ from the layout file
+      const n = next[k.code];
+      if (!n) continue;
+      if (Math.abs(n.x - k.x) < 1e-6 && Math.abs(n.y - k.y) < 1e-6) delete prof.positions[k.code]; else prof.positions[k.code] = { x: round2(n.x), y: round2(n.y) };
+    }
+    tidyProf(); changed(true); toast('Gaps closed');
+  });
+  tidy.title = 'Close the gaps left by hidden keys, keeping the shape of the keyboard';
+  const reset = button('Reset positions', () => { editProf().positions = {}; tidyProf(); changed(true); });
+  reset.disabled = !moved; reset.title = 'Put every moved key back where the layout has it';
   return el('div', { className: 'btns' },
     button('Enable all', () => { editProf().disabledKeys = []; tidyProf(); changed(true); }),
     button('Disable all', () => { editProf().disabledKeys = layout.keys.map(k => k.code); changed(true); }),
     button('Reset all labels', () => { editProf().labels = {}; tidyProf(); changed(true); }),
-    revert);
+    tidy, reset, revert);
 }
 
-/** The small editor under the keyboard for the selected key: show/hide it and give it a label. */
+/** The small editor under the keyboard for the selected key: show/hide it, give it a label, and set its exact position. */
 function keyEditor(key, profile) {
   const show = el('input', { type: 'checkbox', checked: !profile.disabledKeys.includes(key.code) });
   show.onchange = () => {
@@ -732,9 +855,23 @@ function keyEditor(key, profile) {
   const label = el('input', { type: 'text', value: profile.labels[key.code] ?? key.label ?? '', placeholder: 'Label', maxLength: 12 });
   label.oninput = () => { editProf().labels[key.code] = label.value; changed(); };
   const reset = button('Reset', () => { delete editProf().labels[key.code]; tidyProf(); changed(true); });
+
+  const at = keyPos(key, profile);
+  const num = value => el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), style: 'width:84px' });
+  const px = num(at.x), py = num(at.y);
+  const place = () => {
+    const x = parseFloat(px.value), y = parseFloat(py.value);
+    if (Number.isFinite(x) && Number.isFinite(y)) { setKeyPos(key, Math.min(100, Math.max(0, x)), Math.min(100, Math.max(0, y))); changed(); }
+  };
+  px.oninput = py.oninput = place;
+  px.onchange = py.onchange = () => render();                                    // redraw the keyboard once typing settles
+  const back = button('Reset', () => { delete editProf().positions[key.code]; tidyProf(); changed(true); });
+  back.disabled = !profile.positions[key.code];
+
   return el('div', { className: 'editor' }, el('b', { textContent: key.code }),
     row('Show this key', show), row('Custom label', label, reset),
-    note('Tip: use symbols like ⎵ or ↑, or words like "Jump".'));
+    row('Position', el('span', { textContent: 'X' }), px, el('span', { textContent: 'Y' }), py, back),
+    note('Tip: use symbols like ⎵ or ↑, or words like "Jump". Drag a key on the keyboard to move it, or select it and use the arrow keys (Shift moves a whole key).'));
 }
 
 // ---- General tab sections (each returns the page elements for one heading; they are listed in display order above) ---------------
