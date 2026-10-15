@@ -21,10 +21,10 @@ const WORK = process.env.BENCH_WORK ?? join(tmpdir(), 'keyoverlay-bench');
 const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const VERSIONS = [
-  { name: 'v1.1.0', ref: 'b053bc3' },
-  { name: 'v1.1.1', ref: 'b596d73' },
-  { name: 'v1.1.2', ref: '45456a9' },
-  { name: 'v1.2.0', ref: null },
+  { name: 'v1.2.0', ref: '9016efe' },
+  { name: 'v1.2.1', ref: '37eb19b' },
+  // the code in this folder right now; `version` is what the app itself reports (so it does not open "What's new")
+  { name: 'v1.3.0-dev', ref: null, version: '1.2.1' },
 ];
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const kill = () => spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
@@ -85,7 +85,12 @@ async function launch(v, openWindow) {
     join(DATA, 'settings.json'),
     JSON.stringify({
       version: 2,
-      general: { port: 7879, openOnLaunch: openWindow, autoCheckUpdates: false, lastSeenVersion: v.name.slice(1) },
+      general: {
+        port: 7879,
+        openOnLaunch: openWindow,
+        autoCheckUpdates: false,
+        lastSeenVersion: v.version ?? v.name.slice(1),
+      },
       layout: { id: 'tkl', profiles: {} },
     }),
   );
