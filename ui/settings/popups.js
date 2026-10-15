@@ -34,13 +34,13 @@ function dialog({ title, body, buttons }) {
     if (e.key === 'Escape') close();
   };
   $('#dFoot').replaceChildren(
-    ...buttons.map((b) =>
+    ...buttons.map((buttonSpec) =>
       el('button', {
         type: 'button',
-        textContent: b.label,
-        className: b.primary ? 'primary' : b.danger ? 'danger' : '',
+        textContent: buttonSpec.label,
+        className: buttonSpec.primary ? 'primary' : buttonSpec.danger ? 'danger' : '',
         onclick: async () => {
-          if (!b.run || (await b.run()) !== false) close();
+          if (!buttonSpec.run || (await buttonSpec.run()) !== false) close();
         },
       }),
     ),
@@ -170,43 +170,43 @@ export function md(source) {
     // turns **bold** and `code` into elements
     const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
     let last = 0,
-      m;
-    while ((m = pattern.exec(text))) {
-      if (m.index > last) parent.append(text.slice(last, m.index));
+      match;
+    while ((match = pattern.exec(text))) {
+      if (match.index > last) parent.append(text.slice(last, match.index));
       parent.append(
-        m[0].startsWith('**')
-          ? el('strong', { textContent: m[0].slice(2, -2) })
-          : el('code', { textContent: m[0].slice(1, -1) }),
+        match[0].startsWith('**')
+          ? el('strong', { textContent: match[0].slice(2, -2) })
+          : el('code', { textContent: match[0].slice(1, -1) }),
       );
-      last = m.index + m[0].length;
+      last = match.index + match[0].length;
     }
     if (last < text.length) parent.append(text.slice(last));
   };
   for (const rawLine of source.replace(/\r/g, '').split('\n')) {
     const line = rawLine.trimEnd().replace(/\[([^\]]+)\]\([^)]*\)/g, '$1'); // links become plain text
-    let m;
+    let match;
     if (!line.trim()) {
       list = null;
       continue;
     }
-    if ((m = /^#{1,6}\s+(.*)$/.exec(line))) {
+    if ((match = /^#{1,6}\s+(.*)$/.exec(line))) {
       list = null;
-      const h = el('h4');
-      inline(h, m[1]);
-      fragment.append(h);
-    } else if ((m = /^\s*[-*+]\s+(.*)$/.exec(line))) {
+      const heading = el('h4');
+      inline(heading, match[1]);
+      fragment.append(heading);
+    } else if ((match = /^\s*[-*+]\s+(.*)$/.exec(line))) {
       if (!list) {
         list = el('ul');
         fragment.append(list);
       }
       const li = el('li');
-      inline(li, m[1]);
+      inline(li, match[1]);
       list.append(li);
     } else {
       list = null;
-      const p = el('p');
-      inline(p, line);
-      fragment.append(p);
+      const paragraph = el('p');
+      inline(paragraph, line);
+      fragment.append(paragraph);
     }
   }
   return fragment;
@@ -253,16 +253,16 @@ function typeIn(root) {
     startTime ||= now;
     const want = Math.min(total, Math.ceil((total * (now - startTime)) / duration));
     while (shown < want && index < parts.length) {
-      const p = parts[index],
-        take = Math.min(p.full.length - p.done, want - shown);
+      const part = parts[index],
+        take = Math.min(part.full.length - part.done, want - shown);
       if (take > 0) {
-        p.done += take;
+        part.done += take;
         shown += take;
-        p.typed.nodeValue = p.full.slice(0, p.done);
-        p.rest.textContent = p.full.slice(p.done);
+        part.typed.nodeValue = part.full.slice(0, part.done);
+        part.rest.textContent = part.full.slice(part.done);
       }
-      if (p.done >= p.full.length) {
-        p.rest.remove();
+      if (part.done >= part.full.length) {
+        part.rest.remove();
         index++;
       } else break;
     }
@@ -272,9 +272,9 @@ function typeIn(root) {
   // safety net if animation frames are paused
   setTimeout(() => {
     if (run !== typingRun) return;
-    for (const p of parts) {
-      p.typed.nodeValue = p.full;
-      p.rest.remove();
+    for (const part of parts) {
+      part.typed.nodeValue = part.full;
+      part.rest.remove();
     }
   }, duration + 400);
 }
@@ -332,21 +332,21 @@ export function showUpdateResult(result) {
 }
 
 export function openUpdateDialog() {
-  const r = lastUpdate;
-  if (!r?.available) return;
-  $('#uTitle').textContent = `Update available — v${r.version}`;
+  const update = lastUpdate;
+  if (!update?.available) return;
+  $('#uTitle').textContent = `Update available — v${update.version}`;
   $('#uBody').replaceChildren(
     ...[
       el('p', {
         className: 'hint',
-        textContent: `You have v${r.current} · ${r.channel === 'latest' ? 'Latest' : 'Stable'} channel`,
+        textContent: `You have v${update.current} · ${update.channel === 'latest' ? 'Latest' : 'Stable'} channel`,
       }),
-      r.manual ? el('p', { textContent: TEXT.manualInstallDialog }) : null,
-      r.notes ? md(r.notes) : null,
+      update.manual ? el('p', { textContent: TEXT.manualInstallDialog }) : null,
+      update.notes ? md(update.notes) : null,
       // replaceChildren would print "null" for empty slots
     ].filter(Boolean),
   );
-  $('#uGo').textContent = r.manual ? 'Open GitHub installer' : 'Update now';
+  $('#uGo').textContent = update.manual ? 'Open GitHub installer' : 'Update now';
   $('#uGo').disabled = $('#uLater').disabled = false;
   updateBusy = false;
   setUpdateProgress(null);
@@ -367,12 +367,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 $('#uGo').onclick = async () => {
-  const r = lastUpdate;
-  if (!r?.available) return;
-  if (r.manual) {
+  const update = lastUpdate;
+  if (!update?.available) return;
+  if (update.manual) {
     // cannot be installed from inside the app
     try {
-      await invoke('open_release_page', { url: r.url });
+      await invoke('open_release_page', { url: update.url });
     } catch (error) {
       toast(String(error), true);
     }

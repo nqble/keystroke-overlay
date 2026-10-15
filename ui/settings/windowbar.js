@@ -17,9 +17,9 @@ $('#wClose').onclick = () => appWin.close();
 /** Show the "restore" glyph while the window is maximized, the "maximize" glyph otherwise. */
 async function paintMaxButton() {
   const max = await appWin.isMaximized().catch(() => false);
-  const b = $('#wMax');
-  b.textContent = max ? '\uE923' : '\uE922';
-  b.title = b.ariaLabel = max ? 'Restore' : 'Maximize';
+  const maxButton = $('#wMax');
+  maxButton.textContent = max ? '\uE923' : '\uE922';
+  maxButton.title = maxButton.ariaLabel = max ? 'Restore' : 'Maximize';
 }
 
 appWin.onResized(paintMaxButton);

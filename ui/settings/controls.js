@@ -175,15 +175,15 @@ const CONTROLS = [
 ];
 
 /** A colour picker plus a transparency slider. Colours are stored as #RRGGBBAA. */
-function colorCtl(c) {
-  const value = get(settings, c.path) || '#000000ff';
+function colorCtl(control) {
+  const value = get(settings, control.path) || '#000000ff';
   const alpha = value.length >= 9 ? parseInt(value.slice(7, 9), 16) : 255;
   const picker = el('input', { type: 'color', value: value.slice(0, 7) });
   const slider = el('input', { type: 'range', min: 0, max: 255, step: 1, value: alpha, title: 'Transparency' });
   const percent = el('span', { className: 'val', textContent: Math.round(alpha / 2.55) + '%' });
   const update = () => {
     const alphaHex = Math.round(+slider.value).toString(16).padStart(2, '0');
-    put(settings, c.path, picker.value + alphaHex);
+    put(settings, control.path, picker.value + alphaHex);
     percent.textContent = Math.round(slider.value / 2.55) + '%';
     changed();
   };
@@ -192,16 +192,22 @@ function colorCtl(c) {
 }
 
 /** A slider with its current value written next to it. */
-function rangeCtl(c) {
-  const slider = el('input', { type: 'range', min: c.min, max: c.max, step: c.step, value: get(settings, c.path) });
-  const unit = !c.unit ? '' : c.unit === '×' ? '×' : ' ' + c.unit;
-  const text = (v) => {
-    const number = (+v).toFixed(c.step < 1 ? 2 : 0);
+function rangeCtl(control) {
+  const slider = el('input', {
+    type: 'range',
+    min: control.min,
+    max: control.max,
+    step: control.step,
+    value: get(settings, control.path),
+  });
+  const unit = !control.unit ? '' : control.unit === '×' ? '×' : ' ' + control.unit;
+  const text = (sliderValue) => {
+    const number = (+sliderValue).toFixed(control.step < 1 ? 2 : 0);
     return (number.endsWith('.00') ? number.slice(0, -3) : number) + unit; // 1.00 shows as "1"
   };
   const output = el('span', { className: 'val', textContent: text(slider.value) });
   slider.oninput = () => {
-    put(settings, c.path, +slider.value);
+    put(settings, control.path, +slider.value);
     output.textContent = text(slider.value);
     changed();
   };
@@ -209,15 +215,15 @@ function rangeCtl(c) {
 }
 
 /** A dropdown. `c.options()` gives [value, name] pairs. */
-function selectCtl(c) {
+function selectCtl(control) {
   const select = el(
     'select',
     {},
-    c.options().map(([value, name]) => el('option', { value, textContent: name })),
+    control.options().map(([value, name]) => el('option', { value, textContent: name })),
   );
-  select.value = get(settings, c.path);
+  select.value = get(settings, control.path);
   select.onchange = () => {
-    put(settings, c.path, select.value);
+    put(settings, control.path, select.value);
     changed();
   };
   return [select];
@@ -226,8 +232,8 @@ function selectCtl(c) {
 /**
  * The font picker: the user's own fonts, the Windows fonts (each shown in its own font), or "Other" to type any name.
  */
-function fontCtl(c) {
-  const current = get(settings, c.path);
+function fontCtl(control) {
+  const current = get(settings, control.path);
   const mine = customFonts.map((file) => file.replace(/\.[^.]+$/, '')); // "My Font.ttf" -> "My Font"
   const known = new Set([...mine, ...WINDOWS_FONTS]);
   const option = (font) =>
@@ -251,11 +257,11 @@ function fontCtl(c) {
     }
     typed.hidden = true;
     typed.value = select.value;
-    put(settings, c.path, select.value);
+    put(settings, control.path, select.value);
     changed();
   };
   typed.oninput = () => {
-    put(settings, c.path, typed.value);
+    put(settings, control.path, typed.value);
     changed();
   };
   return [select, typed];
@@ -264,12 +270,17 @@ function fontCtl(c) {
 /** Draw every control of one tab, grouped under headings. */
 export function renderControls(tabName, parent) {
   let group = null;
-  for (const c of CONTROLS.filter((c) => c.tab === tabName)) {
-    if (c.group !== group) {
-      group = c.group;
+  for (const control of CONTROLS.filter((c) => c.tab === tabName)) {
+    if (control.group !== group) {
+      group = control.group;
       parent.append(heading(group));
     }
-    parent.append(row(c.label, ...{ color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl }[c.type](c)));
+    parent.append(
+      row(
+        control.label,
+        ...{ color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl }[control.type](control),
+      ),
+    );
   }
 }
 

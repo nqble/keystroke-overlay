@@ -13,23 +13,23 @@ const withKey = (u) => (KEY ? u + (u.includes('?') ? '&' : '?') + 'key=' + encod
 function showLocked() {
   if (PREVIEW) parent.postMessage({ type: 'locked' }, '*');
   if (document.getElementById('locked')) return;
-  const d = document.createElement('div');
-  d.id = 'locked';
-  d.style.cssText =
+  const lockedNotice = document.createElement('div');
+  lockedNotice.id = 'locked';
+  lockedNotice.style.cssText =
     'position:fixed;left:8px;top:8px;max-width:420px;padding:8px 12px;border-radius:8px;' +
     'background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",sans-serif';
-  d.textContent =
+  lockedNotice.textContent =
     '🔒 This overlay link is secured. Copy the current link from Keystroke Overlay ' +
     '(General → Secure link) into this OBS source.';
-  document.body.append(d);
+  document.body.append(lockedNotice);
 }
-const getJson = async (u) => {
-  const r = await fetch(withKey(u));
-  if (r.status === 401) {
+const getJson = async (url) => {
+  const response = await fetch(withKey(url));
+  if (response.status === 401) {
     showLocked();
     throw new Error('locked');
   }
-  return r.json();
+  return response.json();
 };
 if (PREVIEW) document.body.classList.add('preview');
 addEventListener('contextmenu', (e) => e.preventDefault());
@@ -46,9 +46,9 @@ const held = new Set(); // codes currently down (kept across rebuilds)
 
 // ------------------------------------------------------------ module loading
 async function loadModules() {
-  const m = await getJson('/api/modules');
+  const modulesJson = await getJson('/api/modules');
   // Themes are only listed in the settings window's Style tab, so OBS (which never asks for them) skips loading them.
-  const urls = PREVIEW ? [...m.animations, ...m.themes] : m.animations;
+  const urls = PREVIEW ? [...modulesJson.animations, ...modulesJson.themes] : modulesJson.animations;
   await Promise.all(
     urls.map((u) => import(u.startsWith('/user/') ? withKey(u) : u).catch((e) => console.warn('module failed', u, e))),
   );
@@ -57,18 +57,20 @@ async function loadModules() {
 // ------------------------------------------------------------ rendering
 function fontFaceCss(files) {
   return files
-    .map((f) => {
-      const fam = f.replace(/\.[^.]+$/, '');
-      const fmt = { ttf: 'truetype', otf: 'opentype', woff: 'woff', woff2: 'woff2' }[f.split('.').pop().toLowerCase()];
-      const url = withKey('/fonts/' + encodeURIComponent(f));
+    .map((fileName) => {
+      const fam = fileName.replace(/\.[^.]+$/, '');
+      const fmt = { ttf: 'truetype', otf: 'opentype', woff: 'woff', woff2: 'woff2' }[
+        fileName.split('.').pop().toLowerCase()
+      ];
+      const url = withKey('/fonts/' + encodeURIComponent(fileName));
       return `@font-face{font-family:"${fam}";src:url("${url}")${fmt ? ` format("${fmt}")` : ''};font-display:block}`;
     })
     .join('\n');
 }
 
-function applyVars(s) {
-  const st = s.style,
-    an = s.animation;
+function applyVars(nextSettings) {
+  const st = nextSettings.style,
+    an = nextSettings.animation;
   const set = (k, v) => root.style.setProperty(k, v);
   set('--fill', st.keyFill);
   set('--fill-on', st.keyFillPressed);
@@ -88,29 +90,33 @@ function applyVars(s) {
   const anim = animations.get(an.type) || animations.get('none');
   const spec = anim?.apply({ ms: an.speed, intensity: an.intensity, style: st }) ?? {};
   const user = an.easing !== 'default' ? easings.get(an.easing)?.css : null;
-  const p = spec.press ?? {},
-    r = spec.release ?? {};
+  const pressSpec = spec.press ?? {},
+    releaseSpec = spec.release ?? {};
   set('--t-idle', spec.idle ?? 'none');
   set('--t-down', spec.down ?? 'none');
   set('--glow-down', spec.glow ?? 0);
-  set('--ms-down', (p.ms ?? an.speed * 0.6) + 'ms');
-  set('--ease-down', user ?? p.ease ?? 'ease-out');
-  set('--ms-up', (r.ms ?? an.speed) + 'ms');
-  set('--ease-up', user ?? r.ease ?? 'ease-out');
+  set('--ms-down', (pressSpec.ms ?? an.speed * 0.6) + 'ms');
+  set('--ease-down', user ?? pressSpec.ease ?? 'ease-out');
+  set('--ms-up', (releaseSpec.ms ?? an.speed) + 'ms');
+  set('--ease-up', user ?? releaseSpec.ease ?? 'ease-out');
 }
 
 // Each layout keeps its own disabled keys, custom labels and moved keys (settings.layout.profiles[layoutId]).
-function profileOf(s, layout) {
-  const p = s.layout.profiles?.[layout?.id] ?? {};
-  return { disabledKeys: p.disabledKeys ?? [], labels: p.labels ?? {}, positions: p.positions ?? {} };
+function profileOf(nextSettings, layout) {
+  const savedProfile = nextSettings.layout.profiles?.[layout?.id] ?? {};
+  return {
+    disabledKeys: savedProfile.disabledKeys ?? [],
+    labels: savedProfile.labels ?? {},
+    positions: savedProfile.positions ?? {},
+  };
 }
 
-function build(s) {
-  const layout = layouts.find((l) => l.id === s.layout.id) ?? layouts[0];
+function build(nextSettings) {
+  const layout = layouts.find((l) => l.id === nextSettings.layout.id) ?? layouts[0];
   stage.textContent = '';
   keyEls.clear();
   if (!layout) return;
-  const prof = profileOf(s, layout);
+  const prof = profileOf(nextSettings, layout);
   const off = new Set(prof.disabledKeys);
   // A key the user moved is drawn at its saved position; every other key stays where the layout file puts it. The
   // overlay's
@@ -118,48 +124,48 @@ function build(s) {
   // overlay in OBS.
   const keys = layout.keys
     .filter((k) => !off.has(k.code))
-    .map((k) => {
-      const m = prof.positions[k.code];
-      return m ? { ...k, x: m.x, y: m.y } : k;
+    .map((layoutKey) => {
+      const movedPosition = prof.positions[layoutKey.code];
+      return movedPosition ? { ...layoutKey, x: movedPosition.x, y: movedPosition.y } : layoutKey;
     });
   if (!keys.length) {
     reportSize(0, 0);
     return;
   }
-  const { keySize, gap } = s.style,
+  const { keySize, gap } = nextSettings.style,
     pitch = keySize + gap;
   const minX = Math.min(...keys.map((k) => k.x)),
     minY = Math.min(...keys.map((k) => k.y));
   let maxX = 0,
     maxY = 0;
   const frag = document.createDocumentFragment();
-  for (const k of keys) {
-    const w = (k.w ?? 1) * pitch - gap,
-      h = (k.h ?? 1) * pitch - gap;
-    maxX = Math.max(maxX, (k.x - minX) * pitch + w);
-    maxY = Math.max(maxY, (k.y - minY) * pitch + h);
-    const label = prof.labels[k.code] ?? k.label ?? '';
+  for (const layoutKey of keys) {
+    const keyWidth = (layoutKey.w ?? 1) * pitch - gap,
+      keyHeight = (layoutKey.h ?? 1) * pitch - gap;
+    maxX = Math.max(maxX, (layoutKey.x - minX) * pitch + keyWidth);
+    maxY = Math.max(maxY, (layoutKey.y - minY) * pitch + keyHeight);
+    const label = prof.labels[layoutKey.code] ?? layoutKey.label ?? '';
     const el = document.createElement('div');
     el.className = 'key';
-    el.dataset.code = k.code;
-    el.style.cssText = `left:${(k.x - minX) * pitch}px;top:${(k.y - minY) * pitch}px;width:${w}px;height:${h}px`;
+    el.dataset.code = layoutKey.code;
+    el.style.cssText = `left:${(layoutKey.x - minX) * pitch}px;top:${(layoutKey.y - minY) * pitch}px;width:${keyWidth}px;height:${keyHeight}px`;
     // Shrink long labels to fit narrow keys.
-    const fit = Math.min(1, (w - 10) / Math.max(1, [...label].length * s.style.fontSize * 0.62));
+    const fit = Math.min(1, (keyWidth - 10) / Math.max(1, [...label].length * nextSettings.style.fontSize * 0.62));
     const mk = (cls) => {
-      const f = document.createElement('div');
-      f.className = 'face ' + cls;
+      const face = document.createElement('div');
+      face.className = 'face ' + cls;
       const sp = document.createElement('span');
       sp.textContent = label;
       if (fit < 1) sp.style.setProperty('--f', fit.toFixed(3));
-      f.appendChild(sp);
-      return f;
+      face.appendChild(sp);
+      return face;
     };
     const glow = document.createElement('div');
     glow.className = 'glow';
     el.append(glow, mk('idle'), mk('on'));
-    if (held.has(k.code)) el.classList.add('down');
+    if (held.has(layoutKey.code)) el.classList.add('down');
     frag.appendChild(el);
-    keyEls.set(k.code, el);
+    keyEls.set(layoutKey.code, el);
   }
   stage.appendChild(frag);
   stage.style.width = maxX + 'px';
@@ -167,46 +173,50 @@ function build(s) {
   reportSize(maxX, maxY);
 }
 
-function reportSize(w, h) {
+function reportSize(width, height) {
   const sc = settings.style.scale;
   stage.style.left = stage.style.top = PAD + 'px';
   stage.style.transform = `scale(${sc})`;
-  const size = { w: Math.ceil(w * sc + PAD * 2), h: Math.ceil(h * sc + PAD * 2) };
+  const size = { w: Math.ceil(width * sc + PAD * 2), h: Math.ceil(height * sc + PAD * 2) };
   window.__size = size;
   if (PREVIEW) parent.postMessage({ type: 'size', ...size }, '*');
 }
 
 // the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
 let reloadedFor = '';
-function apply(s) {
-  settings = s;
+function apply(nextSettings) {
+  settings = nextSettings;
   // The selected layout is not in our list: it was created or imported after we loaded. Re-read the list (once per id).
-  if (s.layout.id && !layouts.some((l) => l.id === s.layout.id) && reloadedFor !== s.layout.id) {
-    reloadedFor = s.layout.id;
+  if (
+    nextSettings.layout.id &&
+    !layouts.some((l) => l.id === nextSettings.layout.id) &&
+    reloadedFor !== nextSettings.layout.id
+  ) {
+    reloadedFor = nextSettings.layout.id;
     refresh();
   }
-  const layout = layouts.find((l) => l.id === s.layout.id) ?? layouts[0];
+  const layout = layouts.find((l) => l.id === nextSettings.layout.id) ?? layouts[0];
   const key = JSON.stringify([
     layout?.id,
-    profileOf(s, layout),
-    s.style.keySize,
-    s.style.gap,
-    s.style.fontSize,
-    s.style.scale,
+    profileOf(nextSettings, layout),
+    nextSettings.style.keySize,
+    nextSettings.style.gap,
+    nextSettings.style.fontSize,
+    nextSettings.style.scale,
   ]);
-  applyVars(s);
+  applyVars(nextSettings);
   if (key !== structKey) {
     structKey = key;
-    build(s);
+    build(nextSettings);
   }
 }
 
 // ------------------------------------------------------------ key state
 let paused = false; // tray "Pause overlay": show nothing, ignore keys
-function setPaused(p) {
-  paused = p;
-  stage.style.visibility = p ? 'hidden' : '';
-  if (p) releaseAll();
+function setPaused(shouldPause) {
+  paused = shouldPause;
+  stage.style.visibility = shouldPause ? 'hidden' : '';
+  if (shouldPause) releaseAll();
 }
 function setKey(code, down) {
   if (paused && down) return;
@@ -215,11 +225,11 @@ function setKey(code, down) {
 }
 function snapshot(list) {
   const want = new Set(list);
-  for (const c of [...held]) if (!want.has(c)) setKey(c, false);
-  for (const c of want) setKey(c, true);
+  for (const code of [...held]) if (!want.has(code)) setKey(code, false);
+  for (const code of want) setKey(code, true);
 }
 function releaseAll() {
-  for (const c of [...held]) setKey(c, false);
+  for (const code of [...held]) setKey(code, false);
 }
 
 // ------------------------------------------------------------ data + socket
@@ -244,20 +254,20 @@ function connect() {
   ws.onopen = () => {
     retry = 0;
   };
-  ws.onmessage = (e) => {
-    const m = JSON.parse(e.data);
-    if (m.t === 'd') setKey(m.k, true);
-    else if (m.t === 'u') setKey(m.k, false);
-    else if (m.t === 'snap') snapshot(m.down);
+  ws.onmessage = (socketEvent) => {
+    const message = JSON.parse(socketEvent.data);
+    if (message.t === 'd') setKey(message.k, true);
+    else if (message.t === 'u') setKey(message.k, false);
+    else if (message.t === 'snap') snapshot(message.down);
     // settings arrive inline: no HTTP round trips
-    else if (m.t === 'cfg') {
-      if (m.s) {
-        apply(m.s);
-        setPaused(!!m.paused);
+    else if (message.t === 'cfg') {
+      if (message.s) {
+        apply(message.s);
+        setPaused(!!message.paused);
       } else refresh();
     }
     // fonts/layouts changed: re-fetch those
-    else if (m.t === 'assets') refresh();
+    else if (message.t === 'assets') refresh();
   };
   ws.onclose = () => {
     releaseAll(); // never leave keys stuck if the app goes away
@@ -267,12 +277,12 @@ function connect() {
 
 // ------------------------------------------------------------ settings-window preview bridge
 if (PREVIEW) {
-  addEventListener('message', async (e) => {
-    if (e.source !== parent) return;
-    const m = e.data || {};
-    if (m.type === 'cfg') apply(m.settings);
-    else if (m.type === 'refresh') await refresh();
-    else if (m.type === 'getRegistry') {
+  addEventListener('message', async (messageEvent) => {
+    if (messageEvent.source !== parent) return;
+    const message = messageEvent.data || {};
+    if (message.type === 'cfg') apply(message.settings);
+    else if (message.type === 'refresh') await refresh();
+    else if (message.type === 'getRegistry') {
       parent.postMessage(
         {
           type: 'registry',
@@ -287,8 +297,8 @@ if (PREVIEW) {
   });
   // Click keys in the preview to test the look without typing.
   stage.addEventListener('pointerdown', (e) => {
-    const k = e.target.closest('.key');
-    if (k) setKey(k.dataset.code, true);
+    const keyElement = e.target.closest('.key');
+    if (keyElement) setKey(keyElement.dataset.code, true);
   });
   addEventListener('pointerup', () => releaseAll());
 }

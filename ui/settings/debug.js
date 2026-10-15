@@ -113,7 +113,8 @@ const clock = (ms) => {
 /** Flatten nested settings into { 'style.radius': 8, ... } so two copies can be compared. */
 function flatten(value, path = '', out = {}) {
   if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length) {
-    for (const [k, v] of Object.entries(value)) flatten(v, path ? `${path}.${k}` : k, out);
+    for (const [childKey, childValue] of Object.entries(value))
+      flatten(childValue, path ? `${path}.${childKey}` : childKey, out);
   } else out[path] = JSON.stringify(value);
   return out;
 }
@@ -199,33 +200,33 @@ const SECTIONS = [
         peak = { memory: 0 };
       const root = el('div', {}, table);
       every(root, 2000, async () => {
-        const i = await invoke('debug_info');
-        peak.memory = Math.max(peak.memory, i.memoryMb);
+        const info = await invoke('debug_info');
+        peak.memory = Math.max(peak.memory, info.memoryMb);
         table.set([
-          ['Version', `v${i.version}  (${i.build})`],
-          ['Running for', seconds(i.uptimeSecs)],
-          ['Memory (this program)', `${i.memoryMb} MB  (highest seen here: ${peak.memory} MB)`],
-          ['Open handles', i.handles],
+          ['Version', `v${info.version}  (${info.build})`],
+          ['Running for', seconds(info.uptimeSecs)],
+          ['Memory (this program)', `${info.memoryMb} MB  (highest seen here: ${peak.memory} MB)`],
+          ['Open handles', info.handles],
           [
             'Overlay server',
-            i.serverError ? `problem: ${i.serverError}` : `running on port ${i.port}`,
-            i.serverError ? 'bad' : 'good',
+            info.serverError ? `problem: ${info.serverError}` : `running on port ${info.port}`,
+            info.serverError ? 'bad' : 'good',
           ],
           [
             'Key capture',
-            `${i.inputActive === 'hook' ? 'Standard (hook)' : 'Compatibility (Raw Input)'}` +
-              `${i.inputError ? ' — ' + i.inputError : ''}`,
-            i.inputError ? 'bad' : 'good',
+            `${info.inputActive === 'hook' ? 'Standard (hook)' : 'Compatibility (Raw Input)'}` +
+              `${info.inputError ? ' — ' + info.inputError : ''}`,
+            info.inputError ? 'bad' : 'good',
           ],
           [
             'Settings valid',
-            i.settingsValid ? 'yes' : 'no: the sanitizer would change something',
-            i.settingsValid ? 'good' : 'bad',
+            info.settingsValid ? 'yes' : 'no: the sanitizer would change something',
+            info.settingsValid ? 'good' : 'bad',
           ],
           [
             'Data folder',
-            scrub(i.dataDir) + (i.dataWritable ? '' : '   (cannot write here!)'),
-            i.dataWritable ? '' : 'bad',
+            scrub(info.dataDir) + (info.dataWritable ? '' : '   (cannot write here!)'),
+            info.dataWritable ? '' : 'bad',
           ],
           ['Browser engine', (navigator.userAgent.match(/Edg\/[\d.]+/) || [navigator.userAgent])[0]],
           [
@@ -252,13 +253,13 @@ const SECTIONS = [
         results.replaceChildren(el('span', { className: 'hint', textContent: 'Running…' }));
         const tests = await runSelfTest();
         results.replaceChildren(
-          ...tests.map((t) =>
+          ...tests.map((testResult) =>
             el(
               'div',
-              { className: 'dbg-test ' + (t.ok ? 'good' : 'bad') },
-              el('b', { textContent: t.ok ? '✔' : '✖' }),
-              el('span', { textContent: t.name }),
-              el('i', { textContent: t.detail }),
+              { className: 'dbg-test ' + (testResult.ok ? 'good' : 'bad') },
+              el('b', { textContent: testResult.ok ? '✔' : '✖' }),
+              el('span', { textContent: testResult.name }),
+              el('i', { textContent: testResult.detail }),
             ),
           ),
         );
@@ -352,13 +353,13 @@ const SECTIONS = [
           running = true;
           toggleBtn.textContent = 'Stop';
           monitor = {
-            onKey: (p) => {
+            onKey: (payload) => {
               count++;
               lines.push({
-                gap: previous ? `+${p.ms - previous} ms` : 'first',
-                text: `${p.down ? '↓' : '↑'} ${p.k}`,
+                gap: previous ? `+${payload.ms - previous} ms` : 'first',
+                text: `${payload.down ? '↓' : '↑'} ${payload.k}`,
               });
-              previous = p.ms;
+              previous = payload.ms;
               lines = lines.slice(-40);
               paint();
             },
@@ -423,13 +424,13 @@ const SECTIONS = [
           ),
           ...changes
             .slice(0, 20)
-            .map((k) =>
+            .map((settingPath) =>
               el(
                 'div',
                 { className: 'dbg-test' },
                 el('b'),
-                el('span', { textContent: k }),
-                el('i', { textContent: `typed ${before[k] ?? '(missing)'}  →  kept ${after[k]}` }),
+                el('span', { textContent: settingPath }),
+                el('i', { textContent: `typed ${before[settingPath] ?? '(missing)'}  →  kept ${after[settingPath]}` }),
               ),
             ),
         );

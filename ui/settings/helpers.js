@@ -36,13 +36,13 @@ export const row = (label, ...controls) =>
 
 /** A small message at the bottom of the window. */
 export function toast(message, isError = false) {
-  const t = $('#toast');
-  t.textContent = message;
-  t.className = isError ? 'err' : '';
-  t.hidden = false;
+  const toastElement = $('#toast');
+  toastElement.textContent = message;
+  toastElement.className = isError ? 'err' : '';
+  toastElement.hidden = false;
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => {
-    t.hidden = true;
+    toastElement.hidden = true;
   }, 2600);
 }
 

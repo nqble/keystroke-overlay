@@ -103,19 +103,19 @@ export function fitPreview() {
 }
 
 // Messages from the live preview page (it tells us when it is ready, how big it is, and which themes/animations exist).
-addEventListener('message', (e) => {
-  if (e.source !== frame.contentWindow) return;
-  const m = e.data || {};
-  if (m.type === 'ready') {
+addEventListener('message', (messageEvent) => {
+  if (messageEvent.source !== frame.contentWindow) return;
+  const message = messageEvent.data || {};
+  if (message.type === 'ready') {
     push();
     frame.contentWindow.postMessage({ type: 'getRegistry' }, '*');
   }
   // only these tabs use the lists
-  else if (m.type === 'registry') {
-    setRegistry(m);
+  else if (message.type === 'registry') {
+    setRegistry(message);
     if (booted && (tab === 'style' || tab === 'animation')) render();
-  } else if (m.type === 'size') {
-    setSize(m);
+  } else if (message.type === 'size') {
+    setSize(message);
     fitPreview();
     updateObs();
   }

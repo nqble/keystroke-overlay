@@ -16,32 +16,39 @@ export const curLayout = () => layouts.find((l) => l.id === settings.layout.id) 
 
 /** For reading only. Always has all three parts, even for settings saved by older versions. */
 export const viewProf = () => {
-  const p = settings.layout.profiles[curLayout()?.id];
-  return p
-    ? { disabledKeys: p.disabledKeys ?? [], labels: p.labels ?? {}, positions: p.positions ?? {} }
+  const profile = settings.layout.profiles[curLayout()?.id];
+  return profile
+    ? { disabledKeys: profile.disabledKeys ?? [], labels: profile.labels ?? {}, positions: profile.positions ?? {} }
     : EMPTY_PROFILE();
 };
 
 /** For changing: creates the profile on the first edit. */
 export const editProf = () => {
-  const p = (settings.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());
-  p.positions ??= {};
-  return p;
+  const profile = (settings.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());
+  profile.positions ??= {};
+  return profile;
 };
 
 export const isCustom = (id) => {
-  const p = settings.layout.profiles[id];
+  const profile = settings.layout.profiles[id];
   return (
-    !!p &&
-    (p.disabledKeys?.length > 0 || Object.keys(p.labels ?? {}).length > 0 || Object.keys(p.positions ?? {}).length > 0)
+    !!profile &&
+    (profile.disabledKeys?.length > 0 ||
+      Object.keys(profile.labels ?? {}).length > 0 ||
+      Object.keys(profile.positions ?? {}).length > 0)
   );
 };
 
 /** Forget an edited profile that no longer differs from the default, so "customized" only shows when it should. */
 export function tidyProf() {
   const id = curLayout().id,
-    p = settings.layout.profiles[id];
-  if (p && !p.disabledKeys.length && !Object.keys(p.labels).length && !Object.keys(p.positions ?? {}).length)
+    profile = settings.layout.profiles[id];
+  if (
+    profile &&
+    !profile.disabledKeys.length &&
+    !Object.keys(profile.labels).length &&
+    !Object.keys(profile.positions ?? {}).length
+  )
     delete settings.layout.profiles[id];
 }
 
@@ -80,8 +87,8 @@ export function tidyPositions(layout, profile) {
     const spans = keys.map((it) => [start(it), start(it) + size(it)]).sort((a, b) => a[0] - b[0]);
     const groups = []; // stretches of the axis that at least one key covers
     for (const [from, to] of spans) {
-      const g = groups[groups.length - 1];
-      if (g && from <= g.end + 1e-6) g.end = Math.max(g.end, to);
+      const group = groups[groups.length - 1];
+      if (group && from <= group.end + 1e-6) group.end = Math.max(group.end, to);
       else groups.push({ start: from, end: to, shift: 0 });
     }
     let shift = groups[0].start; // the first stretch moves to 0

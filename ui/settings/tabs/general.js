@@ -62,15 +62,15 @@ function serverSection() {
       toast(String(error), true);
     }
   };
-  const restart = async (e) => {
-    e.target.disabled = true;
+  const restart = async (clickEvent) => {
+    clickEvent.target.disabled = true;
     try {
       await invoke('restart_server');
       toast('Server restarted');
     } catch (error) {
       toast(String(error), true);
     }
-    e.target.disabled = false;
+    clickEvent.target.disabled = false;
   };
   return [
     heading('Server'),
@@ -203,22 +203,22 @@ function updatesSection() {
   const details = el('p', { className: 'note', hidden: true });
 
   /** Show the answer of an update check in the status line and the Install button. */
-  const showResult = (r) => {
+  const showResult = (update) => {
     installBtn.textContent = 'Install update';
-    if (r.available && r.manual) {
-      status.textContent = `Version ${r.version} is available — this update needs a manual install`;
-      details.textContent = (r.notes ? r.notes + '\n\n' : '') + TEXT.manualInstallNote;
+    if (update.available && update.manual) {
+      status.textContent = `Version ${update.version} is available — this update needs a manual install`;
+      details.textContent = (update.notes ? update.notes + '\n\n' : '') + TEXT.manualInstallNote;
       details.style.whiteSpace = 'pre-line';
       details.hidden = false;
       installBtn.textContent = 'Open GitHub installer';
       installBtn.hidden = false;
-    } else if (r.available) {
-      status.textContent = `Version ${r.version} is available`;
-      details.textContent = r.notes || '';
-      details.hidden = !r.notes;
+    } else if (update.available) {
+      status.textContent = `Version ${update.version} is available`;
+      details.textContent = update.notes || '';
+      details.hidden = !update.notes;
       installBtn.hidden = false;
     } else {
-      status.textContent = `You're up to date (version ${r.current})`;
+      status.textContent = `You're up to date (version ${update.current})`;
       installBtn.hidden = true;
       details.hidden = true;
     }

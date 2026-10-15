@@ -38,30 +38,30 @@ export function layoutTab() {
 
 // ---- Layout tab pieces ----------------------------------------------------------------------------------------------
 /** One clickable card in the layout grid. Right-click a layout you made to delete it. */
-function layoutCard(l) {
-  const deleteItem = l.user
+function layoutCard(layout) {
+  const deleteItem = layout.user
     ? {
         label: 'Delete layout',
         danger: true,
         run: async () => {
-          await call('delete_layout', { id: l.id });
-          toast(l.name + ' deleted');
+          await call('delete_layout', { id: layout.id });
+          toast(layout.name + ' deleted');
         },
       }
     : { label: 'Built-in layouts can’t be deleted', disabled: true };
   return el(
     'div',
     {
-      className: 'card' + (settings.layout.id === l.id ? ' sel' : ''),
+      className: 'card' + (settings.layout.id === layout.id ? ' sel' : ''),
       onclick: () => {
-        settings.layout.id = l.id;
+        settings.layout.id = layout.id;
         setSelectedKey(null);
         changed(true);
       },
       oncontextmenu: (e) => showMenu(e, [deleteItem]),
     },
-    el('b', { textContent: l.name }),
-    el('span', { textContent: l.keys.length + ' keys' + (isCustom(l.id) ? ' · customized' : '') }),
+    el('b', { textContent: layout.name }),
+    el('span', { textContent: layout.keys.length + ' keys' + (isCustom(layout.id) ? ' · customized' : '') }),
   );
 }
 
