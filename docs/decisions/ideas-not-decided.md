@@ -22,7 +22,7 @@ these is chosen, it gets its own numbered decision record and leaves this page.
 
 ## Possible features (see the roadmap discussion)
 - Mouse clicks and gamepad inputs; an optional click-through on-screen overlay window for capture tools that cannot show a
-  web page; a shortcut/ticker display mode; per-app profiles and auto-pause; an opt-in dual-PC mode (would require the
-  secure link); OBS scene awareness; Stream Deck / hotkey control.
+  web page; a shortcut/ticker display mode; per-app profiles and auto-pause; an opt-in dual-PC mode through Tailscale Serve with an allowed-host setting, see
+  [../proposals/tailscale-dual-pc.md](../proposals/tailscale-dual-pc.md) (proposed, not decided); OBS scene awareness; Stream Deck / hotkey control.
 - Any feature that adds network access, or changes what is stored, needs a decision record and a privacy-docs update first
   ([0002](0002-local-only-server-and-optional-secure-link.md), [0005](0005-keystrokes-live-in-memory-only.md)).
