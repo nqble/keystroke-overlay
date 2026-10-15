@@ -12,7 +12,7 @@
 //    7. The six tabs                  Layout, Keys, Style, Animation, Fonts, General
 //    8. Drawing the window            the tab bar and the active tab
 //    9. Messages from the app         tray actions, update results, download progress
-//   10. OBS link and preview          the address bar, copy button, preview scaling
+//   10. OBS link and preview          the address bar, copy button, preview scaling, window buttons
 //   11. Start-up                      what happens when the window opens
 //
 //  HOW TO ADD A SETTING: add a line to CONTROLS (section 5); it is drawn automatically. Also add its default value
@@ -1007,6 +1007,21 @@ addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => { if (tab === 'keys') render(); }, 150);
 });
+
+// ---- The window buttons. The window has no native title bar, so the page draws minimize / maximize / close itself.
+// Dragging the header (and double-clicking it to maximize) is handled by the data-tauri-drag-region attribute in index.html.
+const appWin = window.__TAURI__.window.getCurrentWindow();
+$('#wMin').onclick = () => appWin.minimize();
+$('#wMax').onclick = () => appWin.toggleMaximize();
+$('#wClose').onclick = () => appWin.close();
+/** Show the "restore" glyph while the window is maximized, the "maximize" glyph otherwise. */
+async function paintMaxButton() {
+  const max = await appWin.isMaximized().catch(() => false);
+  const b = $('#wMax');
+  b.textContent = max ? '\uE923' : '\uE922';
+  b.title = b.ariaLabel = max ? 'Restore' : 'Maximize';
+}
+appWin.onResized(paintMaxButton);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 11. Start-up

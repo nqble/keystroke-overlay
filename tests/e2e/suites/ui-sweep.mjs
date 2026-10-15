@@ -12,8 +12,18 @@ const tab = async n => { await p.ev(`[...document.querySelectorAll('nav button')
 for (const t of ['Layout', 'Keys', 'Style', 'Animation', 'Fonts', 'General']) { await tab(t); check(`tab ${t} renders content`, await p.q(`document.getElementById('pane').innerText.length > 40`)); }
 check('General sections are in the tidy order', JSON.stringify(await p.q(`[...document.querySelectorAll('#pane h2')].map(h => h.textContent)`)) === JSON.stringify(['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates']));
 
+
 // header logo, share buttons, font presets, slider focus
 check('the header shows the logo image', await p.q(`(() => { const i = document.querySelector('.brand .logo'); return !!i && i.complete && i.naturalWidth > 0; })()`));
+check('the window has no native title bar and the header is a drag area', await p.q(`(async () => { const w = window.__TAURI__.window.getCurrentWindow(); return (await w.isDecorated()) === false && document.querySelector('header').hasAttribute('data-tauri-drag-region'); })()`));
+check('the three window buttons sit in the top right corner', await p.q(`(() => { const r = document.querySelector('header .winbtns').getBoundingClientRect(); return r.right >= innerWidth - 1 && r.top <= 1 && document.querySelectorAll('header .winbtns button').length === 3; })()`));
+check('maximize toggles (and the glyph follows), restore goes back', await (async () => {
+  const state = () => p.q(`window.__TAURI__.window.getCurrentWindow().isMaximized()`);
+  await p.ev(`document.getElementById('wMax').click()`); await sleep(700);
+  const on = await state(), glyph1 = await p.q(`document.getElementById('wMax').textContent.charCodeAt(0).toString(16)`);
+  await p.ev(`document.getElementById('wMax').click()`); await sleep(700);
+  return on === true && glyph1 === 'e923' && (await state()) === false && (await p.q(`document.getElementById('wMax').textContent.charCodeAt(0).toString(16)`)) === 'e922';
+})());
 await tab('Style');
 check('Layout and Style tabs have the same Import / Export buttons', await p.q(`['Import from file…', 'Export to file…'].every(t => [...document.querySelectorAll('#pane button')].some(b => b.textContent === t))`));
 check('clicking a slider shows no focus outline', await p.q(`(() => { const r = document.querySelector('#pane input[type=range]'); r.focus(); return getComputedStyle(r).outlineStyle === 'none' || getComputedStyle(r).outlineWidth === '0px'; })()`));

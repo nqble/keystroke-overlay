@@ -7,10 +7,10 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
   font: 13px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
 body { display: flex; flex-direction: column; }
 
-header { display: flex; align-items: center; gap: 18px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+header { display: flex; align-items: stretch; padding: 0 0 0 16px; background: var(--panel); border-bottom: 1px solid var(--line); }   /* the buttons touch the top right corner, like a native title bar */
+.brand { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-weight: 700; font-size: 15px; white-space: nowrap; }
 .brand .logo { width: 26px; height: 26px; border-radius: 7px; flex: none; }
-.obs { display: flex; align-items: center; gap: 8px; margin-left: auto; min-width: 0; }
+.obs { display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 16px; padding: 10px 0; min-width: 0; }
 .obs .lbl { color: var(--dim); white-space: nowrap; }
 .obs input { width: 230px; }
 .hint { color: var(--dim); font-size: 12px; }
@@ -175,3 +175,12 @@ button, .card, .kmk, nav button, select, input[type=checkbox], input[type=range]
 .dbg-json { width: 100%; height: 240px; resize: vertical; background: #0d0f14; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: 12px/1.5 Consolas, "Cascadia Mono", monospace; }
 .dbg-steps { margin: 4px 0 8px; padding-left: 20px; color: var(--text); } .dbg-steps li { margin: 3px 0; }
 .dbg-cmd { display: block; background: #0d0f14; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: 12px Consolas, monospace; user-select: text; overflow-wrap: anywhere; }
+
+/* Minimize / maximize / close: Windows-style caption buttons (the window has no native title bar). */
+.winbtns { display: flex; align-self: stretch; flex: none; }
+.winbtns button { width: 46px; min-height: 36px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--text);
+  font: 10px/1 "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif; cursor: default; }
+.winbtns button:hover { background: rgba(255, 255, 255, .09); }
+.winbtns button:active { background: rgba(255, 255, 255, .05); }
+.winbtns #wClose:hover { background: #e81123; color: #fff; }
+.winbtns #wClose:active { background: #f1707a; color: #fff; }

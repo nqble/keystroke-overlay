@@ -25,6 +25,7 @@ export async function connect() {
     const m = JSON.parse(e.data);
     if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
     else if (m.method === 'Runtime.executionContextCreated') contexts.push(m.params.context);
+    else if (m.method === 'Runtime.executionContextDestroyed') { const i = contexts.findIndex(c => c.id === m.params.executionContextId); if (i >= 0) contexts.splice(i, 1); }   // a removed iframe must not be picked later
     else if (m.method === 'Runtime.executionContextsCleared') contexts.length = 0;
   };
   const send = (method, params = {}) => new Promise(res => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });

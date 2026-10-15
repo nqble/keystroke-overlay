@@ -10,13 +10,18 @@
 <link rel="stylesheet" href="settings.css">
 </head>
 <body>
-<header>
-  <div class="brand"><img class="logo" src="logo.png" alt="" width="26" height="26" draggable="false"><span>Keystroke Overlay</span></div>
-  <div class="obs">
-    <span class="lbl">OBS Browser Source URL</span>
+<header data-tauri-drag-region>
+  <div class="brand" data-tauri-drag-region><img class="logo" src="logo.png" alt="" width="26" height="26" draggable="false" data-tauri-drag-region><span data-tauri-drag-region>Keystroke Overlay</span></div>
+  <div class="obs" data-tauri-drag-region>
+    <span class="lbl" data-tauri-drag-region>OBS Browser Source URL</span>
     <input id="obsUrl" readonly>
     <button id="copyUrl" class="primary">Copy OBS URL</button>
-    <span id="obsSize" class="hint"></span>
+    <span id="obsSize" class="hint" data-tauri-drag-region></span>
+  </div>
+  <div class="winbtns">
+    <button id="wMin" type="button" tabindex="-1" aria-label="Minimize" title="Minimize">&#xE921;</button>
+    <button id="wMax" type="button" tabindex="-1" aria-label="Maximize" title="Maximize">&#xE922;</button>
+    <button id="wClose" type="button" tabindex="-1" aria-label="Close" title="Close">&#xE8BB;</button>
   </div>
 </header>
 <div id="banner" hidden></div>

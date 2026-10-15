@@ -9,7 +9,7 @@ const { invoke: inv, q } = p;
 
 // ---- window + UI
 check('settings UI rendered (6 tabs, content)', (await q(`document.querySelectorAll('nav button').length`)) === 6 && (await q(`document.getElementById('pane').children.length`)) > 0);
-check('header is just the title', (await q(`document.querySelector('.brand').textContent.trim()`)) === 'Keystroke Overlay');
+check('header shows the logo and title on the left and the three window buttons on the right', (await q(`document.querySelector('.brand span').textContent.trim() === 'Keystroke Overlay' && document.querySelectorAll('header .winbtns button').length === 3`)));
 const st = (await inv('get_state')).ok;
 check('get_state', st.version === VERSION && st.settings.version === 2 && st.paused === false);
 check('background update check found the mock update (update button visible)', await q(`!document.getElementById('updateBtn').hidden`));
