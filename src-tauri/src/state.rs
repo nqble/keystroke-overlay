@@ -40,13 +40,15 @@ pub struct AppState {
     pub pending_tab: Mutex<Option<String>>,
 }
 
-pub fn port_of(s: &Shared) -> u16 {
-    s.settings.read().unwrap()["general"]["port"].as_u64().unwrap_or(7878) as u16
+pub fn port_of(shared: &Shared) -> u16 {
+    shared.settings.read().unwrap()["general"]["port"]
+        .as_u64()
+        .unwrap_or(7878) as u16
 }
 /// The address to paste into OBS. With the optional secure link on it carries the private key.
-pub fn obs_url(s: &Shared) -> String {
-    let base = format!("http://localhost:{}/", port_of(s));
-    let st = s.settings.read().unwrap();
+pub fn obs_url(shared: &Shared) -> String {
+    let base = format!("http://localhost:{}/", port_of(shared));
+    let st = shared.settings.read().unwrap();
     let key = st["general"]["linkKey"].as_str().unwrap_or("");
     if st["general"]["secureLink"].as_bool().unwrap_or(false) && !key.is_empty() {
         format!("{base}?key={key}")
@@ -73,8 +75,8 @@ pub fn sync_tray(app: &AppHandle) {
         }
     };
     let _ = pause.set_checked(paused);
-    for (id, it) in &layouts {
-        let _ = it.set_checked(*id == cur);
+    for (id, item) in &layouts {
+        let _ = item.set_checked(*id == cur);
     }
 }
 

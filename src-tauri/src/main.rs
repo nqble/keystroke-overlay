@@ -88,7 +88,7 @@ fn main() {
                 cfg_tx,
             });
             let (srv, err) = match server::start(shared.clone(), port) {
-                Ok(h) => (Some(h), None),
+                Ok(handle) => (Some(handle), None),
                 Err(e) => (None, Some(e)),
             };
             app.manage(AppState {

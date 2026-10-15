@@ -51,14 +51,14 @@ struct St {
 }
 
 pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
-    let std_l = std::net::TcpListener::bind(("127.0.0.1", port)).map_err(|e| {
+    let std_listener = std::net::TcpListener::bind(("127.0.0.1", port)).map_err(|e| {
         if e.kind() == std::io::ErrorKind::AddrInUse {
             format!("Port {port} is already in use by another program")
         } else {
             format!("Port {port} unavailable: {e}")
         }
     })?;
-    std_l.set_nonblocking(true).map_err(|e| e.to_string())?;
+    std_listener.set_nonblocking(true).map_err(|e| e.to_string())?;
     let (sd_tx, sd_rx) = watch::channel(false);
     let st = St {
         shared,
@@ -79,12 +79,12 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
         .layer(middleware::from_fn_with_state(st.clone(), guard))
         .with_state(st);
 
-    let mut sd = sd_rx;
+    let mut shutdown_rx = sd_rx;
     tauri::async_runtime::spawn(async move {
-        let l = tokio::net::TcpListener::from_std(std_l).unwrap();
-        let _ = axum::serve(l, app)
+        let listener = tokio::net::TcpListener::from_std(std_listener).unwrap();
+        let _ = axum::serve(listener, app)
             .with_graceful_shutdown(async move {
-                let _ = sd.changed().await;
+                let _ = shutdown_rx.changed().await;
             })
             .await;
     });
@@ -93,15 +93,15 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
 
 /// Reject requests whose Host/Origin isn't this server on localhost.
 async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
-    let p = st.port;
+    let port = st.port;
     let host_ok = req
         .headers()
         .get(header::HOST)
         .and_then(|h| h.to_str().ok())
-        .is_some_and(|h| h == format!("localhost:{p}") || h == format!("127.0.0.1:{p}"));
+        .is_some_and(|h| h == format!("localhost:{port}") || h == format!("127.0.0.1:{port}"));
     let origin_ok = req.headers().get(header::ORIGIN).is_none_or(|o| {
         o.to_str()
-            .is_ok_and(|o| o == format!("http://localhost:{p}") || o == format!("http://127.0.0.1:{p}"))
+            .is_ok_and(|o| o == format!("http://localhost:{port}") || o == format!("http://127.0.0.1:{port}"))
     });
     if !host_ok || !origin_ok {
         return StatusCode::FORBIDDEN.into_response();
@@ -116,10 +116,11 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
         )
             .into_response();
     }
-    let mut r = next.run(req).await;
-    r.headers_mut()
+    let mut response = next.run(req).await;
+    response
+        .headers_mut()
         .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
-    r
+    response
 }
 
 /// Paths that need the key when the secure link is on.
@@ -129,11 +130,11 @@ fn is_protected(path: &str) -> bool {
 
 /// True if the secure link is off, or the request carries the right `key=` (compared in constant time).
 pub fn key_ok(settings: &Value, query: Option<&str>) -> bool {
-    let g = &settings["general"];
-    if !g["secureLink"].as_bool().unwrap_or(false) {
+    let general = &settings["general"];
+    if !general["secureLink"].as_bool().unwrap_or(false) {
         return true;
     }
-    let want = g["linkKey"].as_str().unwrap_or("");
+    let want = general["linkKey"].as_str().unwrap_or("");
     if want.is_empty() {
         return false;
     } // secure link on but no key: refuse everything rather than open up
@@ -163,12 +164,12 @@ fn safe(name: &str) -> bool {
     !name.is_empty() && !name.contains(['/', '\\', ':']) && !name.contains("..")
 }
 
-async fn serve_overlay(Path(p): Path<String>) -> Response {
-    if p.split('/').any(|s| s == "..") {
+async fn serve_overlay(Path(file_path): Path<String>) -> Response {
+    if file_path.split('/').any(|s| s == "..") {
         return StatusCode::NOT_FOUND.into_response();
     }
-    match OVERLAY.get_file(&p) {
-        Some(f) => bytes_resp(&p, f.contents().to_vec()),
+    match OVERLAY.get_file(&file_path) {
+        Some(file) => bytes_resp(&file_path, file.contents().to_vec()),
         None => StatusCode::NOT_FOUND.into_response(),
     }
 }
@@ -177,7 +178,7 @@ async fn serve_user(State(st): State<St>, Path((kind, file)): Path<(String, Stri
         return StatusCode::NOT_FOUND.into_response();
     }
     match std::fs::read(st.shared.paths.user(&kind).join(&file)) {
-        Ok(b) => bytes_resp(&file, b),
+        Ok(bytes) => bytes_resp(&file, bytes),
         Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
 }
@@ -186,7 +187,7 @@ async fn serve_font(State(st): State<St>, Path(file): Path<String>) -> Response 
         return StatusCode::NOT_FOUND.into_response();
     }
     match std::fs::read(st.shared.paths.fonts().join(&file)) {
-        Ok(b) => bytes_resp(&file, b),
+        Ok(bytes) => bytes_resp(&file, bytes),
         Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
 }
@@ -210,11 +211,11 @@ async fn api_modules(State(st): State<St>) -> Json<Value> {
 }
 
 /// A layout must have an id and a list of keys that each have a code and x/y position.
-pub fn valid_layout(v: &Value) -> bool {
-    v["id"].as_str().is_some_and(|s| !s.is_empty())
-        && v["keys"].as_array().is_some_and(|k| {
-            k.iter()
-                .all(|k| k["code"].is_string() && k["x"].is_number() && k["y"].is_number())
+pub fn valid_layout(layout: &Value) -> bool {
+    layout["id"].as_str().is_some_and(|s| !s.is_empty())
+        && layout["keys"].as_array().is_some_and(|keys| {
+            keys.iter()
+                .all(|key| key["code"].is_string() && key["x"].is_number() && key["y"].is_number())
         })
 }
 
@@ -227,58 +228,65 @@ pub fn layouts(paths: &Paths) -> Vec<Value> {
         .filter_map(|f| serde_json::from_slice::<Value>(f.contents()).ok())
         .filter(valid_layout)
         .collect();
-    if let Ok(rd) = std::fs::read_dir(paths.user("layouts")) {
-        for e in rd.flatten() {
-            if let Some(v) = std::fs::read_to_string(e.path())
+    if let Ok(entries) = std::fs::read_dir(paths.user("layouts")) {
+        for entry in entries.flatten() {
+            if let Some(layout) = std::fs::read_to_string(entry.path())
                 .ok()
                 .and_then(|s| serde_json::from_str::<Value>(&s).ok())
                 .filter(valid_layout)
             {
-                let mut v = v;
-                v["user"] = Value::Bool(true);
-                out.retain(|o| o["id"] != v["id"]);
-                out.push(v);
+                let mut layout = layout;
+                layout["user"] = Value::Bool(true);
+                out.retain(|o| o["id"] != layout["id"]);
+                out.push(layout);
             }
         }
     }
     out
 }
 pub fn font_files(paths: &Paths) -> Vec<String> {
-    let mut v: Vec<String> = std::fs::read_dir(paths.fonts())
+    let mut names: Vec<String> = std::fs::read_dir(paths.fonts())
         .into_iter()
         .flatten()
         .flatten()
         .filter_map(|e| e.file_name().into_string().ok())
         .collect();
-    v.sort();
-    v
+    names.sort();
+    names
 }
 fn module_urls(kind: &str, paths: &Paths) -> Vec<String> {
-    let mut v: Vec<String> = OVERLAY
+    let mut urls: Vec<String> = OVERLAY
         .get_dir(kind)
         .into_iter()
         .flat_map(|d| d.files())
         .filter_map(|f| f.path().file_name()?.to_str().map(|n| format!("/overlay/{kind}/{n}")))
         .collect();
-    if let Ok(rd) = std::fs::read_dir(paths.user(kind)) {
-        for e in rd.flatten() {
-            if let Ok(n) = e.file_name().into_string() {
-                if n.ends_with(".js") {
-                    v.push(format!("/user/{kind}/{n}"));
+    if let Ok(entries) = std::fs::read_dir(paths.user(kind)) {
+        for entry in entries.flatten() {
+            if let Ok(file_name) = entry.file_name().into_string() {
+                if file_name.ends_with(".js") {
+                    urls.push(format!("/user/{kind}/{file_name}"));
                 }
             }
         }
     }
-    v.sort();
-    v
+    urls.sort();
+    urls
 }
 
 async fn ws_upgrade(State(st): State<St>, ws: WebSocketUpgrade) -> Response {
     ws.on_upgrade(move |s| client(s, st))
 }
 
-fn ev_msg(e: KeyEvent) -> Message {
-    Message::Text(format!(r#"{{"t":"{}","k":"{}"}}"#, if e.down { "d" } else { "u" }, e.code).into())
+fn ev_msg(event: KeyEvent) -> Message {
+    Message::Text(
+        format!(
+            r#"{{"t":"{}","k":"{}"}}"#,
+            if event.down { "d" } else { "u" },
+            event.code
+        )
+        .into(),
+    )
 }
 /// One WebSocket message describing a settings change. Sending the settings inline saves the overlay
 /// three HTTP requests per change (it used to re-fetch config, layouts and fonts every time).
@@ -306,25 +314,25 @@ fn snapshot(st: &St) -> Message {
 async fn client(mut sock: WebSocket, st: St) {
     let mut keys = st.shared.bus.tx.subscribe();
     let mut cfg = st.shared.cfg_tx.subscribe();
-    let mut sd = st.sd.clone();
+    let mut shutdown = st.sd.clone();
     if sock.send(snapshot(&st)).await.is_err() {
         return;
     }
     loop {
         let msg = tokio::select! {
-            r = keys.recv() => match r {
+            key_result = keys.recv() => match key_result {
                 Ok(_) if st.shared.bus.paused.load(Ordering::Relaxed) => continue,
-                Ok(e) => ev_msg(e),
+                Ok(event) => ev_msg(event),
                 Err(broadcast::error::RecvError::Lagged(_)) => snapshot(&st), // resync, no stuck keys
                 Err(_) => break,
             },
-            r = cfg.recv() => match r {
+            cfg_result = cfg.recv() => match cfg_result {
                 Ok(kind) => cfg_msg(&st, kind),
                 Err(broadcast::error::RecvError::Lagged(_)) => cfg_msg(&st, "cfg"),
                 Err(_) => break,
             },
-            m = sock.recv() => match m { Some(Ok(Message::Close(_))) | None | Some(Err(_)) => break, _ => continue },
-            _ = sd.changed() => break,
+            incoming = sock.recv() => match incoming { Some(Ok(Message::Close(_))) | None | Some(Err(_)) => break, _ => continue },
+            _ = shutdown.changed() => break,
         };
         if sock.send(msg).await.is_err() {
             break;
@@ -345,14 +353,14 @@ mod tests {
     }
     #[test]
     fn requires_the_exact_key_when_on() {
-        let c = cfg(true, "0123456789abcdef0123456789abcdef");
-        assert!(key_ok(&c, Some("key=0123456789abcdef0123456789abcdef")));
-        assert!(key_ok(&c, Some("preview=1&key=0123456789abcdef0123456789abcdef")));
-        assert!(!key_ok(&c, None));
-        assert!(!key_ok(&c, Some("key=")));
-        assert!(!key_ok(&c, Some("key=0123456789abcdef0123456789abcdee")));
-        assert!(!key_ok(&c, Some("key=0123456789abcdef0123456789abcdef0")));
-        assert!(!key_ok(&c, Some("notkey=0123456789abcdef0123456789abcdef")));
+        let config = cfg(true, "0123456789abcdef0123456789abcdef");
+        assert!(key_ok(&config, Some("key=0123456789abcdef0123456789abcdef")));
+        assert!(key_ok(&config, Some("preview=1&key=0123456789abcdef0123456789abcdef")));
+        assert!(!key_ok(&config, None));
+        assert!(!key_ok(&config, Some("key=")));
+        assert!(!key_ok(&config, Some("key=0123456789abcdef0123456789abcdee")));
+        assert!(!key_ok(&config, Some("key=0123456789abcdef0123456789abcdef0")));
+        assert!(!key_ok(&config, Some("notkey=0123456789abcdef0123456789abcdef")));
     }
     #[test]
     fn secure_link_on_without_a_key_refuses_everything() {
@@ -361,17 +369,17 @@ mod tests {
     }
     #[test]
     fn only_data_endpoints_are_protected() {
-        for p in [
+        for path in [
             "/api/config",
             "/api/layouts",
             "/ws",
             "/fonts/a.ttf",
             "/user/animations/x.js",
         ] {
-            assert!(is_protected(p), "{p}");
+            assert!(is_protected(path), "{path}");
         }
-        for p in ["/", "/overlay/overlay.js", "/overlay/animations/glow.js"] {
-            assert!(!is_protected(p), "{p}");
+        for path in ["/", "/overlay/overlay.js", "/overlay/animations/glow.js"] {
+            assert!(!is_protected(path), "{path}");
         }
     }
 }

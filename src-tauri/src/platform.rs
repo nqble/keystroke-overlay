@@ -50,8 +50,8 @@ fn opener() -> &'static str {
 }
 
 /// Show a folder in the system file manager.
-pub fn open_folder(p: &Path) {
-    let _ = std::process::Command::new(opener()).arg(p).spawn();
+pub fn open_folder(folder: &Path) {
+    let _ = std::process::Command::new(opener()).arg(folder).spawn();
 }
 
 /// Open a web address in the default browser.

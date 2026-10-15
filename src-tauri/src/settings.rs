@@ -58,8 +58,8 @@ const MIGRATIONS: &[Migration] = &[v1_to_v2];
 
 /// v1 stored one global `layout.disabledKeys` / `layout.labels`.
 /// v2 stores them per layout in `layout.profiles[layoutId]`.
-fn v1_to_v2(v: &mut Value) {
-    let Some(layout) = v.get_mut("layout").and_then(|l| l.as_object_mut()) else {
+fn v1_to_v2(config: &mut Value) {
+    let Some(layout) = config.get_mut("layout").and_then(|l| l.as_object_mut()) else {
         return;
     };
     let id = layout.get("id").and_then(|x| x.as_str()).unwrap_or("tkl").to_string();
@@ -73,20 +73,20 @@ fn v1_to_v2(v: &mut Value) {
     layout.insert("profiles".into(), Value::Object(profiles));
 }
 
-pub fn migrate(mut v: Value) -> Value {
-    if !v.is_object() {
+pub fn migrate(mut config: Value) -> Value {
+    if !config.is_object() {
         return defaults();
     }
-    let mut ver = v.get("version").and_then(|x| x.as_u64()).unwrap_or(1).max(1);
+    let mut ver = config.get("version").and_then(|x| x.as_u64()).unwrap_or(1).max(1);
     while ver < CURRENT_VERSION {
-        if let Some(m) = MIGRATIONS.get((ver - 1) as usize) {
-            m(&mut v);
+        if let Some(migration) = MIGRATIONS.get((ver - 1) as usize) {
+            migration(&mut config);
         }
         ver += 1;
     }
-    v["version"] = json!(CURRENT_VERSION);
+    config["version"] = json!(CURRENT_VERSION);
     let mut out = defaults();
-    merge(&mut out, &v);
+    merge(&mut out, &config);
     sanitize(&mut out, &defaults());
     out
 }
@@ -107,25 +107,32 @@ const RANGES: &[(&str, f64, f64)] = &[
     ("animation.intensity", 0.0, 4.0),
 ];
 
-fn is_hex_color(s: &str) -> bool {
-    s.starts_with('#') && (s.len() == 7 || s.len() == 9) && s[1..].chars().all(|c| c.is_ascii_hexdigit())
+fn is_hex_color(color: &str) -> bool {
+    color.starts_with('#')
+        && (color.len() == 7 || color.len() == 9)
+        && color[1..].chars().all(|c| c.is_ascii_hexdigit())
 }
-fn is_ident(s: &str) -> bool {
-    !s.is_empty() && s.len() <= 40 && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+fn is_ident(ident: &str) -> bool {
+    !ident.is_empty() && ident.len() <= 40 && ident.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 /// Layout ids may also contain dots and spaces (they come from user-made files).
-fn is_id(s: &str) -> bool {
-    !s.is_empty() && s.len() <= 40 && s.chars().all(|c| c.is_ascii_alphanumeric() || "-_. ".contains(c))
+fn is_id(id: &str) -> bool {
+    !id.is_empty() && id.len() <= 40 && id.chars().all(|c| c.is_ascii_alphanumeric() || "-_. ".contains(c))
 }
-fn is_version(s: &str) -> bool {
-    s.len() <= 24 && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-')
+fn is_version(version: &str) -> bool {
+    version.len() <= 24
+        && version
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-')
 }
 
-fn clean_strings(v: Option<&Value>) -> Value {
+fn clean_strings(value: Option<&Value>) -> Value {
     Value::Array(
-        v.and_then(|a| a.as_array())
-            .map(|a| {
-                a.iter()
+        value
+            .and_then(|a| a.as_array())
+            .map(|items| {
+                items
+                    .iter()
                     .filter(|x| x.as_str().is_some_and(|s| s.len() <= 40))
                     .take(300)
                     .cloned()
@@ -134,11 +141,13 @@ fn clean_strings(v: Option<&Value>) -> Value {
             .unwrap_or_default(),
     )
 }
-fn clean_labels(v: Option<&Value>) -> Value {
+fn clean_labels(value: Option<&Value>) -> Value {
     Value::Object(
-        v.and_then(|o| o.as_object())
-            .map(|o| {
-                o.iter()
+        value
+            .and_then(|o| o.as_object())
+            .map(|entries| {
+                entries
+                    .iter()
                     .filter(|(k, x)| k.len() <= 40 && x.as_str().is_some_and(|s| s.chars().count() <= 16))
                     .take(300)
                     .map(|(k, x)| (k.clone(), x.clone()))
@@ -149,14 +158,21 @@ fn clean_labels(v: Option<&Value>) -> Value {
 }
 /// Where the user dragged keys to in one layout: { "KeyW": { "x": 1.25, "y": 0 } } in key units. Anything that is not a
 /// pair of finite numbers is dropped; numbers are limited to 0..100 and rounded to 2 decimals.
-fn clean_positions(v: Option<&Value>) -> Value {
+fn clean_positions(value: Option<&Value>) -> Value {
     let mut out = Map::new();
-    if let Some(o) = v.and_then(|x| x.as_object()) {
-        for (k, p) in o.iter().filter(|(k, _)| !k.is_empty() && k.len() <= 40).take(300) {
-            if let (Some(x), Some(y)) = (p.get("x").and_then(Value::as_f64), p.get("y").and_then(Value::as_f64)) {
+    if let Some(moved_keys) = value.and_then(|x| x.as_object()) {
+        for (code, position) in moved_keys
+            .iter()
+            .filter(|(k, _)| !k.is_empty() && k.len() <= 40)
+            .take(300)
+        {
+            if let (Some(x), Some(y)) = (
+                position.get("x").and_then(Value::as_f64),
+                position.get("y").and_then(Value::as_f64),
+            ) {
                 if x.is_finite() && y.is_finite() {
-                    let r = |n: f64| (n.clamp(0.0, 100.0) * 100.0).round() / 100.0;
-                    out.insert(k.clone(), json!({ "x": r(x), "y": r(y) }));
+                    let round_units = |units: f64| (units.clamp(0.0, 100.0) * 100.0).round() / 100.0;
+                    out.insert(code.clone(), json!({ "x": round_units(x), "y": round_units(y) }));
                 }
             }
         }
@@ -164,19 +180,19 @@ fn clean_positions(v: Option<&Value>) -> Value {
     Value::Object(out)
 }
 
-pub fn clean_profiles(v: &Value) -> Value {
+pub fn clean_profiles(raw_profiles: &Value) -> Value {
     let mut out = Map::new();
-    if let Some(o) = v.as_object() {
-        for (id, p) in o.iter().filter(|(id, _)| is_id(id)).take(50) {
-            let mut e = Map::new();
-            e.insert("disabledKeys".into(), clean_strings(p.get("disabledKeys")));
-            e.insert("labels".into(), clean_labels(p.get("labels")));
-            let positions = clean_positions(p.get("positions"));
+    if let Some(entries) = raw_profiles.as_object() {
+        for (id, profile) in entries.iter().filter(|(id, _)| is_id(id)).take(50) {
+            let mut cleaned = Map::new();
+            cleaned.insert("disabledKeys".into(), clean_strings(profile.get("disabledKeys")));
+            cleaned.insert("labels".into(), clean_labels(profile.get("labels")));
+            let positions = clean_positions(profile.get("positions"));
             // only when keys were moved
             if positions.as_object().is_some_and(|m| !m.is_empty()) {
-                e.insert("positions".into(), positions);
+                cleaned.insert("positions".into(), positions);
             }
-            out.insert(id.clone(), Value::Object(e));
+            out.insert(id.clone(), Value::Object(cleaned));
         }
     }
     Value::Object(out)
@@ -184,116 +200,117 @@ pub fn clean_profiles(v: &Value) -> Value {
 
 /// Make arbitrary JSON (hand-edited file, imported preset) safe to use:
 /// wrong types fall back to defaults, numbers are clamped, colours/ids validated.
-pub fn sanitize(v: &mut Value, def: &Value) {
-    fn walk(v: &mut Value, def: &Value, path: &str) {
+pub fn sanitize(value: &mut Value, def: &Value) {
+    fn walk(value: &mut Value, def: &Value, path: &str) {
         match def {
-            Value::Object(dm) => {
+            Value::Object(default_map) => {
                 if path == "layout.profiles" {
-                    *v = clean_profiles(v);
+                    *value = clean_profiles(value);
                     return;
                 } // free-form map
-                if !v.is_object() {
-                    *v = def.clone();
+                if !value.is_object() {
+                    *value = def.clone();
                     return;
                 }
-                let vm = v.as_object_mut().unwrap();
-                vm.retain(|k, _| dm.contains_key(k));
-                for (k, dv) in dm {
-                    let p = if path.is_empty() {
-                        k.clone()
+                let value_map = value.as_object_mut().unwrap();
+                value_map.retain(|k, _| default_map.contains_key(k));
+                for (key, default_value) in default_map {
+                    let child_path = if path.is_empty() {
+                        key.clone()
                     } else {
-                        format!("{path}.{k}")
+                        format!("{path}.{key}")
                     };
-                    match vm.get_mut(k) {
-                        Some(x) => walk(x, dv, &p),
+                    match value_map.get_mut(key) {
+                        Some(child) => walk(child, default_value, &child_path),
                         None => {
-                            vm.insert(k.clone(), dv.clone());
+                            value_map.insert(key.clone(), default_value.clone());
                         }
                     }
                 }
             }
             Value::Number(_) => {
-                let n = v.as_f64().filter(|n| n.is_finite());
+                let number = value.as_f64().filter(|n| n.is_finite());
                 let (lo, hi) = RANGES
                     .iter()
                     .find(|r| r.0 == path)
                     .map(|r| (r.1, r.2))
                     .unwrap_or((f64::MIN, f64::MAX));
-                match n {
+                match number {
                     // Valid and in range: leave the value exactly as it was.
                     Some(n) if n >= lo && n <= hi && (path != "general.port" || n.fract() == 0.0) => {}
-                    Some(_) if path == "general.port" => *v = def.clone(), // invalid port: back to the default
-                    Some(n) => *v = json!(n.clamp(lo, hi)),
-                    None => *v = def.clone(),
+                    Some(_) if path == "general.port" => *value = def.clone(), // invalid port: back to the default
+                    Some(n) => *value = json!(n.clamp(lo, hi)),
+                    None => *value = def.clone(),
                 }
             }
             Value::Bool(_) => {
-                if !v.is_boolean() {
-                    *v = def.clone()
+                if !value.is_boolean() {
+                    *value = def.clone()
                 }
             }
-            Value::String(d) => {
-                let ok = match v.as_str() {
-                    Some(s) if d.starts_with('#') => is_hex_color(s),
-                    Some(s) if path == "style.fontFamily" => {
-                        !s.is_empty() && s.len() <= 80 && !s.contains(['"', '\\', '{', '}', ';', '<', '>'])
+            Value::String(default_text) => {
+                let ok = match value.as_str() {
+                    Some(text) if default_text.starts_with('#') => is_hex_color(text),
+                    Some(text) if path == "style.fontFamily" => {
+                        !text.is_empty() && text.len() <= 80 && !text.contains(['"', '\\', '{', '}', ';', '<', '>'])
                     }
-                    Some(s) if path == "general.lastSeenVersion" => is_version(s),
-                    Some(s) if path == "layout.id" => is_id(s),
-                    Some(s) if path == "general.updateChannel" => s == "stable" || s == "latest",
-                    Some(s) if path == "general.inputMethod" => s == "hook" || s == "rawinput",
-                    Some(s) if path == "general.linkKey" => {
-                        s.is_empty() || (s.len() >= 32 && s.len() <= 64 && s.chars().all(|c| c.is_ascii_hexdigit()))
+                    Some(text) if path == "general.lastSeenVersion" => is_version(text),
+                    Some(text) if path == "layout.id" => is_id(text),
+                    Some(text) if path == "general.updateChannel" => text == "stable" || text == "latest",
+                    Some(text) if path == "general.inputMethod" => text == "hook" || text == "rawinput",
+                    Some(text) if path == "general.linkKey" => {
+                        text.is_empty()
+                            || (text.len() >= 32 && text.len() <= 64 && text.chars().all(|c| c.is_ascii_hexdigit()))
                     }
-                    Some(s) => is_ident(s),
+                    Some(text) => is_ident(text),
                     None => false,
                 };
                 if !ok {
-                    *v = def.clone();
+                    *value = def.clone();
                 }
             }
-            Value::Array(_) => *v = clean_strings(Some(v)),
+            Value::Array(_) => *value = clean_strings(Some(value)),
             Value::Null => {}
         }
     }
-    walk(v, def, "");
+    walk(value, def, "");
 }
 
 /// A fresh private link key: 128 bits from the operating system's secure random generator, as 32 hex characters.
 pub fn new_key() -> Result<String, String> {
-    let mut b = [0u8; 16];
-    getrandom::fill(&mut b).map_err(|e| format!("couldn't create a secure key: {e}"))?;
-    Ok(b.iter().map(|x| format!("{x:02x}")).collect())
+    let mut bytes = [0u8; 16];
+    getrandom::fill(&mut bytes).map_err(|e| format!("couldn't create a secure key: {e}"))?;
+    Ok(bytes.iter().map(|x| format!("{x:02x}")).collect())
 }
 
 /// Settings as the overlay is allowed to see them: everything except the private link key.
-pub fn public_settings(v: &Value) -> Value {
-    let mut s = v.clone();
-    if let Some(g) = s.get_mut("general").and_then(|g| g.as_object_mut()) {
-        g.remove("linkKey");
+pub fn public_settings(settings: &Value) -> Value {
+    let mut public = settings.clone();
+    if let Some(general) = public.get_mut("general").and_then(|g| g.as_object_mut()) {
+        general.remove("linkKey");
     }
-    s
+    public
 }
 
 /// Deep-merge `src` into `dst` (objects recurse, everything else replaces).
 pub fn merge(dst: &mut Value, src: &Value) {
     match (dst, src) {
-        (Value::Object(d), Value::Object(s)) => {
-            for (k, sv) in s {
-                match d.get_mut(k) {
-                    Some(dv) if dv.is_object() && sv.is_object() => merge(dv, sv),
+        (Value::Object(dst_map), Value::Object(src_map)) => {
+            for (key, src_value) in src_map {
+                match dst_map.get_mut(key) {
+                    Some(dst_value) if dst_value.is_object() && src_value.is_object() => merge(dst_value, src_value),
                     _ => {
-                        d.insert(k.clone(), sv.clone());
+                        dst_map.insert(key.clone(), src_value.clone());
                     }
                 }
             }
         }
-        (d, s) => *d = s.clone(),
+        (dst_value, src_value) => *dst_value = src_value.clone(),
     }
 }
 
-fn read_json(p: &Path) -> Option<Value> {
-    std::fs::read_to_string(p)
+fn read_json(path: &Path) -> Option<Value> {
+    std::fs::read_to_string(path)
         .ok()
         .and_then(|s| serde_json::from_str::<Value>(&s).ok())
         .filter(|v| v.is_object())
@@ -307,9 +324,9 @@ pub fn load(path: &Path) -> Value {
         .unwrap_or_else(defaults)
 }
 
-pub fn save(path: &Path, v: &Value) -> std::io::Result<()> {
-    if let Some(p) = path.parent() {
-        std::fs::create_dir_all(p)?;
+pub fn save(path: &Path, settings: &Value) -> std::io::Result<()> {
+    if let Some(folder) = path.parent() {
+        std::fs::create_dir_all(folder)?;
     }
     // Keep the previous good file as a backup (only if it is itself valid).
     if read_json(path).is_some() {
@@ -317,7 +334,7 @@ pub fn save(path: &Path, v: &Value) -> std::io::Result<()> {
     }
     // Write-then-rename so a crash can never leave a half-written config.
     let tmp = path.with_extension("json.tmp");
-    std::fs::write(&tmp, serde_json::to_string_pretty(v).unwrap())?;
+    std::fs::write(&tmp, serde_json::to_string_pretty(settings).unwrap())?;
     std::fs::rename(tmp, path)
 }
 
@@ -339,8 +356,8 @@ impl Paths {
         self.root.join(kind)
     } // layouts | animations | themes
     pub fn ensure(&self) {
-        for d in ["fonts", "presets", "layouts", "animations", "themes"] {
-            let _ = std::fs::create_dir_all(self.root.join(d));
+        for folder_name in ["fonts", "presets", "layouts", "animations", "themes"] {
+            let _ = std::fs::create_dir_all(self.root.join(folder_name));
         }
     }
 }
@@ -355,28 +372,28 @@ mod tests {
     }
     #[test]
     fn missing_keys_get_defaults_and_known_values_survive() {
-        let m = migrate(json!({ "version": 2, "style": { "radius": 20 } }));
-        assert_eq!(m["style"]["radius"].as_f64(), Some(20.0));
-        assert_eq!(m["general"]["port"], json!(7878));
-        assert_eq!(m["version"], json!(CURRENT_VERSION));
+        let migrated = migrate(json!({ "version": 2, "style": { "radius": 20 } }));
+        assert_eq!(migrated["style"]["radius"].as_f64(), Some(20.0));
+        assert_eq!(migrated["general"]["port"], json!(7878));
+        assert_eq!(migrated["version"], json!(CURRENT_VERSION));
     }
     #[test]
     fn bad_values_are_repaired() {
-        let m = migrate(
+        let migrated = migrate(
             json!({ "version": 2, "general": { "port": 80 }, "style": { "keySize": "big", "opacity": 9, "keyFill": "red", "fontFamily": "x\"; }" },
                                 "animation": { "type": "../../evil", "speed": -5 },
                                 "layout": { "profiles": { "tkl": { "disabledKeys": [1, "KeyA"], "labels": { "KeyA": "ok", "KeyB": 5 } }, "../evil": {} } } }),
         );
-        assert_eq!(m["general"]["port"], json!(7878));
-        assert_eq!(m["style"]["keySize"], defaults()["style"]["keySize"]);
-        assert_eq!(m["style"]["opacity"].as_f64(), Some(1.0));
-        assert_eq!(m["style"]["keyFill"], defaults()["style"]["keyFill"]);
-        assert_eq!(m["style"]["fontFamily"], defaults()["style"]["fontFamily"]);
-        assert_eq!(m["animation"]["type"], defaults()["animation"]["type"]);
-        assert_eq!(m["animation"]["speed"].as_f64(), Some(0.0));
-        assert_eq!(m["layout"]["profiles"]["tkl"]["disabledKeys"], json!(["KeyA"]));
-        assert_eq!(m["layout"]["profiles"]["tkl"]["labels"], json!({ "KeyA": "ok" }));
-        assert!(m["layout"]["profiles"].get("../evil").is_none());
+        assert_eq!(migrated["general"]["port"], json!(7878));
+        assert_eq!(migrated["style"]["keySize"], defaults()["style"]["keySize"]);
+        assert_eq!(migrated["style"]["opacity"].as_f64(), Some(1.0));
+        assert_eq!(migrated["style"]["keyFill"], defaults()["style"]["keyFill"]);
+        assert_eq!(migrated["style"]["fontFamily"], defaults()["style"]["fontFamily"]);
+        assert_eq!(migrated["animation"]["type"], defaults()["animation"]["type"]);
+        assert_eq!(migrated["animation"]["speed"].as_f64(), Some(0.0));
+        assert_eq!(migrated["layout"]["profiles"]["tkl"]["disabledKeys"], json!(["KeyA"]));
+        assert_eq!(migrated["layout"]["profiles"]["tkl"]["labels"], json!({ "KeyA": "ok" }));
+        assert!(migrated["layout"]["profiles"].get("../evil").is_none());
     }
     #[test]
     fn defaults_are_stable_under_sanitize() {
@@ -386,14 +403,14 @@ mod tests {
     fn v1_settings_migrate_into_a_profile_without_losing_anything() {
         let old = json!({ "version": 1, "general": { "port": 9000, "autoCheckUpdates": true },
                           "layout": { "id": "tsb", "disabledKeys": ["KeyQ"], "labels": { "Space": "Jump" } } });
-        let m = migrate(old);
-        assert_eq!(m["version"], json!(2));
-        assert_eq!(m["general"]["port"], json!(9000));
-        assert_eq!(m["general"]["autoCheckUpdates"], json!(true));
-        assert_eq!(m["layout"]["id"], json!("tsb"));
-        assert_eq!(m["layout"]["profiles"]["tsb"]["disabledKeys"], json!(["KeyQ"]));
-        assert_eq!(m["layout"]["profiles"]["tsb"]["labels"]["Space"], json!("Jump"));
-        assert!(m["layout"].get("disabledKeys").is_none() && m["layout"].get("labels").is_none());
+        let migrated = migrate(old);
+        assert_eq!(migrated["version"], json!(2));
+        assert_eq!(migrated["general"]["port"], json!(9000));
+        assert_eq!(migrated["general"]["autoCheckUpdates"], json!(true));
+        assert_eq!(migrated["layout"]["id"], json!("tsb"));
+        assert_eq!(migrated["layout"]["profiles"]["tsb"]["disabledKeys"], json!(["KeyQ"]));
+        assert_eq!(migrated["layout"]["profiles"]["tsb"]["labels"]["Space"], json!("Jump"));
+        assert!(migrated["layout"].get("disabledKeys").is_none() && migrated["layout"].get("labels").is_none());
     }
     #[test]
     fn update_channel_is_limited_to_stable_or_latest() {
@@ -435,9 +452,9 @@ mod tests {
     }
     #[test]
     fn secure_link_defaults_off_and_key_is_validated() {
-        let m = migrate(json!({ "version": 2 }));
-        assert_eq!(m["general"]["secureLink"], json!(false));
-        assert_eq!(m["general"]["linkKey"], json!(""));
+        let migrated = migrate(json!({ "version": 2 }));
+        assert_eq!(migrated["general"]["secureLink"], json!(false));
+        assert_eq!(migrated["general"]["linkKey"], json!(""));
         let good = "0123456789abcdef0123456789abcdef";
         assert_eq!(
             migrate(json!({ "version": 2, "general": { "secureLink": true, "linkKey": good } }))["general"]["linkKey"],
@@ -462,36 +479,36 @@ mod tests {
     }
     #[test]
     fn new_keys_are_random_hex_and_never_shown_to_the_overlay() {
-        let (a, b) = (new_key().unwrap(), new_key().unwrap());
-        assert_eq!(a.len(), 32);
-        assert!(a.chars().all(|c| c.is_ascii_hexdigit()));
-        assert_ne!(a, b);
-        let mut s = defaults();
-        s["general"]["linkKey"] = json!(a);
-        let p = public_settings(&s);
-        assert!(p["general"].get("linkKey").is_none());
-        assert_eq!(p["general"]["port"], s["general"]["port"]); // everything else is kept
+        let (first_key, second_key) = (new_key().unwrap(), new_key().unwrap());
+        assert_eq!(first_key.len(), 32);
+        assert!(first_key.chars().all(|c| c.is_ascii_hexdigit()));
+        assert_ne!(first_key, second_key);
+        let mut full = defaults();
+        full["general"]["linkKey"] = json!(first_key);
+        let public = public_settings(&full);
+        assert!(public["general"].get("linkKey").is_none());
+        assert_eq!(public["general"]["port"], full["general"]["port"]); // everything else is kept
     }
     #[test]
     fn corrupt_settings_fall_back_to_the_backup() {
         let dir = std::env::temp_dir().join(format!("ko-settings-test-{}", std::process::id()));
         let _ = std::fs::create_dir_all(&dir);
-        let f = dir.join("settings.json");
-        let mut s = defaults();
-        s["general"]["autoCheckUpdates"] = json!(true);
-        save(&f, &s).unwrap(); // first save: no backup yet
-        save(&f, &s).unwrap(); // second save: previous file becomes the backup
-        std::fs::write(&f, "{ this is not json").unwrap(); // simulate corruption
-        assert_eq!(load(&f)["general"]["autoCheckUpdates"], json!(true));
+        let file = dir.join("settings.json");
+        let mut current = defaults();
+        current["general"]["autoCheckUpdates"] = json!(true);
+        save(&file, &current).unwrap(); // first save: no backup yet
+        save(&file, &current).unwrap(); // second save: previous file becomes the backup
+        std::fs::write(&file, "{ this is not json").unwrap(); // simulate corruption
+        assert_eq!(load(&file)["general"]["autoCheckUpdates"], json!(true));
         std::fs::remove_dir_all(&dir).ok();
     }
     #[test]
     fn profiles_and_version_survive_a_round_trip() {
-        let mut s = defaults();
-        s["general"]["lastSeenVersion"] = json!("1.1.2");
-        s["general"]["autoCheckUpdates"] = json!(true);
-        s["layout"]["profiles"] = json!({ "wasd": { "disabledKeys": ["KeyE"], "labels": { "Space": "⎵" } }, "my layout.v2": { "disabledKeys": [], "labels": {} } });
-        assert_eq!(migrate(s.clone()), s);
+        let mut current = defaults();
+        current["general"]["lastSeenVersion"] = json!("1.1.2");
+        current["general"]["autoCheckUpdates"] = json!(true);
+        current["layout"]["profiles"] = json!({ "wasd": { "disabledKeys": ["KeyE"], "labels": { "Space": "⎵" } }, "my layout.v2": { "disabledKeys": [], "labels": {} } });
+        assert_eq!(migrate(current.clone()), current);
     }
 }
 
@@ -509,8 +526,8 @@ mod robustness_tests {
             self.0 ^= self.0 << 17;
             self.0
         }
-        fn below(&mut self, n: u64) -> u64 {
-            self.next() % n
+        fn below(&mut self, limit: u64) -> u64 {
+            self.next() % limit
         }
         fn pick<'a, T>(&mut self, items: &'a [T]) -> &'a T {
             &items[self.below(items.len() as u64) as usize]
@@ -571,42 +588,45 @@ mod robustness_tests {
         "Segoe UI",
     ];
 
-    fn gen(r: &mut Rng, depth: u32) -> Value {
-        match r.below(if depth >= 4 { 6 } else { 9 }) {
+    fn gen(rng: &mut Rng, depth: u32) -> Value {
+        match rng.below(if depth >= 4 { 6 } else { 9 }) {
             0 => Value::Null,
-            1 => json!(r.below(2) == 0),
-            2 => json!(r.next() as i64),
-            3 => json!([0.0, -1.5, 1e308, -1e308, 0.5, 7.0, 99999.0, 1e-300][r.below(8) as usize]),
-            4 => json!(*r.pick(STRINGS)),
-            5 => json!("x".repeat(r.below(5000) as usize)),
-            6 | 7 => Value::Array((0..r.below(6)).map(|_| gen(r, depth + 1)).collect()),
+            1 => json!(rng.below(2) == 0),
+            2 => json!(rng.next() as i64),
+            3 => json!([0.0, -1.5, 1e308, -1e308, 0.5, 7.0, 99999.0, 1e-300][rng.below(8) as usize]),
+            4 => json!(*rng.pick(STRINGS)),
+            5 => json!("x".repeat(rng.below(5000) as usize)),
+            6 | 7 => Value::Array((0..rng.below(6)).map(|_| gen(rng, depth + 1)).collect()),
             _ => Value::Object(
-                (0..r.below(8))
-                    .map(|_| (r.pick(KEYS).to_string(), gen(r, depth + 1)))
+                (0..rng.below(8))
+                    .map(|_| (rng.pick(KEYS).to_string(), gen(rng, depth + 1)))
                     .collect(),
             ),
         }
     }
 
     /// Every rule a cleaned settings document must satisfy, however hostile the input was.
-    fn assert_valid(m: &Value, seed: u64) {
+    fn assert_valid(settings: &Value, seed: u64) {
         let def = defaults();
-        let g = &m["general"];
-        assert_eq!(m["version"], json!(CURRENT_VERSION), "seed {seed}");
-        let port = g["port"].as_f64().unwrap();
+        let general = &settings["general"];
+        assert_eq!(settings["version"], json!(CURRENT_VERSION), "seed {seed}");
+        let port = general["port"].as_f64().unwrap();
         assert!(
             (1024.0..=65535.0).contains(&port) && port.fract() == 0.0,
             "seed {seed}: port {port}"
         );
         for (path, lo, hi) in RANGES {
-            let n = path
+            let number = path
                 .split('.')
-                .fold(m, |v, k| &v[k])
+                .fold(settings, |v, k| &v[k])
                 .as_f64()
                 .unwrap_or_else(|| panic!("seed {seed}: {path} is not a number"));
-            assert!(n.is_finite() && n >= *lo && n <= *hi, "seed {seed}: {path} = {n}");
+            assert!(
+                number.is_finite() && number >= *lo && number <= *hi,
+                "seed {seed}: {path} = {number}"
+            );
         }
-        for k in [
+        for color_field in [
             "keyFill",
             "keyFillPressed",
             "borderColor",
@@ -616,19 +636,27 @@ mod robustness_tests {
             "glowColor",
         ] {
             assert!(
-                is_hex_color(m["style"][k].as_str().unwrap_or("")),
-                "seed {seed}: colour {k}"
+                is_hex_color(settings["style"][color_field].as_str().unwrap_or("")),
+                "seed {seed}: colour {color_field}"
             );
         }
-        let font = m["style"]["fontFamily"].as_str().unwrap();
+        let font = settings["style"]["fontFamily"].as_str().unwrap();
         assert!(
             !font.is_empty() && font.len() <= 80 && !font.contains(['"', '\\', '{', '}', ';', '<', '>']),
             "seed {seed}: font {font:?}"
         );
-        assert!(is_id(m["layout"]["id"].as_str().unwrap()), "seed {seed}: layout id");
-        for (id, p) in m["layout"]["profiles"].as_object().unwrap() {
+        assert!(
+            is_id(settings["layout"]["id"].as_str().unwrap()),
+            "seed {seed}: layout id"
+        );
+        for (id, profile) in settings["layout"]["profiles"].as_object().unwrap() {
             assert!(is_id(id), "seed {seed}: profile id {id:?}");
-            for (code, pos) in p.get("positions").and_then(|x| x.as_object()).into_iter().flatten() {
+            for (code, pos) in profile
+                .get("positions")
+                .and_then(|x| x.as_object())
+                .into_iter()
+                .flatten()
+            {
                 let (x, y) = (pos["x"].as_f64().unwrap(), pos["y"].as_f64().unwrap());
                 assert!(
                     code.len() <= 40 && (0.0..=100.0).contains(&x) && (0.0..=100.0).contains(&y),
@@ -636,46 +664,46 @@ mod robustness_tests {
                 );
             }
         }
-        let key = g["linkKey"].as_str().unwrap();
+        let key = general["linkKey"].as_str().unwrap();
         assert!(
             key.is_empty() || (key.len() >= 32 && key.chars().all(|c| c.is_ascii_hexdigit())),
             "seed {seed}: link key"
         );
         assert!(
-            matches!(g["inputMethod"].as_str(), Some("hook" | "rawinput"))
-                && matches!(g["updateChannel"].as_str(), Some("stable" | "latest")),
+            matches!(general["inputMethod"].as_str(), Some("hook" | "rawinput"))
+                && matches!(general["updateChannel"].as_str(), Some("stable" | "latest")),
             "seed {seed}"
         );
         assert!(
-            is_version(g["lastSeenVersion"].as_str().unwrap()),
+            is_version(general["lastSeenVersion"].as_str().unwrap()),
             "seed {seed}: lastSeenVersion"
         );
-        for k in ["type", "easing"] {
+        for field in ["type", "easing"] {
             assert!(
-                is_ident(m["animation"][k].as_str().unwrap()),
-                "seed {seed}: animation {k}"
+                is_ident(settings["animation"][field].as_str().unwrap()),
+                "seed {seed}: animation {field}"
             );
         }
         // Same shape as the defaults (nothing extra, nothing missing) and stable after being written out and read back.
         assert_eq!(
-            m.as_object().unwrap().keys().collect::<Vec<_>>(),
+            settings.as_object().unwrap().keys().collect::<Vec<_>>(),
             def.as_object().unwrap().keys().collect::<Vec<_>>(),
             "seed {seed}: top-level keys"
         );
         assert_eq!(
-            &migrate(serde_json::from_str(&m.to_string()).unwrap()),
-            m,
+            &migrate(serde_json::from_str(&settings.to_string()).unwrap()),
+            settings,
             "seed {seed}: not stable after a round trip"
         );
     }
 
     /// Paths of every setting in the defaults, e.g. ["style", "fontFamily"].
-    fn leaf_paths(v: &Value, here: &mut Vec<String>, out: &mut Vec<Vec<String>>) {
-        match v {
-            Value::Object(o) if !o.is_empty() => {
-                for (k, x) in o {
-                    here.push(k.clone());
-                    leaf_paths(x, here, out);
+    fn leaf_paths(value: &Value, here: &mut Vec<String>, out: &mut Vec<Vec<String>>) {
+        match value {
+            Value::Object(entries) if !entries.is_empty() => {
+                for (key, child) in entries {
+                    here.push(key.clone());
+                    leaf_paths(child, here, out);
                     here.pop();
                 }
             }
@@ -686,8 +714,8 @@ mod robustness_tests {
     #[test]
     fn random_garbage_never_panics_and_always_comes_out_valid() {
         for seed in 1..=4000u64 {
-            let mut r = Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
-            assert_valid(&migrate(gen(&mut r, 0)), seed);
+            let mut rng = Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
+            assert_valid(&migrate(gen(&mut rng, 0)), seed);
         }
     }
 
@@ -696,14 +724,14 @@ mod robustness_tests {
         let mut paths = Vec::new();
         leaf_paths(&defaults(), &mut Vec::new(), &mut paths);
         for seed in 1..=6000u64 {
-            let mut r = Rng(seed.wrapping_mul(0xA24BAED4963EE407) | 1);
+            let mut rng = Rng(seed.wrapping_mul(0xA24BAED4963EE407) | 1);
             let mut doc = defaults();
-            for _ in 0..=r.below(4) {
-                let path = r.pick(&paths).clone();
-                let bad = if r.below(3) == 0 {
-                    json!(*r.pick(STRINGS))
+            for _ in 0..=rng.below(4) {
+                let path = rng.pick(&paths).clone();
+                let bad = if rng.below(3) == 0 {
+                    json!(*rng.pick(STRINGS))
                 } else {
-                    gen(&mut r, 3)
+                    gen(&mut rng, 3)
                 };
                 let mut cur = &mut doc;
                 for k in &path[..path.len() - 1] {
@@ -711,8 +739,8 @@ mod robustness_tests {
                 }
                 cur[path[path.len() - 1].as_str()] = bad;
             }
-            if r.below(4) == 0 {
-                doc["layout"]["profiles"] = gen(&mut r, 1);
+            if rng.below(4) == 0 {
+                doc["layout"]["profiles"] = gen(&mut rng, 1);
             }
             assert_valid(&migrate(doc), seed);
         }
@@ -754,21 +782,21 @@ mod robustness_tests {
     #[test]
     fn profiles_from_hostile_files_are_cleaned() {
         for seed in 1..=1500u64 {
-            let mut r = Rng(seed.wrapping_mul(0xD1B54A32D192ED03) | 1);
-            let out = clean_profiles(&gen(&mut r, 0));
+            let mut rng = Rng(seed.wrapping_mul(0xD1B54A32D192ED03) | 1);
+            let out = clean_profiles(&gen(&mut rng, 0));
             let map = out.as_object().unwrap();
             assert!(map.len() <= 50);
-            for (id, p) in map {
+            for (id, profile) in map {
                 assert!(is_id(id));
                 assert!(
-                    p["disabledKeys"].as_array().unwrap().len() <= 300
-                        && p["disabledKeys"]
+                    profile["disabledKeys"].as_array().unwrap().len() <= 300
+                        && profile["disabledKeys"]
                             .as_array()
                             .unwrap()
                             .iter()
                             .all(|k| k.as_str().is_some_and(|s| s.len() <= 40))
                 );
-                assert!(p["labels"]
+                assert!(profile["labels"]
                     .as_object()
                     .unwrap()
                     .iter()

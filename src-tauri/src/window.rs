@@ -4,9 +4,9 @@ use crate::state::AppState;
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 pub fn open_settings(app: &AppHandle) {
-    if let Some(w) = app.get_webview_window("settings") {
-        let _ = w.unminimize();
-        let _ = w.set_focus();
+    if let Some(settings_window) = app.get_webview_window("settings") {
+        let _ = settings_window.unminimize();
+        let _ = settings_window.set_focus();
         return;
     }
     crate::debug::log("settings window opened");
@@ -43,8 +43,8 @@ pub fn open_settings_tab(app: &AppHandle, tab: &str) {
 
 /// Window creation must not run on the thread handling a tray click, so it is spawned.
 pub fn open_settings_async(app: &AppHandle) {
-    let a = app.clone();
-    tauri::async_runtime::spawn(async move { open_settings(&a) });
+    let app_handle = app.clone();
+    tauri::async_runtime::spawn(async move { open_settings(&app_handle) });
 }
 
 /// Window events: "minimize to tray" destroys the window, and closing it releases memory.
@@ -60,10 +60,10 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
     }
     if let WindowEvent::Resized(_) = ev {
         let st = win.state::<AppState>();
-        let mtt = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]
+        let minimize_to_tray = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]
             .as_bool()
             .unwrap_or(true);
-        if mtt && win.is_minimized().unwrap_or(false) {
+        if minimize_to_tray && win.is_minimized().unwrap_or(false) {
             let _ = win.close();
         }
     }

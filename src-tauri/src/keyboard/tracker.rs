@@ -24,17 +24,19 @@ impl KeyTracker {
     }
 
     /// Process one raw key event. Emits zero, one or two `KeyEvent`s on `tx`.
-    pub fn handle(&mut self, vk: u32, sc: u32, ext: bool, down: bool, tx: &Sender<KeyEvent>) {
+    pub fn handle(&mut self, virtual_key: u32, scancode: u32, extended: bool, down: bool, tx: &Sender<KeyEvent>) {
         // Fake shift scancodes Windows injects around extended keys: ignore.
-        if ext && (sc == 0x2A || sc == 0x36) {
+        if extended && (scancode == 0x2A || scancode == 0x36) {
             return;
         }
-        let Some(name) = code_name(vk, sc, ext) else { return };
+        let Some(name) = code_name(virtual_key, scancode, extended) else {
+            return;
+        };
         // The Pause key sends a multi-part sequence; give it its own slot so it can't collide with other keys.
         let idx = if name == "Pause" {
             0x1FF
         } else {
-            (sc as usize & 0xFF) | if ext { 0x100 } else { 0 }
+            (scancode as usize & 0xFF) | if extended { 0x100 } else { 0 }
         };
 
         if self.heal {
@@ -56,12 +58,12 @@ impl KeyTracker {
             return; // other spurious releases
         }
         if down {
-            self.down[idx] = Some((vk, name));
+            self.down[idx] = Some((virtual_key, name));
             self.held.push(idx);
         } else {
             self.down[idx] = None;
-            if let Some(p) = self.held.iter().position(|&x| x == idx) {
-                self.held.swap_remove(p);
+            if let Some(held_position) = self.held.iter().position(|&x| x == idx) {
+                self.held.swap_remove(held_position);
             }
         }
         let _ = tx.send(KeyEvent { down, code: name });
@@ -74,13 +76,16 @@ impl KeyTracker {
         use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
         let mut i = 0;
         while i < self.held.len() {
-            let h = self.held[i];
-            if h != current {
-                if let Some((vk, n)) = self.down[h] {
-                    if (unsafe { GetAsyncKeyState(vk as i32) } as u16) & 0x8000 == 0 {
-                        self.down[h] = None;
+            let held_index = self.held[i];
+            if held_index != current {
+                if let Some((virtual_key, name)) = self.down[held_index] {
+                    if (unsafe { GetAsyncKeyState(virtual_key as i32) } as u16) & 0x8000 == 0 {
+                        self.down[held_index] = None;
                         self.held.swap_remove(i);
-                        let _ = tx.send(KeyEvent { down: false, code: n });
+                        let _ = tx.send(KeyEvent {
+                            down: false,
+                            code: name,
+                        });
                         continue;
                     }
                 }
@@ -99,9 +104,9 @@ mod tests {
 
     fn run(events: &[(u32, u32, bool, bool)]) -> Vec<(bool, &'static str)> {
         let (tx, rx) = channel();
-        let mut t = KeyTracker::new(false);
+        let mut tracker = KeyTracker::new(false);
         for &(vk, sc, ext, down) in events {
-            t.handle(vk, sc, ext, down, &tx);
+            tracker.handle(vk, sc, ext, down, &tx);
         }
         drop(tx);
         rx.iter().map(|e| (e.down, e.code)).collect()

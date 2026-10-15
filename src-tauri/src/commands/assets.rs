@@ -15,7 +15,7 @@ pub fn list_fonts(st: State<AppState>) -> Vec<String> {
 
 #[tauri::command]
 pub async fn add_font(app: AppHandle, st: State<'_, AppState>) -> Result<Option<String>, String> {
-    let Some(p) = app
+    let Some(picked_file) = app
         .dialog()
         .file()
         .add_filter("Fonts", &["ttf", "otf", "woff", "woff2"])
@@ -23,7 +23,7 @@ pub async fn add_font(app: AppHandle, st: State<'_, AppState>) -> Result<Option<
     else {
         return Ok(None);
     };
-    let src = p.into_path().map_err(|e| e.to_string())?;
+    let src = picked_file.into_path().map_err(|e| e.to_string())?;
     let name = src
         .file_name()
         .and_then(|n| n.to_str())
@@ -46,47 +46,51 @@ pub fn remove_font(st: State<AppState>, name: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn open_folder(st: State<AppState>, kind: String) {
-    let p = match kind.as_str() {
+    let folder = match kind.as_str() {
         "fonts" | "presets" | "layouts" | "animations" | "themes" => st.shared.paths.user(&kind),
         _ => st.shared.paths.root.clone(),
     };
-    let _ = std::fs::create_dir_all(&p);
-    platform::open_folder(&p);
+    let _ = std::fs::create_dir_all(&folder);
+    platform::open_folder(&folder);
 }
 
 // ---------------------------------------------------------------- style presets (style + animation), stored as
 // presets/<name>.json
-fn clean_name(n: &str) -> Result<String, String> {
-    let n: String = n.trim().chars().filter(|c| !r#"\/:*?"<>|"#.contains(*c)).collect();
-    if n.is_empty() {
+fn clean_name(raw_name: &str) -> Result<String, String> {
+    let cleaned: String = raw_name
+        .trim()
+        .chars()
+        .filter(|c| !r#"\/:*?"<>|"#.contains(*c))
+        .collect();
+    if cleaned.is_empty() {
         Err("Enter a preset name".into())
     } else {
-        Ok(n)
+        Ok(cleaned)
     }
 }
 
 #[tauri::command]
 pub fn list_presets(st: State<AppState>) -> Vec<String> {
-    let mut v: Vec<String> = std::fs::read_dir(st.shared.paths.presets())
+    let mut names: Vec<String> = std::fs::read_dir(st.shared.paths.presets())
         .into_iter()
         .flatten()
         .flatten()
         .filter_map(|e| e.path().file_stem()?.to_str().map(String::from))
         .collect();
-    v.sort();
-    v
+    names.sort();
+    names
 }
 
 #[tauri::command]
 pub fn save_preset(st: State<AppState>, name: String, data: Value) -> Result<(), String> {
-    let p = st.shared.paths.presets().join(format!("{}.json", clean_name(&name)?));
-    std::fs::write(p, serde_json::to_string_pretty(&data).unwrap()).map_err(|e| e.to_string())
+    let preset_path = st.shared.paths.presets().join(format!("{}.json", clean_name(&name)?));
+    std::fs::write(preset_path, serde_json::to_string_pretty(&data).unwrap()).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub fn load_preset(st: State<AppState>, name: String) -> Result<Value, String> {
-    let p = st.shared.paths.presets().join(format!("{}.json", clean_name(&name)?));
-    serde_json::from_str(&std::fs::read_to_string(p).map_err(|e| e.to_string())?).map_err(|e| e.to_string())
+    let preset_path = st.shared.paths.presets().join(format!("{}.json", clean_name(&name)?));
+    serde_json::from_str(&std::fs::read_to_string(preset_path).map_err(|e| e.to_string())?).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -97,7 +101,7 @@ pub fn delete_preset(st: State<AppState>, name: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn export_preset(app: AppHandle, data: Value) -> Result<bool, String> {
-    let Some(p) = app
+    let Some(picked_file) = app
         .dialog()
         .file()
         .add_filter("Style preset", &["json"])
@@ -106,14 +110,14 @@ pub async fn export_preset(app: AppHandle, data: Value) -> Result<bool, String> 
     else {
         return Ok(false);
     };
-    let path = p.into_path().map_err(|e| e.to_string())?;
+    let path = picked_file.into_path().map_err(|e| e.to_string())?;
     std::fs::write(path, serde_json::to_string_pretty(&data).unwrap()).map_err(|e| e.to_string())?;
     Ok(true)
 }
 
 #[tauri::command]
 pub async fn import_preset(app: AppHandle) -> Result<Option<Value>, String> {
-    let Some(p) = app
+    let Some(picked_file) = app
         .dialog()
         .file()
         .add_filter("Style preset", &["json"])
@@ -121,10 +125,10 @@ pub async fn import_preset(app: AppHandle) -> Result<Option<Value>, String> {
     else {
         return Ok(None);
     };
-    let path = p.into_path().map_err(|e| e.to_string())?;
-    let v: Value = serde_json::from_str(&std::fs::read_to_string(path).map_err(|e| e.to_string())?)
+    let path = picked_file.into_path().map_err(|e| e.to_string())?;
+    let preset: Value = serde_json::from_str(&std::fs::read_to_string(path).map_err(|e| e.to_string())?)
         .map_err(|e| format!("Not a valid preset: {e}"))?;
-    Ok(Some(v))
+    Ok(Some(preset))
 }
 
 // ---------------------------------------------------------------- layouts the user made (stored in layouts/<id>.json)
@@ -152,10 +156,10 @@ pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Resul
         base.chars().take(30).collect()
     };
     let mut id = base.clone();
-    let mut n = 2;
+    let mut suffix = 2;
     while all.iter().any(|l| l["id"] == id.as_str()) {
-        id = format!("{base}-{n}");
-        n += 1;
+        id = format!("{base}-{suffix}");
+        suffix += 1;
     }
     let full = all
         .iter()
@@ -186,24 +190,24 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
         .flatten()
         .flatten()
         .map(|e| e.path())
-        .find(|p| {
-            std::fs::read_to_string(p)
+        .find(|layout_path| {
+            std::fs::read_to_string(layout_path)
                 .ok()
-                .and_then(|s| serde_json::from_str::<Value>(&s).ok())
+                .and_then(|text| serde_json::from_str::<Value>(&text).ok())
                 .is_some_and(|v| v["id"] == id.as_str())
         })
         .ok_or("Built-in layouts can't be deleted")?;
     std::fs::remove_file(file).map_err(|e| e.to_string())?;
     {
-        let mut s = st.shared.settings.write().unwrap();
-        if let Some(p) = s["layout"]["profiles"].as_object_mut() {
-            p.remove(&id);
+        let mut current_settings = st.shared.settings.write().unwrap();
+        if let Some(profiles) = current_settings["layout"]["profiles"].as_object_mut() {
+            profiles.remove(&id);
         }
-        let cur = s["layout"]["id"] == id.as_str();
+        let cur = current_settings["layout"]["id"] == id.as_str();
         if cur {
-            s["layout"]["id"] = serde_json::json!("tkl");
+            current_settings["layout"]["id"] = serde_json::json!("tkl");
         }
-        crate::settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+        crate::settings::save(&st.shared.paths.settings(), &current_settings).map_err(|e| e.to_string())?;
         cur
     };
     crate::tray::refresh_tray_layouts(&app);
@@ -219,7 +223,7 @@ const FILE_TAG: &str = "keystroke-overlay-layouts";
 const MAX_USER_LAYOUTS: usize = 20;
 
 fn slug(name: &str) -> String {
-    let s: String = name
+    let cleaned: String = name
         .to_lowercase()
         .chars()
         .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
@@ -228,10 +232,10 @@ fn slug(name: &str) -> String {
         .chars()
         .take(30)
         .collect();
-    if s.is_empty() {
+    if cleaned.is_empty() {
         "layout".into()
     } else {
-        s
+        cleaned
     }
 }
 
@@ -246,9 +250,12 @@ pub fn export_doc(all: &[Value], settings: &Value) -> Result<Value, String> {
         .map(|l| serde_json::json!({ "id": l["id"], "name": l["name"], "keys": l["keys"] }))
         .collect();
     let mut profiles = serde_json::Map::new();
-    for l in &mine {
-        if let Some(p) = l["id"].as_str().and_then(|id| settings["layout"]["profiles"].get(id)) {
-            profiles.insert(l["id"].as_str().unwrap().to_string(), p.clone());
+    for layout in &mine {
+        if let Some(profile) = layout["id"]
+            .as_str()
+            .and_then(|id| settings["layout"]["profiles"].get(id))
+        {
+            profiles.insert(layout["id"].as_str().unwrap().to_string(), profile.clone());
         }
     }
     Ok(serde_json::json!({ "format": FILE_TAG, "version": 1, "layouts": layouts, "profiles": profiles }))
@@ -273,8 +280,8 @@ pub fn import_doc(
     let mut count = existing.iter().filter(|l| l["user"] == true).count();
     let (mut out, mut skipped) = (Vec::new(), 0);
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-    for it in items.iter().take(MAX_USER_LAYOUTS) {
-        let name: String = it["name"]
+    for item in items.iter().take(MAX_USER_LAYOUTS) {
+        let name: String = item["name"]
             .as_str()
             .unwrap_or("Imported layout")
             .trim()
@@ -282,27 +289,28 @@ pub fn import_doc(
             .filter(|c| !c.is_control())
             .take(30)
             .collect();
-        let keys: Vec<Value> = it["keys"]
+        let keys: Vec<Value> = item["keys"]
             .as_array()
-            .map(|a| {
-                a.iter()
+            .map(|raw_keys| {
+                raw_keys
+                    .iter()
                     .take(300)
-                    .filter(|k| {
-                        k["code"].as_str().is_some_and(|c| !c.is_empty() && c.len() <= 40)
-                            && k["x"].is_number()
-                            && k["y"].is_number()
+                    .filter(|key| {
+                        key["code"].as_str().is_some_and(|c| !c.is_empty() && c.len() <= 40)
+                            && key["x"].is_number()
+                            && key["y"].is_number()
                     })
-                    .map(|k| {
-                        let mut o = serde_json::json!({ "code": k["code"], "x": k["x"], "y": k["y"] });
-                        for f in ["w", "h"] {
-                            if k[f].is_number() {
-                                o[f] = k[f].clone();
+                    .map(|key| {
+                        let mut cleaned_key = serde_json::json!({ "code": key["code"], "x": key["x"], "y": key["y"] });
+                        for field in ["w", "h"] {
+                            if key[field].is_number() {
+                                cleaned_key[field] = key[field].clone();
                             }
                         }
-                        if let Some(l) = k["label"].as_str() {
-                            o["label"] = Value::String(l.chars().take(16).collect());
+                        if let Some(label) = key["label"].as_str() {
+                            cleaned_key["label"] = Value::String(label.chars().take(16).collect());
                         }
-                        o
+                        cleaned_key
                     })
                     .collect()
             })
@@ -311,11 +319,11 @@ pub fn import_doc(
             skipped += 1;
             continue;
         }
-        let base = slug(it["id"].as_str().unwrap_or(&name));
-        let (mut id, mut n) = (base.clone(), 2);
+        let base = slug(item["id"].as_str().unwrap_or(&name));
+        let (mut id, mut suffix) = (base.clone(), 2);
         while have.contains(&id) {
-            id = format!("{base}-{n}");
-            n += 1;
+            id = format!("{base}-{suffix}");
+            suffix += 1;
         }
         let doc = serde_json::json!({ "id": id, "name": name, "keys": keys });
         std::fs::write(
@@ -323,7 +331,7 @@ pub fn import_doc(
             serde_json::to_string_pretty(&doc).unwrap(),
         )
         .map_err(|e| e.to_string())?;
-        let old_id = it["id"].as_str().unwrap_or("");
+        let old_id = item["id"].as_str().unwrap_or("");
         let prof = crate::settings::clean_profiles(
             &serde_json::json!({ "x": top["profiles"].get(old_id).cloned().unwrap_or(Value::Null) }),
         );
@@ -338,7 +346,7 @@ pub fn import_doc(
 pub async fn export_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<Option<usize>, String> {
     let all = server::layouts(&st.shared.paths);
     let doc = export_doc(&all, &st.shared.settings.read().unwrap())?;
-    let Some(p) = app
+    let Some(picked_file) = app
         .dialog()
         .file()
         .add_filter("Keystroke Overlay layouts", &["json"])
@@ -347,7 +355,7 @@ pub async fn export_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
     else {
         return Ok(None);
     };
-    let path = p.into_path().map_err(|e| e.to_string())?;
+    let path = picked_file.into_path().map_err(|e| e.to_string())?;
     std::fs::write(path, serde_json::to_string_pretty(&doc).unwrap()).map_err(|e| e.to_string())?;
     Ok(Some(doc["layouts"].as_array().map_or(0, |a| a.len())))
 }
@@ -355,7 +363,7 @@ pub async fn export_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
 /// Returns None if the user cancelled, otherwise (layouts added, layouts skipped).
 #[tauri::command]
 pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<Option<(usize, usize)>, String> {
-    let Some(p) = app
+    let Some(picked_file) = app
         .dialog()
         .file()
         .add_filter("Keystroke Overlay layouts", &["json"])
@@ -363,7 +371,7 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
     else {
         return Ok(None);
     };
-    let path = p.into_path().map_err(|e| e.to_string())?;
+    let path = picked_file.into_path().map_err(|e| e.to_string())?;
     if std::fs::metadata(&path).map_err(|e| e.to_string())?.len() > 2_000_000 {
         return Err("That file is too big to be a layout file".into());
     }
@@ -375,15 +383,15 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
         &st.shared.paths.user("layouts"),
     )?;
     {
-        let mut s = st.shared.settings.write().unwrap();
+        let mut current_settings = st.shared.settings.write().unwrap();
         for (id, prof) in &added {
             let empty = prof["disabledKeys"].as_array().is_none_or(|a| a.is_empty())
                 && prof["labels"].as_object().is_none_or(|o| o.is_empty());
             if !empty {
-                s["layout"]["profiles"][id] = prof.clone();
+                current_settings["layout"]["profiles"][id] = prof.clone();
             }
         }
-        crate::settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+        crate::settings::save(&st.shared.paths.settings(), &current_settings).map_err(|e| e.to_string())?;
     }
     crate::tray::refresh_tray_layouts(&app);
     let _ = st.shared.cfg_tx.send("assets"); // the overlay (OBS and the preview) must re-read its list of layouts
@@ -397,9 +405,9 @@ mod layout_file_tests {
     use super::*;
     use serde_json::json;
     fn tmp(name: &str) -> std::path::PathBuf {
-        let d = std::env::temp_dir().join(format!("ko-test-{name}-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&d);
-        d
+        let dir = std::env::temp_dir().join(format!("ko-test-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        dir
     }
     fn layout(id: &str, user: bool) -> Value {
         json!({ "id": id, "name": id, "user": user, "keys": [{ "code": "KeyA", "x": 0, "y": 0, "label": "A" }] })
@@ -408,12 +416,12 @@ mod layout_file_tests {
     #[test]
     fn export_needs_a_user_layout_and_keeps_key_edits() {
         assert!(export_doc(&[layout("tkl", false)], &json!({})).is_err());
-        let s = json!({ "layout": { "profiles": { "mine": { "disabledKeys": ["KeyB"], "labels": {} }, "tkl": { "disabledKeys": ["KeyC"], "labels": {} } } } });
-        let d = export_doc(&[layout("tkl", false), layout("mine", true)], &s).unwrap();
-        assert_eq!(d["layouts"].as_array().unwrap().len(), 1);
-        assert!(d["layouts"][0].get("user").is_none());
-        assert_eq!(d["profiles"]["mine"]["disabledKeys"], json!(["KeyB"]));
-        assert!(d["profiles"].get("tkl").is_none());
+        let settings = json!({ "layout": { "profiles": { "mine": { "disabledKeys": ["KeyB"], "labels": {} }, "tkl": { "disabledKeys": ["KeyC"], "labels": {} } } } });
+        let doc = export_doc(&[layout("tkl", false), layout("mine", true)], &settings).unwrap();
+        assert_eq!(doc["layouts"].as_array().unwrap().len(), 1);
+        assert!(doc["layouts"][0].get("user").is_none());
+        assert_eq!(doc["profiles"]["mine"]["disabledKeys"], json!(["KeyB"]));
+        assert!(doc["profiles"].get("tkl").is_none());
     }
 
     #[test]
@@ -459,8 +467,8 @@ mod import_robustness_tests {
             self.0 ^= self.0 << 17;
             self.0
         }
-        fn below(&mut self, n: u64) -> u64 {
-            self.next() % n
+        fn below(&mut self, limit: u64) -> u64 {
+            self.next() % limit
         }
     }
     const NAMES: &[&str] = &[
@@ -476,44 +484,44 @@ mod import_robustness_tests {
         "full",
         "wasd",
     ];
-    fn rand_val(r: &mut Rng) -> Value {
-        match r.below(6) {
+    fn rand_val(rng: &mut Rng) -> Value {
+        match rng.below(6) {
             0 => Value::Null,
-            1 => json!(r.below(1000) as f64 - 500.5),
-            2 => json!(NAMES[r.below(NAMES.len() as u64) as usize]),
-            3 => json!("k".repeat(r.below(200) as usize)),
-            4 => json!(r.below(2) == 0),
+            1 => json!(rng.below(1000) as f64 - 500.5),
+            2 => json!(NAMES[rng.below(NAMES.len() as u64) as usize]),
+            3 => json!("k".repeat(rng.below(200) as usize)),
+            4 => json!(rng.below(2) == 0),
             _ => json!([1, "a", null]),
         }
     }
-    fn rand_key(r: &mut Rng) -> Value {
-        let mut k = serde_json::Map::new();
-        for f in ["code", "x", "y", "w", "h", "label"] {
-            if r.below(5) != 0 {
-                k.insert(f.into(), rand_val(r));
+    fn rand_key(rng: &mut Rng) -> Value {
+        let mut key = serde_json::Map::new();
+        for field in ["code", "x", "y", "w", "h", "label"] {
+            if rng.below(5) != 0 {
+                key.insert(field.into(), rand_val(rng));
             }
         }
-        Value::Object(k)
+        Value::Object(key)
     }
-    fn rand_layout(r: &mut Rng) -> Value {
-        let n = [0, 1, 5, 400][r.below(4) as usize];
-        json!({ "id": rand_val(r), "name": rand_val(r), "keys": (0..n).map(|_| rand_key(r)).collect::<Vec<_>>() })
+    fn rand_layout(rng: &mut Rng) -> Value {
+        let key_count = [0, 1, 5, 400][rng.below(4) as usize];
+        json!({ "id": rand_val(rng), "name": rand_val(rng), "keys": (0..key_count).map(|_| rand_key(rng)).collect::<Vec<_>>() })
     }
 
     #[test]
     fn hostile_layout_files_only_produce_clean_layouts_inside_the_folder() {
         let base = std::env::temp_dir().join(format!("ko-fuzz-{}", std::process::id()));
         for seed in 1..=300u64 {
-            let mut r = Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
+            let mut rng = Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
             let dir = base.join(seed.to_string());
-            let top = match r.below(3) {
-                0 => rand_layout(&mut r),
+            let top = match rng.below(3) {
+                0 => rand_layout(&mut rng),
                 1 => {
-                    json!({ "layouts": (0..r.below(30)).map(|_| rand_layout(&mut r)).collect::<Vec<_>>(), "profiles": rand_val(&mut r) })
+                    json!({ "layouts": (0..rng.below(30)).map(|_| rand_layout(&mut rng)).collect::<Vec<_>>(), "profiles": rand_val(&mut rng) })
                 }
-                _ => json!({ "layouts": rand_val(&mut r), "profiles": rand_val(&mut r) }),
+                _ => json!({ "layouts": rand_val(&mut rng), "profiles": rand_val(&mut rng) }),
             };
-            let existing: Vec<Value> = (0..r.below(21))
+            let existing: Vec<Value> = (0..rng.below(21))
                 .map(|i| json!({ "id": format!("u{i}"), "name": "x", "user": true, "keys": [] }))
                 .collect();
             let before = existing.iter().filter(|l| l["user"] == true).count();
@@ -532,8 +540,8 @@ mod import_robustness_tests {
                 added.len(),
                 "seed {seed}: files written != layouts reported"
             );
-            for f in files {
-                let name = f.file_name().into_string().unwrap();
+            for file in files {
+                let name = file.file_name().into_string().unwrap();
                 assert!(
                     name.ends_with(".json")
                         && name[..name.len() - 5]
@@ -542,7 +550,7 @@ mod import_robustness_tests {
                         && name.len() <= 40,
                     "seed {seed}: bad file name {name:?}"
                 );
-                let doc: Value = serde_json::from_str(&std::fs::read_to_string(f.path()).unwrap()).unwrap();
+                let doc: Value = serde_json::from_str(&std::fs::read_to_string(file.path()).unwrap()).unwrap();
                 assert!(
                     crate::server::valid_layout(&doc),
                     "seed {seed}: saved layout is not valid"

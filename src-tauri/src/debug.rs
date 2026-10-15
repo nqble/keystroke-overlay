@@ -139,23 +139,23 @@ pub fn debug_simulate_update(app: AppHandle, on: bool) {
 /// ({ k, down, ms }). It stops after 60 seconds, when asked, or when the window is gone. Nothing is stored.
 #[tauri::command]
 pub fn debug_key_monitor(app: AppHandle, st: State<AppState>, on: bool) {
-    let me = MONITOR.fetch_add(1, Ordering::SeqCst) + 1;
+    let monitor_id = MONITOR.fetch_add(1, Ordering::SeqCst) + 1;
     if !on {
         return;
     }
     let mut rx = st.shared.bus.tx.subscribe();
     let begun = Instant::now();
     tauri::async_runtime::spawn(async move {
-        while MONITOR.load(Ordering::SeqCst) == me
+        while MONITOR.load(Ordering::SeqCst) == monitor_id
             && begun.elapsed() < MONITOR_MAX
             && app.get_webview_window("settings").is_some()
         {
             use tokio::sync::broadcast::error::RecvError;
             match tokio::time::timeout(Duration::from_millis(400), rx.recv()).await {
-                Ok(Ok(e)) => {
+                Ok(Ok(event)) => {
                     let _ = app.emit(
                         "debug-key",
-                        json!({ "k": e.code, "down": e.down, "ms": begun.elapsed().as_millis() as u64 }),
+                        json!({ "k": event.code, "down": event.down, "ms": begun.elapsed().as_millis() as u64 }),
                     );
                 }
                 Ok(Err(RecvError::Lagged(_))) => {}

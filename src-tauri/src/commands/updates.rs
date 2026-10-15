@@ -48,15 +48,15 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
     let channel = channel_of(app);
     let upd = updater_for(app, &channel)?;
     let result = match upd.check().await {
-        Ok(Some(u)) => {
+        Ok(Some(update)) => {
             // The manifest may carry "manual": true (+ "manual_url") for updates the in-app installer can't apply.
-            let manual = u.raw_json.get("manual").and_then(|v| v.as_bool()).unwrap_or(false);
-            let url = u
+            let manual = update.raw_json.get("manual").and_then(|v| v.as_bool()).unwrap_or(false);
+            let url = update
                 .raw_json
                 .get("manual_url")
                 .and_then(|v| v.as_str())
                 .unwrap_or(RELEASES_URL);
-            json!({ "available": true, "version": u.version, "notes": u.body, "current": u.current_version, "manual": manual, "url": url, "channel": channel })
+            json!({ "available": true, "version": update.version, "notes": update.body, "current": update.current_version, "manual": manual, "url": url, "channel": channel })
         }
         Ok(None) => json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": channel }),
         Err(e) => {
@@ -86,10 +86,11 @@ pub fn start_background_check(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(std::time::Duration::from_secs(45)).await;
         loop {
-            let on = app.state::<AppState>().shared.settings.read().unwrap()["general"]["autoCheckUpdates"]
+            let auto_check_enabled = app.state::<AppState>().shared.settings.read().unwrap()["general"]
+                ["autoCheckUpdates"]
                 .as_bool()
                 .unwrap_or(false);
-            if on {
+            if auto_check_enabled {
                 let _ = do_check(&app).await;
             }
             tokio::time::sleep(std::time::Duration::from_secs(CHECK_EVERY_SECS)).await;
@@ -114,10 +115,10 @@ pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
     {
         return Ok(Value::Null);
     }
-    let ch = channel_of(&app);
-    if let Some((t, c, v)) = st.update_cache.lock().unwrap().as_ref() {
-        if *c == ch && t.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) {
-            return Ok(v.clone());
+    let channel = channel_of(&app);
+    if let Some((checked_at, cached_channel, cached_result)) = st.update_cache.lock().unwrap().as_ref() {
+        if *cached_channel == channel && checked_at.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) {
+            return Ok(cached_result.clone());
         }
     }
     do_check(&app).await
@@ -138,22 +139,23 @@ pub fn open_release_page(url: String) -> Result<(), String> {
 pub async fn install_update(app: AppHandle) -> Result<(), String> {
     let channel = channel_of(&app);
     let upd = updater_for(&app, &channel)?;
-    let Some(u) = upd.check().await.map_err(|e| e.to_string())? else {
+    let Some(update) = upd.check().await.map_err(|e| e.to_string())? else {
         return Err("Already up to date".into());
     };
-    let (a1, a2) = (app.clone(), app.clone());
+    let (progress_app, installing_app) = (app.clone(), app.clone());
     let mut done: u64 = 0;
-    u.download_and_install(
-        move |chunk, total| {
-            done += chunk as u64;
-            let _ = a1.emit("update-progress", json!({ "done": done, "total": total }));
-        },
-        move || {
-            let _ = a2.emit("update-installing", ());
-        },
-    )
-    .await
-    .map_err(|e| format!("Update failed: {e}"))?;
+    update
+        .download_and_install(
+            move |chunk, total| {
+                done += chunk as u64;
+                let _ = progress_app.emit("update-progress", json!({ "done": done, "total": total }));
+            },
+            move || {
+                let _ = installing_app.emit("update-installing", ());
+            },
+        )
+        .await
+        .map_err(|e| format!("Update failed: {e}"))?;
     app.restart();
 }
 
@@ -161,18 +163,18 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub fn ack_whats_new(st: State<AppState>) {
     st.whats_new.store(false, Ordering::Relaxed);
-    let mut s = st.shared.settings.write().unwrap();
-    s["general"]["lastSeenVersion"] = json!(env!("CARGO_PKG_VERSION"));
-    let _ = settings::save(&st.shared.paths.settings(), &s);
+    let mut current_settings = st.shared.settings.write().unwrap();
+    current_settings["general"]["lastSeenVersion"] = json!(env!("CARGO_PKG_VERSION"));
+    let _ = settings::save(&st.shared.paths.settings(), &current_settings);
 }
 
-fn release_notes_from(j: &Value, ver: &str) -> Value {
-    let body: String = j["body"].as_str().unwrap_or("").chars().take(20000).collect();
+fn release_notes_from(release: &Value, ver: &str) -> Value {
+    let body: String = release["body"].as_str().unwrap_or("").chars().take(20000).collect();
     json!({
         "version": ver,
-        "title": j["name"].as_str().filter(|s| !s.is_empty()).map(String::from).unwrap_or_else(|| format!("v{ver}")),
+        "title": release["name"].as_str().filter(|s| !s.is_empty()).map(String::from).unwrap_or_else(|| format!("v{ver}")),
         "body": body,
-        "url": j["html_url"].as_str().unwrap_or("")
+        "url": release["html_url"].as_str().unwrap_or("")
     })
 }
 
@@ -201,11 +203,11 @@ pub async fn get_release_notes(version: Option<String>) -> Result<Value, String>
     if !resp.status().is_success() {
         return Err(format!("GitHub returned an error ({}).", resp.status()));
     }
-    let j: Value = resp
+    let release: Value = resp
         .json()
         .await
         .map_err(|_| "GitHub sent something unexpected.".to_string())?;
-    Ok(release_notes_from(&j, &ver))
+    Ok(release_notes_from(&release, &ver))
 }
 
 #[cfg(test)]
@@ -213,10 +215,10 @@ mod tests {
     use super::*;
     #[test]
     fn release_notes_parse() {
-        let j = json!({ "name": "v1.2.3", "body": "- one\n- two", "html_url": "https://github.com/x/y/releases/tag/v1.2.3" });
-        let n = release_notes_from(&j, "1.2.3");
-        assert_eq!(n["title"], "v1.2.3");
-        assert_eq!(n["body"], "- one\n- two");
+        let release = json!({ "name": "v1.2.3", "body": "- one\n- two", "html_url": "https://github.com/x/y/releases/tag/v1.2.3" });
+        let notes = release_notes_from(&release, "1.2.3");
+        assert_eq!(notes["title"], "v1.2.3");
+        assert_eq!(notes["body"], "- one\n- two");
         let empty = release_notes_from(&json!({ "name": "", "body": null }), "9.9.9");
         assert_eq!(empty["title"], "v9.9.9");
         assert_eq!(empty["body"], "");

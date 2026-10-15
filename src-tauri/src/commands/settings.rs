@@ -71,10 +71,10 @@ pub fn set_port(st: State<AppState>, port: u16) -> Result<String, String> {
         old.stop();
     }
     *st.server_error.lock().unwrap() = None;
-    let mut s = st.shared.settings.write().unwrap();
-    s["general"]["port"] = json!(port);
-    let _ = settings::save(&st.shared.paths.settings(), &s);
-    drop(s);
+    let mut current_settings = st.shared.settings.write().unwrap();
+    current_settings["general"]["port"] = json!(port);
+    let _ = settings::save(&st.shared.paths.settings(), &current_settings);
+    drop(current_settings);
     let _ = st.shared.cfg_tx.send("cfg");
     crate::debug::log(format!("port changed to {port}"));
     Ok(obs_url(&st.shared))
@@ -82,11 +82,16 @@ pub fn set_port(st: State<AppState>, port: u16) -> Result<String, String> {
 
 #[tauri::command]
 pub fn set_autostart(app: AppHandle, st: State<AppState>, enabled: bool) -> Result<(), String> {
-    let al = app.autolaunch();
-    (if enabled { al.enable() } else { al.disable() }).map_err(|e| e.to_string())?;
-    let mut s = st.shared.settings.write().unwrap();
-    s["general"]["autostart"] = json!(enabled);
-    let _ = settings::save(&st.shared.paths.settings(), &s);
+    let autolaunch = app.autolaunch();
+    (if enabled {
+        autolaunch.enable()
+    } else {
+        autolaunch.disable()
+    })
+    .map_err(|e| e.to_string())?;
+    let mut current_settings = st.shared.settings.write().unwrap();
+    current_settings["general"]["autostart"] = json!(enabled);
+    let _ = settings::save(&st.shared.paths.settings(), &current_settings);
     Ok(())
 }
 
@@ -104,12 +109,12 @@ pub fn copy_text(app: AppHandle, text: String) -> Result<(), String> {
 /// the old one keeps running and an error is returned. Saved only on success.
 #[tauri::command]
 pub fn set_input_method(st: State<AppState>, method: String) -> Result<(), String> {
-    let m = crate::keyboard::Method::parse(&method).ok_or("Unknown input method")?;
-    st.shared.bus.set_method(m)?;
-    crate::debug::log(format!("keyboard input method is now {}", m.id()));
-    let mut s = st.shared.settings.write().unwrap();
-    s["general"]["inputMethod"] = json!(m.id());
-    let _ = settings::save(&st.shared.paths.settings(), &s);
+    let input_method = crate::keyboard::Method::parse(&method).ok_or("Unknown input method")?;
+    st.shared.bus.set_method(input_method)?;
+    crate::debug::log(format!("keyboard input method is now {}", input_method.id()));
+    let mut current_settings = st.shared.settings.write().unwrap();
+    current_settings["general"]["inputMethod"] = json!(input_method.id());
+    let _ = settings::save(&st.shared.paths.settings(), &current_settings);
     Ok(())
 }
 
@@ -119,16 +124,16 @@ pub fn set_input_method(st: State<AppState>, method: String) -> Result<(), Strin
 pub async fn set_secure_link(app: AppHandle, enabled: bool) -> Result<String, String> {
     {
         let st = app.state::<AppState>();
-        let mut s = st.shared.settings.write().unwrap();
-        if enabled && s["general"]["linkKey"].as_str().unwrap_or("").is_empty() {
-            s["general"]["linkKey"] = json!(settings::new_key()?);
+        let mut current_settings = st.shared.settings.write().unwrap();
+        if enabled && current_settings["general"]["linkKey"].as_str().unwrap_or("").is_empty() {
+            current_settings["general"]["linkKey"] = json!(settings::new_key()?);
         }
-        s["general"]["secureLink"] = json!(enabled);
+        current_settings["general"]["secureLink"] = json!(enabled);
         crate::debug::log(format!("secure link {}", if enabled { "on" } else { "off" }));
-        settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+        settings::save(&st.shared.paths.settings(), &current_settings).map_err(|e| e.to_string())?;
     }
-    let a = app.clone();
-    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a))
+    let app_handle = app.clone();
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&app_handle))
         .await
         .map_err(|e| e.to_string())??;
     Ok(obs_url(&app.state::<AppState>().shared))
@@ -140,15 +145,15 @@ pub async fn set_secure_link(app: AppHandle, enabled: bool) -> Result<String, St
 pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
     {
         let st = app.state::<AppState>();
-        let mut s = st.shared.settings.write().unwrap();
-        if !s["general"]["secureLink"].as_bool().unwrap_or(false) {
+        let mut current_settings = st.shared.settings.write().unwrap();
+        if !current_settings["general"]["secureLink"].as_bool().unwrap_or(false) {
             return Err("Turn the secure link on first".into());
         }
-        s["general"]["linkKey"] = json!(settings::new_key()?);
-        settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+        current_settings["general"]["linkKey"] = json!(settings::new_key()?);
+        settings::save(&st.shared.paths.settings(), &current_settings).map_err(|e| e.to_string())?;
     }
-    let a = app.clone();
-    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a))
+    let app_handle = app.clone();
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&app_handle))
         .await
         .map_err(|e| e.to_string())??;
     Ok(obs_url(&app.state::<AppState>().shared))
@@ -175,8 +180,8 @@ pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
         *st.shared.settings.write().unwrap() = new;
         *st.update_cache.lock().unwrap() = None;
     }
-    let a = app.clone();
-    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a))
+    let app_handle = app.clone();
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&app_handle))
         .await
         .map_err(|e| e.to_string())??;
     crate::state::announce(&app);

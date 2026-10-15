@@ -63,13 +63,13 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
             STATE.with(|s| *s.borrow_mut() = Some((KeyTracker::new(true), tx)));
             let hinst = GetModuleHandleW(None).ok().map(|m| m.into());
             let class = w!("KeystrokeOverlayRawInput");
-            let wc = WNDCLASSW {
+            let class_info = WNDCLASSW {
                 lpfnWndProc: Some(wnd_proc),
                 hInstance: hinst.unwrap_or_default(),
                 lpszClassName: class,
                 ..Default::default()
             };
-            RegisterClassW(&wc); // fine if it already exists from an earlier start
+            RegisterClassW(&class_info); // fine if it already exists from an earlier start
             let hwnd = match CreateWindowExW(
                 WINDOW_EX_STYLE(0),
                 class,
@@ -84,7 +84,7 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
                 hinst,
                 None,
             ) {
-                Ok(h) => h,
+                Ok(window) => window,
                 Err(e) => {
                     let _ = ready_tx.send(Err(format!("could not create the input window ({e})")));
                     return;
@@ -144,10 +144,11 @@ unsafe extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam:
             size_of::<RAWINPUTHEADER>() as u32,
         );
         if got != u32::MAX {
-            let ri = &*(buf.as_ptr() as *const RAWINPUT);
-            if ri.header.dwType == RIM_TYPEKEYBOARD.0 {
-                let kb = ri.data.keyboard;
-                if let Some((vk, sc, ext, down)) = decode(kb.VKey, kb.MakeCode, kb.Flags) {
+            let raw_input = &*(buf.as_ptr() as *const RAWINPUT);
+            if raw_input.header.dwType == RIM_TYPEKEYBOARD.0 {
+                let raw_keyboard = raw_input.data.keyboard;
+                if let Some((vk, sc, ext, down)) = decode(raw_keyboard.VKey, raw_keyboard.MakeCode, raw_keyboard.Flags)
+                {
                     STATE.with(|s| {
                         if let Some((tracker, tx)) = s.borrow_mut().as_mut() {
                             tracker.handle(vk, sc, ext, down, tx);

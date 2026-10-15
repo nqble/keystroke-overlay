@@ -34,9 +34,9 @@ pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
         return Err(format!("Unknown layout: {id}"));
     }
     {
-        let mut s = st.shared.settings.write().unwrap();
-        s["layout"]["id"] = json!(id);
-        settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
+        let mut current_settings = st.shared.settings.write().unwrap();
+        current_settings["layout"]["id"] = json!(id);
+        settings::save(&st.shared.paths.settings(), &current_settings).map_err(|e| e.to_string())?;
     }
     announce(app);
     sync_tray(app);
@@ -47,23 +47,23 @@ pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
 /// icon.
 pub fn badge_rgba(rgba: &[u8], w: u32, h: u32) -> Vec<u8> {
     let mut out = rgba.to_vec();
-    let (cx, cy, r) = (w as f32 * 0.76, h as f32 * 0.24, w as f32 * 0.21);
-    let mut blend = |x: u32, y: u32, c: [u8; 3], cover: f32| {
+    let (cx, cy, radius) = (w as f32 * 0.76, h as f32 * 0.24, w as f32 * 0.21);
+    let mut blend = |x: u32, y: u32, color: [u8; 3], cover: f32| {
         let i = ((y * w + x) * 4) as usize;
-        let a = cover.clamp(0.0, 1.0);
-        for k in 0..3 {
-            out[i + k] = (out[i + k] as f32 * (1.0 - a) + c[k] as f32 * a) as u8;
+        let alpha = cover.clamp(0.0, 1.0);
+        for channel in 0..3 {
+            out[i + channel] = (out[i + channel] as f32 * (1.0 - alpha) + color[channel] as f32 * alpha) as u8;
         }
-        out[i + 3] = out[i + 3].max((a * 255.0) as u8);
+        out[i + 3] = out[i + 3].max((alpha * 255.0) as u8);
     };
     for y in 0..h {
         for x in 0..w {
-            let d = ((x as f32 + 0.5 - cx).powi(2) + (y as f32 + 0.5 - cy).powi(2)).sqrt();
-            let ring = (r * 1.3 - d + 0.5).clamp(0.0, 1.0); // soft edge, about one pixel wide
+            let distance = ((x as f32 + 0.5 - cx).powi(2) + (y as f32 + 0.5 - cy).powi(2)).sqrt();
+            let ring = (radius * 1.3 - distance + 0.5).clamp(0.0, 1.0); // soft edge, about one pixel wide
             if ring > 0.0 {
                 blend(x, y, [26, 29, 38], ring);
             }
-            let dot = (r - d + 0.5).clamp(0.0, 1.0);
+            let dot = (radius - distance + 0.5).clamp(0.0, 1.0);
             if dot > 0.0 {
                 blend(x, y, [255, 138, 0], dot);
             }
@@ -80,19 +80,19 @@ pub fn set_update_badge(app: &AppHandle, available: bool) {
     let st = app.state::<AppState>();
     let (tray, menu, item, icon) = {
         let mut guard = st.tray.lock().unwrap();
-        let Some(t) = guard.as_mut() else { return };
-        if t.update_shown == available {
+        let Some(tray_items) = guard.as_mut() else { return };
+        if tray_items.update_shown == available {
             return;
         }
-        t.update_shown = available;
+        tray_items.update_shown = available;
         (
-            t.tray.clone(),
-            t.menu.clone(),
-            t.update_item.clone(),
+            tray_items.tray.clone(),
+            tray_items.menu.clone(),
+            tray_items.update_item.clone(),
             if available {
-                t.icon_badged.clone()
+                tray_items.icon_badged.clone()
             } else {
-                t.icon.clone()
+                tray_items.icon.clone()
             },
         )
     };
@@ -122,27 +122,27 @@ pub fn refresh_tray_layouts(app: &AppHandle) {
         .to_string();
     let (submenu, old) = {
         let mut guard = st.tray.lock().unwrap();
-        let Some(t) = guard.as_mut() else { return };
-        (t.layout_menu.clone(), std::mem::take(&mut t.layouts))
+        let Some(tray_items) = guard.as_mut() else { return };
+        (tray_items.layout_menu.clone(), std::mem::take(&mut tray_items.layouts))
     };
-    for (_, it) in &old {
-        let _ = submenu.remove(it);
+    for (_, old_item) in &old {
+        let _ = submenu.remove(old_item);
     }
     let mut fresh = Vec::new();
-    for l in server::layouts(&st.shared.paths) {
-        let id = l["id"].as_str().unwrap_or("").to_string();
-        let name = l["name"].as_str().unwrap_or(&id).to_string();
-        if let Ok(it) = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name)
+    for layout in server::layouts(&st.shared.paths) {
+        let id = layout["id"].as_str().unwrap_or("").to_string();
+        let name = layout["name"].as_str().unwrap_or(&id).to_string();
+        if let Ok(item) = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name)
             .checked(id == cur)
             .build(app)
         {
-            let _ = submenu.append(&it);
-            fresh.push((id, it));
+            let _ = submenu.append(&item);
+            fresh.push((id, item));
         }
     }
     let mut guard = st.tray.lock().unwrap();
-    if let Some(t) = guard.as_mut() {
-        t.layouts = fresh;
+    if let Some(tray_items) = guard.as_mut() {
+        tray_items.layouts = fresh;
     }
 }
 
@@ -157,8 +157,8 @@ pub fn restart_server_inner(app: &AppHandle) -> Result<(), String> {
     let mut last = String::new();
     for _ in 0..40 {
         match server::start(st.shared.clone(), port) {
-            Ok(h) => {
-                *st.server.lock().unwrap() = Some(h);
+            Ok(handle) => {
+                *st.server.lock().unwrap() = Some(handle);
                 *st.server_error.lock().unwrap() = None;
                 crate::debug::log(format!("server running on port {port}"));
                 let _ = app.emit("settings-changed", ());
@@ -187,13 +187,13 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         .checked(false)
         .build(app)?;
     let mut layout_items: Vec<(String, CheckMenuItem<tauri::Wry>)> = Vec::new();
-    for l in server::layouts(&shared.paths) {
-        let id = l["id"].as_str().unwrap_or("").to_string();
-        let name = l["name"].as_str().unwrap_or(&id).to_string();
-        let it = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name)
+    for layout in server::layouts(&shared.paths) {
+        let id = layout["id"].as_str().unwrap_or("").to_string();
+        let name = layout["name"].as_str().unwrap_or(&id).to_string();
+        let item = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name)
             .checked(id == cur_layout)
             .build(app)?;
-        layout_items.push((id, it));
+        layout_items.push((id, item));
     }
     let refs: Vec<&dyn IsMenuItem<tauri::Wry>> = layout_items
         .iter()
@@ -234,16 +234,16 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
                     toggle_pause_inner(app);
                 }
                 "restart" => {
-                    let a = app.clone();
+                    let app_handle = app.clone();
                     std::thread::spawn(move || {
-                        let _ = restart_server_inner(&a);
+                        let _ = restart_server_inner(&app_handle);
                     });
                 }
                 "update" => open_settings_tab(app, "general"),
                 "quit" => app.exit(0),
                 other => {
-                    if let Some(l) = other.strip_prefix("layout:") {
-                        if set_layout_inner(app, l).is_err() {
+                    if let Some(layout_id) = other.strip_prefix("layout:") {
+                        if set_layout_inner(app, layout_id).is_err() {
                             sync_tray(app);
                         }
                     }

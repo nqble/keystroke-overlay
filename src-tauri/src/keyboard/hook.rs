@@ -40,7 +40,7 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
             STATE.with(|s| *s.borrow_mut() = Some((KeyTracker::new(true), tx)));
             let hmod = GetModuleHandleW(None).ok();
             let hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(proc), hmod.map(|m| m.into()), 0) {
-                Ok(h) => h,
+                Ok(installed_hook) => installed_hook,
                 Err(e) => {
                     let _ = ready_tx.send(Err(e.to_string()));
                     return;
@@ -69,14 +69,14 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
 
 unsafe extern "system" fn proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     if code == HC_ACTION as i32 {
-        let k = &*(lparam.0 as *const KBDLLHOOKSTRUCT);
+        let key_data = &*(lparam.0 as *const KBDLLHOOKSTRUCT);
         let down = matches!(wparam.0 as u32, WM_KEYDOWN | WM_SYSKEYDOWN);
         let up = matches!(wparam.0 as u32, WM_KEYUP | WM_SYSKEYUP);
         if down || up {
-            let ext = k.flags.0 & 0x01 != 0;
+            let ext = key_data.flags.0 & 0x01 != 0;
             STATE.with(|s| {
                 if let Some((tracker, tx)) = s.borrow_mut().as_mut() {
-                    tracker.handle(k.vkCode, k.scanCode, ext, down, tx);
+                    tracker.handle(key_data.vkCode, key_data.scanCode, ext, down, tx);
                 }
             });
         }
