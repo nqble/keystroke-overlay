@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-STYLE.md](docs/RELEASE-NOTES-STYLE.md).
+All notable changes. Newest first.
 
 ## v1.2.0 — the first Stable release *(unreleased)*
 

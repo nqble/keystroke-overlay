@@ -44,7 +44,7 @@ The manual steps below are the fallback (and what the workflow runs internally).
 ## Every release (manual)
 
 1. Raise `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` (same number).
-2. Add an entry to [CHANGELOG.md](../CHANGELOG.md) in the friendly tone ([RELEASE-NOTES-STYLE.md](RELEASE-NOTES-STYLE.md)).
+2. Add an entry to [CHANGELOG.md](../CHANGELOG.md).
 3. `npm test`
 4. Build + sign:
    ```bash

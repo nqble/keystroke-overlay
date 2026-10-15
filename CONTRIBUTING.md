@@ -59,8 +59,6 @@ hook, local server, tray, settings storage), `ui/overlay/` is the page OBS loads
 - Keep each PR focused; describe what changed and why.
 - `npm test` must pass. For UI changes, include a screenshot.
 - Don't add dependencies lightly: every crate is code that runs next to a keyboard hook. Mention why a new one is needed.
-- Release notes are written in a friendly but direct tone; see [docs/RELEASE-NOTES-STYLE.md](docs/RELEASE-NOTES-STYLE.md)
-  if you add a [CHANGELOG](CHANGELOG.md) entry.
 
 ## Code of conduct
 

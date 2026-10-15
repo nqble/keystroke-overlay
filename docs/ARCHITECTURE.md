@@ -9,7 +9,7 @@ loads, and the settings window). No framework, no bundler.
 keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
 ├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
-├── docs/               you are here (ARCHITECTURE, RELEASING, OPEN-SOURCE-GUIDE, MAC-PORT, RELEASE-NOTES-STYLE, NEXT-RELEASE)
+├── docs/               you are here (ARCHITECTURE, RELEASING, OPEN-SOURCE-GUIDE, MAC-PORT, NEXT-RELEASE)
 ├── assets/             icon source image
 ├── tests/              end-to-end suites + runner (see tests/README.md); Rust unit tests live next to the code
 ├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes), check-privacy.mjs,
