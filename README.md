@@ -32,6 +32,47 @@ Prefer to build it yourself? See [Building from source](#building-from-source).
 
 If you change the port in settings, update the URL in OBS too.
 
+## Using two PCs (game on one, OBS on the other)
+
+Keystroke Overlay only talks to `127.0.0.1`, which means "this PC", so OBS has to run on the **same PC as the app**. If you play on
+PC A and stream with OBS on PC B, there is a way to make it work **without changing the app**: carry the overlay link from PC B to PC A
+through an **SSH tunnel**. An SSH tunnel is an encrypted pipe between two computers; the program `ssh` builds it, not Keystroke Overlay.
+Run it over a private network you control, such as [Tailscale](https://tailscale.com).
+
+**What you need (one-time setup)**
+- Tailscale on both PCs, signed in to the same account, so each PC has a private name (this page calls them `gaming-pc` and `stream-pc`).
+- An SSH server on PC A (the gaming PC). On Windows 10/11 it is the optional feature **OpenSSH Server** (Settings → System → Optional features).
+- Keystroke Overlay running on PC A as normal. Nothing to install or change on PC B except OBS.
+
+**Each time you stream**
+1. On PC A, open the app: **General → Secure link**, tick **Secure my OBS link**, and press **Copy secure link**. Keep this link private.
+2. On PC B, open a terminal and start the tunnel (use your Windows user name on PC A):
+
+   ```
+   ssh -N -L 7878:127.0.0.1:7878 your-user@gaming-pc
+   ```
+
+   `-L 7878:127.0.0.1:7878` means "send anything that arrives at port 7878 on this PC to port 7878 on PC A". `-N` means "only build
+   the tunnel, don't open a shell". Leave the window open while you stream.
+3. On PC B, add the OBS source as in [Add it to OBS](#add-it-to-obs), but paste the link you copied in step 1. It looks like
+   `http://localhost:7878/?key=…`.
+
+**Good to know**
+- **Keep both port numbers the same as the app's port** (**General → Port**, default 7878). The app only answers requests addressed to
+  `localhost:<its port>`, so a different number on PC B would be refused.
+- **Keep the secure link on.** Without it, any program on either PC that can reach the port could read your key presses. With it, the
+  stream and data are refused without the private key (`?key=…`), as described in [Secure link](#secure-link-optional). If you use **Make a new key**,
+  copy the new link into OBS again.
+- **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only and never accepts connections from other computers
+  (the SSH server on PC A hands the data over locally), and the app itself still uses the network for nothing except update checks.
+  Your key presses travel only through the encrypted tunnel you started, between your own two PCs.
+- **Safety of the tunnel is your job.** Use a normal SSH login (a key or password) and let only your own devices reach the SSH port, for
+  example with Tailscale access rules. **Pause overlay** still works, because the pause happens in the app on PC A.
+- Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
+- If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
+- More background, and why the app does not have a built-in network mode:
+  [docs/proposals/tailscale-dual-pc.md](docs/proposals/tailscale-dual-pc.md).
+
 ## Settings
 
 | Tab | What it does |
@@ -182,6 +223,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 ## Troubleshooting
 
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
+- **OBS runs on a different PC from the game:** the overlay link only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Open an issue naming the game and its anti-cheat.
 - **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
