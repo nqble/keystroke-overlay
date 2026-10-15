@@ -7,5 +7,5 @@ registerTheme({
     borderWidth: 2, radius: 8, fontFamily: 'Segoe UI', fontSize: 18, fontWeight: 600,
     textColor: '#e6e9f0ff', textColorPressed: '#ffffffff', glowColor: '#4f8cffff', glowSize: 18,
   },
-  animation: { type: 'pressdown', speed: 120, easing: 'default', intensity: 1 },
+  animation: { type: 'none', speed: 120, easing: 'default', intensity: 1 },
 });

@@ -33,6 +33,7 @@ All notable changes. Newest first.
 - **TSB layout retired:** it's no longer built in. If you had it selected, the app switches you to Tenkeyless. Make your own with the **+** card.
 - **Tougher security:** the settings window now runs under a strict content-security policy, thousands of deliberately broken settings and layout files are thrown at the app on every test run, and GitHub has manual scans for known library problems and code bugs.
 - **Our own window buttons:** the native Windows title bar is gone. Minimize, maximize and close now live in the header's top right, and you can drag the window by the header.
+- **No animation by default:** fresh installs (and "Reset all settings") start with the animation set to None, so keys just light up. Pick any animation in the Animation tab. Your current choice is kept.
 - **Cleaner, roomier settings:** a bit more breathing room between sections, and General is now in a sensible order: OBS, Server, Secure link, Keyboard input, App, then Updates.
 - **Feels like a real app:** only text boxes can be selected, and right-click shows a small custom menu instead of the browser's. The live preview no longer carries a hint caption.
 - **One popup style everywhere:** release notes, updates, new layouts and warnings all look and behave the same.

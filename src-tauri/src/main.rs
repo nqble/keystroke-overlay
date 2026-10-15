@@ -48,7 +48,7 @@ fn main() {
             // "What's new" is shown once after an update. A fresh install has nothing to show.
             let current = env!("CARGO_PKG_VERSION");
             let pending = existed && cfg["general"]["lastSeenVersion"].as_str() != Some(current);
-            if !existed { cfg["general"]["lastSeenVersion"] = json!(current); }
+            if !existed { cfg["general"]["lastSeenVersion"] = json!(current); settings::apply_devbuild_defaults(&app.config().identifier, &mut cfg); }
             // A layout that no longer exists (for example the retired TSB layout) falls back to Tenkeyless.
             if !server::layouts(&paths).iter().any(|l| l["id"] == cfg["layout"]["id"]) { cfg["layout"]["id"] = json!("tkl"); }
             let _ = settings::save(&paths.settings(), &cfg); // persists migrations/new defaults

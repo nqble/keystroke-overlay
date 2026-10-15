@@ -44,7 +44,7 @@ pub fn defaults() -> Value {
             "glowColor": "#4f8cffff", "glowSize": 18,
             "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0
         },
-        "animation": { "type": "pressdown", "speed": 120, "easing": "default", "intensity": 1.0 }
+        "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
     })
 }
 
@@ -484,5 +484,28 @@ mod robustness_tests {
                 assert!(p["labels"].as_object().unwrap().iter().all(|(k, v)| k.len() <= 40 && v.as_str().is_some_and(|s| s.chars().count() <= 16)));
             }
         }
+    }
+}
+
+/// Devbuilds (tools/devbuild.mjs) have their own app identity ("com.keyoverlay.devbuild") so they can run beside an installed
+/// copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic update check off.
+pub fn apply_devbuild_defaults(identifier: &str, cfg: &mut Value) {
+    if identifier.ends_with(".devbuild") {
+        cfg["general"]["port"] = json!(7881);
+        cfg["general"]["autoCheckUpdates"] = json!(false);
+    }
+}
+
+#[cfg(test)]
+mod devbuild_tests {
+    use super::*;
+    #[test]
+    fn only_devbuilds_get_their_own_port_and_no_update_check() {
+        let mut dev = defaults();
+        apply_devbuild_defaults("com.keyoverlay.devbuild", &mut dev);
+        assert_eq!((dev["general"]["port"].clone(), dev["general"]["autoCheckUpdates"].clone()), (json!(7881), json!(false)));
+        let mut real = defaults();
+        apply_devbuild_defaults("com.keyoverlay.app", &mut real);
+        assert_eq!(real, defaults());
     }
 }
