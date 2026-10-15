@@ -5,7 +5,7 @@ import { renderControls, shareRow } from '../controls.js';
 import { button, call, el, heading, row, toast } from '../helpers.js';
 import { changed } from '../preview.js';
 import { render } from '../settings.js';
-import { S, reg } from '../state.js';
+import { settings, registry } from '../state.js';
 
 // ---- Style: themes, presets, colours, shape, text, size -----------------------------------------------------------
 export async function styleTab() {
@@ -16,13 +16,13 @@ export async function styleTab() {
     'select',
     {},
     el('option', { value: '', textContent: 'Built-in themes…' }),
-    reg.themes.map((t) => el('option', { value: t.id, textContent: t.name })),
+    registry.themes.map((t) => el('option', { value: t.id, textContent: t.name })),
   );
   themes.onchange = () => {
-    const theme = reg.themes.find((t) => t.id === themes.value);
+    const theme = registry.themes.find((t) => t.id === themes.value);
     if (!theme) return;
-    Object.assign(S.style, theme.style);
-    Object.assign(S.animation, theme.animation);
+    Object.assign(settings.style, theme.style);
+    Object.assign(settings.animation, theme.animation);
     changed(true);
   };
   page.append(row('Built-in theme', themes));
@@ -36,11 +36,11 @@ export async function styleTab() {
   );
   const apply = (data) => {
     // used by Load and by Import
-    if (data.style) Object.assign(S.style, data.style);
-    if (data.animation) Object.assign(S.animation, data.animation);
+    if (data.style) Object.assign(settings.style, data.style);
+    if (data.animation) Object.assign(settings.animation, data.animation);
     changed(true);
   };
-  const currentLook = () => ({ style: S.style, animation: S.animation });
+  const currentLook = () => ({ style: settings.style, animation: settings.animation });
   page.append(
     row(
       'My presets',

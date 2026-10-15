@@ -17,7 +17,7 @@ import {
   viewProf,
 } from '../profiles.js';
 import { render } from '../settings.js';
-import { S, selKey, setSelKey, tab } from '../state.js';
+import { settings, selectedKey, setSelectedKey, tab } from '../state.js';
 import { TEXT } from '../text.js';
 
 // ---- Keys: show / hide keys and rename them -----------------------------------------------------------------------
@@ -28,7 +28,7 @@ export function keysTab() {
   const profile = viewProf();
   page.append(heading('Keys — ' + layout.name), note(TEXT.keysTabHelp));
   page.append(keyboardMap(layout, profile), keyButtons(layout));
-  const selected = selKey && layout.keys.find((k) => k.code === selKey);
+  const selected = selectedKey && layout.keys.find((k) => k.code === selectedKey);
   if (selected) page.append(keyEditor(selected, profile));
   return page;
 }
@@ -90,7 +90,7 @@ function keyboardMap(layout, profile) {
       className:
         'kmk' +
         (hidden.has(k.code) ? ' off' : '') +
-        (selKey === k.code ? ' sel' : '') +
+        (selectedKey === k.code ? ' sel' : '') +
         (clash.has(k.code) ? ' clash' : '') +
         (profile.positions[k.code] ? ' moved' : ''),
       style: keyBoxStyle(p.x - minX, p.y - minY, w, h, unit),
@@ -100,7 +100,7 @@ function keyboardMap(layout, profile) {
     node.dataset.code = k.code;
     node.onclick = () => {
       if (justDragged) return;
-      setSelKey(k.code);
+      setSelectedKey(k.code);
       render();
     };
     node.onpointerdown = (e) => dragKey(e, node, k, grid);
@@ -137,7 +137,7 @@ function dragKey(e, node, key, grid) {
     if (!moving) {
       moving = true;
       node.classList.add('drag');
-      setSelKey(key.code);
+      setSelectedKey(key.code);
     }
     const maxX = grid.minX + grid.spanX - (key.w ?? 1),
       maxY = grid.minY + grid.spanY - (key.h ?? 1);
@@ -170,7 +170,7 @@ function dragKey(e, node, key, grid) {
 
 // Arrow keys nudge the selected key (Shift = a whole key). Ignored while typing in a field or while a popup is open.
 addEventListener('keydown', (e) => {
-  if (tab !== 'keys' || !selKey || !e.key.startsWith('Arrow')) return;
+  if (tab !== 'keys' || !selectedKey || !e.key.startsWith('Arrow')) return;
   if (
     e.target.closest?.('input, select, textarea, button') ||
     !$('#dlg').hidden ||
@@ -179,7 +179,7 @@ addEventListener('keydown', (e) => {
   )
     return;
   const layout = curLayout(),
-    key = layout?.keys.find((k) => k.code === selKey);
+    key = layout?.keys.find((k) => k.code === selectedKey);
   if (!key) return;
   e.preventDefault();
   const step = e.shiftKey ? 1 : SNAP,
@@ -199,8 +199,8 @@ function keyButtons(layout) {
     title: 'Undo all key edits (hidden keys, labels and moved keys) for this layout',
   });
   confirmTwice(revert, 'Revert to Default', () => {
-    delete S.layout.profiles[layout.id];
-    setSelKey(null);
+    delete settings.layout.profiles[layout.id];
+    setSelectedKey(null);
     changed(true);
     toast(layout.name + ' reverted to default');
   });

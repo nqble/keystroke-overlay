@@ -4,7 +4,7 @@
 import { button, call, el, heading, note, toast } from '../helpers.js';
 import { changed } from '../preview.js';
 import { render } from '../settings.js';
-import { S, customFonts, setCustomFonts } from '../state.js';
+import { settings, customFonts, setCustomFonts } from '../state.js';
 import { TEXT } from '../text.js';
 
 // ---- Fonts: add your own font files -------------------------------------------------------------------------------
@@ -40,8 +40,8 @@ export async function fontsTab() {
         'div',
         { className: 'fontitem' },
         el('span', { className: 'n', textContent: file }),
-        button(S.style.fontFamily === family ? 'In use' : 'Use', () => {
-          S.style.fontFamily = family;
+        button(settings.style.fontFamily === family ? 'In use' : 'Use', () => {
+          settings.style.fontFamily = family;
           changed(true);
         }),
         button(

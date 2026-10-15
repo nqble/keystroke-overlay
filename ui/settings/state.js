@@ -5,24 +5,24 @@
 // Other modules READ these names directly (they are live: they always show the current value) and CHANGE them only
 // through the set... functions, because a module cannot assign to something it imported.
 
-export let S = null; // the current settings (a copy of what the app keeps on disk)
+export let settings = null; // the current settings (a copy of what the app keeps on disk)
 export let layouts = []; // every layout: [{ id, name, keys, user }]
 export let customFonts = []; // font files the user added
-export let reg = { animations: [], themes: [], easings: [], layouts: [] }; // lists the live preview sends us
+export let registry = { animations: [], themes: [], easings: [], layouts: [] }; // lists the live preview sends us
 export let tab = 'layout'; // which tab is showing
-export let selKey = null; // the key selected in the Keys tab
+export let selectedKey = null; // the key selected in the Keys tab
 export let booted = false; // true once the first screen is drawn
 export let obsUrl = ''; // the OBS Browser Source address (it carries ?key=... when the secure link is on)
 export let size = null; // the overlay's recommended size, reported by the live preview: { w, h }
 export let appVersion = ''; // the version of the running app
 export let paused = false; // true while the overlay is paused from the tray
 export let lastUpdate = null; // the latest "is there an update?" answer
-export let upProg = null; // download progress while an update installs
+export let updateProgress = null; // download progress while an update installs
 export let inputActive = 'hook'; // the keyboard input method in use: "hook" or "rawinput"
 export let inputError = null; // why the chosen input method could not start, if it could not
 
-export function setS(value) {
-  S = value;
+export function setSettings(value) {
+  settings = value;
 }
 export function setLayouts(value) {
   layouts = value;
@@ -30,14 +30,14 @@ export function setLayouts(value) {
 export function setCustomFonts(value) {
   customFonts = value;
 }
-export function setReg(value) {
-  reg = value;
+export function setRegistry(value) {
+  registry = value;
 }
 export function setTab(value) {
   tab = value;
 }
-export function setSelKey(value) {
-  selKey = value;
+export function setSelectedKey(value) {
+  selectedKey = value;
 }
 export function setBooted(value) {
   booted = value;
@@ -57,8 +57,8 @@ export function setPaused(value) {
 export function setLastUpdate(value) {
   lastUpdate = value;
 }
-export function setUpProg(value) {
-  upProg = value;
+export function setUpdateProgress(value) {
+  updateProgress = value;
 }
 export function setInputActive(value) {
   inputActive = value;

@@ -3,7 +3,7 @@
 // =====================================================================================================================
 import { el, get, heading, put, row } from './helpers.js';
 import { changed } from './preview.js';
-import { S, customFonts, reg } from './state.js';
+import { settings, customFonts, registry } from './state.js';
 
 const WINDOWS_FONTS = [
   // all of these come with Windows 10 and 11
@@ -139,7 +139,7 @@ const CONTROLS = [
     group: 'Animation',
     path: 'animation.type',
     type: 'select',
-    options: () => reg.animations.map((a) => [a.id, a.name]),
+    options: () => registry.animations.map((a) => [a.id, a.name]),
     label: 'Type',
   },
   {
@@ -158,7 +158,7 @@ const CONTROLS = [
     group: 'Animation',
     path: 'animation.easing',
     type: 'select',
-    options: () => [['default', 'Animation default'], ...reg.easings.map((e) => [e.id, e.name])],
+    options: () => [['default', 'Animation default'], ...registry.easings.map((e) => [e.id, e.name])],
     label: 'Easing',
   },
   {
@@ -176,14 +176,14 @@ const CONTROLS = [
 
 /** A colour picker plus a transparency slider. Colours are stored as #RRGGBBAA. */
 function colorCtl(c) {
-  const value = get(S, c.path) || '#000000ff';
+  const value = get(settings, c.path) || '#000000ff';
   const alpha = value.length >= 9 ? parseInt(value.slice(7, 9), 16) : 255;
   const picker = el('input', { type: 'color', value: value.slice(0, 7) });
   const slider = el('input', { type: 'range', min: 0, max: 255, step: 1, value: alpha, title: 'Transparency' });
   const percent = el('span', { className: 'val', textContent: Math.round(alpha / 2.55) + '%' });
   const update = () => {
     const alphaHex = Math.round(+slider.value).toString(16).padStart(2, '0');
-    put(S, c.path, picker.value + alphaHex);
+    put(settings, c.path, picker.value + alphaHex);
     percent.textContent = Math.round(slider.value / 2.55) + '%';
     changed();
   };
@@ -193,7 +193,7 @@ function colorCtl(c) {
 
 /** A slider with its current value written next to it. */
 function rangeCtl(c) {
-  const slider = el('input', { type: 'range', min: c.min, max: c.max, step: c.step, value: get(S, c.path) });
+  const slider = el('input', { type: 'range', min: c.min, max: c.max, step: c.step, value: get(settings, c.path) });
   const unit = !c.unit ? '' : c.unit === '×' ? '×' : ' ' + c.unit;
   const text = (v) => {
     const number = (+v).toFixed(c.step < 1 ? 2 : 0);
@@ -201,7 +201,7 @@ function rangeCtl(c) {
   };
   const output = el('span', { className: 'val', textContent: text(slider.value) });
   slider.oninput = () => {
-    put(S, c.path, +slider.value);
+    put(settings, c.path, +slider.value);
     output.textContent = text(slider.value);
     changed();
   };
@@ -215,9 +215,9 @@ function selectCtl(c) {
     {},
     c.options().map(([value, name]) => el('option', { value, textContent: name })),
   );
-  select.value = get(S, c.path);
+  select.value = get(settings, c.path);
   select.onchange = () => {
-    put(S, c.path, select.value);
+    put(settings, c.path, select.value);
     changed();
   };
   return [select];
@@ -227,7 +227,7 @@ function selectCtl(c) {
  * The font picker: the user's own fonts, the Windows fonts (each shown in its own font), or "Other" to type any name.
  */
 function fontCtl(c) {
-  const current = get(S, c.path);
+  const current = get(settings, c.path);
   const mine = customFonts.map((file) => file.replace(/\.[^.]+$/, '')); // "My Font.ttf" -> "My Font"
   const known = new Set([...mine, ...WINDOWS_FONTS]);
   const option = (font) =>
@@ -251,11 +251,11 @@ function fontCtl(c) {
     }
     typed.hidden = true;
     typed.value = select.value;
-    put(S, c.path, select.value);
+    put(settings, c.path, select.value);
     changed();
   };
   typed.oninput = () => {
-    put(S, c.path, typed.value);
+    put(settings, c.path, typed.value);
     changed();
   };
   return [select, typed];
@@ -292,9 +292,9 @@ export const shareRow = (label, onImport, onExport, exportDisabled = false, tips
 
 /** A checkbox row that saves instantly. `onchange` replaces the default save when a toggle needs extra work. */
 export function toggle(path, label, onchange) {
-  const box = el('input', { type: 'checkbox', checked: !!get(S, path) });
+  const box = el('input', { type: 'checkbox', checked: !!get(settings, path) });
   box.onchange = () => {
-    put(S, path, box.checked);
+    put(settings, path, box.checked);
     if (onchange) onchange(box.checked);
     else changed(false, true);
   };

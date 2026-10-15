@@ -24,7 +24,7 @@ import { debugTab } from './debug.js';
 import { hideMenu, showNotes, showUpdateResult } from './popups.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
 import {
-  S,
+  settings,
   TAB_NAMES,
   appVersion,
   setAppVersion,
@@ -35,10 +35,10 @@ import {
   setLayouts,
   setObsUrl,
   setPaused,
-  setS,
+  setSettings,
   setTab,
   tab,
-  reg,
+  registry,
 } from './state.js';
 // Loaded only for what it does when it starts: it wires up the minimize / maximize / close buttons.
 import './windowbar.js';
@@ -64,7 +64,7 @@ const TABS = {
 /** Redraw the tab bar and the active tab, keeping the scroll position. */
 export async function render() {
   // the Debug tab (ui/settings/debug.js) only exists in Debug mode
-  const debugOn = !!S?.general?.debugMode;
+  const debugOn = !!settings?.general?.debugMode;
   if (tab === 'debug' && !debugOn) setTab('general');
   const names = debugOn ? { ...TAB_NAMES, debug: debugTab.name } : TAB_NAMES;
   $('#tabs').replaceChildren(
@@ -106,7 +106,7 @@ addEventListener('resize', () => {
   // Three independent questions at once, then draw immediately. The live preview loads afterwards in the background,
   // so it never delays the first screen.
   const [state, layoutList, fonts] = await Promise.all([call('get_state'), call('list_layouts'), call('list_fonts')]);
-  setS(state.settings);
+  setSettings(state.settings);
   setObsUrl(state.url);
   setAppVersion(state.version);
   setPaused(state.paused);
@@ -151,4 +151,4 @@ setTimeout(async () => {
 
 // A small hook for the end-to-end tests and the browser inspector: the modules keep their names private, so this is the one
 // place that lets outside code reach a few of them.
-window.__ko = { resync, render, previewSrc, frame, registry: () => reg };
+window.__ko = { resync, render, previewSrc, frame, registry: () => registry };

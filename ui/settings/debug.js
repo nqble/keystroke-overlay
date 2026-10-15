@@ -17,15 +17,14 @@
 //    here
 //       with   await invoke('my_command', { arg })
 //    3. Need something to refresh by itself?   every(root, 2000, () => { ...update the page... })
-//  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), S (the
-//  settings),
+//  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
 import { addLayoutDialog, showNotes } from './popups.js';
-import { button, call, el, ev, heading, invoke, note, toast } from './helpers.js';
+import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
 import { render } from './settings.js';
-import { S, appVersion, layouts, setTab, size } from './state.js';
+import { settings, appVersion, layouts, setTab, size } from './state.js';
 
 // -------------------------------------------------------------------------------------------------------------------
 // Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
@@ -97,7 +96,7 @@ function facts() {
 
 /** The settings without the private link key (for showing on screen or copying into a bug report). */
 function redactedSettings() {
-  const copy = JSON.parse(JSON.stringify(S));
+  const copy = JSON.parse(JSON.stringify(settings));
   if (copy.general?.linkKey) copy.general.linkKey = '(hidden)';
   return copy;
 }
@@ -147,7 +146,7 @@ async function runSelfTest() {
       layouts.length > 0 && !brokenLayouts.length,
       brokenLayouts.map((l) => l.id).join(', '),
     ],
-    ['The selected layout exists', layouts.some((l) => l.id === S.layout.id), S.layout.id],
+    ['The selected layout exists', layouts.some((l) => l.id === settings.layout.id), settings.layout.id],
   ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail }));
 }
 
@@ -185,8 +184,8 @@ let monitor = null,
 function listenForKeys() {
   if (listening) return;
   listening = true;
-  ev.listen('debug-key', (e) => monitor?.onKey(e.payload));
-  ev.listen('debug-key-stopped', () => monitor?.onStopped());
+  tauriEvent.listen('debug-key', (e) => monitor?.onKey(e.payload));
+  tauriEvent.listen('debug-key-stopped', () => monitor?.onStopped());
 }
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -544,7 +543,7 @@ async function renderDebugTab() {
     info: () => invoke('debug_info'),
     log: () => invoke('debug_log'),
     state: () => invoke('get_state'),
-    settings: () => S,
+    settings: () => settings,
     layouts: () => layouts,
     goto: (name) => {
       setTab(name);

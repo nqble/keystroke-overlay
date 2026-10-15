@@ -4,11 +4,11 @@
 
 export const { invoke } = window.__TAURI__.core; // call a Rust command:  await invoke('name', { args })
 
-export const ev = window.__TAURI__.event; // listen for messages the Rust side sends us
+export const tauriEvent = window.__TAURI__.event; // listen for messages the Rust side sends us
 
 export const $ = (selector, root = document) => root.querySelector(selector);
 
-/** Read / write a value inside an object using a dotted path:  get(S, 'style.radius')  /  put(S, 'style.radius', 8) */
+/** Read / write a value inside an object using a dotted path:  get(settings, 'style.radius')  /  put(settings, 'style.radius', 8) */
 export const get = (obj, path) => path.split('.').reduce((o, key) => o?.[key], obj);
 
 export function put(obj, path, value) {

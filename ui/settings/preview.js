@@ -3,7 +3,7 @@
 // =====================================================================================================================
 import { $, call, invoke, toast } from './helpers.js';
 import { render } from './settings.js';
-import { S, booted, obsUrl, setReg, setSize, size, tab } from './state.js';
+import { settings, booted, obsUrl, setRegistry, setSize, size, tab } from './state.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 3. Saving and the live preview
@@ -14,11 +14,11 @@ export let saveTimer = 0;
 
 /** Send the current settings to the live preview. */
 export function push() {
-  frame.contentWindow?.postMessage({ type: 'cfg', settings: S }, '*');
+  frame.contentWindow?.postMessage({ type: 'cfg', settings: settings }, '*');
 }
 
 /**
- * Call this after changing S. It updates the preview straight away and saves to disk.
+ * Call this after changing settings. It updates the preview straight away and saves to disk.
  *   rebuildUi  redraw the current tab (needed when the change affects what the tab shows)
  *   immediate  save now instead of waiting 150 ms (switches and toggles); sliders and typing wait so they batch up
  */
@@ -27,7 +27,7 @@ export function changed(rebuildUi = false, immediate = false) {
   clearTimeout(saveTimer);
   const save = () => {
     saveTimer = 0;
-    call('save_settings', { settings: S });
+    call('save_settings', { settings: settings });
   };
   if (immediate) save();
   else saveTimer = setTimeout(save, 150);
@@ -40,7 +40,7 @@ export async function saveNow() {
   clearTimeout(saveTimer);
   saveTimer = 0;
   try {
-    await invoke('save_settings', { settings: S });
+    await invoke('save_settings', { settings: settings });
   } catch {
     /* nothing more we can do */
   }
@@ -52,7 +52,7 @@ export async function flushPendingSave() {
   clearTimeout(saveTimer);
   saveTimer = 0;
   try {
-    await invoke('save_settings', { settings: S });
+    await invoke('save_settings', { settings: settings });
   } catch {
     /* nothing more we can do */
   }
@@ -70,7 +70,7 @@ export const sizeText = () => (size ? `Recommended Browser Source size: ${size.w
 /** Refresh the address bar at the top (a secured link is hidden on screen, but Copy still copies it). */
 export function updateObs() {
   $('#obsUrl').value = obsUrl;
-  $('#obsUrl').type = S?.general?.secureLink ? 'password' : 'text';
+  $('#obsUrl').type = settings?.general?.secureLink ? 'password' : 'text';
   $('#obsSize').textContent = size ? `Size: ${size.w}×${size.h}` : '';
   const sizeNote = $('#sizeNote');
   if (sizeNote) sizeNote.textContent = sizeText();
@@ -112,7 +112,7 @@ addEventListener('message', (e) => {
   }
   // only these tabs use the lists
   else if (m.type === 'registry') {
-    setReg(m);
+    setRegistry(m);
     if (booted && (tab === 'style' || tab === 'animation')) render();
   } else if (m.type === 'size') {
     setSize(m);

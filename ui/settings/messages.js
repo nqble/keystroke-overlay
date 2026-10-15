@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  Messages from the app (tray actions, update results, download progress) and re-reading the app's state.
 // =====================================================================================================================
-import { $, call, ev, invoke } from './helpers.js';
+import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './popups.js';
 import { flushPendingSave, push } from './preview.js';
 import { render } from './settings.js';
@@ -13,9 +13,9 @@ import {
   setLayouts,
   setObsUrl,
   setPaused,
-  setS,
+  setSettings,
   setTab,
-  setUpProg,
+  setUpdateProgress,
 } from './state.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -23,10 +23,10 @@ import {
 // ---------------------------------------------------------------------------------------------------------------------
 const megabytes = (bytes) => (bytes / 1048576).toFixed(1) + ' MB';
 
-ev.listen('update-progress', (e) => {
+tauriEvent.listen('update-progress', (e) => {
   const { done, total } = e.payload;
   const percent = total ? Math.min(100, Math.round((done / total) * 100)) : -1; // -1 = size unknown
-  setUpProg({
+  setUpdateProgress({
     pct: percent,
     text: total
       ? `Downloading… ${megabytes(done)} of ${megabytes(total)} (${percent}%)`
@@ -35,16 +35,16 @@ ev.listen('update-progress', (e) => {
   paintProgress();
 });
 
-ev.listen('update-installing', () => {
-  setUpProg({ pct: 100, text: 'Installing… the app will restart in a moment.' });
+tauriEvent.listen('update-installing', () => {
+  setUpdateProgress({ pct: 100, text: 'Installing… the app will restart in a moment.' });
   paintProgress();
 });
 
 // the hourly background check found something
-ev.listen('update-result', (e) => showUpdateResult(e.payload));
+tauriEvent.listen('update-result', (e) => showUpdateResult(e.payload));
 
 // e.g. the tray's "Update available"
-ev.listen('goto-tab', (e) => {
+tauriEvent.listen('goto-tab', (e) => {
   if (TAB_NAMES[e.payload]) {
     setTab(e.payload);
     render();
@@ -80,7 +80,7 @@ export async function resync() {
   } catch {
     /* keep the old list */
   }
-  setS(state.settings);
+  setSettings(state.settings);
   setPaused(state.paused);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
@@ -90,4 +90,4 @@ export async function resync() {
   render();
 }
 
-ev.listen('settings-changed', resync);
+tauriEvent.listen('settings-changed', resync);

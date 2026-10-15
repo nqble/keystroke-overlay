@@ -7,7 +7,7 @@ import { md, openUpdateDialog, paintProgress, resetDialog, setUpdate, showNotes 
 import { changed, copyUrl, frame, previewSrc, sizeText, updateObs } from '../preview.js';
 import { render } from '../settings.js';
 import {
-  S,
+  settings,
   appVersion,
   inputActive,
   inputError,
@@ -42,11 +42,17 @@ function obsSection() {
 }
 
 function serverSection() {
-  const port = el('input', { type: 'number', min: 1024, max: 65535, value: S.general.port, style: 'width:100px' });
+  const port = el('input', {
+    type: 'number',
+    min: 1024,
+    max: 65535,
+    value: settings.general.port,
+    style: 'width:100px',
+  });
   const applyPort = async () => {
     try {
       setObsUrl(await invoke('set_port', { port: +port.value }));
-      S.general.port = +port.value;
+      settings.general.port = +port.value;
       $('#banner').hidden = true;
       toast('Port changed — update your OBS source URL');
       frame.src = previewSrc();
@@ -77,12 +83,12 @@ function serverSection() {
 function secureLinkSection() {
   const OFF = TEXT.secureLinkOff;
   const ON = TEXT.secureLinkOn;
-  const checkbox = el('input', { type: 'checkbox', checked: !!S.general.secureLink });
+  const checkbox = el('input', { type: 'checkbox', checked: !!settings.general.secureLink });
   const explanation = el('div', { className: 'note' });
   const newKey = el('button', { className: 'danger', textContent: 'Make a new key' });
   const buttons = el(
     'div',
-    { className: 'btns', hidden: !S.general.secureLink },
+    { className: 'btns', hidden: !settings.general.secureLink },
     button('Copy secure link', copyUrl, 'primary'),
     newKey,
   );
@@ -102,7 +108,7 @@ function secureLinkSection() {
     checkbox.disabled = true;
     try {
       useLink(await invoke('set_secure_link', { enabled: want }));
-      S.general.secureLink = want;
+      settings.general.secureLink = want;
       updateObs();
       toast(want ? 'Secure link on — copy the new link into OBS.' : 'Secure link off.');
     } catch (error) {
@@ -120,7 +126,7 @@ function secureLinkSection() {
       toast(String(error), true);
     }
   });
-  paint(!!S.general.secureLink);
+  paint(!!settings.general.secureLink);
   return [heading('Secure link'), row('Secure my OBS link', checkbox), explanation, buttons];
 }
 
@@ -145,7 +151,7 @@ function inputSection() {
     try {
       await invoke('set_input_method', { method: want });
       setInputActive(want);
-      S.general.inputMethod = want;
+      settings.general.inputMethod = want;
       setInputError(null);
       error.hidden = true;
       toast('Keyboard input: ' + METHODS[want].replace(' — recommended', ''));
@@ -169,7 +175,7 @@ function appSection() {
       await invoke('set_autostart', { enabled: on });
     } catch (error) {
       toast(String(error), true);
-      S.general.autostart = !on;
+      settings.general.autostart = !on;
       render();
     }
   };
@@ -241,12 +247,12 @@ function updatesSection() {
     el('option', { value: 'stable', textContent: 'Stable (recommended)' }),
     el('option', { value: 'latest', textContent: 'Latest' }),
   );
-  channel.value = S.general.updateChannel;
+  channel.value = settings.general.updateChannel;
   channel.onchange = async () => {
-    S.general.updateChannel = channel.value;
+    settings.general.updateChannel = channel.value;
     // the check below must see the new channel
     try {
-      await invoke('save_settings', { settings: S });
+      await invoke('save_settings', { settings: settings });
     } catch {
       /* ignore */
     }

@@ -7,7 +7,7 @@ import { addLayoutDialog, showMenu } from '../popups.js';
 import { changed } from '../preview.js';
 import { isCustom } from '../profiles.js';
 import { render } from '../settings.js';
-import { MAX_LAYOUTS, S, layouts, setLayouts, setSelKey } from '../state.js';
+import { MAX_LAYOUTS, settings, layouts, setLayouts, setSelectedKey } from '../state.js';
 import { TEXT } from '../text.js';
 
 // ---- Layout: pick a keyboard, make your own, share them -----------------------------------------------------------
@@ -52,10 +52,10 @@ function layoutCard(l) {
   return el(
     'div',
     {
-      className: 'card' + (S.layout.id === l.id ? ' sel' : ''),
+      className: 'card' + (settings.layout.id === l.id ? ' sel' : ''),
       onclick: () => {
-        S.layout.id = l.id;
-        setSelKey(null);
+        settings.layout.id = l.id;
+        setSelectedKey(null);
         changed(true);
       },
       oncontextmenu: (e) => showMenu(e, [deleteItem]),

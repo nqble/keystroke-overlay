@@ -1,22 +1,22 @@
 // =====================================================================================================================
-//  Per-layout key edits: hidden keys, labels and moved keys, stored in S.layout.profiles[layoutId].
+//  Per-layout key edits: hidden keys, labels and moved keys, stored in settings.layout.profiles[layoutId].
 // =====================================================================================================================
-import { S, layouts } from './state.js';
+import { settings, layouts } from './state.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 4. Per-layout key edits
 //    Every layout has its own hidden keys, labels and moved keys in
-//    S.layout.profiles[layoutId] = { disabledKeys: [], labels: {}, positions: { KeyW: { x, y } } }.
+//    settings.layout.profiles[layoutId] = { disabledKeys: [], labels: {}, positions: { KeyW: { x, y } } }.
 //    `positions` only lists keys the user moved; every other key stays where the layout file puts it. Units are key
 //    widths.
 // ---------------------------------------------------------------------------------------------------------------------
 const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {}, positions: {} });
 
-export const curLayout = () => layouts.find((l) => l.id === S.layout.id) ?? layouts[0];
+export const curLayout = () => layouts.find((l) => l.id === settings.layout.id) ?? layouts[0];
 
 /** For reading only. Always has all three parts, even for settings saved by older versions. */
 export const viewProf = () => {
-  const p = S.layout.profiles[curLayout()?.id];
+  const p = settings.layout.profiles[curLayout()?.id];
   return p
     ? { disabledKeys: p.disabledKeys ?? [], labels: p.labels ?? {}, positions: p.positions ?? {} }
     : EMPTY_PROFILE();
@@ -24,13 +24,13 @@ export const viewProf = () => {
 
 /** For changing: creates the profile on the first edit. */
 export const editProf = () => {
-  const p = (S.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());
+  const p = (settings.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());
   p.positions ??= {};
   return p;
 };
 
 export const isCustom = (id) => {
-  const p = S.layout.profiles[id];
+  const p = settings.layout.profiles[id];
   return (
     !!p &&
     (p.disabledKeys?.length > 0 || Object.keys(p.labels ?? {}).length > 0 || Object.keys(p.positions ?? {}).length > 0)
@@ -40,9 +40,9 @@ export const isCustom = (id) => {
 /** Forget an edited profile that no longer differs from the default, so "customized" only shows when it should. */
 export function tidyProf() {
   const id = curLayout().id,
-    p = S.layout.profiles[id];
+    p = settings.layout.profiles[id];
   if (p && !p.disabledKeys.length && !Object.keys(p.labels).length && !Object.keys(p.positions ?? {}).length)
-    delete S.layout.profiles[id];
+    delete settings.layout.profiles[id];
 }
 
 export const SNAP = 0.25; // keys snap to quarter-key steps

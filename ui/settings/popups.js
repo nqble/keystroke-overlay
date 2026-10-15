@@ -6,17 +6,17 @@ import { frame, previewSrc, saveNow, updateObs } from './preview.js';
 import { render } from './settings.js';
 import {
   MAX_LAYOUTS,
-  S,
+  settings,
   lastUpdate,
   layouts,
   setLastUpdate,
   setLayouts,
   setObsUrl,
-  setSelKey,
+  setSelectedKey,
   setTab,
-  setUpProg,
+  setUpdateProgress,
   tab,
-  upProg,
+  updateProgress,
 } from './state.js';
 import { TEXT } from './text.js';
 
@@ -64,8 +64,8 @@ export function addLayoutDialog() {
     try {
       const id = await invoke('create_layout', { name: nameInput.value });
       setLayouts(await call('list_layouts'));
-      S.layout.id = id;
-      setSelKey(null);
+      settings.layout.id = id;
+      setSelectedKey(null);
       setTab('keys');
       toast('Layout created. Click keys to hide the ones you don’t want.');
       render();
@@ -349,7 +349,7 @@ export function openUpdateDialog() {
   $('#uGo').textContent = r.manual ? 'Open GitHub installer' : 'Update now';
   $('#uGo').disabled = $('#uLater').disabled = false;
   updateBusy = false;
-  setUpProg(null);
+  setUpdateProgress(null);
   paintProgress();
   $('#uText').textContent = '';
   $('#updModal').hidden = false;
@@ -382,14 +382,14 @@ $('#uGo').onclick = async () => {
   $('#uGo').disabled = $('#uLater').disabled = true;
   // nothing pending when the app restarts
   await saveNow();
-  setUpProg({ pct: 0, text: 'Starting download…' });
+  setUpdateProgress({ pct: 0, text: 'Starting download…' });
   paintProgress();
   try {
     // downloads, verifies the signature, installs, restarts
     await invoke('install_update');
   } catch (error) {
     updateBusy = false;
-    setUpProg(null);
+    setUpdateProgress(null);
     paintProgress();
     $('#uText').textContent = String(error);
     $('#uGo').disabled = $('#uLater').disabled = false;
@@ -400,20 +400,20 @@ $('#uGo').onclick = async () => {
 export function paintProgress() {
   const dialogBar = $('#uBar');
   if (dialogBar) {
-    dialogBar.hidden = !upProg;
-    $('#uFill').style.width = (upProg ? Math.max(0, upProg.pct) : 0) + '%';
+    dialogBar.hidden = !updateProgress;
+    $('#uFill').style.width = (updateProgress ? Math.max(0, updateProgress.pct) : 0) + '%';
     // negative = size unknown, show a moving bar
-    $('#uFill').classList.toggle('indet', !!upProg && upProg.pct < 0);
-    if (upProg) $('#uText').textContent = upProg.text;
+    $('#uFill').classList.toggle('indet', !!updateProgress && updateProgress.pct < 0);
+    if (updateProgress) $('#uText').textContent = updateProgress.text;
   }
   const bar = $('#upBar'),
     fill = $('#upFill'),
     text = $('#upText');
   if (!bar) return; // General is not showing
-  bar.hidden = !upProg;
-  if (upProg) {
-    fill.style.width = upProg.pct + '%';
-    fill.classList.toggle('indet', upProg.pct < 0);
-    text.textContent = upProg.text;
+  bar.hidden = !updateProgress;
+  if (updateProgress) {
+    fill.style.width = updateProgress.pct + '%';
+    fill.classList.toggle('indet', updateProgress.pct < 0);
+    text.textContent = updateProgress.text;
   } else text.textContent = '';
 }
