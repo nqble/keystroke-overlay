@@ -355,3 +355,132 @@ mod tests {
         assert_eq!(migrate(s.clone()), s);
     }
 }
+
+/// Hostile-input tests: files a user hand-edits, imports or downloads must never crash the app or slip past the rules.
+/// A tiny deterministic random generator (no extra libraries) builds thousands of nasty JSON documents.
+#[cfg(test)]
+mod robustness_tests {
+    use super::*;
+
+    struct Rng(u64);
+    impl Rng {
+        fn next(&mut self) -> u64 { self.0 ^= self.0 << 13; self.0 ^= self.0 >> 7; self.0 ^= self.0 << 17; self.0 }
+        fn below(&mut self, n: u64) -> u64 { self.next() % n }
+        fn pick<'a, T>(&mut self, items: &'a [T]) -> &'a T { &items[self.below(items.len() as u64) as usize] }
+    }
+
+    const KEYS: &[&str] = &["version", "general", "style", "layout", "animation", "port", "autostart", "linkKey", "secureLink", "inputMethod",
+        "updateChannel", "lastSeenVersion", "id", "profiles", "disabledKeys", "labels", "fontFamily", "fontSize", "opacity", "keyFill",
+        "borderColor", "scale", "speed", "intensity", "type", "easing", "../evil", "a\"b", "__proto__", ""];
+    const STRINGS: &[&str] = &["", "tkl", "../../etc/passwd", "a/b\\c", "#zzzzzz", "#12345678", "#123", "x\"; }</style>", "\u{0}\u{7}\u{1b}", "é🎹日本語",
+        "stable", "latest", "hook", "rawinput", "0123456789abcdef0123456789abcdef", "1.2.0", "con", "KeyA", "Segoe UI"];
+
+    fn gen(r: &mut Rng, depth: u32) -> Value {
+        match r.below(if depth >= 4 { 6 } else { 9 }) {
+            0 => Value::Null,
+            1 => json!(r.below(2) == 0),
+            2 => json!(r.next() as i64),
+            3 => json!([0.0, -1.5, 1e308, -1e308, 0.5, 7.0, 99999.0, 1e-300][r.below(8) as usize]),
+            4 => json!(*r.pick(STRINGS)),
+            5 => json!("x".repeat(r.below(5000) as usize)),
+            6 | 7 => Value::Array((0..r.below(6)).map(|_| gen(r, depth + 1)).collect()),
+            _ => Value::Object((0..r.below(8)).map(|_| (r.pick(KEYS).to_string(), gen(r, depth + 1))).collect()),
+        }
+    }
+
+    /// Every rule a cleaned settings document must satisfy, however hostile the input was.
+    fn assert_valid(m: &Value, seed: u64) {
+        let def = defaults();
+        let g = &m["general"];
+        assert_eq!(m["version"], json!(CURRENT_VERSION), "seed {seed}");
+        let port = g["port"].as_f64().unwrap();
+        assert!((1024.0..=65535.0).contains(&port) && port.fract() == 0.0, "seed {seed}: port {port}");
+        for (path, lo, hi) in RANGES {
+            let n = path.split('.').fold(m, |v, k| &v[k]).as_f64().unwrap_or_else(|| panic!("seed {seed}: {path} is not a number"));
+            assert!(n.is_finite() && n >= *lo && n <= *hi, "seed {seed}: {path} = {n}");
+        }
+        for k in ["keyFill", "keyFillPressed", "borderColor", "borderColorPressed", "textColor", "textColorPressed", "glowColor"] {
+            assert!(is_hex_color(m["style"][k].as_str().unwrap_or("")), "seed {seed}: colour {k}");
+        }
+        let font = m["style"]["fontFamily"].as_str().unwrap();
+        assert!(!font.is_empty() && font.len() <= 80 && !font.contains(['"', '\\', '{', '}', ';', '<', '>']), "seed {seed}: font {font:?}");
+        assert!(is_id(m["layout"]["id"].as_str().unwrap()), "seed {seed}: layout id");
+        for id in m["layout"]["profiles"].as_object().unwrap().keys() { assert!(is_id(id), "seed {seed}: profile id {id:?}"); }
+        let key = g["linkKey"].as_str().unwrap();
+        assert!(key.is_empty() || (key.len() >= 32 && key.chars().all(|c| c.is_ascii_hexdigit())), "seed {seed}: link key");
+        assert!(matches!(g["inputMethod"].as_str(), Some("hook" | "rawinput")) && matches!(g["updateChannel"].as_str(), Some("stable" | "latest")), "seed {seed}");
+        assert!(is_version(g["lastSeenVersion"].as_str().unwrap()), "seed {seed}: lastSeenVersion");
+        for k in ["type", "easing"] { assert!(is_ident(m["animation"][k].as_str().unwrap()), "seed {seed}: animation {k}"); }
+        // Same shape as the defaults (nothing extra, nothing missing) and stable after being written out and read back.
+        assert_eq!(m.as_object().unwrap().keys().collect::<Vec<_>>(), def.as_object().unwrap().keys().collect::<Vec<_>>(), "seed {seed}: top-level keys");
+        assert_eq!(&migrate(serde_json::from_str(&m.to_string()).unwrap()), m, "seed {seed}: not stable after a round trip");
+    }
+
+    /// Paths of every setting in the defaults, e.g. ["style", "fontFamily"].
+    fn leaf_paths(v: &Value, here: &mut Vec<String>, out: &mut Vec<Vec<String>>) {
+        match v {
+            Value::Object(o) if !o.is_empty() => for (k, x) in o { here.push(k.clone()); leaf_paths(x, here, out); here.pop(); },
+            _ => out.push(here.clone()),
+        }
+    }
+
+    #[test]
+    fn random_garbage_never_panics_and_always_comes_out_valid() {
+        for seed in 1..=4000u64 {
+            let mut r = Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
+            assert_valid(&migrate(gen(&mut r, 0)), seed);
+        }
+    }
+
+    #[test]
+    fn corrupting_single_settings_of_a_valid_file_is_always_repaired() {
+        let mut paths = Vec::new();
+        leaf_paths(&defaults(), &mut Vec::new(), &mut paths);
+        for seed in 1..=6000u64 {
+            let mut r = Rng(seed.wrapping_mul(0xA24BAED4963EE407) | 1);
+            let mut doc = defaults();
+            for _ in 0..=r.below(4) {
+                let path = r.pick(&paths).clone();
+                let bad = if r.below(3) == 0 { json!(*r.pick(STRINGS)) } else { gen(&mut r, 3) };
+                let mut cur = &mut doc;
+                for k in &path[..path.len() - 1] { cur = &mut cur[k.as_str()]; }
+                cur[path[path.len() - 1].as_str()] = bad;
+            }
+            if r.below(4) == 0 { doc["layout"]["profiles"] = gen(&mut r, 1); }
+            assert_valid(&migrate(doc), seed);
+        }
+    }
+
+    #[test]
+    fn the_secure_link_key_check_rejects_everything_but_the_exact_key() {
+        let key = "0123456789abcdef0123456789abcdef";
+        let on = json!({ "general": { "secureLink": true, "linkKey": key } });
+        let ok = |q: Option<&str>| crate::server::key_ok(&on, q);
+        assert!(ok(Some(&format!("key={key}"))));
+        assert!(ok(Some(&format!("a=1&key={key}&b=2"))));
+        for bad in ["", "key=", "key=0123456789abcdef0123456789abcdeF", "key=0123456789abcdef0123456789abcde", &format!("key={key}0"), &format!("KEY={key}"), &format!("xkey={key}"), "key=%30123456789abcdef0123456789abcdef"] {
+            assert!(!ok(Some(bad)), "accepted {bad:?}");
+        }
+        assert!(!ok(None));
+        // Switched on but with no key stored: refuse everything instead of opening up.
+        assert!(!crate::server::key_ok(&json!({ "general": { "secureLink": true, "linkKey": "" } }), Some("key=")));
+        // Switched off: always open. Missing or odd settings never count as "on".
+        assert!(crate::server::key_ok(&json!({ "general": { "secureLink": false, "linkKey": key } }), None));
+        assert!(crate::server::key_ok(&json!({}), None));
+    }
+
+    #[test]
+    fn profiles_from_hostile_files_are_cleaned() {
+        for seed in 1..=1500u64 {
+            let mut r = Rng(seed.wrapping_mul(0xD1B54A32D192ED03) | 1);
+            let out = clean_profiles(&gen(&mut r, 0));
+            let map = out.as_object().unwrap();
+            assert!(map.len() <= 50);
+            for (id, p) in map {
+                assert!(is_id(id));
+                assert!(p["disabledKeys"].as_array().unwrap().len() <= 300 && p["disabledKeys"].as_array().unwrap().iter().all(|k| k.as_str().is_some_and(|s| s.len() <= 40)));
+                assert!(p["labels"].as_object().unwrap().iter().all(|(k, v)| k.len() <= 40 && v.as_str().is_some_and(|s| s.chars().count() <= 16)));
+            }
+        }
+    }
+}

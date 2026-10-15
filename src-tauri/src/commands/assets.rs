@@ -264,3 +264,67 @@ mod layout_file_tests {
         let _ = std::fs::remove_dir_all(dir);
     }
 }
+
+/// Hostile-input test for "Import layouts": whatever a stranger's file contains, only clean layout files inside the
+/// layouts folder come out, within the limits.
+#[cfg(test)]
+mod import_robustness_tests {
+    use super::*;
+    use serde_json::json;
+
+    struct Rng(u64);
+    impl Rng {
+        fn next(&mut self) -> u64 { self.0 ^= self.0 << 13; self.0 ^= self.0 >> 7; self.0 ^= self.0 << 17; self.0 }
+        fn below(&mut self, n: u64) -> u64 { self.next() % n }
+    }
+    const NAMES: &[&str] = &["", "Mine", "../../escape", "a/b\\c:d*e?", "CON", "x\u{0}y", "é🎹日本語", "   ", "tkl", "full", "wasd"];
+    fn rand_val(r: &mut Rng) -> Value {
+        match r.below(6) {
+            0 => Value::Null,
+            1 => json!(r.below(1000) as f64 - 500.5),
+            2 => json!(NAMES[r.below(NAMES.len() as u64) as usize]),
+            3 => json!("k".repeat(r.below(200) as usize)),
+            4 => json!(r.below(2) == 0),
+            _ => json!([1, "a", null]),
+        }
+    }
+    fn rand_key(r: &mut Rng) -> Value {
+        let mut k = serde_json::Map::new();
+        for f in ["code", "x", "y", "w", "h", "label"] { if r.below(5) != 0 { k.insert(f.into(), rand_val(r)); } }
+        Value::Object(k)
+    }
+    fn rand_layout(r: &mut Rng) -> Value {
+        let n = [0, 1, 5, 400][r.below(4) as usize];
+        json!({ "id": rand_val(r), "name": rand_val(r), "keys": (0..n).map(|_| rand_key(r)).collect::<Vec<_>>() })
+    }
+
+    #[test]
+    fn hostile_layout_files_only_produce_clean_layouts_inside_the_folder() {
+        let base = std::env::temp_dir().join(format!("ko-fuzz-{}", std::process::id()));
+        for seed in 1..=300u64 {
+            let mut r = Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
+            let dir = base.join(seed.to_string());
+            let top = match r.below(3) {
+                0 => rand_layout(&mut r),
+                1 => json!({ "layouts": (0..r.below(30)).map(|_| rand_layout(&mut r)).collect::<Vec<_>>(), "profiles": rand_val(&mut r) }),
+                _ => json!({ "layouts": rand_val(&mut r), "profiles": rand_val(&mut r) }),
+            };
+            let existing: Vec<Value> = (0..r.below(21)).map(|i| json!({ "id": format!("u{i}"), "name": "x", "user": true, "keys": [] })).collect();
+            let before = existing.iter().filter(|l| l["user"] == true).count();
+            let Ok((added, _skipped)) = import_doc(&top, &existing, &dir) else { continue };
+            assert!(before + added.len() <= MAX_USER_LAYOUTS, "seed {seed}: went over the limit");
+            let files: Vec<_> = std::fs::read_dir(&dir).map(|rd| rd.flatten().collect()).unwrap_or_default();
+            assert_eq!(files.len(), added.len(), "seed {seed}: files written != layouts reported");
+            for f in files {
+                let name = f.file_name().into_string().unwrap();
+                assert!(name.ends_with(".json") && name[..name.len() - 5].chars().all(|c| c.is_ascii_alphanumeric() || c == '-') && name.len() <= 40, "seed {seed}: bad file name {name:?}");
+                let doc: Value = serde_json::from_str(&std::fs::read_to_string(f.path()).unwrap()).unwrap();
+                assert!(crate::server::valid_layout(&doc), "seed {seed}: saved layout is not valid");
+                assert!(doc["keys"].as_array().unwrap().len() <= 300 && doc["name"].as_str().unwrap().chars().count() <= 30);
+                assert!(existing.iter().all(|l| l["id"] != doc["id"]), "seed {seed}: reused an existing id");
+            }
+            let _ = std::fs::remove_dir_all(&dir);
+        }
+        let _ = std::fs::remove_dir_all(&base);
+    }
+}

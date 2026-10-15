@@ -33,3 +33,20 @@ other programs on the same computer unless the optional **Secure link** (General
 
 Updates are signed with a minisign key; the matching public key is built into the app (`src-tauri/tauri.conf.json`).
 The private key is kept offline by the maintainer and is never stored in this repository.
+
+## Automated security checks
+
+- **Strict page policy.** The settings window runs under a content-security policy (`src-tauri/tauri.conf.json`): it can only run
+  its own scripts, only talk to the app itself, and only embed the local overlay preview. A test (`tests/e2e/suites/csp.mjs`)
+  confirms the policy blocks injected scripts and other websites while the normal interface keeps working.
+- **Hostile-input tests.** Thousands of randomly corrupted settings files and imported layout files are fed to the app's
+  cleaning code on every test run (`cargo test`). Nothing may crash, escape its folder, or get past the limits. The secure-link
+  key check is tested the same way.
+- **Read-only tests.** The automatic GitHub tests (`ci.yml`) have read-only access to the repository.
+- **Manual scans.** Two checks never run by themselves. Start either one on GitHub with **Actions → pick the workflow → Run workflow**:
+  - **Security scan** (about 3 minutes): looks up the libraries the app is built from in the public lists of known
+    vulnerabilities (npm and RustSec). Red means something needs updating; open the log for the name.
+  - **CodeQL** (about 5–10 minutes): GitHub's code scanner reads our own code for known bug patterns. Results appear
+    under the repository's **Security → Code scanning** tab.
+- **Privacy guard.** `npm run check:privacy` fails the build if network code, file writes in the keyboard code, or logging
+  appears where it shouldn't (see [PRIVACY.md](PRIVACY.md)).

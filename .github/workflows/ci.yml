@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# The tests only need to read the code. Read-only means a compromised step or library could not change the repository.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: windows-latest
