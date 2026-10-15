@@ -18,7 +18,7 @@ const ROOT = resolve(HERE, '../..');
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
 const only = args.includes('--suite') ? args[args.indexOf('--suite') + 1] : 'all';
-const SUITES = ['input-methods', 'secure-link', 'focus', 'layouts', 'ui-sweep', 'soak', 'smoke'];          // smoke LAST: it ends by installing an update, which exits the app
+const SUITES = ['input-methods', 'secure-link', 'focus', 'layouts', 'ui-sweep', 'soak', 'whats-new', 'smoke'];          // smoke LAST: it ends by installing an update, which exits the app
 const WORK = process.env.E2E_WORK ?? join(tmpdir(), 'keystroke-overlay-e2e');
 const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
 const EXE = join(WORK, 'kotest-e2e.exe');
@@ -70,7 +70,7 @@ async function main() {
     writeFileSync(join(DATA, 'settings.json'), JSON.stringify({ version: 2, general: { port: 7879, lastSeenVersion: VERSION, autoCheckUpdates: autoCheck }, layout: { id: 'tkl', profiles: {} } }));
     spawnSync('powershell.exe', ['-NoProfile', '-Command', `$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS='--remote-debugging-port=9222'; Start-Process '${EXE}'`], { stdio: 'ignore' });
     for (let i = 0; i < 80; i++) { if (await fetch('http://localhost:7879/api/config').then(r => r.ok).catch(() => false)) break; await sleep(250); }
-    const r = spawnSync(process.execPath, [join(HERE, 'suites', `${name}.mjs`)], { cwd: ROOT, stdio: 'inherit', env: { ...process.env, E2E_VERSION: VERSION } });
+    const r = spawnSync(process.execPath, [join(HERE, 'suites', `${name}.mjs`)], { cwd: ROOT, stdio: 'inherit', env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA } });
     if (r.status !== 0) failed.push(name);
   }
   return failed;
