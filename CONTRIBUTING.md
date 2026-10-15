@@ -28,14 +28,17 @@ Useful commands:
 |---|---|
 | `npm test` | Rust unit tests + the privacy check |
 | `npm run check:privacy` | Verifies the promises in [PRIVACY.md](PRIVACY.md) |
-| `npm run check:style` | No tabs, no trailing spaces, files end with a newline (CI runs it) |
+| `npm run format` | Formats all the code (Prettier for web files, rustfmt for Rust, 120 columns). Run it before you commit |
+| `npm run check:format` | Checks the formatting without changing anything (CI runs it) |
+| `npm run check:style` | No tabs, no trailing spaces, files end with a newline in every source file (CI runs it) |
 | `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings` | Rust lints; CI requires zero warnings |
 | `npm run dev:debug` | Runs a separate development copy with **Debug mode** on (a Debug tab with self-test, event log, key monitor and more). See [docs/DEBUGGING.md](docs/DEBUGGING.md) |
 | `npm run build` | Builds the app + installer into `src-tauri/target/release/bundle/` |
 
-Editor settings are in `.editorconfig` (most editors pick them up automatically). The code uses wide lines (up to ~160 characters)
-and compact one-line structs; `src-tauri/rustfmt.toml` matches that as closely as stable rustfmt allows, but `cargo fmt` is not
-enforced yet, so please don't reformat code you aren't changing.
+Formatting is automatic, so you never have to think about it: run `npm run format` before you commit. Web files are formatted by
+Prettier and Rust files by rustfmt, both at 120 columns (`.prettierrc`, `src-tauri/rustfmt.toml`); CI runs `npm run check:format`.
+Editor settings are in `.editorconfig` (most editors pick them up automatically). The one-time reformat of the whole project is listed in
+`.git-blame-ignore-revs`; to make `git blame` skip it, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
 
 Tip: if the linker complains about opening files, build outside OneDrive/synced folders, or set `CARGO_TARGET_DIR`
 to a normal local folder.

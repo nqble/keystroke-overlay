@@ -199,7 +199,8 @@ npm install
 npm run dev          # run it
 npm run dev:debug    # run a separate development copy with Debug mode on (see docs/DEBUGGING.md)
 npm test             # unit tests (including hostile-input tests) + privacy check
-npm run check:style  # tabs and trailing spaces
+npm run format       # format the code (Prettier + rustfmt); CI checks it
+npm run check:style  # tabs, trailing spaces, final newline
 npm run test:e2e     # end-to-end tests (builds a throwaway copy, cleans up after itself)
 npm run test:install # clean install + upgrade + uninstall with real installers (throwaway identity)
 npm run build        # installer in src-tauri/target/release/bundle/nsis/

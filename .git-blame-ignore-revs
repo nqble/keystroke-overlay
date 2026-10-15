@@ -1,0 +1,5 @@
+# Commits that only changed formatting. `git blame` can skip them:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub already reads this file by itself.)
+# The one-time Prettier + rustfmt reformat of the whole project:
+3b210091b9a3d37bf9e7fc36cac88a803c3546fa

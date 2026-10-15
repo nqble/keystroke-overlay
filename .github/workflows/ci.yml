@@ -25,7 +25,9 @@ jobs:
       - run: npm ci
       - name: Privacy promises (see PRIVACY.md)
         run: npm run check:privacy
-      - name: Code style (tabs, trailing spaces)
+      - name: Formatting (Prettier + rustfmt)
+        run: npm run check:format
+      - name: Code style (tabs, trailing spaces, final newline)
         run: npm run check:style
       - name: JavaScript syntax
         shell: bash
