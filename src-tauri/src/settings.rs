@@ -37,8 +37,10 @@ pub fn defaults() -> Value {
             // Last app version the user has seen the "What's new" window for (managed by the app).
             "lastSeenVersion": ""
         },
-        // profiles[layoutId] = { disabledKeys: [...], labels: { code: text } }  (one per layout, saved automatically)
-        "layout": { "id": "tkl", "profiles": {} },
+        // profiles[layoutId] = { disabledKeys: [...], labels: { code: text }, positions: { code: { x, y } } }
+        // (one per layout, saved automatically). editor = the Keys tab's snap step (0 = off, else 0.25, 0.5 or 1 key)
+        // and whether it shows the grid.
+        "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false } },
         "style": {
             "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff",
             "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff", "borderWidth": 2, "radius": 8,
@@ -106,6 +108,10 @@ const RANGES: &[(&str, f64, f64)] = &[
     ("animation.speed", 0.0, 2000.0),
     ("animation.intensity", 0.0, 4.0),
 ];
+
+/// The snap steps the Keys tab offers, in key widths (0 = off). Keep in step with the Snap menu in
+/// ui/settings/tabs/keys-toolbar.js.
+const SNAP_CHOICES: [f64; 4] = [0.0, 0.25, 0.5, 1.0];
 
 fn is_hex_color(color: &str) -> bool {
     color.starts_with('#')
@@ -236,6 +242,12 @@ pub fn sanitize(value: &mut Value, def: &Value) {
                     .map(|r| (r.1, r.2))
                     .unwrap_or((f64::MIN, f64::MAX));
                 match number {
+                    // The Keys tab's snap step must be one of the menu's choices; anything else goes back to the default.
+                    Some(n) if path == "layout.editor.snap" => {
+                        if !SNAP_CHOICES.contains(&n) {
+                            *value = def.clone();
+                        }
+                    }
                     // Valid and in range: leave the value exactly as it was.
                     Some(n) if n >= lo && n <= hi && (path != "general.port" || n.fract() == 0.0) => {}
                     Some(_) if path == "general.port" => *value = def.clone(), // invalid port: back to the default
@@ -400,6 +412,51 @@ mod tests {
         assert_eq!(migrate(defaults()), defaults());
     }
     #[test]
+    fn keys_editor_choices_default_to_quarter_snap_and_no_grid() {
+        assert_eq!(defaults()["layout"]["editor"], json!({ "snap": 0.25, "grid": false }));
+    }
+    #[test]
+    fn settings_saved_before_the_editor_choices_existed_get_the_defaults() {
+        let migrated = migrate(json!({ "version": 2, "layout": { "id": "wasd", "profiles": {} } }));
+        assert_eq!(migrated["layout"]["id"], json!("wasd"));
+        assert_eq!(migrated["layout"]["editor"], json!({ "snap": 0.25, "grid": false }));
+    }
+    #[test]
+    fn every_snap_choice_and_the_grid_survive_a_round_trip() {
+        for snap in SNAP_CHOICES {
+            let migrated = migrate(json!({ "version": 2, "layout": { "editor": { "snap": snap, "grid": true } } }));
+            assert_eq!(migrated["layout"]["editor"]["snap"].as_f64(), Some(snap));
+            assert_eq!(migrated["layout"]["editor"]["grid"], json!(true));
+        }
+    }
+    #[test]
+    fn bad_editor_choices_go_back_to_the_defaults() {
+        let hostile = [
+            json!({ "snap": 0.3, "grid": "yes" }),
+            json!({ "snap": -1, "grid": 1 }),
+            json!({ "snap": 1e300, "grid": null }),
+            json!({ "snap": "0.25", "grid": [] }),
+            json!({ "snap": null }),
+            json!(5),
+            json!("snap"),
+            json!([0.5]),
+        ];
+        for editor in hostile {
+            let migrated = migrate(json!({ "version": 2, "layout": { "editor": editor } }));
+            assert_eq!(
+                migrated["layout"]["editor"],
+                json!({ "snap": 0.25, "grid": false }),
+                "{editor}"
+            );
+        }
+    }
+    #[test]
+    fn unknown_keys_inside_the_editor_choices_are_dropped() {
+        let migrated =
+            migrate(json!({ "version": 2, "layout": { "editor": { "snap": 0.5, "grid": true, "evil": 1 } } }));
+        assert_eq!(migrated["layout"]["editor"], json!({ "snap": 0.5, "grid": true }));
+    }
+    #[test]
     fn v1_settings_migrate_into_a_profile_without_losing_anything() {
         let old = json!({ "version": 1, "general": { "port": 9000, "autoCheckUpdates": true },
                           "layout": { "id": "tsb", "disabledKeys": ["KeyQ"], "labels": { "Space": "Jump" } } });
@@ -549,6 +606,9 @@ mod robustness_tests {
         "lastSeenVersion",
         "id",
         "profiles",
+        "editor",
+        "snap",
+        "grid",
         "disabledKeys",
         "labels",
         "fontFamily",

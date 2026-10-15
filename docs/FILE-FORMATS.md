@@ -17,7 +17,8 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
                "secureLink": false, "linkKey": "", "updateChannel": "stable", // "stable" | "latest"
                "debugMode": false, "lastSeenVersion": "" },
   "layout": { "id": "tkl",
-              "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } } },   // see "positions" below
+              "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } },   // see "positions" below
+              "editor": { "snap": 0.25, "grid": false } },   // the Keys tab's choices, see below
   "style": { "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff", "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff",
              "borderWidth": 2, "radius": 8, "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
              "textColor": "#e6e9f0ff", "textColorPressed": "#ffffffff", "glowColor": "#4f8cffff", "glowSize": 18,
@@ -31,6 +32,11 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
 user moved are listed; every other key stays where the layout file puts it. On load, entries that are not a pair of finite
 numbers are dropped, values are limited to 0–100 and rounded to 2 decimals, at most 300 keys are kept, and a profile with no
 moved keys has no `positions` entry at all (so older settings files stay byte-identical). Until v1.3.0 ships this may still change.
+
+**`layout.editor` (unreleased; `v1.3.0-dev` only).** The Keys tab remembers two choices between sessions: `snap`, how far a
+dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1` are accepted), and `grid`, whether the faint
+grid dots are shown (`true` or `false`). Anything else, or a settings file saved before these existed, gets the defaults
+(`0.25` and `false`). The overlay ignores them.
 
 Numbers are clamped to these ranges on load: port 1024–65535, borderWidth 0–20, radius 0–100, fontSize 0–120,
 fontWeight 100–900, glowSize 0–100, keySize 16–200, gap 0–60, scale 0.2–4, opacity 0–1, animation speed 0–2000,
