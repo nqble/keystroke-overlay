@@ -1,0 +1,22 @@
+# 0007: Settings are versioned JSON with migrations
+Status: Accepted
+Date: 2026-10-15
+
+## Context
+Users update the app across many versions and expect their settings, layouts and key edits to survive.
+
+## Decision
+`settings.json` has a `version` number. On load it is migrated one step at a time to the current version
+(`MIGRATIONS` in `src-tauri/src/settings.rs`), merged on top of the defaults so new options always have a value, then
+sanitised (wrong types fall back to defaults, numbers are clamped to ranges, colours and ids are validated). A corrupted
+file falls back to the last good `.bak` copy.
+
+## Why
+- Additive changes (a new option) need no migration; renames and restructures bump the version and add one migration step.
+- Sanitising on load means a hand-edited or imported file can never put the app in a broken state.
+
+## Consequences
+- **Compatibility rule:** settings, layout and preset files from older versions must keep working. A format change always
+  comes with a migration and a unit test.
+- To add a setting: add it to `defaults()` (and to the settings window). To rename or restructure: bump `CURRENT_VERSION`
+  and add a migration.

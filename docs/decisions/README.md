@@ -1,0 +1,33 @@
+# Decision records
+
+Short notes on **why** the project is built the way it is today. Read these before changing something that looks odd:
+there is usually a reason, and the reason is written down here. Ideas that are *not* decided live in
+[ideas-not-decided.md](ideas-not-decided.md).
+
+| # | Decision | Status |
+|---|---|---|
+| [0001](0001-plain-web-code-no-build-step.md) | Plain HTML/CSS/JavaScript, no build step | Accepted |
+| [0002](0002-local-only-server-and-optional-secure-link.md) | The overlay server is local-only; the secure link is optional | Accepted |
+| [0003](0003-two-keyboard-input-methods.md) | Two keyboard input methods (hook and Raw Input) | Accepted |
+| [0004](0004-update-channels-and-version-numbers.md) | Stable and Latest update channels, tied to the version number | Accepted |
+| [0005](0005-keystrokes-live-in-memory-only.md) | Keystrokes live in memory only, and tests enforce it | Accepted |
+| [0006](0006-layouts-themes-animations-are-data-files.md) | Layouts, themes and animations are plain files, not a free-form plugin system | Accepted |
+| [0007](0007-versioned-settings-with-migrations.md) | Settings are versioned JSON with migrations | Accepted |
+| [0008](0008-update-checks-never-install-on-their-own.md) | Update checks run hourly but never install anything on their own | Accepted |
+
+## How to add one
+
+Copy any record, number it next in line, and keep it to one page:
+
+```
+# 00NN: Short title
+Status: Proposed | Accepted | Replaced by 00MM
+Date: YYYY-MM-DD
+
+## Context     what problem or choice came up
+## Decision    what we chose, in one or two sentences
+## Why         the reasons, including what we gave up
+## Consequences  what this means for contributors; how to change it later
+```
+
+Never delete an accepted record. If a decision changes, add a new record and mark the old one "Replaced by".

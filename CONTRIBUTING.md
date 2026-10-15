@@ -45,7 +45,9 @@ to a normal local folder.
 
 ## Where things are
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full map. In short: `src-tauri/` is the Rust app (keyboard
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full map, [docs/EXTENDING.md](docs/EXTENDING.md) for adding a layout, theme or
+animation, [docs/PROTOCOL.md](docs/PROTOCOL.md) and [docs/FILE-FORMATS.md](docs/FILE-FORMATS.md) for the exact data formats, and
+[docs/decisions/](docs/decisions/README.md) for why things are built the way they are. In short: `src-tauri/` is the Rust app (keyboard
 hook, local server, tray, settings storage), `ui/overlay/` is the page OBS loads, `ui/settings/` is the settings window.
 
 ## Common contributions

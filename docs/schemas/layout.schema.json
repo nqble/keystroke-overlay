@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nqble/keystroke-overlay/docs/schemas/layout.schema.json",
+  "title": "Keystroke Overlay layout",
+  "description": "One keyboard layout. Positions and sizes are in key units (1 = one normal key).",
+  "type": "object",
+  "required": ["id", "keys"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "pattern": "^[A-Za-z0-9._ -]+$",
+      "description": "Unique id; also the file name."
+    },
+    "name": { "type": "string", "maxLength": 30, "description": "Shown in the Layout tab." },
+    "keys": {
+      "type": "array",
+      "maxItems": 300,
+      "items": {
+        "type": "object",
+        "required": ["code", "x", "y"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "A KeyboardEvent.code style name, e.g. KeyW, Digit1, ShiftLeft, Space, NumpadEnter."
+          },
+          "label": { "type": "string", "maxLength": 16, "description": "Text drawn on the key." },
+          "x": { "type": "number" },
+          "y": { "type": "number" },
+          "w": { "type": "number", "exclusiveMinimum": 0, "default": 1 },
+          "h": { "type": "number", "exclusiveMinimum": 0, "default": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nqble/keystroke-overlay/docs/schemas/preset.schema.json",
+  "title": "Keystroke Overlay style preset",
+  "description": "The style and animation parts of the settings. Any subset of fields is allowed; values outside the ranges are clamped when loaded.",
+  "type": "object",
+  "properties": {
+    "style": {
+      "type": "object",
+      "properties": {
+        "keyFill": { "$ref": "#/$defs/color" },
+        "keyFillPressed": { "$ref": "#/$defs/color" },
+        "borderColor": { "$ref": "#/$defs/color" },
+        "borderColorPressed": { "$ref": "#/$defs/color" },
+        "textColor": { "$ref": "#/$defs/color" },
+        "textColorPressed": { "$ref": "#/$defs/color" },
+        "glowColor": { "$ref": "#/$defs/color" },
+        "borderWidth": { "type": "number", "minimum": 0, "maximum": 20 },
+        "radius": { "type": "number", "minimum": 0, "maximum": 100 },
+        "fontFamily": { "type": "string" },
+        "fontSize": { "type": "number", "minimum": 0, "maximum": 120 },
+        "fontWeight": { "type": "number", "minimum": 100, "maximum": 900 },
+        "glowSize": { "type": "number", "minimum": 0, "maximum": 100 },
+        "keySize": { "type": "number", "minimum": 16, "maximum": 200 },
+        "gap": { "type": "number", "minimum": 0, "maximum": 60 },
+        "scale": { "type": "number", "minimum": 0.2, "maximum": 4 },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "animation": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "An animation id: none, pressdown, glow, fade, bounce, scale, or one added as a module."
+        },
+        "speed": { "type": "number", "minimum": 0, "maximum": 2000, "description": "Milliseconds." },
+        "easing": { "type": "string" },
+        "intensity": { "type": "number", "minimum": 0, "maximum": 4 }
+      }
+    }
+  },
+  "$defs": {
+    "color": {
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+      "description": "#rrggbb or #rrggbbaa"
+    }
+  }
+}
