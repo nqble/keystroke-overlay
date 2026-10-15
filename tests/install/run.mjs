@@ -22,12 +22,14 @@ const INSTALL = join(WORK, 'installed');
 const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
 const EXE = join(INSTALL, 'kotest-install.exe');
 const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
-// The previous release to upgrade FROM. Default v1.1.2. To test the newest published release: INSTALL_OLD=v1.2.0:9016efe:1.2.0  (name:commit:version)
+// The previous release to upgrade FROM. Default v1.1.2. To test the newest published release:
+// INSTALL_OLD=v1.2.0:9016efe:1.2.0  (name:commit:version)
 const [oName, oRef, oVer] = (process.env.INSTALL_OLD ?? 'v1.1.2:45456a9:1.1.2').split(':');
 const OLD = { name: oName, ref: oRef, version: oVer };
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const uninstallEntries = () => spawnSync('reg', ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall', '/s', '/f', 'KOTest'], { encoding: 'utf8' }).stdout.split('\n').filter(l => /KOTest/.test(l)).length;
-const killTest = () => spawnSync('powershell.exe', ['-NoProfile', '-Command', 'Stop-Process -Name kotest-install -Force -ErrorAction SilentlyContinue'], { stdio: 'ignore' });   // only our uniquely named test exe
+// only our uniquely named test exe
+const killTest = () => spawnSync('powershell.exe', ['-NoProfile', '-Command', 'Stop-Process -Name kotest-install -Force -ErrorAction SilentlyContinue'], { stdio: 'ignore' });
 const alive = () => execSync('powershell.exe -NoProfile -Command "@(Get-Process -Name kotest-install -ErrorAction SilentlyContinue).Count"').toString().trim() !== '0';
 
 function launch() {
@@ -111,7 +113,8 @@ try {
   check('new features work on the upgraded install (create layout)', typeof made.ok === 'string');
   check('settings window shows the current UI (dashed + card, General sections)', await p.q(`!!document.querySelector('nav button') && (document.querySelector('nav button').click(), true)`) && await p.q(`!!document.querySelector('.card.add')`));
   p.close(); killTest(); await sleep(1500);
-  const un = spawnSync(join(INSTALL, 'uninstall.exe'), ['/S', `_?=${INSTALL}`], { stdio: 'ignore' });   // _?= makes the uninstaller wait for itself
+  // _?= makes the uninstaller wait for itself
+  const un = spawnSync(join(INSTALL, 'uninstall.exe'), ['/S', `_?=${INSTALL}`], { stdio: 'ignore' });
   await sleep(2000);
   check('uninstaller ran silently and succeeded', un.status === 0);
   check('program exe removed', !existsSync(EXE));

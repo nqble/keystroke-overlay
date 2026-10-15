@@ -1,7 +1,8 @@
 //! Method 1 (default): Windows low-level keyboard hook (WH_KEYBOARD_LL).
 //!
 //! The hook thread installs the hook and pumps messages. The callback does the bare minimum (hand the event to the
-//! tracker, which pushes tiny events on a channel) and ALWAYS calls the next hook, so input is never delayed or swallowed.
+//! tracker, which pushes tiny events on a channel) and ALWAYS calls the next hook, so input is never delayed or
+//! swallowed.
 
 use super::tracker::KeyTracker;
 use super::KeyEvent;
@@ -39,7 +40,8 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
             Err(e) => { let _ = ready_tx.send(Err(e.to_string())); return; }
         };
         let mut msg = MSG::default();
-        let _ = PeekMessageW(&mut msg, None, WM_USER, WM_USER, PM_NOREMOVE);   // make sure this thread has a message queue
+        // make sure this thread has a message queue
+        let _ = PeekMessageW(&mut msg, None, WM_USER, WM_USER, PM_NOREMOVE);
         let _ = ready_tx.send(Ok(GetCurrentThreadId()));
         while GetMessageW(&mut msg, None, 0, 0).as_bool() {
             let _ = TranslateMessage(&msg);

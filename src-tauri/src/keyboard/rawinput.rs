@@ -66,7 +66,8 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
             return;
         }
         let mut msg = MSG::default();
-        let _ = PeekMessageW(&mut msg, None, WM_USER, WM_USER, PM_NOREMOVE);   // make sure this thread has a message queue
+        // make sure this thread has a message queue
+        let _ = PeekMessageW(&mut msg, None, WM_USER, WM_USER, PM_NOREMOVE);
         let _ = ready_tx.send(Ok(GetCurrentThreadId()));
         while GetMessageW(&mut msg, None, 0, 0).as_bool() {
             let _ = TranslateMessage(&msg);

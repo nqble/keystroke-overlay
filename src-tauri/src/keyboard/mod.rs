@@ -83,7 +83,8 @@ impl Bus {
     /// The last problem starting the selected capture method, if any (shown in the settings window).
     pub fn error(&self) -> Option<String> { self.capture.lock().unwrap().error.clone() }
 
-    /// Switch capture method while running. If the new method can't start, the old one is restored and an error returned.
+    /// Switch capture method while running. If the new method can't start, the old one is restored and an error
+    /// returned.
     pub fn set_method(&self, new: Method) -> Result<(), String> {
         let mut c = self.capture.lock().unwrap();
         if c.method == new && c.source.is_some() { return Ok(()); }

@@ -1,6 +1,7 @@
 // Prints one version's entry from CHANGELOG.md, ready to use as GitHub release notes.
 //   node tools/changelog-section.mjs 1.2.0            full notes ("**v1.2.0 — title**" + the bullets)
-//   node tools/changelog-section.mjs 1.2.0 --title    just the title line text (used as the update manifest's short note)
+//   node tools/changelog-section.mjs 1.2.0 --title    just the title line text (used as the update manifest's short
+//   note)
 // Fails (exit 1) if the version has no entry, so a release can't go out without notes.
 import { readFileSync } from 'node:fs';
 

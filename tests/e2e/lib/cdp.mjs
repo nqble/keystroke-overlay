@@ -5,7 +5,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const LIB = dirname(fileURLToPath(import.meta.url));
-export const EXE_NAME = 'kotest-e2e';           // the test app is renamed so we can never hit a user's real keyoverlay.exe
+// the test app is renamed so we can never hit a user's real keyoverlay.exe
+export const EXE_NAME = 'kotest-e2e';
 export const PORT = 7879;                        // test overlay port (the real app defaults to 7878)
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -25,7 +26,8 @@ export async function connect() {
     const m = JSON.parse(e.data);
     if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
     else if (m.method === 'Runtime.executionContextCreated') contexts.push(m.params.context);
-    else if (m.method === 'Runtime.executionContextDestroyed') { const i = contexts.findIndex(c => c.id === m.params.executionContextId); if (i >= 0) contexts.splice(i, 1); }   // a removed iframe must not be picked later
+    // a removed iframe must not be picked later
+    else if (m.method === 'Runtime.executionContextDestroyed') { const i = contexts.findIndex(c => c.id === m.params.executionContextId); if (i >= 0) contexts.splice(i, 1); }
     else if (m.method === 'Runtime.executionContextsCleared') contexts.length = 0;
   };
   const send = (method, params = {}) => new Promise(res => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
@@ -46,7 +48,8 @@ export async function connect() {
       if (r.result.exceptionDetails) throw new Error(JSON.stringify(r.result.exceptionDetails.exception?.description ?? r.result.exceptionDetails.text));
       return r.result.result.value;
     }
-    // When the frame runs in its own browser process (site isolation), it is a separate debug target: attach to it directly.
+    // When the frame runs in its own browser process (site isolation), it is a separate debug target: attach to it
+    // directly.
     const t = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(x => x.type !== 'page' && (x.url || '').includes(originPart));
     if (!t) throw new Error('no page found for ' + originPart);
     const w2 = new WebSocket(t.webSocketDebuggerUrl); await new Promise(r => w2.onopen = r);
@@ -61,7 +64,10 @@ export async function connect() {
   return { ev, evIn, send, invoke, q: expr => ev(`return ${expr}`), close: () => ws.close() };
 }
 
-/** Move keyboard focus: 'app' (the settings window) or 'away' (Notepad). Resolves to true if that window really is in front. */
+/**
+ * Move keyboard focus: 'app' (the settings window) or 'away' (Notepad). Resolves to true if that window really is in
+ * front.
+ */
 export const focus = to => new Promise(r => {
   let out = ''; const c = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', join(LIB, 'focus.ps1'), to]);
   c.stdout.on('data', d => out += d); c.on('exit', () => r(/True/.test(out)));
@@ -77,7 +83,10 @@ export const procStats = () => execSync(`powershell.exe -NoProfile -ExecutionPol
 export const appAlive = () => execSync(`tasklist /FI "IMAGENAME eq ${EXE_NAME}.exe" /NH`).toString().includes(EXE_NAME);
 
 /** Collect key events from the overlay WebSocket as '+KeyW' / '-KeyW'. */
-/** The only keys the test injector ever presses. Key events for any other key (someone typing while a test runs) are ignored. */
+/**
+ * The only keys the test injector ever presses. Key events for any other key (someone typing while a test runs) are
+ * ignored.
+ */
 export const INJECTED_KEYS = new Set(['KeyW', 'ControlRight', 'Space', 'KeyA', 'NumpadEnter', 'Enter', 'PrintScreen']);
 
 export async function listenKeys(port = PORT) {

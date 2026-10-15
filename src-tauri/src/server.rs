@@ -86,7 +86,8 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
     if !host_ok || !origin_ok {
         return StatusCode::FORBIDDEN.into_response();
     }
-    // Optional secure link: the data endpoints and the key-press stream need the private key. The overlay's own page and
+    // Optional secure link: the data endpoints and the key-press stream need the private key. The overlay's own page
+    // and
     // scripts (/ and /overlay/*) are open-source code with nothing private in them, so they stay open.
     if is_protected(req.uri().path()) && !key_ok(&st.shared.settings.read().unwrap(), req.uri().query()) {
         return (StatusCode::UNAUTHORIZED, "This overlay link is secured. Copy the current link from Keystroke Overlay (General > Secure link).").into_response();

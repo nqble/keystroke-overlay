@@ -1,14 +1,18 @@
 // Builds a DEVBUILD: a temporary installer for your own testing. It is never published and is not signed for updates.
 //   npm run devbuild                 build the installer
-//   npm run devbuild -- --verify     also build a throwaway test copy with the same page and logo, start it, and check that the
+//   npm run devbuild -- --verify     also build a throwaway test copy with the same page and logo, start it, and check
+//   that the
 //                                    settings window really loads with the purple logo (takes about 4 extra minutes)
 //
 // What makes it a devbuild:
 //   * the file is named  Keystroke-Overlay_<version>-devbuild_x64-setup.exe   (in release/<version>-devbuild/)
 //   * it uses the official devbuild logo: the normal logo in black and purple (installer, program icon, tray, window
-//     and the logo in the settings header). Nothing in the project's own files changes; the recoloured copies are temporary.
-//   * it is a SEPARATE app (identity com.keyoverlay.devbuild, its own install folder, uninstall entry, settings folder and
-//     port 7881), so it runs happily beside an installed Keystroke Overlay. Your normal settings and layouts are not shared.
+//     and the logo in the settings header). Nothing in the project's own files changes; the recoloured copies are
+//     temporary.
+//   * it is a SEPARATE app (identity com.keyoverlay.devbuild, its own install folder, uninstall entry, settings folder
+//   and
+//     port 7881), so it runs happily beside an installed Keystroke Overlay. Your normal settings and layouts are not
+//     shared.
 //     Automatic update checks are off in a devbuild.
 // Everything temporary is deleted afterwards, and any older devbuild / test installer folders are removed.
 import { spawnSync, spawn } from 'node:child_process';
@@ -21,7 +25,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const version = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
 const verify = process.argv.includes('--verify');
 const WORK = join(tmpdir(), 'keyoverlay-devbuild');
-// The recoloured copy of the settings page lives INSIDE the project folder (ignored by git) and is given to the build as a
+// The recoloured copy of the settings page lives INSIDE the project folder (ignored by git) and is given to the build
+// as a
 // RELATIVE path. An absolute Windows path such as C:/... would be read as a web address and the app would open a blank
 // "File not found" page instead of its settings.
 const UI_TMP = join(ROOT, '.devbuild-tmp');
@@ -29,7 +34,10 @@ const run = (cmd, args, opts = {}) => { const r = spawnSync(cmd, args, { cwd: RO
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fwd = p => p.replace(/\\/g, '/');
 
-/** Start a throwaway test copy built from the same page + icons and check its window really shows the settings and the purple logo. */
+/**
+ * Start a throwaway test copy built from the same page + icons and check its window really shows the settings and the
+ * purple logo.
+ */
 async function verifyBuild(baseCfg, target, icons) {
   const { acquire } = await import('../tests/lib/lock.mjs');
   const lock = await acquire('devbuild verification (test copy)', { expectedMinutes: 6 });
@@ -41,7 +49,8 @@ async function verifyBuild(baseCfg, target, icons) {
     writeFileSync(cfg, JSON.stringify({ ...baseCfg, identifier: 'com.keyoverlay.test', bundle: { ...baseCfg.bundle, createUpdaterArtifacts: false } }));
     run('npx', ['tauri', 'build', '--no-bundle', '--config', `"${cfg}"`], { env: { ...process.env, CARGO_TARGET_DIR: target, CARGO_BUILD_JOBS: process.env.CARGO_BUILD_JOBS ?? '2' } });
     mkdirSync(dir, { recursive: true });
-    const built = ['keystroke-overlay-devbuild.exe', 'keyoverlay.exe'].map(n => join(target, 'release', n)).find(existsSync);   // the program is renamed by mainBinaryName
+    // the program is renamed by mainBinaryName
+    const built = ['keystroke-overlay-devbuild.exe', 'keyoverlay.exe'].map(n => join(target, 'release', n)).find(existsSync);
     if (!built) throw new Error('could not find the built program in ' + join(target, 'release'));
     copyFileSync(built, exe);
     spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });

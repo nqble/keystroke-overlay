@@ -18,7 +18,8 @@ const ROOT = resolve(HERE, '../..');
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
 const only = args.includes('--suite') ? args[args.indexOf('--suite') + 1] : 'all';
-const SUITES = ['input-methods', 'secure-link', 'focus', 'layouts', 'layout-preview', 'keys-editor', 'ui-sweep', 'csp', 'soak', 'whats-new', 'debug', 'smoke'];          // smoke LAST: it ends by installing an update, which exits the app
+// smoke LAST: it ends by installing an update, which exits the app
+const SUITES = ['input-methods', 'secure-link', 'focus', 'layouts', 'layout-preview', 'keys-editor', 'ui-sweep', 'csp', 'soak', 'whats-new', 'debug', 'smoke'];
 const WORK = process.env.E2E_WORK ?? join(tmpdir(), 'keystroke-overlay-e2e');
 const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
 const EXE = join(WORK, 'kotest-e2e.exe');
@@ -48,7 +49,8 @@ async function main() {
     run('npx', ['tauri', 'signer', 'sign', '-f', `"${key}"`, '-p', '""', `"${setup}"`], { stdio: 'ignore' });
   }
   writeFileSync(join(WORK, 'cfg.json'), JSON.stringify({
-    identifier: 'com.keyoverlay.test', version: '1.1.0',      // pretend to be old so the mock's 1.1.4 counts as an update
+    // pretend to be old so the mock's 1.1.4 counts as an update
+    identifier: 'com.keyoverlay.test', version: '1.1.0',
     plugins: { updater: { pubkey: readFileSync(key + '.pub', 'utf8').trim(), endpoints: ['http://localhost:7999/latest.json'], dangerousInsecureTransportProtocol: true, windows: { installMode: 'passive' } } },
   }));
 

@@ -3,14 +3,17 @@
 //
 //   import { acquire } from '../lib/lock.mjs';
 //   const lock = await acquire('end-to-end tests', { expectedMinutes: 12 });   // waits for its turn
-//   lock.stage('suite: secure-link');                                          // optional progress note for others to read
-//   ...                                                                        // the lock is released automatically on exit
+//   lock.stage('suite: secure-link');                                          // optional progress note for others to
+//   read
+//   ...                                                                        // the lock is released automatically on
+//   exit
 //
 //   node tests/lib/lock.mjs            show who holds the lock right now
 //   node tests/lib/lock.mjs --clear    remove the lock if (and only if) its owner is gone
 //
 // The lock is one small JSON file in the temp folder. It is considered abandoned (and taken over, with a note) when its
-// owner process no longer exists or it is older than 3 hours. Set KO_TEST_LOCK=fail to fail immediately instead of waiting.
+// owner process no longer exists or it is older than 3 hours. Set KO_TEST_LOCK=fail to fail immediately instead of
+// waiting.
 import { writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
@@ -60,7 +63,8 @@ export async function acquire(label, { expectedMinutes = 0 } = {}) {
   const write = () => writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2));
   const t0 = Date.now(); let lastReport = 0, announced = false;
   for (;;) {
-    try { writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2), { flag: 'wx' }); break; }   // 'wx' = create only if it does not exist (atomic)
+    // 'wx' = create only if it does not exist (atomic)
+    try { writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2), { flag: 'wx' }); break; }
     catch (e) {
       if (e.code !== 'EEXIST') throw e;
       const l = read(), why = staleReason(l);

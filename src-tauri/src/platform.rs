@@ -12,7 +12,8 @@ pub fn trim_memory() {
 #[cfg(not(windows))]
 pub fn trim_memory() {}
 
-/// This process's memory (MB, the part resident in RAM) and open handle count, for the Debug tab. Zeros where unsupported.
+/// This process's memory (MB, the part resident in RAM) and open handle count, for the Debug tab. Zeros where
+/// unsupported.
 #[cfg(windows)]
 pub fn process_stats() -> (f64, u32) {
     use windows::Win32::System::{ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS}, Threading::{GetCurrentProcess, GetProcessHandleCount}};

@@ -9,7 +9,8 @@ import { join } from 'node:path';
 
 const REPO = 'nqble/keystroke-overlay';
 const KEY = join(homedir(), '.keystroke-overlay-keys', 'updater.key');   // keep OUT of the project/OneDrive
-const TARGET = process.env.CARGO_TARGET_DIR ?? join(homedir(), 'keyoverlay-target');   // build output (large, not synced)
+// build output (large, not synced)
+const TARGET = process.env.CARGO_TARGET_DIR ?? join(homedir(), 'keyoverlay-target');
 // On GitHub the key comes from the TAURI_SIGNING_PRIVATE_KEY secret; on your PC it is read from the key file above.
 const keyText = process.env.TAURI_SIGNING_PRIVATE_KEY || (existsSync(KEY) ? readFileSync(KEY, 'utf8') : null);
 // --manual: this update can't be applied in-app; the app will send users to the GitHub installer instead.

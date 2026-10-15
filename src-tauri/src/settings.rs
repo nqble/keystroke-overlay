@@ -20,13 +20,16 @@ pub fn defaults() -> Value {
             "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
             // Developer tools: adds a Debug tab and an in-memory event log (src-tauri/src/debug.rs). Off by default.
             "debugMode": false,
-            // Background update check (about once an hour while the app runs, and when the settings window opens). Updates are
+            // Background update check (about once an hour while the app runs, and when the settings window opens).
+            // Updates are
             // never installed without the user clicking the update button.
             "autoCheckUpdates": true,
             // How keys are read: "hook" (standard, default) or "rawinput" (compatibility, for games that block hooks).
             "inputMethod": "hook",
-            // Optional "secure link": when on, the overlay link carries a private key (?key=...) and the local server refuses
-            // requests without it. Off by default (plain link, no extra step). The key is never sent to the overlay itself.
+            // Optional "secure link": when on, the overlay link carries a private key (?key=...) and the local server
+            // refuses
+            // requests without it. Off by default (plain link, no extra step). The key is never sent to the overlay
+            // itself.
             "secureLink": false,
             "linkKey": "",
             // "stable" = only releases that were promoted to the Stable channel; "latest" = every release.
@@ -141,7 +144,8 @@ pub fn clean_profiles(v: &Value) -> Value {
             e.insert("disabledKeys".into(), clean_strings(p.get("disabledKeys")));
             e.insert("labels".into(), clean_labels(p.get("labels")));
             let positions = clean_positions(p.get("positions"));
-            if positions.as_object().is_some_and(|m| !m.is_empty()) { e.insert("positions".into(), positions); }   // only when keys were moved
+            // only when keys were moved
+            if positions.as_object().is_some_and(|m| !m.is_empty()) { e.insert("positions".into(), positions); }
             out.insert(id.clone(), Value::Object(e));
         }
     }
@@ -512,8 +516,10 @@ mod robustness_tests {
     }
 }
 
-/// Devbuilds (tools/devbuild.mjs) have their own app identity ("com.keyoverlay.devbuild") so they can run beside an installed
-/// copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic update check off.
+/// Devbuilds (tools/devbuild.mjs) have their own app identity ("com.keyoverlay.devbuild") so they can run beside an
+/// installed
+/// copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic update
+/// check off.
 pub fn apply_devbuild_defaults(identifier: &str, cfg: &mut Value) {
     if identifier.ends_with(".devbuild") {
         cfg["general"]["port"] = json!(7881);

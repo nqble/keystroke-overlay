@@ -27,7 +27,8 @@ const NET = /\b(reqwest|TcpStream|UdpSocket|updater_builder|hyper::client|ureq|i
 const WRITE = /\b(fs::write|fs::copy|fs::rename|File::create|OpenOptions)\b/;
 const LOG = /\b(println!|eprintln!|print!|eprint!|dbg!|log::|tracing::|env_logger)/;
 for (const f of walk('src-tauri/src', ['.rs'])) {
-  const file = rel(f), text = strip(readFileSync(f, 'utf8').split('#[cfg(test)]')[0]);   // test modules may use the disk
+  // test modules may use the disk
+  const file = rel(f), text = strip(readFileSync(f, 'utf8').split('#[cfg(test)]')[0]);
   scan(file, text, NET, (n) => { if (file !== 'src-tauri/src/commands/updates.rs') bad(file, n, 'network code outside commands/updates.rs'); });
   scan(file, text, /\b(bind|listen)\(|TcpListener/, (n, l) => {
     if (file !== 'src-tauri/src/server.rs') bad(file, n, 'listening socket outside server.rs');

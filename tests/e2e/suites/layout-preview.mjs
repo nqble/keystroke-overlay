@@ -1,7 +1,9 @@
 // Suite: the live preview (and OBS) must follow custom layouts the moment they change.
-// Regression test for: "I edited the keys of my custom layout and the preview did not update until I reopened the window".
+// Regression test for: "I edited the keys of my custom layout and the preview did not update until I reopened the
+// window".
 // Cause was a stale layout list in the overlay: it only re-read the list on an "assets" message, which creating,
-// deleting and importing layouts never sent, so a new layout was unknown to the overlay and it drew the first built-in one.
+// deleting and importing layouts never sent, so a new layout was unknown to the overlay and it drew the first built-in
+// one.
 import { connect, check, finish, sleep, PORT } from '../lib/cdp.mjs';
 
 const p = await connect(); await sleep(3500);

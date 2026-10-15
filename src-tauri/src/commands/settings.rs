@@ -110,7 +110,8 @@ pub async fn set_secure_link(app: AppHandle, enabled: bool) -> Result<String, St
     Ok(obs_url(&app.state::<AppState>().shared))
 }
 
-/// Replace the private key: every link made with the old one stops working. Only meaningful while the secure link is on.
+/// Replace the private key: every link made with the old one stops working. Only meaningful while the secure link is
+/// on.
 #[tauri::command]
 pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
     {
@@ -126,7 +127,8 @@ pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
 }
 
 /// Put every setting back to its default. The user's own layouts, presets and fonts are files and are kept.
-/// Turns off start-with-Windows, the secure link and the Compatibility input method, then restarts the server. The port is kept so the OBS link doesn't move.
+/// Turns off start-with-Windows, the secure link and the Compatibility input method, then restarts the server. The port
+/// is kept so the OBS link doesn't move.
 #[tauri::command]
 pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
     let _ = app.autolaunch().disable();

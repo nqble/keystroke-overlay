@@ -47,6 +47,79 @@ const WINDOWS_FONTS = [        // all of these come with Windows 10 and 11
 ];
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
+// find.
+// ---------------------------------------------------------------------------------------------------------------------
+const TEXT = {
+  layoutLimitReached: max =>
+    `You can make up to ${max} layouts of your own. Right-click one you no longer need and choose ` +
+    `Delete layout to free a spot.`,
+  newLayoutHelp:
+    'It starts as the full-size keyboard. You then pick which keys to keep or hide on the Keys tab.',
+  resetBodyWhatChanges:
+    'Style, animation, key edits, keyboard input, secure link, start-with-Windows and the other ' +
+    'options go back to their defaults. Your own layouts, presets and fonts are kept, and so is your ' +
+    'port.',
+  resetBodyLinkNote:
+    'If the secure link was on, your OBS link goes back to the plain address, so paste it into OBS ' +
+    'again.',
+  manualInstallDialog:
+    'This update needs a manual install: download the new installer from GitHub, close this app, and ' +
+    'run it. Your settings are kept.',
+  layoutTabHelp:
+    'Pick a layout, or click + to make your own from the full-size keyboard. Right-click a layout you ' +
+    'made to delete it.',
+  keysTabHelp:
+    'Click a key to edit it, drag it to move it. Disabled keys are hidden in the overlay. Changes are ' +
+    'saved automatically for each layout.',
+  animationTabNote:
+    'Only transform and opacity are animated (GPU friendly). Click keys in the preview to try an ' +
+    'animation.',
+  fontsTabHelp:
+    'Add TTF, OTF or WOFF files. They are copied into the app’s fonts folder. After adding, pick it ' +
+    'in Style → Font family (under “Your fonts”), or click Use.',
+  keyEditorTip:
+    'Tip: use symbols like ⎵ or ↑, or words like "Jump". Drag a key on the keyboard to move it, or ' +
+    'select it and use the arrow keys (Shift moves a whole key).',
+  serverNote:
+    'The server only listens on 127.0.0.1 (this PC). Keystrokes are never saved or sent anywhere. OBS ' +
+    'reconnects by itself after a restart.',
+  secureLinkOff:
+    '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this ' +
+    'PC can read your key presses through it. Turn this on if you share the PC or want that closed.',
+  secureLinkOn:
+    '**On:** your OBS link now contains a private key, and only a program that knows the full link ' +
+    'can read your key presses. **Copy the new link into your OBS Browser Source once** — the old ' +
+    'link stops working. Keep the link off your stream. “Make a new key” cuts off anyone who has the ' +
+    'old one.',
+  inputStandard:
+    '**Standard** is what the app has always used: it listens to your keys through a Windows keyboard ' +
+    'hook. It works with nearly every game, so keep it unless keys stop lighting up in one particular ' +
+    'game.',
+  inputCompatibility:
+    '**Compatibility** reads your keys straight from the keyboard (Windows Raw Input) instead of ' +
+    'hooking into Windows. Some games and anti-cheat tools block the standard method but not this ' +
+    'one, so try it if keys don’t light up in a certain game. It uses the same tiny amount of CPU. If ' +
+    'anything looks off, switch back to Standard.',
+  inputNote:
+    'Both methods read keys the same way and never save or send them. If a game runs as ' +
+    'administrator, start Keystroke Overlay as administrator too. Not sure? Leave it on Standard.',
+  debugModeHelp:
+    'Adds a Debug tab with tools for finding problems. Nothing is recorded while it is off, nothing ' +
+    'is saved to disk, and nothing leaves this PC.',
+  manualInstallNote:
+    'It can’t be installed from inside the app. Download the new installer from GitHub, close this ' +
+    'app, and run it; your settings are kept.',
+  updateChannelHelp:
+    'Stable: the main, well-tested releases (like 1.2.0 or 1.3.0) — recommended. Latest: every ' +
+    'release as soon as it is published, including the small fixes in between (like 1.2.1).',
+  updatesNote:
+    'Updates are never installed without your click. The app only contacts GitHub for the update ' +
+    'check (about once an hour while the app runs, and when this window opens) and for release notes, ' +
+    'and sends nothing except its version. Your keystrokes never leave this PC.',
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
 // 2. Small helpers
 // ---------------------------------------------------------------------------------------------------------------------
 /** Read / write a value inside an object using a dotted path:  get(S, 'style.radius')  /  put(S, 'style.radius', 8) */
@@ -144,7 +217,8 @@ addEventListener('beforeunload', flushPendingSave);
 // 4. Per-layout key edits
 //    Every layout has its own hidden keys, labels and moved keys in
 //    S.layout.profiles[layoutId] = { disabledKeys: [], labels: {}, positions: { KeyW: { x, y } } }.
-//    `positions` only lists keys the user moved; every other key stays where the layout file puts it. Units are key widths.
+//    `positions` only lists keys the user moved; every other key stays where the layout file puts it. Units are key
+//    widths.
 // ---------------------------------------------------------------------------------------------------------------------
 const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {}, positions: {} });
 const curLayout = () => layouts.find(l => l.id === S.layout.id) ?? layouts[0];
@@ -184,8 +258,10 @@ function setKeyPos(key, x, y) {
 }
 
 /**
- * "Tidy up": close the dead space left by hidden keys while keeping the keyboard's shape. Every key keeps its place relative to the
- * others; empty gaps of about a key or more close completely, then everything moves to the top-left corner and snaps to quarter steps.
+ * "Tidy up": close the dead space left by hidden keys while keeping the keyboard's shape. Every key keeps its place
+ * relative to the
+ * others; empty gaps of about a key or more close completely, then everything moves to the top-left corner and snaps to
+ * quarter steps.
  * Hidden keys are left alone. Returns { code: { x, y } } for the visible keys.
  */
 function tidyPositions(layout, profile) {
@@ -282,7 +358,9 @@ function selectCtl(c) {
   return [select];
 }
 
-/** The font picker: the user's own fonts, the Windows fonts (each shown in its own font), or "Other" to type any name. */
+/**
+ * The font picker: the user's own fonts, the Windows fonts (each shown in its own font), or "Other" to type any name.
+ */
 function fontCtl(c) {
   const current = get(S, c.path);
   const mine = customFonts.map(file => file.replace(/\.[^.]+$/, ''));      // "My Font.ttf" -> "My Font"
@@ -322,7 +400,8 @@ const shareRow = (label, onImport, onExport, exportDisabled = false, tips = {}) 
 // 6. Popups
 // ---------------------------------------------------------------------------------------------------------------------
 
-// ---- 6a. The general-purpose dialog (new layout, limit reached, reset). Same look as the release-notes and update popups.
+// ---- 6a. The general-purpose dialog (new layout, limit reached, reset). Same look as the release-notes and update
+// popups.
 /** Show a dialog. buttons: [{ label, primary?, danger?, run? }]. If `run` returns false the dialog stays open. */
 function dialog({ title, body, buttons }) {
   $('#dTitle').textContent = title;
@@ -342,7 +421,7 @@ function addLayoutDialog() {
   if (layouts.filter(l => l.user).length >= MAX_LAYOUTS) {
     dialog({
       title: 'Max layouts reached',
-      body: [el('p', { textContent: `You can make up to ${MAX_LAYOUTS} layouts of your own. Right-click one you no longer need and choose Delete layout to free a spot.` })],
+      body: [el('p', { textContent: TEXT.layoutLimitReached(MAX_LAYOUTS) })],
       buttons: [{ label: 'OK', primary: true }],
     });
     return;
@@ -361,7 +440,7 @@ function addLayoutDialog() {
   nameInput.onkeydown = e => { if (e.key === 'Enter') $('#dFoot .primary').click(); };
   dialog({
     title: 'New layout',
-    body: [el('p', { textContent: 'It starts as the full-size keyboard. You then pick which keys to keep or hide on the Keys tab.' }), nameInput],
+    body: [el('p', { textContent: TEXT.newLayoutHelp }), nameInput],
     buttons: [{ label: 'Cancel' }, { label: 'Create', primary: true, run: create }],
   });
   nameInput.focus();
@@ -379,8 +458,8 @@ function resetDialog() {
   dialog({
     title: 'Reset all settings?',
     body: [
-      el('p', { textContent: 'Style, animation, key edits, keyboard input, secure link, start-with-Windows and the other options go back to their defaults. Your own layouts, presets and fonts are kept, and so is your port.' }),
-      el('p', { textContent: 'If the secure link was on, your OBS link goes back to the plain address, so paste it into OBS again.' }),
+      el('p', { textContent: TEXT.resetBodyWhatChanges }),
+      el('p', { textContent: TEXT.resetBodyLinkNote }),
     ],
     buttons: [{ label: 'Cancel' }, { label: 'Reset everything', danger: true, run: reset }],
   });
@@ -401,11 +480,13 @@ function showMenu(event, items) {
   menuEl.style.left = Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px';
   menuEl.style.top = Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px';
 }
-addEventListener('contextmenu', e => e.preventDefault());                       // layout cards call showMenu first, which stops this
+// layout cards call showMenu first, which stops this
+addEventListener('contextmenu', e => e.preventDefault());
 addEventListener('mousedown', e => { if (menuEl && !menuEl.contains(e.target)) hideMenu(); }, true);
 addEventListener('blur', hideMenu);
 addEventListener('keydown', e => { if (e.key === 'Escape') hideMenu(); });
-addEventListener('dragstart', e => e.preventDefault());                         // nothing in this window can be dragged away
+// nothing in this window can be dragged away
+addEventListener('dragstart', e => e.preventDefault());
 
 // ---- 6c. Release notes ("What's new"), fetched from GitHub
 /** A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text. */
@@ -481,7 +562,8 @@ function typeIn(root) {
     if (shown < total) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
-  setTimeout(() => {                                                          // safety net if animation frames are paused
+  // safety net if animation frames are paused
+  setTimeout(() => {
     if (run !== typingRun) return;
     for (const p of parts) { p.typed.nodeValue = p.full; p.rest.remove(); }
   }, duration + 400);
@@ -534,9 +616,10 @@ function openUpdateDialog() {
   $('#uTitle').textContent = `Update available — v${r.version}`;
   $('#uBody').replaceChildren(...[
     el('p', { className: 'hint', textContent: `You have v${r.current} · ${r.channel === 'latest' ? 'Latest' : 'Stable'} channel` }),
-    r.manual ? el('p', { textContent: 'This update needs a manual install: download the new installer from GitHub, close this app, and run it. Your settings are kept.' }) : null,
+    r.manual ? el('p', { textContent: TEXT.manualInstallDialog }) : null,
     r.notes ? md(r.notes) : null,
-  ].filter(Boolean));                                                         // replaceChildren would print "null" for empty slots
+  // replaceChildren would print "null" for empty slots
+  ].filter(Boolean));
   $('#uGo').textContent = r.manual ? 'Open GitHub installer' : 'Update now';
   $('#uGo').disabled = $('#uLater').disabled = false;
   updateBusy = false;
@@ -558,10 +641,12 @@ $('#uGo').onclick = async () => {
   updateBusy = true;
   $('#uGo').disabled = $('#uLater').disabled = true;
   clearTimeout(saveTimer); saveTimer = 0;
-  try { await invoke('save_settings', { settings: S }); } catch { /* ignore */ }   // nothing pending when the app restarts
+  // nothing pending when the app restarts
+  try { await invoke('save_settings', { settings: S }); } catch { /* ignore */ }
   upProg = { pct: 0, text: 'Starting download…' }; paintProgress();
   try {
-    await invoke('install_update');                                           // downloads, verifies the signature, installs, restarts
+    // downloads, verifies the signature, installs, restarts
+    await invoke('install_update');
   } catch (error) {
     updateBusy = false; upProg = null; paintProgress();
     $('#uText').textContent = String(error);
@@ -575,7 +660,8 @@ function paintProgress() {
   if (dialogBar) {
     dialogBar.hidden = !upProg;
     $('#uFill').style.width = (upProg ? Math.max(0, upProg.pct) : 0) + '%';
-    $('#uFill').classList.toggle('indet', !!upProg && upProg.pct < 0);        // negative = size unknown, show a moving bar
+    // negative = size unknown, show a moving bar
+    $('#uFill').classList.toggle('indet', !!upProg && upProg.pct < 0);
     if (upProg) $('#uText').textContent = upProg.text;
   }
   const bar = $('#upBar'), fill = $('#upFill'), text = $('#upText');
@@ -596,7 +682,7 @@ const TABS = {
   layout() {
     const page = el('div');
     page.append(heading('Keyboard layout'),
-      note('Pick a layout, or click + to make your own from the full-size keyboard. Right-click a layout you made to delete it.'));
+      note(TEXT.layoutTabHelp));
 
     const cards = el('div', { className: 'cards' });
     for (const l of layouts) cards.append(layoutCard(l));
@@ -611,20 +697,20 @@ const TABS = {
     return page;
   },
 
-  // ---- Keys: show / hide keys and rename them -------------------------------------------------------------------------
+  // ---- Keys: show / hide keys and rename them -----------------------------------------------------------------------
   keys() {
     const page = el('div'), layout = curLayout();
     if (!layout) return page;
     const profile = viewProf();
     page.append(heading('Keys — ' + layout.name),
-      note('Click a key to edit it, drag it to move it. Disabled keys are hidden in the overlay. Changes are saved automatically for each layout.'));
+      note(TEXT.keysTabHelp));
     page.append(keyboardMap(layout, profile), keyButtons(layout));
     const selected = selKey && layout.keys.find(k => k.code === selKey);
     if (selected) page.append(keyEditor(selected, profile));
     return page;
   },
 
-  // ---- Style: themes, presets, colours, shape, text, size -----------------------------------------------------------------
+  // ---- Style: themes, presets, colours, shape, text, size -----------------------------------------------------------
   async style() {
     const page = el('div');
     page.append(heading('Themes & presets'));
@@ -665,19 +751,19 @@ const TABS = {
     return page;
   },
 
-  // ---- Animation ---------------------------------------------------------------------------------------------------------
+  // ---- Animation ----------------------------------------------------------------------------------------------------
   animation() {
     const page = el('div');
     renderControls('animation', page);
-    page.append(note('Only transform and opacity are animated (GPU friendly). Click keys in the preview to try an animation.'));
+    page.append(note(TEXT.animationTabNote));
     return page;
   },
 
-  // ---- Fonts: add your own font files ------------------------------------------------------------------------------------
+  // ---- Fonts: add your own font files -------------------------------------------------------------------------------
   async fonts() {
     const page = el('div');
     page.append(heading('Custom fonts'),
-      note('Add TTF, OTF or WOFF files. They are copied into the app’s fonts folder. After adding, pick it in Style → Font family (under “Your fonts”), or click Use.'));
+      note(TEXT.fontsTabHelp));
     page.append(el('div', { className: 'btns' },
       button('Add font…', async () => {
         const name = await call('add_font');
@@ -697,7 +783,7 @@ const TABS = {
     return page;
   },
 
-  // ---- General: OBS link, server, security, input method, app options, updates --------------------------------------------
+  // ---- General: OBS link, server, security, input method, app options, updates --------------------------------------
   general() {
     const page = el('div');
     page.append(...obsSection(), ...serverSection(), ...secureLinkSection(), ...inputSection(), ...appSection(), ...updatesSection());
@@ -705,7 +791,7 @@ const TABS = {
   },
 };
 
-// ---- Layout tab pieces ------------------------------------------------------------------------------------------------------
+// ---- Layout tab pieces ----------------------------------------------------------------------------------------------
 /** One clickable card in the layout grid. Right-click a layout you made to delete it. */
 function layoutCard(l) {
   const deleteItem = l.user
@@ -737,18 +823,30 @@ async function exportLayouts() {
   } catch (error) { toast(String(error), true); }
 }
 
-// ---- Keys tab pieces --------------------------------------------------------------------------------------------------------
+// ---- Keys tab pieces ------------------------------------------------------------------------------------------------
+/** CSS for one key on the keyboard picture: position in key units (plus the 8px margin), size in pixels. */
+function keyBoxStyle(left, top, w, h, unit) {
+  const px = n => n + 'px';
+  const fontSize = Math.max(8, Math.round((11 * unit) / 38));
+  const box = `left:${px(left * unit + 8)};top:${px(top * unit + 8)};width:${px(w)};height:${px(h)}`;
+  return `${box};font-size:${px(fontSize)}`;
+}
+
 /** True while the pointer was just released after dragging a key, so the click that follows must not also select it. */
 let justDragged = false;
 
-/** The picture of the keyboard. Keys are scaled so the whole layout (plus one spare key of room) fits the box without scrolling. */
+/**
+ * The picture of the keyboard. Keys are scaled so the whole layout (plus one spare key of room) fits the box without
+ * scrolling.
+ */
 function keyboardMap(layout, profile) {
   const placed = layout.keys.map(k => ({ k, ...keyPos(k, profile) }));
   const minX = Math.min(...placed.map(p => p.x)), minY = Math.min(...placed.map(p => p.y));
   // One spare key of room on the right and at the bottom, so a key can be dragged outwards to make the layout bigger.
   const spanX = Math.max(...placed.map(p => p.x + (p.k.w ?? 1))) - minX + 1;
   const spanY = Math.max(...placed.map(p => p.y + (p.k.h ?? 1))) - minY + 1;
-  const available = ($('#pane').clientWidth || 860) - 26 * 2 - 2;              // the pane's inner width minus the box border
+  // the pane's inner width minus the box border
+  const available = ($('#pane').clientWidth || 860) - 26 * 2 - 2;
   const unit = Math.max(14, Math.min(38, Math.floor((available - 16) / spanX)));   // pixels per key, 38 at most
   const grid = { unit, minX, minY, spanX, spanY };
   const hidden = new Set(profile.disabledKeys);
@@ -766,7 +864,7 @@ function keyboardMap(layout, profile) {
     const k = p.k, w = (k.w ?? 1) * unit - 3, h = (k.h ?? 1) * unit - 3;
     const node = el('div', {
       className: 'kmk' + (hidden.has(k.code) ? ' off' : '') + (selKey === k.code ? ' sel' : '') + (clash.has(k.code) ? ' clash' : '') + (profile.positions[k.code] ? ' moved' : ''),
-      style: `left:${(p.x - minX) * unit + 8}px;top:${(p.y - minY) * unit + 8}px;width:${w}px;height:${h}px;font-size:${Math.max(8, Math.round(11 * unit / 38))}px`,
+      style: keyBoxStyle(p.x - minX, p.y - minY, w, h, unit),
       textContent: profile.labels[k.code] ?? k.label, title: k.code + ' (drag to move)',
     });
     node.dataset.code = k.code;
@@ -776,11 +874,15 @@ function keyboardMap(layout, profile) {
   }
   inner.style.width = (spanX * unit + 16) + 'px'; inner.style.height = (spanY * unit + 16) + 'px';
   const box = el('div', { className: 'keymap' }, inner);
-  box.style.height = (spanY * unit + 16 + 2) + 'px';                            // +2 for the box border, or it scrolls by 2px
+  // +2 for the box border, or it scrolls by 2px
+  box.style.height = (spanY * unit + 16 + 2) + 'px';
   return box;
 }
 
-/** Drag a key to a new place: snaps to quarter-key steps, stays inside the box, and the live preview follows while you drag. */
+/**
+ * Drag a key to a new place: snaps to quarter-key steps, stays inside the box, and the live preview follows while you
+ * drag.
+ */
 function dragKey(e, node, key, grid) {
   if (e.button !== 0) return;
   const startX = e.clientX, startY = e.clientY, from = keyPos(key, viewProf());
@@ -827,7 +929,8 @@ function keyButtons(layout) {
   const moved = Object.keys(viewProf().positions).length > 0;
   const tidy = button('Tidy up', () => {
     const prof = editProf(), next = tidyPositions(layout, viewProf());
-    for (const k of layout.keys) {                                              // keep only positions that differ from the layout file
+    // keep only positions that differ from the layout file
+    for (const k of layout.keys) {
       const n = next[k.code];
       if (!n) continue;
       if (Math.abs(n.x - k.x) < 1e-6 && Math.abs(n.y - k.y) < 1e-6) delete prof.positions[k.code]; else prof.positions[k.code] = { x: round2(n.x), y: round2(n.y) };
@@ -844,7 +947,9 @@ function keyButtons(layout) {
     tidy, reset, revert);
 }
 
-/** The small editor under the keyboard for the selected key: show/hide it, give it a label, and set its exact position. */
+/**
+ * The small editor under the keyboard for the selected key: show/hide it, give it a label, and set its exact position.
+ */
 function keyEditor(key, profile) {
   const show = el('input', { type: 'checkbox', checked: !profile.disabledKeys.includes(key.code) });
   show.onchange = () => {
@@ -864,17 +969,18 @@ function keyEditor(key, profile) {
     if (Number.isFinite(x) && Number.isFinite(y)) { setKeyPos(key, Math.min(100, Math.max(0, x)), Math.min(100, Math.max(0, y))); changed(); }
   };
   px.oninput = py.oninput = place;
-  px.onchange = py.onchange = () => render();                                    // redraw the keyboard once typing settles
+  // redraw the keyboard once typing settles
+  px.onchange = py.onchange = () => render();
   const back = button('Reset', () => { delete editProf().positions[key.code]; tidyProf(); changed(true); });
   back.disabled = !profile.positions[key.code];
 
   return el('div', { className: 'editor' }, el('b', { textContent: key.code }),
     row('Show this key', show), row('Custom label', label, reset),
     row('Position', el('span', { textContent: 'X' }), px, el('span', { textContent: 'Y' }), py, back),
-    note('Tip: use symbols like ⎵ or ↑, or words like "Jump". Drag a key on the keyboard to move it, or select it and use the arrow keys (Shift moves a whole key).'));
+    note(TEXT.keyEditorTip));
 }
 
-// ---- General tab sections (each returns the page elements for one heading; they are listed in display order above) ---------------
+// ---- General tab sections (one function per heading, in the order they are shown) ----
 async function reloadFonts() { customFonts = await call('list_fonts'); }
 
 function obsSection() {
@@ -905,19 +1011,20 @@ function serverSection() {
     heading('Server'),
     row('Port', port, button('Apply', applyPort)),
     el('div', { className: 'btns' }, button('Restart server', restart)),
-    note('The server only listens on 127.0.0.1 (this PC). Keystrokes are never saved or sent anywhere. OBS reconnects by itself after a restart.'),
+    note(TEXT.serverNote),
   ];
 }
 
 function secureLinkSection() {
-  const OFF = '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this PC can read your key presses through it. Turn this on if you share the PC or want that closed.';
-  const ON = '**On:** your OBS link now contains a private key, and only a program that knows the full link can read your key presses. **Copy the new link into your OBS Browser Source once** — the old link stops working. Keep the link off your stream. “Make a new key” cuts off anyone who has the old one.';
+  const OFF = TEXT.secureLinkOff;
+  const ON = TEXT.secureLinkOn;
   const checkbox = el('input', { type: 'checkbox', checked: !!S.general.secureLink });
   const explanation = el('div', { className: 'note' });
   const newKey = el('button', { className: 'danger', textContent: 'Make a new key' });
   const buttons = el('div', { className: 'btns', hidden: !S.general.secureLink }, button('Copy secure link', copyUrl, 'primary'), newKey);
   const paint = on => { explanation.replaceChildren(md(on ? ON : OFF)); buttons.hidden = !on; };
-  const useLink = url => { obsUrl = url; updateObs(); frame.src = previewSrc(); };     // also reloads the live preview with the new link
+  // also reloads the live preview with the new link
+  const useLink = url => { obsUrl = url; updateObs(); frame.src = previewSrc(); };
 
   checkbox.onchange = async () => {
     const want = checkbox.checked;
@@ -941,8 +1048,8 @@ function secureLinkSection() {
 function inputSection() {
   const METHODS = { hook: 'Standard (keyboard hook) — recommended', rawinput: 'Compatibility (Raw Input)' };
   const INFO = {
-    hook: '**Standard** is what the app has always used: it listens to your keys through a Windows keyboard hook. It works with nearly every game, so keep it unless keys stop lighting up in one particular game.',
-    rawinput: '**Compatibility** reads your keys straight from the keyboard (Windows Raw Input) instead of hooking into Windows. Some games and anti-cheat tools block the standard method but not this one, so try it if keys don’t light up in a certain game. It uses the same tiny amount of CPU. If anything looks off, switch back to Standard.',
+    hook: TEXT.inputStandard,
+    rawinput: TEXT.inputCompatibility,
   };
   const select = el('select', {}, Object.entries(METHODS).map(([value, name]) => el('option', { value, textContent: name })));
   select.value = inputActive;
@@ -956,7 +1063,8 @@ function inputSection() {
       await invoke('set_input_method', { method: want });
       inputActive = want; S.general.inputMethod = want; inputError = null; error.hidden = true;
       toast('Keyboard input: ' + METHODS[want].replace(' — recommended', ''));
-    } catch (e) {                                                              // the new method could not start: the old one keeps running
+    // the new method could not start: the old one keeps running
+    } catch (e) {
       select.value = inputActive; inputError = String(e);
       error.textContent = inputError; error.hidden = false;
       toast(inputError, true);
@@ -967,7 +1075,7 @@ function inputSection() {
   return [
     heading('Keyboard input'),
     row('Input method', select), error, info,
-    note('Both methods read keys the same way and never save or send them. If a game runs as administrator, start Keystroke Overlay as administrator too. Not sure? Leave it on Standard.'),
+    note(TEXT.inputNote),
   ];
 }
 
@@ -982,7 +1090,7 @@ function appSection() {
     toggle('general.minimizeToTray', 'Minimize to tray'),
     toggle('general.openOnLaunch', 'Open this window on launch'),
     toggle('general.debugMode', 'Debug mode (for developers)', () => changed(true, true)),
-    note('Adds a Debug tab with tools for finding problems. Nothing is recorded while it is off, nothing is saved to disk, and nothing leaves this PC.'),
+    note(TEXT.debugModeHelp),
     el('div', { className: 'btns' },
       button('Open data folder', () => call('open_folder', { kind: 'root' })),
       button('Reset all settings…', resetDialog, 'danger'),
@@ -1001,7 +1109,7 @@ function updatesSection() {
     installBtn.textContent = 'Install update';
     if (r.available && r.manual) {
       status.textContent = `Version ${r.version} is available — this update needs a manual install`;
-      details.textContent = (r.notes ? r.notes + '\n\n' : '') + 'It can’t be installed from inside the app. Download the new installer from GitHub, close this app, and run it; your settings are kept.';
+      details.textContent = (r.notes ? r.notes + '\n\n' : '') + TEXT.manualInstallNote;
       details.style.whiteSpace = 'pre-line'; details.hidden = false;
       installBtn.textContent = 'Open GitHub installer'; installBtn.hidden = false;
     } else if (r.available) {
@@ -1019,14 +1127,16 @@ function updatesSection() {
     try { showResult(setUpdate(await invoke('check_update'))); } catch (error) { status.textContent = String(error); }
   };
   checkBtn.onclick = async () => { checkBtn.disabled = true; await checkNow(); checkBtn.disabled = false; };
-  installBtn.onclick = openUpdateDialog;                                       // same confirm dialog as the corner button
+  // same confirm dialog as the corner button
+  installBtn.onclick = openUpdateDialog;
   if (lastUpdate) showResult(lastUpdate);
 
   const channel = el('select', {}, el('option', { value: 'stable', textContent: 'Stable (recommended)' }), el('option', { value: 'latest', textContent: 'Latest' }));
   channel.value = S.general.updateChannel;
   channel.onchange = async () => {
     S.general.updateChannel = channel.value;
-    try { await invoke('save_settings', { settings: S }); } catch { /* ignore */ }   // the check below must see the new channel
+    // the check below must see the new channel
+    try { await invoke('save_settings', { settings: S }); } catch { /* ignore */ }
     setUpdate(null);
     await checkNow();
   };
@@ -1034,16 +1144,17 @@ function updatesSection() {
   const progressBar = el('div', { className: 'bar', id: 'upBar', hidden: true }, el('div', { className: 'fill', id: 'upFill' }));
   const statusRow = el('div', { className: 'row' }, el('label'),
     el('div', { className: 'ctl', style: 'flex-direction:column;align-items:stretch;gap:6px' }, status, progressBar, el('span', { className: 'hint', id: 'upText' })));
-  setTimeout(paintProgress, 0);                                                // after the page is built, show a download already in progress
+  // after the page is built, show a download already in progress
+  setTimeout(paintProgress, 0);
 
   return [
     heading('Program updates'),
     row('Current version', el('b', { textContent: 'v' + appVersion }), button('View release notes', () => showNotes(appVersion))),
     row('Update channel', channel),
-    note('Stable: the main, well-tested releases (like 1.2.0 or 1.3.0) — recommended. Latest: every release as soon as it is published, including the small fixes in between (like 1.2.1).'),
+    note(TEXT.updateChannelHelp),
     row('Software update', checkBtn, installBtn), statusRow, details,
     toggle('general.autoCheckUpdates', 'Check for updates automatically'),
-    note('Updates are never installed without your click. The app only contacts GitHub for the update check (about once an hour while the app runs, and when this window opens) and for release notes, and sends nothing except its version. Your keystrokes never leave this PC.'),
+    note(TEXT.updatesNote),
   ];
 }
 
@@ -1052,7 +1163,8 @@ function updatesSection() {
 // ---------------------------------------------------------------------------------------------------------------------
 /** Redraw the tab bar and the active tab, keeping the scroll position. */
 async function render() {
-  const debugOn = !!(S?.general?.debugMode && window.debugTab);       // the Debug tab (ui/settings/debug.js) only exists in Debug mode
+  // the Debug tab (ui/settings/debug.js) only exists in Debug mode
+  const debugOn = !!(S?.general?.debugMode && window.debugTab);
   if (tab === 'debug' && !debugOn) tab = 'general';
   const names = debugOn ? { ...TAB_NAMES, debug: window.debugTab.name } : TAB_NAMES;
   $('#tabs').replaceChildren(...Object.entries(names).map(([id, name]) =>
@@ -1074,8 +1186,10 @@ ev.listen('update-progress', e => {
   paintProgress();
 });
 ev.listen('update-installing', () => { upProg = { pct: 100, text: 'Installing… the app will restart in a moment.' }; paintProgress(); });
-ev.listen('update-result', e => showUpdateResult(e.payload));                       // the hourly background check found something
-ev.listen('goto-tab', e => { if (TAB_NAMES[e.payload]) { tab = e.payload; render(); } });   // e.g. the tray's "Update available"
+// the hourly background check found something
+ev.listen('update-result', e => showUpdateResult(e.payload));
+// e.g. the tray's "Update available"
+ev.listen('goto-tab', e => { if (TAB_NAMES[e.payload]) { tab = e.payload; render(); } });
 
 function paintPause() { $('#pausebar').hidden = !paused; }
 $('#resumeBtn').onclick = async () => { await call('toggle_pause'); };
@@ -1089,7 +1203,8 @@ function showServerError(message) {
 /** Something changed outside this window (a tray action, a layout created): reload everything and redraw. */
 async function resync() {
   try { obsUrl = (await invoke('get_state')).url; } catch { /* keep the old address */ }
-  await flushPendingSave();                                                    // never lose an edit that was waiting to save
+  // never lose an edit that was waiting to save
+  await flushPendingSave();
   const state = await invoke('get_state');
   try { layouts = await invoke('list_layouts'); } catch { /* keep the old list */ }
   S = state.settings; paused = state.paused; inputActive = state.inputActive; inputError = state.inputError;
@@ -1133,11 +1248,13 @@ addEventListener('message', e => {
   if (e.source !== frame.contentWindow) return;
   const m = e.data || {};
   if (m.type === 'ready') { push(); frame.contentWindow.postMessage({ type: 'getRegistry' }, '*'); }
-  else if (m.type === 'registry') { reg = m; if (booted && (tab === 'style' || tab === 'animation')) render(); }   // only these tabs use the lists
+  // only these tabs use the lists
+  else if (m.type === 'registry') { reg = m; if (booted && (tab === 'style' || tab === 'animation')) render(); }
   else if (m.type === 'size') { size = m; fitPreview(); updateObs(); }
 });
 
-// When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to the window).
+// When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to
+// the window).
 let resizeTimer = 0;
 addEventListener('resize', () => {
   fitPreview(); hideMenu();
@@ -1146,7 +1263,8 @@ addEventListener('resize', () => {
 });
 
 // ---- The window buttons. The window has no native title bar, so the page draws minimize / maximize / close itself.
-// Dragging the header (and double-clicking it to maximize) is handled by the data-tauri-drag-region attribute in index.html.
+// Dragging the header (and double-clicking it to maximize) is handled by the data-tauri-drag-region attribute in
+// index.html.
 const appWin = window.__TAURI__.window.getCurrentWindow();
 $('#wMin').onclick = () => appWin.minimize();
 $('#wMax').onclick = () => appWin.toggleMaximize();
@@ -1169,15 +1287,18 @@ appWin.onResized(paintMaxButton);
   const [state, layoutList, fonts] = await Promise.all([call('get_state'), call('list_layouts'), call('list_fonts')]);
   S = state.settings; obsUrl = state.url; appVersion = state.version; paused = state.paused;
   layouts = layoutList; customFonts = fonts; inputActive = state.inputActive; inputError = state.inputError;
-  if (state.gotoTab && TAB_NAMES[state.gotoTab]) tab = state.gotoTab;              // e.g. the tray's "Update available" opens General
+  // e.g. the tray's "Update available" opens General
+  if (state.gotoTab && TAB_NAMES[state.gotoTab]) tab = state.gotoTab;
   paintPause(); updateObs();
-  if (state.serverError) { showServerError(state.serverError); tab = 'general'; }  // the overlay can't load, but the port can still be fixed
+  // the overlay can't load, but the port can still be fixed
+  if (state.serverError) { showServerError(state.serverError); tab = 'general'; }
   booted = true;
   await render();
   window.__uiReady = performance.timeOrigin + performance.now();                   // read by the performance tests
   if (!state.serverError) requestAnimationFrame(() => { frame.src = previewSrc(); });
   if (state.whatsNew) {                                                            // shown once after an update
-    await invoke('ack_whats_new');                                                 // mark as seen right away so it can never repeat
+    // mark as seen right away so it can never repeat
+    await invoke('ack_whats_new');
     showNotes(appVersion, `What's new in v${appVersion}`);
   }
 })();

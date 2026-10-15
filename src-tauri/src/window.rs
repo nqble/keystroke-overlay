@@ -12,7 +12,8 @@ pub fn open_settings(app: &AppHandle) {
     crate::debug::log("settings window opened");
     let _ = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
         .title("Keystroke Overlay")   // still used by the taskbar and Alt+Tab
-        // No native title bar: the page draws its own minimize / maximize / close buttons in the top right of its header row.
+        // No native title bar: the page draws its own minimize / maximize / close buttons in the top right of its
+        // header row.
         .decorations(false)
         .shadow(true)
         .inner_size(1060.0, 800.0)

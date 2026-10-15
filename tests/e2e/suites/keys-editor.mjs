@@ -1,4 +1,5 @@
-// Suite: moving keys (Keys tab). Dragging, arrow-key nudging, exact X/Y fields, Tidy up, Reset positions, overlap warning,
+// Suite: moving keys (Keys tab). Dragging, arrow-key nudging, exact X/Y fields, Tidy up, Reset positions, overlap
+// warning,
 // and that every move shows up in the live preview and shrinks the overlay when the layout gets more compact.
 import { connect, check, finish, sleep, PORT } from '../lib/cdp.mjs';
 
@@ -16,7 +17,8 @@ const keep = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'];
 const full = (await p.invoke('list_layouts')).ok.find(l => l.id === id);
 const S0 = (await state()).settings;
 await p.invoke('save_settings', { settings: { ...S0, layout: { ...S0.layout, id, profiles: { ...S0.layout.profiles, [id]: { disabledKeys: full.keys.map(k => k.code).filter(c => !keep.includes(c)), labels: {} } } } } });
-await p.ev(`await resync()`);                                    // the window re-reads the settings the test just saved behind its back
+// the window re-reads the settings the test just saved behind its back
+await p.ev(`await resync()`);
 await tab('Keys'); await sleep(600);
 const orig = Object.fromEntries(full.keys.filter(k => keep.includes(k.code)).map(k => [k.code, k]));
 const sizeBefore = await eventually(async () => { const s = await previewSize(); return { ok: !!s && s.w > 0, s }; });

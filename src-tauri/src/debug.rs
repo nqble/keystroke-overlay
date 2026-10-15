@@ -12,11 +12,13 @@
 //!     and only sends events to the settings window on this PC.
 //!
 //! HOW TO ADD A LOG LINE
-//!   Anywhere in the Rust code:   crate::debug::log("what just happened");     or    crate::debug::log(format!("port is {port}"));
+//!   Anywhere in the Rust code:   crate::debug::log("what just happened");     or    crate::debug::log(format!("port is
+//!   {port}"));
 //!   It shows up in the Debug tab → Event log (and in the bug report that tab can copy).
 //!
 //! HOW TO ADD A NEW DEBUG TOOL
-//!   Add a #[tauri::command] here, list it in `generate_handler!` in main.rs, then add a section in ui/settings/debug.js.
+//!   Add a #[tauri::command] here, list it in `generate_handler!` in main.rs, then add a section in
+//!   ui/settings/debug.js.
 //!   See docs/DEBUGGING.md for the full walk-through.
 
 use crate::settings;
@@ -36,7 +38,8 @@ const MONITOR_MAX: Duration = Duration::from_secs(60);
 static ENABLED: AtomicBool = AtomicBool::new(false);
 static STARTED: OnceLock<Instant> = OnceLock::new();
 static LOG: Mutex<VecDeque<(u64, String)>> = Mutex::new(VecDeque::new());
-/// Each time the key monitor is started or stopped this number goes up; a running monitor that sees a newer number quits.
+/// Each time the key monitor is started or stopped this number goes up; a running monitor that sees a newer number
+/// quits.
 static MONITOR: AtomicU64 = AtomicU64::new(0);
 
 fn uptime_ms() -> u64 { STARTED.get_or_init(Instant::now).elapsed().as_millis() as u64 }

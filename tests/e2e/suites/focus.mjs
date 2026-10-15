@@ -6,7 +6,8 @@ import { connect, inject, listenKeys, focus, check, finish, sleep, PORT } from '
 const TRIES = 5;
 const p = await connect(); await sleep(3500);          // let the preview frame finish loading
 const S0 = (await p.invoke('get_state')).ok.settings;
-await p.invoke('save_settings', { settings: { ...S0, general: { ...S0.general, minimizeToTray: false } } });   // so minimizing doesn't close the window
+// so minimizing doesn't close the window
+await p.invoke('save_settings', { settings: { ...S0, general: { ...S0.general, minimizeToTray: false } } });
 const events = await listenKeys(); await sleep(300);
 const downInPreview = code => p.evIn(`localhost:${PORT}`, `return document.querySelector('[data-code="${code}"]')?.classList.contains('down') ?? null`);
 

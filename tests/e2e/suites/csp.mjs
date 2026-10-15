@@ -11,10 +11,12 @@ const tab = async n => { await p.ev(`[...document.querySelectorAll('nav button')
 // ---- normal use: no violations
 for (const t of ['Layout', 'Keys', 'Style', 'Animation', 'Fonts', 'General', 'Layout']) await tab(t);
 await p.ev(`document.querySelector('.card.add').click()`); await sleep(300);
-await p.ev(`document.querySelector('#dFoot button').click()`); await sleep(200);               // open and close the New layout dialog
+// open and close the New layout dialog
+await p.ev(`document.querySelector('#dFoot button').click()`); await sleep(200);
 await p.ev(`document.getElementById('copyUrl').click()`); await sleep(200);
 await p.ev(`document.querySelector('#dlg') && (document.getElementById('dlg').hidden = true)`);
-await p.ev(`frame.src = previewSrc()`); await sleep(2500);                                    // the live preview iframe (our own local server)
+// the live preview iframe (our own local server)
+await p.ev(`frame.src = previewSrc()`); await sleep(2500);
 check('normal use of every tab, dialogs and the live preview causes no policy violations', (await violations()).length === 0, JSON.stringify(await violations()));
 check('the preview frame still loads under the policy', (await p.evIn('localhost:7879', `return document.querySelectorAll('.key').length`).catch(() => 0)) > 10);
 check('inline styles (used by the UI) still work', await p.q(`(() => { const d = document.createElement('div'); d.setAttribute('style', 'width:37px'); document.body.append(d); const w = getComputedStyle(d).width; d.remove(); return w === '37px'; })()`));

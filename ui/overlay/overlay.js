@@ -14,8 +14,12 @@ function showLocked() {
   if (PREVIEW) parent.postMessage({ type: 'locked' }, '*');
   if (document.getElementById('locked')) return;
   const d = document.createElement('div'); d.id = 'locked';
-  d.style.cssText = 'position:fixed;left:8px;top:8px;max-width:420px;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",sans-serif';
-  d.textContent = '🔒 This overlay link is secured. Copy the current link from Keystroke Overlay (General → Secure link) into this OBS source.';
+  d.style.cssText =
+    'position:fixed;left:8px;top:8px;max-width:420px;padding:8px 12px;border-radius:8px;' +
+    'background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",sans-serif';
+  d.textContent =
+    '🔒 This overlay link is secured. Copy the current link from Keystroke Overlay ' +
+    '(General → Secure link) into this OBS source.';
   document.body.append(d);
 }
 const getJson = async u => {
@@ -46,7 +50,8 @@ function fontFaceCss(files) {
   return files.map(f => {
     const fam = f.replace(/\.[^.]+$/, '');
     const fmt = { ttf: 'truetype', otf: 'opentype', woff: 'woff', woff2: 'woff2' }[f.split('.').pop().toLowerCase()];
-    return `@font-face{font-family:"${fam}";src:url("${withKey('/fonts/' + encodeURIComponent(f))}")${fmt ? ` format("${fmt}")` : ''};font-display:block}`;
+    const url = withKey('/fonts/' + encodeURIComponent(f));
+    return `@font-face{font-family:"${fam}";src:url("${url}")${fmt ? ` format("${fmt}")` : ''};font-display:block}`;
   }).join('\n');
 }
 
@@ -84,8 +89,10 @@ function build(s) {
   if (!layout) return;
   const prof = profileOf(s, layout);
   const off = new Set(prof.disabledKeys);
-  // A key the user moved is drawn at its saved position; every other key stays where the layout file puts it. The overlay's
-  // size below comes from the keys actually drawn (their positions and widths), so a compact layout is a compact overlay in OBS.
+  // A key the user moved is drawn at its saved position; every other key stays where the layout file puts it. The
+  // overlay's
+  // size below comes from the keys actually drawn (their positions and widths), so a compact layout is a compact
+  // overlay in OBS.
   const keys = layout.keys.filter(k => !off.has(k.code)).map(k => { const m = prof.positions[k.code]; return m ? { ...k, x: m.x, y: m.y } : k; });
   if (!keys.length) { reportSize(0, 0); return; }
   const { keySize, gap } = s.style, pitch = keySize + gap;
@@ -126,7 +133,8 @@ function reportSize(w, h) {
   if (PREVIEW) parent.postMessage({ type: 'size', ...size }, '*');
 }
 
-let reloadedFor = '';   // the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
+// the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
+let reloadedFor = '';
 function apply(s) {
   settings = s;
   // The selected layout is not in our list: it was created or imported after we loaded. Re-read the list (once per id).
@@ -180,8 +188,10 @@ function connect() {
     if (m.t === 'd') setKey(m.k, true);
     else if (m.t === 'u') setKey(m.k, false);
     else if (m.t === 'snap') snapshot(m.down);
-    else if (m.t === 'cfg') { if (m.s) { apply(m.s); setPaused(!!m.paused); } else refresh(); }   // settings arrive inline: no HTTP round trips
-    else if (m.t === 'assets') refresh();                                                       // fonts/layouts changed: re-fetch those
+    // settings arrive inline: no HTTP round trips
+    else if (m.t === 'cfg') { if (m.s) { apply(m.s); setPaused(!!m.paused); } else refresh(); }
+    // fonts/layouts changed: re-fetch those
+    else if (m.t === 'assets') refresh();
   };
   ws.onclose = () => {
     releaseAll(); // never leave keys stuck if the app goes away

@@ -1,7 +1,10 @@
-// Performance comparison: builds old releases and the current code as isolated test copies, then measures them side by side.
-//   node tests/bench/run.mjs [--runs 5]        (uses the same throwaway test identity/ports as the e2e tests; never touches the real app)
+// Performance comparison: builds old releases and the current code as isolated test copies, then measures them side by
+// side.
+//   node tests/bench/run.mjs [--runs 5]        (uses the same throwaway test identity/ports as the e2e tests; never
+//   touches the real app)
 // Measures: program size, time until the settings window is usable, tray-only idle (threads, handles, memory, CPU),
-// the settings window's total memory (app + WebView2 helpers) and process count, and CPU while 8000 key events flood in.
+// the settings window's total memory (app + WebView2 helpers) and process count, and CPU while 8000 key events flood
+// in.
 import { spawnSync, spawn, execSync } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, writeFileSync, copyFileSync, statSync, symlinkSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
@@ -19,8 +22,10 @@ const VERSIONS = [{ name: 'v1.1.0', ref: 'b053bc3' }, { name: 'v1.1.1', ref: 'b5
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const kill = () => spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
 const ps = (file, ...a) => execSync(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${file}" ${a.join(' ')}`).toString().trim();
-const tree = () => ps(join(HERE, 'tree.ps1')).split(' ').map(Number);                        // [processes, privateMB, workingSetMB]
-const proc = () => ps(join(E2E, 'proc.ps1')).split(' ').map(s => +s.replace(/,/g, ''));      // [threads, handles, workingSetMB, cpuMs]
+// [processes, privateMB, workingSetMB]
+const tree = () => ps(join(HERE, 'tree.ps1')).split(' ').map(Number);
+// [threads, handles, workingSetMB, cpuMs]
+const proc = () => ps(join(E2E, 'proc.ps1')).split(' ').map(s => +s.replace(/,/g, ''));
 const median = a => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
 
 const lock = await acquire('performance comparison', { expectedMinutes: 25 });
@@ -75,12 +80,14 @@ for (let run = 1; run <= RUNS; run++) {
   for (const v of VERSIONS) {
     lock.stage(`measuring ${v.name}, round ${run} of ${RUNS}`);
     process.stdout.write(`run ${run}/${RUNS} ${v.name} ... `);
-    const t0 = await launch(v, true); const ms = await usableMs(t0); await sleep(6000);          // settings window opening on launch
+    // settings window opening on launch
+    const t0 = await launch(v, true); const ms = await usableMs(t0); await sleep(6000);
     R[v.name].usable.push(ms); R[v.name].win.push(tree());
     await launch(v, false); await sleep(9000);                                                   // tray only
     const a = proc(); const tr = tree(); await sleep(15000); const b = proc();
     R[v.name].tray.push({ threads: b[0], handles: b[1], priv: tr[1], procs: tr[0] }); R[v.name].idle.push((b[3] - a[3]) / 15000 * 100);
-    const f0 = proc(), tt = Date.now(); inject(4000); const f1 = proc(), secs = (Date.now() - tt) / 1000;   // 8000 key events
+    // 8000 key events
+    const f0 = proc(), tt = Date.now(); inject(4000); const f1 = proc(), secs = (Date.now() - tt) / 1000;
     R[v.name].flood.push((f1[3] - f0[3]) / 1000 / secs * 100);
     console.log(`usable ${ms} ms`);
   }

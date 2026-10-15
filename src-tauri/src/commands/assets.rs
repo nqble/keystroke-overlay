@@ -39,7 +39,8 @@ pub fn open_folder(st: State<AppState>, kind: String) {
     platform::open_folder(&p);
 }
 
-// ---------------------------------------------------------------- style presets (style + animation), stored as presets/<name>.json
+// ---------------------------------------------------------------- style presets (style + animation), stored as
+// presets/<name>.json
 fn clean_name(n: &str) -> Result<String, String> {
     let n: String = n.trim().chars().filter(|c| !r#"\/:*?"<>|"#.contains(*c)).collect();
     if n.is_empty() { Err("Enter a preset name".into()) } else { Ok(n) }
@@ -106,7 +107,8 @@ pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Resul
     std::fs::write(dir.join(format!("{id}.json")), serde_json::to_string_pretty(&doc).unwrap()).map_err(|e| e.to_string())?;
     crate::tray::refresh_tray_layouts(&app);
     crate::debug::log(format!("layout created: {id}"));
-    let _ = st.shared.cfg_tx.send("assets");   // the overlay (OBS and the preview) must re-read its list of layouts before it is told to switch
+    // the overlay (OBS and the preview) must re-read its list of layouts before it is told to switch
+    let _ = st.shared.cfg_tx.send("assets");
     crate::tray::set_layout_inner(&app, &id)?;
     Ok(id)
 }

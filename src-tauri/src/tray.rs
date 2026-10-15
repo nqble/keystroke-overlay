@@ -39,7 +39,8 @@ pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Draws a small orange dot (with a dark ring so it stays visible on any taskbar) in the top right corner of an RGBA icon.
+/// Draws a small orange dot (with a dark ring so it stays visible on any taskbar) in the top right corner of an RGBA
+/// icon.
 pub fn badge_rgba(rgba: &[u8], w: u32, h: u32) -> Vec<u8> {
     let mut out = rgba.to_vec();
     let (cx, cy, r) = (w as f32 * 0.76, h as f32 * 0.24, w as f32 * 0.21);
@@ -61,7 +62,8 @@ pub fn badge_rgba(rgba: &[u8], w: u32, h: u32) -> Vec<u8> {
     out
 }
 
-/// Shows or hides the update indicator: an orange dot on the tray icon and an "Update available" entry at the top of the menu.
+/// Shows or hides the update indicator: an orange dot on the tray icon and an "Update available" entry at the top of
+/// the menu.
 /// The tray lock is released before touching the tray itself: those calls hop to the main thread, and the main thread
 /// may be waiting for the same lock (a tray click), which would freeze the app.
 pub fn set_update_badge(app: &AppHandle, available: bool) {

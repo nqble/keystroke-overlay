@@ -1,4 +1,5 @@
-// A tiny fake "GitHub" for update tests: serves stable.json / latest.json and a throttled, correctly signed fake installer.
+// A tiny fake "GitHub" for update tests: serves stable.json / latest.json and a throttled, correctly signed fake
+// installer.
 // Usage: node mock-updates.mjs <work-dir>      (the work dir holds setup-1.1.4.exe + setup-1.1.4.exe.sig)
 import http from 'node:http';
 import fs from 'node:fs';
@@ -15,7 +16,8 @@ http.createServer((q, r) => {
   if (q.url === '/setup-1.1.4.exe') {
     const b = fs.readFileSync(join(dir, 'setup-1.1.4.exe'));
     r.setHeader('content-length', b.length);
-    let o = 0; const next = () => { if (o >= b.length) return r.end(); r.write(b.subarray(o, o + 262144)); o += 262144; setTimeout(next, 40); };   // ~6 MB/s so progress is observable
+    // ~6 MB/s so progress is observable
+    let o = 0; const next = () => { if (o >= b.length) return r.end(); r.write(b.subarray(o, o + 262144)); o += 262144; setTimeout(next, 40); };
     return next();
   }
   r.statusCode = 404; r.end();

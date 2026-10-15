@@ -1,5 +1,6 @@
 // Suite: walks the whole settings UI like a user would and fails on any JavaScript error:
-// every tab, every theme, every animation, every layout, key edits + revert, sliders at their ends, and the overlay preview.
+// every tab, every theme, every animation, every layout, key edits + revert, sliders at their ends, and the overlay
+// preview.
 import { connect, check, finish, sleep } from '../lib/cdp.mjs';
 
 const p = await connect(); await sleep(3000);
