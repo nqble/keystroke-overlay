@@ -125,7 +125,7 @@ check(
 
 // ------------------------------------------------------------ the live preview keeps working while secured
 await p.ev(
-  `window.__m = []; addEventListener('message', e => window.__m.push(e.data && e.data.type)); frame.src = previewSrc();`,
+  `window.__m = []; addEventListener('message', e => window.__m.push(e.data && e.data.type)); __ko.frame.src = __ko.previewSrc();`,
 );
 await sleep(3500);
 const msgs = await p.q(`window.__m`);

@@ -5,7 +5,6 @@ not lost. Nothing on this page is a commitment, and none of it should be treated
 these is chosen, it gets its own numbered decision record and leaves this page.
 
 ## Frontend structure
-- **Split `ui/settings/settings.js` into one file per tab.** The file is already organised in numbered sections, so the seams exist.
 - **Preact with htm for the settings window** (template strings instead of JSX, no build step). It is small (about 6 KB),
   works under the app's security policy because it needs no `eval`, and uses the same ideas as React. If tried: copy the
   library into `ui/settings/vendor/` pinned to exact versions with its MIT license (no downloads at run time); keep the

@@ -49,7 +49,7 @@ await p.invoke('save_settings', {
   },
 });
 // the window re-reads the settings the test just saved behind its back
-await p.ev(`await resync()`);
+await p.ev(`await __ko.resync()`);
 await tab('Keys');
 await sleep(600);
 const orig = Object.fromEntries(full.keys.filter((k) => keep.includes(k.code)).map((k) => [k.code, k]));

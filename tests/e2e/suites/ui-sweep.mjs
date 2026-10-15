@@ -40,7 +40,7 @@ check(
   obsLoaded.some((u) => u.includes('/overlay/animations/')) && !obsLoaded.some((u) => u.includes('/overlay/themes/')),
   obsLoaded.filter((u) => /themes|animations/.test(u)).length + ' module requests',
 );
-check('the settings preview still lists the themes', (await p.q(`reg.themes.length`)) >= 5);
+check('the settings preview still lists the themes', (await p.q(`__ko.registry().themes.length`)) >= 5);
 
 // header logo, share buttons, font presets, slider focus
 check(

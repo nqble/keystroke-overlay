@@ -1,0 +1,419 @@
+// =====================================================================================================================
+//  Popups: the general dialog, our own right-click menu, release notes, and the update dialog.
+// =====================================================================================================================
+import { $, call, el, invoke, toast } from './helpers.js';
+import { frame, previewSrc, saveNow, updateObs } from './preview.js';
+import { render } from './settings.js';
+import {
+  MAX_LAYOUTS,
+  S,
+  lastUpdate,
+  layouts,
+  setLastUpdate,
+  setLayouts,
+  setObsUrl,
+  setSelKey,
+  setTab,
+  setUpProg,
+  tab,
+  upProg,
+} from './state.js';
+import { TEXT } from './text.js';
+
+// ---- 6a. The general-purpose dialog (new layout, limit reached, reset). Same look as the release-notes and update
+// popups.
+/** Show a dialog. buttons: [{ label, primary?, danger?, run? }]. If `run` returns false the dialog stays open. */
+function dialog({ title, body, buttons }) {
+  $('#dTitle').textContent = title;
+  $('#dBody').replaceChildren(...body);
+  const close = () => {
+    $('#dlg').hidden = true;
+    document.removeEventListener('keydown', onKey);
+  };
+  const onKey = (e) => {
+    if (e.key === 'Escape') close();
+  };
+  $('#dFoot').replaceChildren(
+    ...buttons.map((b) =>
+      el('button', {
+        type: 'button',
+        textContent: b.label,
+        className: b.primary ? 'primary' : b.danger ? 'danger' : '',
+        onclick: async () => {
+          if (!b.run || (await b.run()) !== false) close();
+        },
+      }),
+    ),
+  );
+  $('#dlg').hidden = false;
+  document.addEventListener('keydown', onKey);
+  return close;
+}
+
+export function addLayoutDialog() {
+  if (layouts.filter((l) => l.user).length >= MAX_LAYOUTS) {
+    dialog({
+      title: 'Max layouts reached',
+      body: [el('p', { textContent: TEXT.layoutLimitReached(MAX_LAYOUTS) })],
+      buttons: [{ label: 'OK', primary: true }],
+    });
+    return;
+  }
+  const nameInput = el('input', { type: 'text', placeholder: 'Layout name', maxLength: 30 });
+  const create = async () => {
+    try {
+      const id = await invoke('create_layout', { name: nameInput.value });
+      setLayouts(await call('list_layouts'));
+      S.layout.id = id;
+      setSelKey(null);
+      setTab('keys');
+      toast('Layout created. Click keys to hide the ones you don’t want.');
+      render();
+      return true;
+    } catch (error) {
+      toast(String(error), true);
+      return false;
+    }
+  };
+  nameInput.onkeydown = (e) => {
+    if (e.key === 'Enter') $('#dFoot .primary').click();
+  };
+  dialog({
+    title: 'New layout',
+    body: [el('p', { textContent: TEXT.newLayoutHelp }), nameInput],
+    buttons: [{ label: 'Cancel' }, { label: 'Create', primary: true, run: create }],
+  });
+  nameInput.focus();
+}
+
+export function resetDialog() {
+  const reset = async () => {
+    try {
+      setObsUrl(await invoke('reset_settings'));
+      frame.src = previewSrc();
+      updateObs();
+      toast('All settings reset');
+      return true;
+    } catch (error) {
+      toast(String(error), true);
+      return false;
+    }
+  };
+  dialog({
+    title: 'Reset all settings?',
+    body: [el('p', { textContent: TEXT.resetBodyWhatChanges }), el('p', { textContent: TEXT.resetBodyLinkNote })],
+    buttons: [{ label: 'Cancel' }, { label: 'Reset everything', danger: true, run: reset }],
+  });
+}
+
+// ---- 6b. Our own right-click menu. The browser's menu never appears; only layout cards show this one.
+let menuEl = null;
+
+export function hideMenu() {
+  menuEl?.remove();
+  menuEl = null;
+}
+
+/** Show a small menu at the mouse. items: [{ label, run?, danger?, disabled? }] */
+export function showMenu(event, items) {
+  event.preventDefault();
+  event.stopPropagation();
+  hideMenu();
+  menuEl = el(
+    'div',
+    { className: 'ctxmenu' },
+    items.map((item) =>
+      el('button', {
+        type: 'button',
+        textContent: item.label,
+        className: item.danger ? 'danger' : '',
+        disabled: !!item.disabled,
+        onclick: () => {
+          hideMenu();
+          item.run?.();
+        },
+      }),
+    ),
+  );
+  document.body.append(menuEl);
+  const box = menuEl.getBoundingClientRect(); // keep the menu fully inside the window
+  menuEl.style.left = Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px';
+  menuEl.style.top = Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px';
+}
+
+// layout cards call showMenu first, which stops this
+addEventListener('contextmenu', (e) => e.preventDefault());
+
+addEventListener(
+  'mousedown',
+  (e) => {
+    if (menuEl && !menuEl.contains(e.target)) hideMenu();
+  },
+  true,
+);
+
+addEventListener('blur', hideMenu);
+
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideMenu();
+});
+
+// nothing in this window can be dragged away
+addEventListener('dragstart', (e) => e.preventDefault());
+
+// ---- 6c. Release notes ("What's new"), fetched from GitHub
+/** A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text. */
+export function md(source) {
+  const fragment = document.createDocumentFragment();
+  let list = null;
+  const inline = (parent, text) => {
+    // turns **bold** and `code` into elements
+    const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+    let last = 0,
+      m;
+    while ((m = pattern.exec(text))) {
+      if (m.index > last) parent.append(text.slice(last, m.index));
+      parent.append(
+        m[0].startsWith('**')
+          ? el('strong', { textContent: m[0].slice(2, -2) })
+          : el('code', { textContent: m[0].slice(1, -1) }),
+      );
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) parent.append(text.slice(last));
+  };
+  for (const rawLine of source.replace(/\r/g, '').split('\n')) {
+    const line = rawLine.trimEnd().replace(/\[([^\]]+)\]\([^)]*\)/g, '$1'); // links become plain text
+    let m;
+    if (!line.trim()) {
+      list = null;
+      continue;
+    }
+    if ((m = /^#{1,6}\s+(.*)$/.exec(line))) {
+      list = null;
+      const h = el('h4');
+      inline(h, m[1]);
+      fragment.append(h);
+    } else if ((m = /^\s*[-*+]\s+(.*)$/.exec(line))) {
+      if (!list) {
+        list = el('ul');
+        fragment.append(list);
+      }
+      const li = el('li');
+      inline(li, m[1]);
+      list.append(li);
+    } else {
+      list = null;
+      const p = el('p');
+      inline(p, line);
+      fragment.append(p);
+    }
+  }
+  return fragment;
+}
+
+function closeModal() {
+  $('#modal').hidden = true;
+  document.removeEventListener('keydown', closeOnKey);
+}
+
+const closeOnKey = (e) => {
+  if (e.key === 'Escape' || e.key === 'Enter') closeModal();
+};
+
+/*
+ * "Typing" reveal for the release notes. Each piece of text is split into [typed part][hidden rest]. The hidden rest
+ * still takes up its space, so nothing shifts or re-wraps while typing. It runs on animation frames for under a
+ * second and leaves no timer behind.
+ */
+let typingRun = 0;
+
+function typeIn(root) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // respect the "reduce motion" setting
+  const run = ++typingRun;
+  const textNodes = [];
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let node; (node = walker.nextNode());) if (node.nodeValue) textNodes.push(node);
+  const parts = textNodes.map((node) => {
+    const full = node.nodeValue,
+      typed = document.createTextNode(''),
+      rest = el('span', { textContent: full });
+    rest.style.visibility = 'hidden';
+    node.replaceWith(typed, rest);
+    return { full, typed, rest, done: 0 };
+  });
+  const total = parts.reduce((sum, p) => sum + p.full.length, 0);
+  if (!total) return;
+  const duration = Math.min(800, Math.max(300, total * 7)); // always under one second
+  let shown = 0,
+    index = 0,
+    startTime = 0;
+  const step = (now) => {
+    if (run !== typingRun || $('#modal').hidden) return; // cancelled or closed
+    startTime ||= now;
+    const want = Math.min(total, Math.ceil((total * (now - startTime)) / duration));
+    while (shown < want && index < parts.length) {
+      const p = parts[index],
+        take = Math.min(p.full.length - p.done, want - shown);
+      if (take > 0) {
+        p.done += take;
+        shown += take;
+        p.typed.nodeValue = p.full.slice(0, p.done);
+        p.rest.textContent = p.full.slice(p.done);
+      }
+      if (p.done >= p.full.length) {
+        p.rest.remove();
+        index++;
+      } else break;
+    }
+    if (shown < total) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  // safety net if animation frames are paused
+  setTimeout(() => {
+    if (run !== typingRun) return;
+    for (const p of parts) {
+      p.typed.nodeValue = p.full;
+      p.rest.remove();
+    }
+  }, duration + 400);
+}
+
+/** Three dots that appear one after another while the notes load (pure CSS animation). */
+const loadingDots = () =>
+  el(
+    'p',
+    { className: 'dots', role: 'status', ariaLabel: 'Loading release notes' },
+    el('span', { textContent: '.' }),
+    el('span', { textContent: '.' }),
+    el('span', { textContent: '.' }),
+  );
+
+export async function showNotes(version, title) {
+  typingRun++; // cancel any typing still going
+  $('#mTitle').textContent = title || `Release notes — v${version}`;
+  const body = $('#mBody');
+  body.replaceChildren(loadingDots());
+  $('#modal').hidden = false;
+  document.addEventListener('keydown', closeOnKey);
+  $('#mOk').focus();
+  try {
+    const notes = await invoke('get_release_notes', { version });
+    if ($('#modal').hidden) return;
+    body.replaceChildren(
+      notes.body.trim()
+        ? md(notes.body)
+        : el('p', { className: 'hint', textContent: 'This release has no written notes.' }),
+    );
+    typeIn(body);
+  } catch (error) {
+    if (!$('#modal').hidden) body.replaceChildren(el('p', { className: 'hint', textContent: String(error) }));
+  }
+}
+
+$('#mOk').onclick = closeModal;
+
+// ---- 6d. The update button (bottom-left corner) and its dialog.
+//      Nothing is downloaded or installed until the user clicks the button AND confirms in the dialog.
+let updateBusy = false;
+
+/** Remember the latest update answer and show or hide the corner button. */
+export function setUpdate(result) {
+  setLastUpdate(result);
+  $('#updateBtn').hidden = !(result && result.available);
+  return result;
+}
+
+/** A new answer arrived (from a background check); redraw General only if it actually changed. */
+export function showUpdateResult(result) {
+  const isNew = JSON.stringify(result) !== JSON.stringify(lastUpdate);
+  setUpdate(result);
+  if (isNew && tab === 'general') render();
+}
+
+export function openUpdateDialog() {
+  const r = lastUpdate;
+  if (!r?.available) return;
+  $('#uTitle').textContent = `Update available — v${r.version}`;
+  $('#uBody').replaceChildren(
+    ...[
+      el('p', {
+        className: 'hint',
+        textContent: `You have v${r.current} · ${r.channel === 'latest' ? 'Latest' : 'Stable'} channel`,
+      }),
+      r.manual ? el('p', { textContent: TEXT.manualInstallDialog }) : null,
+      r.notes ? md(r.notes) : null,
+      // replaceChildren would print "null" for empty slots
+    ].filter(Boolean),
+  );
+  $('#uGo').textContent = r.manual ? 'Open GitHub installer' : 'Update now';
+  $('#uGo').disabled = $('#uLater').disabled = false;
+  updateBusy = false;
+  setUpProg(null);
+  paintProgress();
+  $('#uText').textContent = '';
+  $('#updModal').hidden = false;
+  $('#uGo').focus();
+}
+
+$('#updateBtn').onclick = openUpdateDialog;
+
+$('#uLater').onclick = () => {
+  if (!updateBusy) $('#updModal').hidden = true;
+};
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !updateBusy && !$('#updModal').hidden) $('#updModal').hidden = true;
+});
+
+$('#uGo').onclick = async () => {
+  const r = lastUpdate;
+  if (!r?.available) return;
+  if (r.manual) {
+    // cannot be installed from inside the app
+    try {
+      await invoke('open_release_page', { url: r.url });
+    } catch (error) {
+      toast(String(error), true);
+    }
+    return;
+  }
+  updateBusy = true;
+  $('#uGo').disabled = $('#uLater').disabled = true;
+  // nothing pending when the app restarts
+  await saveNow();
+  setUpProg({ pct: 0, text: 'Starting download…' });
+  paintProgress();
+  try {
+    // downloads, verifies the signature, installs, restarts
+    await invoke('install_update');
+  } catch (error) {
+    updateBusy = false;
+    setUpProg(null);
+    paintProgress();
+    $('#uText').textContent = String(error);
+    $('#uGo').disabled = $('#uLater').disabled = false;
+  }
+};
+
+/** Draw the download progress bar in the update dialog and, if General is showing, in General too. */
+export function paintProgress() {
+  const dialogBar = $('#uBar');
+  if (dialogBar) {
+    dialogBar.hidden = !upProg;
+    $('#uFill').style.width = (upProg ? Math.max(0, upProg.pct) : 0) + '%';
+    // negative = size unknown, show a moving bar
+    $('#uFill').classList.toggle('indet', !!upProg && upProg.pct < 0);
+    if (upProg) $('#uText').textContent = upProg.text;
+  }
+  const bar = $('#upBar'),
+    fill = $('#upFill'),
+    text = $('#upText');
+  if (!bar) return; // General is not showing
+  bar.hidden = !upProg;
+  if (upProg) {
+    fill.style.width = upProg.pct + '%';
+    fill.classList.toggle('indet', upProg.pct < 0);
+    text.textContent = upProg.text;
+  } else text.textContent = '';
+}

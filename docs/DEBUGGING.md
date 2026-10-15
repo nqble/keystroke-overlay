@@ -61,6 +61,8 @@ crate::debug::log("what just happened");            // or  crate::debug::log(for
 },
 ```
 
+debug.js is an ES module, so import what you use at the top of the file (`helpers.js` for the small tools, `state.js` for the settings and layouts, `popups.js`, `messages.js`, `settings.js`).
+
 Helpers you can use there: `el()`, `heading()`, `note()`, `button()`, `row()`, `toast()`, `call()`, `invoke()`, the settings `S`, `layouts`, `showNotes()`, `resync()`, `render()`. The file's header comment lists them.
 
 3. Add a check to `tests/e2e/suites/debug.mjs` and run `npm run test:e2e -- --suite debug`.

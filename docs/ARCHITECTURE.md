@@ -42,7 +42,19 @@ keystroke-overlay/
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
     │   └── registry.js, overlay.js, overlay.css, index.html
-    └── settings/         the settings window (settings.js is organised in labelled sections)
+    └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
+        ├── settings.js    picks the tab, draws the window, starts everything
+        ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
+        ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
+        ├── controls.js    CONTROLS: the table that draws every slider, colour picker and dropdown
+        ├── preview.js     saving a change, the live preview, the OBS address bar
+        ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"
+        ├── popups.js      dialogs, right-click menu, release notes, update dialog
+        ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
+        ├── windowbar.js   the window's own minimize / maximize / close buttons
+        ├── text.js        the longer explanations the user reads
+        ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
+        └── tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
 ```
 
 ## How a key press travels
@@ -96,7 +108,7 @@ main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
   ```
   Use only `transform`/`opacity`. It shows up in the Animation tab automatically. Themes work the same with `registerTheme`.
 - **Setting:** (1) default in `settings.rs` (sanitizer range/rule if needed), (2) a descriptor in `CONTROLS` in
-  `ui/settings/settings.js`, (3) use it in `ui/overlay/overlay.js`. Renaming or restructuring needs a migration + test.
+  `ui/settings/controls.js`, (3) use it in `ui/overlay/overlay.js`. Renaming or restructuring needs a migration + test.
 - **Command for the settings window:** a `#[tauri::command]` in the matching `commands/*.rs`, registered in
   `main.rs` (`generate_handler!`).
 

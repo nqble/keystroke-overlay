@@ -25,7 +25,7 @@ await p.ev(`document.getElementById('copyUrl').click()`);
 await sleep(200);
 await p.ev(`document.querySelector('#dlg') && (document.getElementById('dlg').hidden = true)`);
 // the live preview iframe (our own local server)
-await p.ev(`frame.src = previewSrc()`);
+await p.ev(`__ko.frame.src = __ko.previewSrc()`);
 await sleep(2500);
 check(
   'normal use of every tab, dialogs and the live preview causes no policy violations',
