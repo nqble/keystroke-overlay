@@ -150,12 +150,13 @@ try {
   copyFileSync(join(icons, '64x64.png'), join(ui, 'logo.png'));
   const page = join(ui, 'index.html');
   const html = readFileSync(page, 'utf8');
-  if (!html.includes('<span data-tauri-drag-region>Keystroke Overlay</span>'))
-    throw new Error('the header markup changed: update tools/devbuild.mjs');
+  // The formatter may wrap this tag over several lines, so match it whatever the whitespace is.
+  const headerTitle = /<span\s+data-tauri-drag-region\s*>\s*Keystroke Overlay\s*<\/span\s*>/;
+  if (!headerTitle.test(html)) throw new Error('the header markup changed: update tools/devbuild.mjs');
   writeFileSync(
     page,
     html.replace(
-      '<span data-tauri-drag-region>Keystroke Overlay</span>',
+      headerTitle,
       '<span data-tauri-drag-region>Keystroke Overlay <small style="color:#a78bfa;font-weight:600">devbuild</small></span>',
     ),
   );
