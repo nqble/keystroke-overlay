@@ -5,10 +5,10 @@ All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-S
 ## v1.2.0 — the first Stable release *(unreleased)*
 
 **⚡ Performance — v1.2.0 vs v1.1.2**
-- **15% faster** to open (469 ms vs 550 ms)
+- **18% faster** to open (436 ms vs 533 ms)
 - **61% fewer** background threads (9 vs 23)
 - **24% less** idle memory (2.9 MB vs 3.8 MB)
-- **4× lighter** on your CPU while typing (0.25% vs 1.04% of one core)
+- **11% less** memory with the settings window open (342 MB vs 385 MB)
 
 **✨ New**
 - **Make your own layouts:** click the dashed **+** card in the Layout tab, name it, and it starts as the full-size keyboard. Then hide the keys you don't want in the Keys tab. You can have up to 20 (a counter shows how many you've used). Right-click a layout you made to delete it.
