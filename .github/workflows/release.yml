@@ -6,7 +6,8 @@ name: Release
 #   Option B:            push a tag named v<version> (e.g. v1.2.0)
 #
 # The version comes from src-tauri/tauri.conf.json and must have an entry in CHANGELOG.md (that text becomes the release notes).
-# x.y.0 versions are also promoted to the Stable channel automatically; x.y.z patch releases are Latest-only.
+# x.y.0 versions are also promoted to the Stable channel automatically; x.y.z patch releases are Latest-only unless you tick
+# "Also make this the Stable version" (for an important fix that Stable users must get).
 
 on:
   workflow_dispatch:
@@ -14,6 +15,10 @@ on:
       version:
         description: "Version to release, typed to confirm (must match tauri.conf.json, e.g. 1.2.0)"
         required: true
+      promote_to_stable:
+        description: "Also make this the Stable version (an important fix that Stable-channel users must get). x.y.0 versions always are."
+        type: boolean
+        default: false
   push:
     tags: ["v*"]
 
@@ -46,7 +51,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then echo "stable=true" >> "$GITHUB_OUTPUT"; else echo "stable=false" >> "$GITHUB_OUTPUT"; fi
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]] || [ "${{ inputs.promote_to_stable }}" = "true" ]; then echo "stable=true" >> "$GITHUB_OUTPUT"; else echo "stable=false" >> "$GITHUB_OUTPUT"; fi
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.version }}" != "$VERSION" ]; then
             echo "::error::You typed '${{ inputs.version }}' but the app's version is '$VERSION'. Nothing was released."; exit 1; fi
           if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" != "v$VERSION" ]; then
@@ -62,7 +67,9 @@ jobs:
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-        run: node tools/release.mjs "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}' --title)"
+        run: |
+          FLAG=""; [ "${{ steps.v.outputs.stable }}" = "true" ] && FLAG="--stable"
+          node tools/release.mjs $FLAG "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}' --title)"
 
       - name: Publish the GitHub release
         shell: bash
@@ -71,7 +78,7 @@ jobs:
           gh release create "v$V" "release/$V/Keystroke-Overlay_${V}_x64-setup.exe" "release/$V/latest.json" \
             --title "v$V" --notes-file notes.md --target "${{ github.sha }}"
 
-      - name: Promote to the Stable channel (x.y.0 releases only)
+      - name: Promote to the Stable channel (x.y.0 releases, or when you ticked the box)
         if: steps.v.outputs.stable == 'true'
         shell: bash
         run: |

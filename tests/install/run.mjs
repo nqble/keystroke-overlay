@@ -22,7 +22,9 @@ const INSTALL = join(WORK, 'installed');
 const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
 const EXE = join(INSTALL, 'kotest-install.exe');
 const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
-const OLD = { name: 'v1.1.2', ref: '45456a9', version: '1.1.2' };
+// The previous release to upgrade FROM. Default v1.1.2. To test the newest published release: INSTALL_OLD=v1.2.0:9016efe:1.2.0  (name:commit:version)
+const [oName, oRef, oVer] = (process.env.INSTALL_OLD ?? 'v1.1.2:45456a9:1.1.2').split(':');
+const OLD = { name: oName, ref: oRef, version: oVer };
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const uninstallEntries = () => spawnSync('reg', ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall', '/s', '/f', 'KOTest'], { encoding: 'utf8' }).stdout.split('\n').filter(l => /KOTest/.test(l)).length;
 const killTest = () => spawnSync('powershell.exe', ['-NoProfile', '-Command', 'Stop-Process -Name kotest-install -Force -ErrorAction SilentlyContinue'], { stdio: 'ignore' });   // only our uniquely named test exe
@@ -61,7 +63,7 @@ try {
   const entriesBefore = uninstallEntries();
 
   // ---------------------------------------------------------------- 1. clean install of the old version
-  console.log('\n== 1. clean install of v1.1.2');
+  console.log(`\n== 1. clean install of ${OLD.name}`);
   check('installer ran silently and succeeded', installer(setupOld) === 0);
   await sleep(1500);
   check('program installed (exe and uninstaller exist)', existsSync(EXE) && existsSync(join(INSTALL, 'uninstall.exe')));
@@ -72,11 +74,11 @@ try {
   check('first launch: settings window opens with its tabs', await p.q(`document.querySelectorAll('nav button').length`) === 6);
   check('first launch created the data folder with settings.json and defaults', existsSync(join(DATA, 'settings.json')) && JSON.parse(readFileSync(join(DATA, 'settings.json'), 'utf8')).version === 2);
   const st0 = (await p.invoke('get_state')).ok;
-  check('first launch: version is v1.1.2, Tenkeyless selected, secure link not present/off', st0.version === '1.1.2' && st0.settings.layout.id === 'tkl' && !st0.settings.general.secureLink);
+  check(`first launch: version is ${OLD.name}, Tenkeyless selected, secure link not present/off`, st0.version === OLD.version && st0.settings.layout.id === 'tkl' && !st0.settings.general.secureLink);
   p.close(); killTest(); await sleep(1500);
 
   // ---------------------------------------------------------------- 2. user data made with the old version
-  console.log('\n== 2. user data made with v1.1.2');
+  console.log(`\n== 2. user data made with ${OLD.name}`);
   const sj = JSON.parse(readFileSync(join(DATA, 'settings.json'), 'utf8'));
   sj.general.port = 7879; sj.general.autoCheckUpdates = false; sj.general.openOnLaunch = true; sj.style.radius = 21; sj.style.keyFill = '#336699ff';
   sj.layout.id = 'mine'; sj.layout.profiles = { mine: { disabledKeys: ['KeyW'], labels: { Space: 'Jump' } } };
@@ -85,12 +87,12 @@ try {
   writeFileSync(join(DATA, 'layouts', 'mine.json'), JSON.stringify({ id: 'mine', name: 'Mine', keys: [{ code: 'KeyW', label: 'W', x: 1, y: 0 }, { code: 'KeyA', label: 'A', x: 0, y: 1 }, { code: 'Space', label: '', x: 0, y: 2, w: 3 }] }));
   launch(); p = await connect(); await sleep(2500);
   let st = (await p.invoke('get_state')).ok;
-  check('v1.1.2 loads the user data', st.settings.layout.id === 'mine' && st.settings.style.radius === 21 && (await p.invoke('list_layouts')).ok.some(l => l.id === 'mine'));
+  check(`${OLD.name} loads the user data`, st.settings.layout.id === 'mine' && st.settings.style.radius === 21 && (await p.invoke('list_layouts')).ok.some(l => l.id === 'mine'));
   p.close(); killTest(); await sleep(1500);
   check('the old app is fully stopped before upgrading', !alive());
 
   // ---------------------------------------------------------------- 3. upgrade over the top
-  console.log(`\n== 3. upgrade v1.1.2 -> v${VERSION}`);
+  console.log(`\n== 3. upgrade ${OLD.name} -> v${VERSION}`);
   check('upgrade installer ran silently and succeeded', installer(setupNew) === 0);
   await sleep(1500);
   launch(); p = await connect(); await sleep(3000);

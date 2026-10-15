@@ -1,6 +1,6 @@
 [package]
 name = "keyoverlay"
-version = "1.2.0"
+version = "1.2.1"
 description = "Keystroke overlay for streaming (OBS Browser Source)"
 license = "MIT"
 repository = "https://github.com/nqble/keystroke-overlay"
