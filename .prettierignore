@@ -1,0 +1,12 @@
+# Not formatted by Prettier
+package-lock.json
+node_modules
+release
+.devbuild-tmp
+src-tauri/target
+src-tauri/gen
+src-tauri/icons
+# Documents keep their hand-written layout (tables, release notes)
+*.md
+# Rust is formatted by rustfmt (cargo fmt), not Prettier
+*.rs

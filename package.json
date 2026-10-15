@@ -19,9 +19,12 @@
     "check:style": "node tools/check-style.mjs",
     "test:lock": "node tests/lib/lock.mjs",
     "test:e2e": "node tests/e2e/run.mjs",
-    "test:install": "node tests/install/run.mjs"
+    "test:install": "node tests/install/run.mjs",
+    "format": "prettier --write . && cargo fmt --manifest-path src-tauri/Cargo.toml",
+    "check:format": "prettier --check . && cargo fmt --manifest-path src-tauri/Cargo.toml --check"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2"
+    "@tauri-apps/cli": "^2",
+    "prettier": "3.9.10"
   }
 }
