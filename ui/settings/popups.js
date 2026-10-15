@@ -22,7 +22,10 @@ import { TEXT } from './text.js';
 
 // ---- 6a. The general-purpose dialog (new layout, limit reached, reset). Same look as the release-notes and update
 // popups.
-/** Show a dialog. buttons: [{ label, primary?, danger?, run? }]. If `run` returns false the dialog stays open. */
+/**
+ * Show a dialog. buttons: [{ label, test?, primary?, danger?, run? }]. `test` is the button's test hook. If `run` returns
+ * false the dialog stays open.
+ */
 function dialog({ title, body, buttons }) {
   $('#dTitle').textContent = title;
   $('#dBody').replaceChildren(...body);
@@ -39,6 +42,7 @@ function dialog({ title, body, buttons }) {
         type: 'button',
         textContent: buttonSpec.label,
         className: buttonSpec.primary ? 'primary' : buttonSpec.danger ? 'danger' : '',
+        test: buttonSpec.test,
         onclick: async () => {
           if (!buttonSpec.run || (await buttonSpec.run()) !== false) close();
         },
@@ -55,11 +59,16 @@ export function addLayoutDialog() {
     dialog({
       title: 'Max layouts reached',
       body: [el('p', { textContent: TEXT.layoutLimitReached(MAX_LAYOUTS) })],
-      buttons: [{ label: 'OK', primary: true }],
+      buttons: [{ label: 'OK', test: 'dialog-ok', primary: true }],
     });
     return;
   }
-  const nameInput = el('input', { type: 'text', placeholder: 'Layout name', maxLength: 30 });
+  const nameInput = el('input', {
+    type: 'text',
+    placeholder: 'Layout name',
+    maxLength: 30,
+    test: 'dialog-layout-name',
+  });
   const create = async () => {
     try {
       const id = await invoke('create_layout', { name: nameInput.value });
@@ -81,7 +90,10 @@ export function addLayoutDialog() {
   dialog({
     title: 'New layout',
     body: [el('p', { textContent: TEXT.newLayoutHelp }), nameInput],
-    buttons: [{ label: 'Cancel' }, { label: 'Create', primary: true, run: create }],
+    buttons: [
+      { label: 'Cancel', test: 'dialog-cancel' },
+      { label: 'Create', test: 'dialog-create', primary: true, run: create },
+    ],
   });
   nameInput.focus();
 }
@@ -102,7 +114,10 @@ export function resetDialog() {
   dialog({
     title: 'Reset all settings?',
     body: [el('p', { textContent: TEXT.resetBodyWhatChanges }), el('p', { textContent: TEXT.resetBodyLinkNote })],
-    buttons: [{ label: 'Cancel' }, { label: 'Reset everything', danger: true, run: reset }],
+    buttons: [
+      { label: 'Cancel', test: 'dialog-cancel' },
+      { label: 'Reset everything', test: 'dialog-reset-confirm', danger: true, run: reset },
+    ],
   });
 }
 
@@ -121,9 +136,10 @@ export function showMenu(event, items) {
   hideMenu();
   menuEl = el(
     'div',
-    { className: 'ctxmenu' },
+    { className: 'ctxmenu', test: 'context-menu' },
     items.map((item) =>
       el('button', {
+        test: 'context-menu-item',
         type: 'button',
         textContent: item.label,
         className: item.danger ? 'danger' : '',

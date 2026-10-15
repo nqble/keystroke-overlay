@@ -66,7 +66,7 @@ function statusLine(layout, profile) {
   }
   const movedCount = Object.keys(profile.positions).length;
   parts.push(movedCount === 0 ? TEXT.noKeysMoved : `${plural(movedCount, 'key')} moved from the layout file`);
-  const status = el('p', { className: 'keystatus', textContent: parts.join(' · ') });
+  const status = el('p', { className: 'keystatus', textContent: parts.join(' · '), test: 'key-status' });
   status.setAttribute('aria-live', 'polite'); // read out after a change
   return status;
 }
@@ -78,6 +78,7 @@ function keyButtons(layout) {
     textContent: 'Revert to Default',
     disabled: !isCustom(layout.id),
     title: 'Undo all key edits (hidden keys, labels and moved keys) for this layout',
+    test: 'keys-revert',
   });
   confirmTwice(revert, 'Revert to Default', () => {
     delete settings.layout.profiles[layout.id];
@@ -86,46 +87,71 @@ function keyButtons(layout) {
     toast(layout.name + ' reverted to default');
   });
   const moved = Object.keys(viewProf().positions).length > 0;
-  const tidy = button('Tidy up', () => {
-    const prof = editProf(),
-      next = tidyPositions(layout, viewProf());
-    // keep only positions that differ from the layout file
-    for (const layoutKey of layout.keys) {
-      const newPosition = next[layoutKey.code];
-      if (!newPosition) continue;
-      if (Math.abs(newPosition.x - layoutKey.x) < 1e-6 && Math.abs(newPosition.y - layoutKey.y) < 1e-6)
-        delete prof.positions[layoutKey.code];
-      else prof.positions[layoutKey.code] = { x: round2(newPosition.x), y: round2(newPosition.y) };
-    }
-    tidyProf();
-    changed(true);
-    toast('Gaps closed');
-  });
+  const tidy = button(
+    'Tidy up',
+    () => {
+      const prof = editProf(),
+        next = tidyPositions(layout, viewProf());
+      // keep only positions that differ from the layout file
+      for (const layoutKey of layout.keys) {
+        const newPosition = next[layoutKey.code];
+        if (!newPosition) continue;
+        if (Math.abs(newPosition.x - layoutKey.x) < 1e-6 && Math.abs(newPosition.y - layoutKey.y) < 1e-6)
+          delete prof.positions[layoutKey.code];
+        else prof.positions[layoutKey.code] = { x: round2(newPosition.x), y: round2(newPosition.y) };
+      }
+      tidyProf();
+      changed(true);
+      toast('Gaps closed');
+    },
+    '',
+    'keys-tidy',
+  );
   tidy.title = 'Close the gaps left by hidden keys, keeping the shape of the keyboard';
-  const reset = button('Reset positions', () => {
-    editProf().positions = {};
-    tidyProf();
-    changed(true);
-  });
+  const reset = button(
+    'Reset positions',
+    () => {
+      editProf().positions = {};
+      tidyProf();
+      changed(true);
+    },
+    '',
+    'keys-reset-positions',
+  );
   reset.disabled = !moved;
   reset.title = 'Put every moved key back where the layout has it';
   return el(
     'div',
     { className: 'btns' },
-    button('Enable all', () => {
-      editProf().disabledKeys = [];
-      tidyProf();
-      changed(true);
-    }),
-    button('Disable all', () => {
-      editProf().disabledKeys = layout.keys.map((k) => k.code);
-      changed(true);
-    }),
-    button('Reset all labels', () => {
-      editProf().labels = {};
-      tidyProf();
-      changed(true);
-    }),
+    button(
+      'Enable all',
+      () => {
+        editProf().disabledKeys = [];
+        tidyProf();
+        changed(true);
+      },
+      '',
+      'keys-enable-all',
+    ),
+    button(
+      'Disable all',
+      () => {
+        editProf().disabledKeys = layout.keys.map((k) => k.code);
+        changed(true);
+      },
+      '',
+      'keys-disable-all',
+    ),
+    button(
+      'Reset all labels',
+      () => {
+        editProf().labels = {};
+        tidyProf();
+        changed(true);
+      },
+      '',
+      'keys-reset-labels',
+    ),
     tidy,
     reset,
     revert,
@@ -136,7 +162,7 @@ function keyButtons(layout) {
  * The small editor under the keyboard for the selected key: show/hide it, give it a label, and set its exact position.
  */
 function keyEditor(key, profile) {
-  const show = el('input', { type: 'checkbox', checked: !profile.disabledKeys.includes(key.code) });
+  const show = el('input', { type: 'checkbox', checked: !profile.disabledKeys.includes(key.code), test: 'key-show' });
   show.onchange = () => {
     const edited = editProf(),
       hidden = new Set(edited.disabledKeys);
@@ -151,22 +177,28 @@ function keyEditor(key, profile) {
     value: profile.labels[key.code] ?? key.label ?? '',
     placeholder: 'Label',
     maxLength: 12,
+    test: 'key-label',
   });
   label.oninput = () => {
     editProf().labels[key.code] = label.value;
     changed();
   };
-  const reset = button('Reset', () => {
-    delete editProf().labels[key.code];
-    tidyProf();
-    changed(true);
-  });
+  const reset = button(
+    'Reset',
+    () => {
+      delete editProf().labels[key.code];
+      tidyProf();
+      changed(true);
+    },
+    '',
+    'key-label-reset',
+  );
 
   const at = keyPos(key, profile);
-  const num = (value) =>
-    el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), style: 'width:84px' });
-  const px = num(at.x),
-    py = num(at.y);
+  const num = (value, test) =>
+    el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), style: 'width:84px', test });
+  const px = num(at.x, 'key-x'),
+    py = num(at.y, 'key-y');
   const place = () => {
     const x = parseFloat(px.value),
       y = parseFloat(py.value);
@@ -178,17 +210,22 @@ function keyEditor(key, profile) {
   px.oninput = py.oninput = place;
   // redraw the keyboard once typing settles
   px.onchange = py.onchange = () => render();
-  const back = button('Reset', () => {
-    delete editProf().positions[key.code];
-    tidyProf();
-    changed(true);
-  });
+  const back = button(
+    'Reset',
+    () => {
+      delete editProf().positions[key.code];
+      tidyProf();
+      changed(true);
+    },
+    '',
+    'key-position-reset',
+  );
   back.disabled = !profile.positions[key.code];
 
   return el(
     'div',
-    { className: 'editor' },
-    el('b', { textContent: key.code }),
+    { className: 'editor', test: 'key-editor' },
+    el('b', { textContent: key.code, test: 'key-editor-title' }),
     row('Show this key', show),
     row('Custom label', label, reset),
     row('Position', el('span', { textContent: 'X' }), px, el('span', { textContent: 'Y' }), py, back),
@@ -200,7 +237,7 @@ function keyEditor(key, profile) {
 function groupEditor(layout, profile) {
   const codes = [...selectedKeys];
   const hiddenCount = codes.filter((code) => profile.disabledKeys.includes(code)).length;
-  const show = el('input', { type: 'checkbox', checked: hiddenCount === 0 });
+  const show = el('input', { type: 'checkbox', checked: hiddenCount === 0, test: 'key-show' });
   show.indeterminate = hiddenCount > 0 && hiddenCount < codes.length;
   show.onchange = () => {
     const edited = editProf();
@@ -214,18 +251,23 @@ function groupEditor(layout, profile) {
     changed(true);
   };
   const movedCodes = codes.filter((code) => profile.positions[code]);
-  const putBack = button('Put back', () => {
-    const edited = editProf();
-    for (const code of codes) delete edited.positions[code];
-    tidyProf();
-    changed(true);
-  });
+  const putBack = button(
+    'Put back',
+    () => {
+      const edited = editProf();
+      for (const code of codes) delete edited.positions[code];
+      tidyProf();
+      changed(true);
+    },
+    '',
+    'key-group-put-back',
+  );
   putBack.disabled = movedCodes.length === 0;
   putBack.title = 'Put the selected keys back where the layout has them';
   return el(
     'div',
-    { className: 'editor' },
-    el('b', { textContent: `${codes.length} keys selected` }),
+    { className: 'editor', test: 'key-editor' },
+    el('b', { textContent: `${codes.length} keys selected`, test: 'key-editor-title' }),
     row('Show these keys', show),
     row('Positions', putBack),
     note(TEXT.groupEditorTip),

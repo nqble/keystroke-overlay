@@ -1,25 +1,26 @@
 // Suite: Debug mode (General -> App -> Debug mode): the Debug tab appears and disappears, every tool works,
 // and the privacy rules hold (nothing recorded while off, no key presses in the log or the bug report).
 import { execSync } from 'node:child_process';
-import { connect, inject, check, finish, sleep } from '../lib/cdp.mjs';
+import { connect, byTest, inject, check, finish, sleep } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(3000);
-const tab = async (n) => {
-  await p.ev(`[...document.querySelectorAll('nav button')].find(b => b.textContent === '${n}').click()`);
+const tab = async (id) => {
+  await p.ev(`document.querySelector('${byTest('tab', `[data-tab="${id}"]`)}').click()`);
   await sleep(500);
 };
-const navNames = () => p.q(`[...document.querySelectorAll('nav button')].map(b => b.textContent)`);
-const click = (text) =>
-  p.ev(`[...document.querySelectorAll('#pane button')].find(b => b.textContent === ${JSON.stringify(text)}).click()`);
-const debugToggle = `[...document.querySelectorAll('#pane .row')].find(r => r.innerText.includes('Debug mode')).querySelector('input')`;
+// the ids of the tabs in the tab bar ('layout', 'keys', ..., 'debug')
+const navNames = () => p.q(`[...document.querySelectorAll('${byTest('tab')}')].map(b => b.dataset.tab)`);
+const click = (hook) => p.ev(`document.querySelector('${byTest(hook)}').click()`);
+const debugToggle = `document.querySelector('${byTest('toggle-general-debug-mode')}')`;
+const card = (id) => `document.querySelector('${byTest('debug-card', `[data-card="${id}"]`)}')`;
 const state = async () => (await p.invoke('get_state')).ok;
 
 // ---- off by default
 check(
   'Debug mode is off by default and there is no Debug tab',
   (await navNames()).length === 6 &&
-    !(await navNames()).includes('Debug') &&
+    !(await navNames()).includes('debug') &&
     (await state()).settings.general.debugMode === false,
 );
 check('while it is off nothing is recorded', (await p.invoke('debug_log')).ok.length === 0);
@@ -29,16 +30,16 @@ await p.invoke('delete_layout', { id: 'quiet' });
 check('...even when the app does things (create / delete a layout)', quiet === 0);
 
 // ---- switch it on through the real toggle
-await tab('General');
+await tab('general');
 check('General -> App has the "Debug mode (for developers)" switch', await p.q(`!!${debugToggle}`));
 await p.ev(`${debugToggle}.click()`);
 await sleep(900);
 check(
   'switching it on saves the setting and adds a Debug tab',
-  (await state()).settings.general.debugMode === true && (await navNames()).includes('Debug'),
+  (await state()).settings.general.debugMode === true && (await navNames()).includes('debug'),
 );
-await tab('Debug');
-const titles = await p.q(`[...document.querySelectorAll('.dbg-card h3')].map(h => h.textContent)`);
+await tab('debug');
+const titles = await p.q(`[...document.querySelectorAll('${byTest('debug-card-title')}')].map(h => h.textContent)`);
 check(
   'the Debug tab shows all its tools',
   [
@@ -56,7 +57,7 @@ check(
 
 // ---- this app
 await sleep(2500);
-const facts = await p.q(`document.querySelector('.dbg-facts').innerText`);
+const facts = await p.q(`document.querySelector('${byTest('debug-facts')}').innerText`);
 check(
   '"This app" shows version, memory, server and key-capture status',
   /Version/.test(facts) && /Memory/.test(facts) && /running on port/.test(facts) && /Standard/.test(facts),
@@ -73,10 +74,10 @@ check(
 );
 
 // ---- self-test
-await click('Run self-test');
+await click('debug-self-test-run');
 await sleep(1200);
 const tests = await p.q(
-  `[...document.querySelectorAll('.dbg-test')].map(t => [t.classList.contains('good'), t.innerText.replace(/\\s+/g, ' ')])`,
+  `[...document.querySelectorAll('${byTest('debug-test')}')].map(t => [t.classList.contains('good'), t.innerText.replace(/\\s+/g, ' ')])`,
 );
 check(
   'the self-test runs and every check passes',
@@ -99,28 +100,28 @@ check(
 );
 check(
   'the log is shown on screen',
-  /layout created: logged/.test(await p.q(`document.querySelector('.dbg-log').innerText`)),
+  /layout created: logged/.test(await p.q(`document.querySelector('${byTest('debug-log')}').innerText`)),
 );
 
 // ---- key monitor (and: key presses never reach the event log)
-await click('Start');
+await click('debug-monitor-toggle');
 await sleep(500);
 await inject('flood', 2);
 await sleep(900);
-const mon = await p.q(`document.querySelectorAll('.dbg-log.short')[0].innerText`);
+const mon = await p.q(`document.querySelector('${byTest('debug-monitor-log')}').innerText`);
 check(
   'the key monitor shows presses as they happen',
   /↓ ControlRight/.test(mon) && /↑ ControlRight/.test(mon),
   mon.replace(/\s+/g, ' '),
 );
-await click('Stop');
+await click('debug-monitor-toggle');
 await sleep(400);
-const before = await p.q(`document.querySelectorAll('.dbg-log.short')[0].innerText`);
+const before = await p.q(`document.querySelector('${byTest('debug-monitor-log')}').innerText`);
 await inject('flood', 2);
 await sleep(700);
 check(
   'after Stop it shows nothing more',
-  (await p.q(`document.querySelectorAll('.dbg-log.short')[0].innerText`)) === before,
+  (await p.q(`document.querySelector('${byTest('debug-monitor-log')}').innerText`)) === before,
 );
 check(
   'key presses are NEVER written to the event log',
@@ -129,13 +130,11 @@ check(
 
 // ---- raw settings
 await p.ev(
-  `const t = document.querySelector('.dbg-json'); const s = JSON.parse(t.value); s.style.radius = 9999; s.style.fontFamily = 'x"; }'; t.value = JSON.stringify(s)`,
+  `const t = document.querySelector('${byTest('debug-json')}'); const s = JSON.parse(t.value); s.style.radius = 9999; s.style.fontFamily = 'x"; }'; t.value = JSON.stringify(s)`,
 );
-await click('Apply');
+await click('debug-raw-apply');
 await sleep(1500);
-const result = await p.q(
-  `[...document.querySelectorAll('.dbg-card')].find(c => c.querySelector('h3').textContent === 'Settings (raw)').innerText`,
-);
+const result = await p.q(`${card('raw-settings')}.innerText`);
 const kept = (await state()).settings.style;
 check(
   'hostile values typed into the raw editor are corrected and reported',
@@ -147,21 +146,21 @@ await p.invoke('save_settings', {
 });
 
 // ---- fake update
-await click('Fake update available');
+await click('debug-fake-update');
 await sleep(800);
 check(
   '"Fake update available" shows the update button and the tray indicator',
-  (await p.q(`!document.getElementById('updateBtn').hidden`)) && (await state()).updateBadge === true,
+  (await p.q(`!document.querySelector('${byTest('update-button')}').hidden`)) && (await state()).updateBadge === true,
 );
-await click('Clear fake update');
+await click('debug-clear-fake-update');
 await sleep(800);
 check(
   '"Clear fake update" removes both',
-  (await p.q(`document.getElementById('updateBtn').hidden`)) && (await state()).updateBadge === false,
+  (await p.q(`document.querySelector('${byTest('update-button')}').hidden`)) && (await state()).updateBadge === false,
 );
 
 // ---- bug report (read the real clipboard)
-await click('Copy bug report');
+await click('debug-bug-report');
 await sleep(900);
 const report = execSync('powershell.exe -NoProfile -Command "Get-Clipboard -Raw"').toString();
 check(
@@ -180,12 +179,12 @@ check(
   'the "ko" console helper exists for the inspector',
   await p.q(`typeof ko === 'object' && typeof ko.info === 'function'`),
 );
-await tab('General');
+await tab('general');
 await p.ev(`${debugToggle}.click()`);
 await sleep(900);
 check(
   'switching it off removes the tab and forgets the log',
-  !(await navNames()).includes('Debug') &&
+  !(await navNames()).includes('debug') &&
     (await p.invoke('debug_log')).ok.length === 0 &&
     (await state()).settings.general.debugMode === false,
 );

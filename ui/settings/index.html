@@ -16,44 +16,79 @@
     <link rel="stylesheet" href="settings.css" />
   </head>
   <body>
-    <header data-tauri-drag-region>
+    <header data-tauri-drag-region data-test="app-header">
       <div class="brand" data-tauri-drag-region>
-        <img class="logo" src="logo.png" alt="" width="26" height="26" draggable="false" data-tauri-drag-region /><span
+        <img
+          data-test="brand-logo"
+          class="logo"
+          src="logo.png"
+          alt=""
+          width="26"
+          height="26"
+          draggable="false"
           data-tauri-drag-region
-          >Keystroke Overlay</span
-        >
+        /><span data-test="brand-title" data-tauri-drag-region>Keystroke Overlay</span>
       </div>
       <div class="obs" data-tauri-drag-region>
         <span class="lbl" data-tauri-drag-region>OBS Browser Source URL</span>
-        <input id="obsUrl" readonly />
-        <button id="copyUrl" class="primary">Copy OBS URL</button>
-        <span id="obsSize" class="hint" data-tauri-drag-region></span>
+        <input id="obsUrl" data-test="obs-url" readonly />
+        <button id="copyUrl" data-test="obs-copy" class="primary">Copy OBS URL</button>
+        <span id="obsSize" data-test="obs-size" class="hint" data-tauri-drag-region></span>
       </div>
-      <div class="winbtns">
-        <button id="wMin" type="button" tabindex="-1" aria-label="Minimize" title="Minimize">&#xE921;</button>
-        <button id="wMax" type="button" tabindex="-1" aria-label="Maximize" title="Maximize">&#xE922;</button>
-        <button id="wClose" type="button" tabindex="-1" aria-label="Close" title="Close">&#xE8BB;</button>
+      <div class="winbtns" data-test="window-buttons">
+        <button
+          id="wMin"
+          data-test="window-minimize"
+          type="button"
+          tabindex="-1"
+          aria-label="Minimize"
+          title="Minimize"
+        >
+          &#xE921;
+        </button>
+        <button
+          id="wMax"
+          data-test="window-maximize"
+          type="button"
+          tabindex="-1"
+          aria-label="Maximize"
+          title="Maximize"
+        >
+          &#xE922;
+        </button>
+        <button id="wClose" data-test="window-close" type="button" tabindex="-1" aria-label="Close" title="Close">
+          &#xE8BB;
+        </button>
       </div>
     </header>
-    <div id="banner" hidden></div>
-    <div id="pausebar" hidden>
-      ⏸ Overlay is paused — keystrokes are hidden in OBS. <button id="resumeBtn">Resume</button>
+    <div id="banner" data-test="server-banner" hidden></div>
+    <div id="pausebar" data-test="pause-bar" hidden>
+      ⏸ Overlay is paused — keystrokes are hidden in OBS.
+      <button id="resumeBtn" data-test="pause-resume">Resume</button>
     </div>
     <section class="preview" id="previewBox">
-      <iframe id="preview" title="Live preview"></iframe>
+      <iframe id="preview" data-test="preview-frame" title="Live preview"></iframe>
     </section>
     <main>
-      <nav id="tabs"></nav>
-      <div id="pane"></div>
+      <nav id="tabs" data-test="tab-bar"></nav>
+      <div id="pane" data-test="pane"></div>
     </main>
-    <div id="modal" hidden>
+    <div id="modal" data-test="notes-popup" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-        <h3 id="mTitle"></h3>
-        <div id="mBody"></div>
-        <div class="mfoot"><button id="mOk" class="primary">OK</button></div>
+        <h3 id="mTitle" data-test="notes-title"></h3>
+        <div id="mBody" data-test="notes-body"></div>
+        <div class="mfoot"><button id="mOk" data-test="notes-ok" class="primary">OK</button></div>
       </div>
     </div>
-    <button id="updateBtn" class="upd" type="button" hidden aria-label="New update" data-tip="New update">
+    <button
+      id="updateBtn"
+      data-test="update-button"
+      class="upd"
+      type="button"
+      hidden
+      aria-label="New update"
+      data-tip="New update"
+    >
       <svg
         viewBox="0 0 24 24"
         width="20"
@@ -70,26 +105,26 @@
         <path d="M5 19h14" />
       </svg>
     </button>
-    <div id="updModal" hidden>
+    <div id="updModal" data-test="update-popup" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="uTitle">
-        <h3 id="uTitle"></h3>
-        <div id="uBody"></div>
-        <div class="bar" id="uBar" hidden><div class="fill" id="uFill"></div></div>
-        <div class="hint" id="uText"></div>
+        <h3 id="uTitle" data-test="update-title"></h3>
+        <div id="uBody" data-test="update-body"></div>
+        <div class="bar" id="uBar" data-test="update-progress" hidden><div class="fill" id="uFill"></div></div>
+        <div class="hint" id="uText" data-test="update-progress-text"></div>
         <div class="mfoot">
-          <button id="uLater" type="button">Later</button
-          ><button id="uGo" type="button" class="primary">Update now</button>
+          <button id="uLater" data-test="update-later" type="button">Later</button
+          ><button id="uGo" data-test="update-go" type="button" class="primary">Update now</button>
         </div>
       </div>
     </div>
-    <div id="dlg" hidden>
+    <div id="dlg" data-test="dialog" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dTitle">
-        <h3 id="dTitle"></h3>
-        <div id="dBody"></div>
-        <div class="mfoot" id="dFoot"></div>
+        <h3 id="dTitle" data-test="dialog-title"></h3>
+        <div id="dBody" data-test="dialog-body"></div>
+        <div class="mfoot" id="dFoot" data-test="dialog-footer"></div>
       </div>
     </div>
-    <div id="toast" hidden></div>
+    <div id="toast" data-test="toast" hidden></div>
     <script type="module" src="settings.js"></script>
   </body>
 </html>

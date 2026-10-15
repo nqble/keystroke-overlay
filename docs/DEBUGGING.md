@@ -52,6 +52,7 @@ crate::debug::log("what just happened");            // or  crate::debug::log(for
 
 ```js
 {
+  id: 'my-tool', // a short name for tests (goes into data-card)
   title: 'My tool',
   build() {
     const out = el('div');

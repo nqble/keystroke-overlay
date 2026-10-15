@@ -174,12 +174,28 @@ const CONTROLS = [
   },
 ];
 
+/**
+ * The test hook for a setting, made from its path:  testName('control', 'style.keyFill')  ->  'control-style-key-fill'.
+ * Tests find controls by this name instead of by their position or label (see "Test hooks" in tests/README.md).
+ */
+export const testName = (prefix, path) =>
+  [prefix, ...path.split('.').map((part) => part.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase()))].join('-');
+
 /** A colour picker plus a transparency slider. Colours are stored as #RRGGBBAA. */
 function colorCtl(control) {
   const value = get(settings, control.path) || '#000000ff';
   const alpha = value.length >= 9 ? parseInt(value.slice(7, 9), 16) : 255;
-  const picker = el('input', { type: 'color', value: value.slice(0, 7) });
-  const slider = el('input', { type: 'range', min: 0, max: 255, step: 1, value: alpha, title: 'Transparency' });
+  const hook = testName('control', control.path);
+  const picker = el('input', { type: 'color', value: value.slice(0, 7), test: hook });
+  const slider = el('input', {
+    type: 'range',
+    min: 0,
+    max: 255,
+    step: 1,
+    value: alpha,
+    title: 'Transparency',
+    test: hook + '-alpha',
+  });
   const percent = el('span', { className: 'val', textContent: Math.round(alpha / 2.55) + '%' });
   const update = () => {
     const alphaHex = Math.round(+slider.value).toString(16).padStart(2, '0');
@@ -199,6 +215,7 @@ function rangeCtl(control) {
     max: control.max,
     step: control.step,
     value: get(settings, control.path),
+    test: testName('control', control.path),
   });
   const unit = !control.unit ? '' : control.unit === '×' ? '×' : ' ' + control.unit;
   const text = (sliderValue) => {
@@ -218,7 +235,7 @@ function rangeCtl(control) {
 function selectCtl(control) {
   const select = el(
     'select',
-    {},
+    { test: testName('control', control.path) },
     control.options().map(([value, name]) => el('option', { value, textContent: name })),
   );
   select.value = get(settings, control.path);
@@ -240,14 +257,20 @@ function fontCtl(control) {
     el('option', { value: font, textContent: font, style: `font-family:"${font}", "Segoe UI", sans-serif` });
   const select = el(
     'select',
-    {},
+    { test: testName('control', control.path) },
     [
       mine.length ? el('optgroup', { label: 'Your fonts' }, mine.map(option)) : null,
       el('optgroup', { label: 'Windows fonts' }, WINDOWS_FONTS.map(option)),
       el('option', { value: '__custom', textContent: 'Other (type a name)…' }),
     ].filter(Boolean),
   );
-  const typed = el('input', { type: 'text', value: current, placeholder: 'Font name', hidden: known.has(current) });
+  const typed = el('input', {
+    type: 'text',
+    value: current,
+    placeholder: 'Font name',
+    hidden: known.has(current),
+    test: testName('control', control.path) + '-name',
+  });
   select.value = known.has(current) ? current : '__custom';
   select.onchange = () => {
     if (select.value === '__custom') {
@@ -284,16 +307,25 @@ export function renderControls(tabName, parent) {
   }
 }
 
-/** The "Import from file… / Export to file…" pair, identical in the Layout and Style tabs. */
-export const shareRow = (label, onImport, onExport, exportDisabled = false, tips = {}) =>
+/**
+ * The "Import from file… / Export to file…" pair, identical in the Layout and Style tabs. `hookPrefix` names the test
+ * hooks: 'layout' gives layout-import and layout-export.
+ */
+export const shareRow = (label, onImport, onExport, exportDisabled, tips, hookPrefix) =>
   row(
     label,
-    el('button', { textContent: 'Import from file…', title: tips.imp || '', onclick: onImport }),
+    el('button', {
+      textContent: 'Import from file…',
+      title: tips.imp || '',
+      onclick: onImport,
+      test: hookPrefix + '-import',
+    }),
     el('button', {
       textContent: 'Export to file…',
       title: tips.exp || '',
       disabled: exportDisabled,
       onclick: onExport,
+      test: hookPrefix + '-export',
     }),
   );
 
@@ -303,7 +335,7 @@ export const shareRow = (label, onImport, onExport, exportDisabled = false, tips
 
 /** A checkbox row that saves instantly. `onchange` replaces the default save when a toggle needs extra work. */
 export function toggle(path, label, onchange) {
-  const box = el('input', { type: 'checkbox', checked: !!get(settings, path) });
+  const box = el('input', { type: 'checkbox', checked: !!get(settings, path), test: testName('toggle', path) });
   box.onchange = () => {
     put(settings, path, box.checked);
     if (onchange) onchange(box.checked);

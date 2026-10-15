@@ -87,7 +87,7 @@ export function keyboardMap(layout, profile) {
   const clash = findClashes(placed.filter((item) => !hidden.has(item.key.code)));
   const picture = { grid, placed, nodes: new Map() };
 
-  const inner = el('div', { style: 'position:relative' });
+  const inner = el('div', { style: 'position:relative', test: 'keymap-canvas' });
   for (const item of placed) {
     const node = drawKey(item, picture, { hidden, clash, profile });
     picture.nodes.set(item.key.code, node);
@@ -96,7 +96,7 @@ export function keyboardMap(layout, profile) {
   if (gridShown() && snapStep() > 0) drawGrid(inner, grid);
   inner.style.width = grid.spanX * grid.unit + PICTURE_MARGIN * 2 + 'px';
   inner.style.height = grid.spanY * grid.unit + PICTURE_MARGIN * 2 + 'px';
-  const box = el('div', { className: 'keymap', title: TEXT.keyPictureHelp }, inner);
+  const box = el('div', { className: 'keymap', title: TEXT.keyPictureHelp, test: 'keymap' }, inner);
   box.setAttribute('role', 'group');
   box.setAttribute('aria-label', `Keyboard layout ${layout.name}`);
   // +2 for the box border, or it scrolls by 2px
@@ -134,6 +134,7 @@ function drawKey(item, picture, { hidden, clash, profile }) {
     style: keyBoxStyle(item.x - minX, item.y - minY, item.w * unit - 3, item.h * unit - 3, unit),
     textContent: profile.labels[key.code] ?? key.label,
     title: key.code + ' (drag to move)',
+    test: 'key-cell',
   });
   node.dataset.code = key.code;
   describeForAssistiveTech(node, key, { hidden, profile });
@@ -217,7 +218,7 @@ function dragKeys(pointerEvent, node, pressedKey, picture) {
       moving = true;
       if (!selectedKeys.has(pressedKey.code)) setSelectedKeys([pressedKey.code]);
       for (const box of boxes) nodes.get(box.code).classList.add('drag');
-      readout = el('div', { className: 'readout' });
+      readout = el('div', { className: 'readout', test: 'key-readout' });
       node.parentElement.append(readout);
     }
     // the pressed key snaps to the grid; the rest of the group moves by the same amount

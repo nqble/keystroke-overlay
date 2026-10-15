@@ -1,6 +1,6 @@
 // Suite: a short endurance run. Two minutes of steady typing plus settings changes, layout creation/deletion and
 // window tab switching, then checks that threads, handles and memory did not keep growing and every key still arrives.
-import { connect, inject, procStats, listenKeys, check, finish, sleep } from '../lib/cdp.mjs';
+import { connect, byTest, inject, procStats, listenKeys, check, finish, sleep } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(3000);
@@ -10,14 +10,12 @@ const start = procStats(); // [threads, handles, workingSetMB, cpuMs]
 let sent = 0,
   errs = 0;
 await p.ev(`window.__errs = []; addEventListener('error', e => __errs.push(String(e.message)));`);
-const tabs = ['Layout', 'Keys', 'Style', 'Animation', 'Fonts', 'General'];
+const tabs = ['layout', 'keys', 'style', 'animation', 'fonts', 'general'];
 const t0 = Date.now();
 for (let i = 0; Date.now() - t0 < 120000; i++) {
   await inject('flood', 25);
   sent += 25;
-  await p.ev(
-    `[...document.querySelectorAll('nav button')].find(b => b.textContent === '${tabs[i % tabs.length]}').click()`,
-  );
+  await p.ev(`document.querySelector('${byTest('tab', `[data-tab="${tabs[i % tabs.length]}"]`)}').click()`);
   if (i % 10 === 0) {
     // churn: make and delete a layout, nudge a setting
     const r = await p.invoke('create_layout', { name: 'Soak ' + i });

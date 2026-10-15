@@ -61,24 +61,24 @@ const TABS = {
 // ---------------------------------------------------------------------------------------------------------------------
 // 8. Drawing the window
 // ---------------------------------------------------------------------------------------------------------------------
+/** One button in the tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
+function tabButton(id, name) {
+  const onclick = () => {
+    setTab(id);
+    render();
+  };
+  const tabItem = button(name, onclick, id === tab ? 'active' : '', 'tab');
+  tabItem.dataset.tab = id;
+  return tabItem;
+}
+
 /** Redraw the tab bar and the active tab, keeping the scroll position. */
 export async function render() {
   // the Debug tab (ui/settings/debug.js) only exists in Debug mode
   const debugOn = !!settings?.general?.debugMode;
   if (tab === 'debug' && !debugOn) setTab('general');
   const names = debugOn ? { ...TAB_NAMES, debug: debugTab.name } : TAB_NAMES;
-  $('#tabs').replaceChildren(
-    ...Object.entries(names).map(([id, name]) =>
-      button(
-        name,
-        () => {
-          setTab(id);
-          render();
-        },
-        id === tab ? 'active' : '',
-      ),
-    ),
-  );
+  $('#tabs').replaceChildren(...Object.entries(names).map(([id, name]) => tabButton(id, name)));
   const pane = $('#pane'),
     scroll = pane.scrollTop;
   const content = await (tab === 'debug' ? debugTab.render() : TABS[tab]());

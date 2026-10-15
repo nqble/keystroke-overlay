@@ -3,13 +3,13 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { connect, check, finish, sleep, PORT, EXE_NAME } from '../lib/cdp.mjs';
+import { connect, byTest, check, finish, sleep, PORT, EXE_NAME } from '../lib/cdp.mjs';
 
 const VERSION = process.env.E2E_VERSION,
   EXE = process.env.E2E_EXE,
   DATA = process.env.E2E_DATA;
 const SETTINGS = join(DATA, 'settings.json');
-const popupShown = (p) => p.q(`!document.getElementById('modal').hidden`);
+const popupShown = (p) => p.q(`!document.querySelector('${byTest('notes-popup')}').hidden`);
 const seen = () => JSON.parse(readFileSync(SETTINGS, 'utf8')).general.lastSeenVersion;
 
 /** Quit the app, pretend the last version the user saw was `lastSeen` (null = leave as is), start it again, connect. */
@@ -53,10 +53,11 @@ check('a normal launch (no update happened) does not show the popup', !(await po
 p = await relaunch(p, '1.0.0');
 check(
   'first launch after an update shows "What\'s new"',
-  (await popupShown(p)) && /What's new/.test(await p.q(`document.getElementById('mTitle').textContent`)),
+  (await popupShown(p)) &&
+    /What's new/.test(await p.q(`document.querySelector('${byTest('notes-title')}').textContent`)),
 );
 check('it is already marked as seen (so it can never repeat)', seen() === VERSION);
-await p.ev(`document.getElementById('mOk').click()`);
+await p.ev(`document.querySelector('${byTest('notes-ok')}').click()`);
 await sleep(400);
 check('clicking OK closes it', !(await popupShown(p)));
 p = await relaunch(p, null);

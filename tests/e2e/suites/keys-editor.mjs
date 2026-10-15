@@ -1,14 +1,27 @@
 // Suite: moving keys (Keys tab). Dragging, arrow-key nudging, exact X/Y fields, Tidy up, Reset positions, overlap
 // warning,
 // and that every move shows up in the live preview and shrinks the overlay when the layout gets more compact.
-import { connect, check, finish, sleep, PORT } from '../lib/cdp.mjs';
+import { connect, byTest, check, finish, sleep, PORT } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(3500);
-const tab = async (n) => {
-  await p.ev(`[...document.querySelectorAll('nav button')].find(b => b.textContent === '${n}').click()`);
+const tab = async (id) => {
+  await p.ev(`document.querySelector('${byTest('tab', `[data-tab="${id}"]`)}').click()`);
   await sleep(400);
 };
+// one key on the Keys tab's picture (the hook is shared; data-code tells the keys apart)
+const keyCell = (code) => byTest('key-cell', `[data-code="${code}"]`);
+// the buttons that line keys up or space them evenly, by hook name
+const ARRANGE_HOOKS = [
+  'key-align-left',
+  'key-align-center',
+  'key-align-right',
+  'key-align-top',
+  'key-align-middle',
+  'key-align-bottom',
+  'key-distribute-across',
+  'key-distribute-down',
+];
 const state = async () => (await p.invoke('get_state')).ok;
 const profile = async (id) => (await state()).settings.layout.profiles[id] ?? {};
 const previewKey = (code) =>
@@ -50,7 +63,7 @@ await p.invoke('save_settings', {
 });
 // the window re-reads the settings the test just saved behind its back
 await p.ev(`await __ko.resync()`);
-await tab('Keys');
+await tab('keys');
 await sleep(600);
 const orig = Object.fromEntries(full.keys.filter((k) => keep.includes(k.code)).map((k) => [k.code, k]));
 const sizeBefore = await eventually(async () => {
@@ -60,7 +73,7 @@ const sizeBefore = await eventually(async () => {
 
 const drag = async (code, dxUnits, dyUnits) =>
   p.ev(`
-  const n = document.querySelector('.kmk[data-code="${code}"]'); const unit = n.offsetWidth + 3, r = n.getBoundingClientRect();
+  const n = document.querySelector('${keyCell(code)}'); const unit = n.offsetWidth + 3, r = n.getBoundingClientRect();
   const x0 = r.left + 4, y0 = r.top + 4, ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 7 });
   n.dispatchEvent(ev('pointerdown', x0, y0));
   for (let i = 1; i <= 4; i++) n.dispatchEvent(ev('pointermove', x0 + (${dxUnits} * unit) * i / 4, y0 + (${dyUnits} * unit) * i / 4));
@@ -105,7 +118,7 @@ check('Shift + Down arrow moves it a whole key', Math.abs((await profile(id)).po
 
 // ---- exact fields
 await p.ev(
-  `const [x, y] = [...document.querySelectorAll('.editor input[type=number]')]; x.value = '4.5'; x.dispatchEvent(new Event('input', { bubbles: true })); y.value = '0.25'; y.dispatchEvent(new Event('input', { bubbles: true }));`,
+  `const x = document.querySelector('${byTest('key-x')}'), y = document.querySelector('${byTest('key-y')}'); x.value = '4.5'; x.dispatchEvent(new Event('input', { bubbles: true })); y.value = '0.25'; y.dispatchEvent(new Event('input', { bubbles: true }));`,
 );
 await sleep(500);
 const pw3 = (await profile(id)).positions?.KeyW;
@@ -113,19 +126,19 @@ check('the X / Y fields set an exact position', !!pw3 && pw3.x === 4.5 && pw3.y 
 
 // ---- overlap warning (use the key's real width and height)
 await p.ev(
-  `const [x, y] = [...document.querySelectorAll('.editor input[type=number]')]; x.value = '${orig.KeyA.x}'; x.dispatchEvent(new Event('input', { bubbles: true })); y.value = '${orig.KeyA.y}'; y.dispatchEvent(new Event('input', { bubbles: true })); x.dispatchEvent(new Event('change', { bubbles: true }));`,
+  `const x = document.querySelector('${byTest('key-x')}'), y = document.querySelector('${byTest('key-y')}'); x.value = '${orig.KeyA.x}'; x.dispatchEvent(new Event('input', { bubbles: true })); y.value = '${orig.KeyA.y}'; y.dispatchEvent(new Event('input', { bubbles: true })); x.dispatchEvent(new Event('change', { bubbles: true }));`,
 );
 await sleep(800);
 check(
   'two keys on the same spot get the red overlap outline',
-  (await p.q(`document.querySelectorAll('.kmk.clash').length`)) >= 2,
+  (await p.q(`document.querySelectorAll('${byTest('key-cell', '.clash')}').length`)) >= 2,
 );
 
 // ---- tidy up: keep the shape, close the dead space
-await p.ev(`[...document.querySelectorAll('#pane button')].find(b => b.textContent === 'Reset positions').click()`);
+await p.ev(`document.querySelector('${byTest('keys-reset-positions')}').click()`);
 await sleep(500);
 check('Reset positions puts every key back', Object.keys((await profile(id)).positions ?? {}).length === 0);
-await p.ev(`[...document.querySelectorAll('#pane button')].find(b => b.textContent === 'Tidy up').click()`);
+await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
 await sleep(800);
 const pos = (await profile(id)).positions ?? {};
 const at = (c) => pos[c] ?? { x: orig[c].x, y: orig[c].y };
@@ -158,10 +171,11 @@ check(
 );
 
 // ---- selecting several keys and moving them as a group
-const selectedCodes = () => p.q(`[...document.querySelectorAll('.kmk.sel')].map(n => n.dataset.code).sort()`);
+const selectedCodes = () =>
+  p.q(`[...document.querySelectorAll('${byTest('key-cell', '.sel')}')].map(n => n.dataset.code).sort()`);
 const clickKey = (code, ctrl = false) =>
   p.ev(
-    `document.querySelector('.kmk[data-code="${code}"]').dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: ${ctrl} }))`,
+    `document.querySelector('${keyCell(code)}').dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: ${ctrl} }))`,
   );
 const clickButton = (selector) => p.ev(`document.querySelector('${selector}').click()`);
 const placeOf = async (code) => ((await profile(id)).positions ?? {})[code] ?? { x: orig[code].x, y: orig[code].y };
@@ -178,8 +192,8 @@ check(
 );
 check(
   'the toolbar and the panel say two keys are selected',
-  (await p.q(`document.querySelector('.sel-summary').textContent`)) === '2 keys selected' &&
-    (await p.q(`document.querySelector('.editor b').textContent`)) === '2 keys selected',
+  (await p.q(`document.querySelector('${byTest('key-selection-summary')}').textContent`)) === '2 keys selected' &&
+    (await p.q(`document.querySelector('${byTest('key-editor-title')}').textContent`)) === '2 keys selected',
 );
 
 const groupBefore = {
@@ -208,7 +222,7 @@ check(
   JSON.stringify([groupAfter.D, groupAfter.W]) === JSON.stringify([groupBefore.D, groupBefore.W]),
 );
 
-await clickButton('.keytools button[title^="Move right"]');
+await clickButton(byTest('key-nudge', '[data-direction="right"]'));
 await sleep(500);
 const nudged = { A: await placeOf('KeyA'), S: await placeOf('KeyS') };
 check(
@@ -216,8 +230,8 @@ check(
   Math.abs(nudged.A.x - (groupAfter.A.x + 0.25)) < 1e-6 && Math.abs(nudged.S.x - (groupAfter.S.x + 0.25)) < 1e-6,
   JSON.stringify([groupAfter.A, nudged.A]),
 );
-await clickButton('#nudgeWhole');
-await clickButton('.keytools button[title^="Move up"]');
+await clickButton(byTest('key-nudge-whole'));
+await clickButton(byTest('key-nudge', '[data-direction="up"]'));
 await sleep(500);
 const nudgedUp = { A: await placeOf('KeyA'), S: await placeOf('KeyS') };
 check(
@@ -226,33 +240,33 @@ check(
   JSON.stringify([nudged, nudgedUp]),
 );
 
-await p.ev(`document.querySelector('.editor input[type=checkbox]').click()`);
+await p.ev(`document.querySelector('${byTest('key-show')}').click()`);
 await sleep(500);
 const hiddenNow = (await profile(id)).disabledKeys ?? [];
 check('"Show these keys" hides both selected keys at once', hiddenNow.includes('KeyA') && hiddenNow.includes('KeyS'));
-await p.ev(`document.querySelector('.editor input[type=checkbox]').click()`);
+await p.ev(`document.querySelector('${byTest('key-show')}').click()`);
 await sleep(500);
 const shownAgain = (await profile(id)).disabledKeys ?? [];
 check('...and shows them again', !shownAgain.includes('KeyA') && !shownAgain.includes('KeyS'));
 
-await clickButton('.keytools .toolgroup .btns button');
+await clickButton(byTest('key-clear-selection'));
 await sleep(300);
 check('Clear selection deselects everything', (await selectedCodes()).length === 0);
 check(
   'the nudge buttons are disabled while nothing is selected',
-  await p.q(`[...document.querySelectorAll('.keytools button.nudge')].every(b => b.disabled)`),
+  await p.q(`[...document.querySelectorAll('${byTest('key-nudge')}')].every(b => b.disabled)`),
 );
 
 // a box drawn on the empty background selects exactly the keys it touches (checked against the real on-screen positions)
 const boxResult = await p.ev(`
-  const map = document.querySelector('.keymap'), r = map.getBoundingClientRect();
+  const map = document.querySelector('${byTest('keymap')}'), r = map.getBoundingClientRect();
   const x0 = r.right - 6, y0 = r.bottom - 6, x1 = r.left + r.width * 0.55, y1 = r.top + r.height * 0.55;
   const ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 9 });
   map.dispatchEvent(ev('pointerdown', x0, y0));
   for (let i = 1; i <= 4; i++) map.dispatchEvent(ev('pointermove', x0 + (x1 - x0) * i / 4, y0 + (y1 - y0) * i / 4));
   map.dispatchEvent(ev('pointerup', x1, y1));
   const L = Math.min(x0, x1), R = Math.max(x0, x1), T = Math.min(y0, y1), B = Math.max(y0, y1);
-  const expected = [...document.querySelectorAll('.kmk')].filter(n => { const q = n.getBoundingClientRect(); return q.left < R && q.right > L && q.top < B && q.bottom > T; }).map(n => n.dataset.code).sort();
+  const expected = [...document.querySelectorAll('${byTest('key-cell')}')].filter(n => { const q = n.getBoundingClientRect(); return q.left < R && q.right > L && q.top < B && q.bottom > T; }).map(n => n.dataset.code).sort();
   return { expected };`);
 await sleep(400);
 const boxed = await selectedCodes();
@@ -264,7 +278,7 @@ check(
   `${boxed.length} selected, ${boxResult.expected.length} expected`,
 );
 await p.ev(`
-  const map = document.querySelector('.keymap'), r = map.getBoundingClientRect();
+  const map = document.querySelector('${byTest('keymap')}'), r = map.getBoundingClientRect();
   const ev = (t) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: r.right - 5, clientY: r.bottom - 5, button: 0, pointerId: 10 });
   map.dispatchEvent(ev('pointerdown')); map.dispatchEvent(ev('pointerup'));`);
 await sleep(400);
@@ -289,18 +303,17 @@ await p.invoke('save_settings', {
 });
 await p.ev(`await __ko.resync()`);
 await sleep(600);
-const arrangeButton = (label) =>
-  `[...document.querySelectorAll('.keytools .toolgroup button')].find(b => b.textContent === '${label}')`;
+const arrangeButton = (hook) => `document.querySelector('${byTest(hook)}')`;
 await clickKey('KeyA');
 await sleep(300);
 check(
   'align and space-evenly buttons are disabled until enough keys are selected',
-  await p.q(`${arrangeButton('Left')}.disabled && ${arrangeButton('Across')}.disabled`),
+  await p.q(`${arrangeButton('key-align-left')}.disabled && ${arrangeButton('key-distribute-across')}.disabled`),
 );
 check(
   '...and the tooltip says why',
-  (await p.q(`${arrangeButton('Left')}.title`)) === 'Select at least 2 keys first' &&
-    (await p.q(`${arrangeButton('Across')}.title`)) === 'Select at least 3 keys first',
+  (await p.q(`${arrangeButton('key-align-left')}.title`)) === 'Select at least 2 keys first' &&
+    (await p.q(`${arrangeButton('key-distribute-across')}.title`)) === 'Select at least 3 keys first',
 );
 await clickKey('KeyS', true);
 await clickKey('KeyD', true);
@@ -308,10 +321,10 @@ await sleep(300);
 check(
   'with three keys selected every arrange button is enabled',
   await p.q(
-    `[...document.querySelectorAll('.keytools .toolgroup button')].filter(b => ['Left','Centre','Right','Top','Middle','Bottom','Across','Down'].includes(b.textContent)).every(b => !b.disabled)`,
+    `${JSON.stringify(ARRANGE_HOOKS.map((hook) => byTest(hook)))}.every(selector => !document.querySelector(selector).disabled)`,
   ),
 );
-await p.ev(`${arrangeButton('Top')}.click()`);
+await p.ev(`${arrangeButton('key-align-top')}.click()`);
 await sleep(500);
 const topAligned = { A: await placeOf('KeyA'), S: await placeOf('KeyS'), D: await placeOf('KeyD') };
 check(
@@ -319,7 +332,7 @@ check(
   topAligned.A.y === 0 && topAligned.S.y === 0 && topAligned.D.y === 0 && topAligned.S.x === 1 && topAligned.D.x === 5,
   JSON.stringify(topAligned),
 );
-await p.ev(`${arrangeButton('Across')}.click()`);
+await p.ev(`${arrangeButton('key-distribute-across')}.click()`);
 await sleep(500);
 const spread = { A: await placeOf('KeyA'), S: await placeOf('KeyS'), D: await placeOf('KeyD') };
 check(
@@ -327,7 +340,7 @@ check(
   spread.A.x === 0 && spread.S.x === 2.5 && spread.D.x === 5,
   JSON.stringify(spread),
 );
-await p.ev(`${arrangeButton('Left')}.click()`);
+await p.ev(`${arrangeButton('key-align-left')}.click()`);
 await sleep(500);
 const leftAligned = { A: await placeOf('KeyA'), S: await placeOf('KeyS'), D: await placeOf('KeyD') };
 check(
@@ -347,16 +360,16 @@ check(
 const xs = async () => [(await placeOf('KeyA')).x, (await placeOf('KeyS')).x, (await placeOf('KeyD')).x];
 check(
   'after the earlier changes Undo is available and Redo is not',
-  await p.q(`!${arrangeButton('Undo')}.disabled && ${arrangeButton('Redo')}.disabled`),
+  await p.q(`!${arrangeButton('key-undo')}.disabled && ${arrangeButton('key-redo')}.disabled`),
 );
-await p.ev(`${arrangeButton('Undo')}.click()`);
+await p.ev(`${arrangeButton('key-undo')}.click()`);
 await sleep(600);
 check(
   'Undo takes back the last Align (Left): the keys are spread out again',
   JSON.stringify(await xs()) === '[0,2.5,5]',
   JSON.stringify(await xs()),
 );
-await p.ev(`${arrangeButton('Undo')}.click()`);
+await p.ev(`${arrangeButton('key-undo')}.click()`);
 await sleep(600);
 check(
   'a second Undo takes back the Space evenly step',
@@ -370,29 +383,29 @@ check(
     return !!s && !!d && d.left > s.left;
   })(),
 );
-await p.ev(`${arrangeButton('Redo')}.click()`);
+await p.ev(`${arrangeButton('key-redo')}.click()`);
 await sleep(600);
 check('Redo puts the spread back', JSON.stringify(await xs()) === '[0,2.5,5]', JSON.stringify(await xs()));
-await p.ev(`${arrangeButton('Redo')}.click()`);
+await p.ev(`${arrangeButton('key-redo')}.click()`);
 await sleep(600);
 check(
   'a second Redo puts the Left alignment back, and Redo is then disabled',
-  JSON.stringify(await xs()) === '[0,0,0]' && (await p.q(`${arrangeButton('Redo')}.disabled`)),
+  JSON.stringify(await xs()) === '[0,0,0]' && (await p.q(`${arrangeButton('key-redo')}.disabled`)),
 );
 
-await p.ev(`${arrangeButton('Undo')}.click()`);
+await p.ev(`${arrangeButton('key-undo')}.click()`);
 await sleep(600);
-await p.ev(`document.querySelector('.keytools button[title^="Move right"]').click()`);
+await p.ev(`document.querySelector('${byTest('key-nudge', '[data-direction="right"]')}').click()`);
 await sleep(600);
-check('a new change after an Undo clears Redo', await p.q(`${arrangeButton('Redo')}.disabled`));
-await p.ev(`${arrangeButton('Undo')}.click()`);
+check('a new change after an Undo clears Redo', await p.q(`${arrangeButton('key-redo')}.disabled`));
+await p.ev(`${arrangeButton('key-undo')}.click()`);
 await sleep(600);
 check('Undo also takes back a nudge', JSON.stringify(await xs()) === '[0,2.5,5]', JSON.stringify(await xs()));
 
-await p.ev(`document.querySelector('.editor input[type=checkbox]').click()`);
+await p.ev(`document.querySelector('${byTest('key-show')}').click()`);
 await sleep(600);
 check('hiding keys is one step too...', ((await profile(id)).disabledKeys ?? []).includes('KeyD'));
-await p.ev(`${arrangeButton('Undo')}.click()`);
+await p.ev(`${arrangeButton('key-undo')}.click()`);
 await sleep(600);
 check('...and Undo shows them again', !((await profile(id)).disabledKeys ?? []).includes('KeyD'));
 
@@ -404,7 +417,7 @@ const choicesAre = async (snap, grid) => {
 };
 const pickSnap = async (value) => {
   await p.ev(
-    `const m = document.getElementById('snapMenu'); m.value = '${value}'; m.dispatchEvent(new Event('change', { bubbles: true }))`,
+    `const m = document.querySelector('${byTest('key-snap')}'); m.value = '${value}'; m.dispatchEvent(new Event('change', { bubbles: true }))`,
   );
   await sleep(600);
 };
@@ -415,7 +428,7 @@ check(
 );
 check(
   'the Snap menu offers Off, Quarter, Half and Whole key',
-  (await p.q(`[...document.querySelectorAll('#snapMenu option')].map(o => o.textContent).join('|')`)) ===
+  (await p.q(`[...document.querySelectorAll('${byTest('key-snap')} option')].map(o => o.textContent).join('|')`)) ===
     'Off|Quarter key|Half key|Whole key',
 );
 await clickKey('KeyD');
@@ -446,8 +459,9 @@ check(
   moved > 0.2 && moved < 0.5 && Math.abs(moved * 4 - Math.round(moved * 4)) > 0.05,
   JSON.stringify([beforeFree, afterFree]),
 );
-if (await p.q(`document.getElementById('nudgeWhole').checked`)) await clickButton('#nudgeWhole'); // left ticked by the align checks above
-await p.ev(`document.querySelector('.keytools button[title^="Move right"]').click()`);
+if (await p.q(`document.querySelector('${byTest('key-nudge-whole')}').checked`))
+  await clickButton(byTest('key-nudge-whole')); // left ticked by the align checks above
+await p.ev(`document.querySelector('${byTest('key-nudge', '[data-direction="right"]')}').click()`);
 await sleep(500);
 const afterFine = await placeOf('KeyD');
 check(
@@ -457,30 +471,30 @@ check(
 );
 
 await pickSnap(0.5);
-await p.ev(`document.getElementById('showGrid').click()`);
+await p.ev(`document.querySelector('${byTest('key-grid')}').click()`);
 await sleep(600);
 check('ticking Show grid is saved', (await editorChoices()).grid === true && (await editorChoices()).snap === 0.5);
 check(
   'the picture draws grid dots at the snap spacing',
   await p.q(
-    `(() => { const s = document.querySelector('.keymap > div').style; return s.backgroundImage.includes('radial-gradient') && parseFloat(s.backgroundSize) > 0; })()`,
+    `(() => { const s = document.querySelector('${byTest('keymap-canvas')}').style; return s.backgroundImage.includes('radial-gradient') && parseFloat(s.backgroundSize) > 0; })()`,
   ),
 );
 await p.ev(`await __ko.resync()`);
 await sleep(600);
 check(
   'the choices come back after the window re-reads its settings',
-  (await p.q(`document.getElementById('snapMenu').value`)) === '0.5' &&
-    (await p.q(`document.getElementById('showGrid').checked`)),
+  (await p.q(`document.querySelector('${byTest('key-snap')}').value`)) === '0.5' &&
+    (await p.q(`document.querySelector('${byTest('key-grid')}').checked`)),
 );
 
 // while a key is being dragged a small label shows its position; it goes away when the key is dropped
 const readoutDuring = await p.ev(`
-  const n = document.querySelector('.kmk[data-code="KeyW"]'), r = n.getBoundingClientRect(), unit = n.offsetWidth + 3;
+  const n = document.querySelector('${keyCell('KeyW')}'), r = n.getBoundingClientRect(), unit = n.offsetWidth + 3;
   const ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 11 });
   n.dispatchEvent(ev('pointerdown', r.left + 4, r.top + 4));
   n.dispatchEvent(ev('pointermove', r.left + 4 + unit, r.top + 4));
-  const label = document.querySelector('.readout');
+  const label = document.querySelector('${byTest('key-readout')}');
   return label ? label.textContent : null;`);
 check(
   'a label with the key position follows a key while it is dragged',
@@ -488,46 +502,46 @@ check(
   String(readoutDuring),
 );
 await p.ev(
-  `document.querySelector('.kmk[data-code="KeyW"]').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 11 }))`,
+  `document.querySelector('${keyCell('KeyW')}').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 11 }))`,
 );
 await sleep(600);
 check(
   '...and it disappears when the key is dropped',
-  (await p.q(`document.querySelectorAll('.readout').length`)) === 0,
+  (await p.q(`document.querySelectorAll('${byTest('key-readout')}').length`)) === 0,
 );
 
 await clickKey('KeyW');
 await sleep(300);
-const statusText = await p.q(`document.querySelector('.keystatus').textContent`);
+const statusText = await p.q(`document.querySelector('${byTest('key-status')}').textContent`);
 check(
   'the line under the picture shows the selected key position and how many keys are moved',
   /^KeyW at x [\d.]+, y [\d.]+ · \d+ keys? moved from the layout file$/.test(statusText),
   statusText,
 );
 await pickSnap(0.25);
-await p.ev(`document.getElementById('showGrid').click()`);
+await p.ev(`document.querySelector('${byTest('key-grid')}').click()`);
 await sleep(500);
 check('snap and grid are put back for the rest of the suite', await choicesAre(0.25, false));
 
 // ---- keyboard use and screen-reader labels
-await clickButton('.keytools .toolgroup .btns button'); // Clear selection
+await clickButton(byTest('key-clear-selection')); // Clear selection
 await sleep(400);
 check(
   'every key is a tab stop with a button role and a spoken name',
   await p.q(
-    `[...document.querySelectorAll('.kmk')].every(n => n.tabIndex === 0 && n.getAttribute('role') === 'button' && n.getAttribute('aria-label').startsWith(n.dataset.code) && n.hasAttribute('aria-pressed'))`,
+    `[...document.querySelectorAll('${byTest('key-cell')}')].every(n => n.tabIndex === 0 && n.getAttribute('role') === 'button' && n.getAttribute('aria-label').startsWith(n.dataset.code) && n.hasAttribute('aria-pressed'))`,
   ),
 );
 const pressOnKey = (code, extra = '') =>
   p.ev(
-    `const n = document.querySelector('.kmk[data-code="${code}"]'); n.focus(); n.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true${extra} }))`,
+    `const n = document.querySelector('${keyCell(code)}'); n.focus(); n.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true${extra} }))`,
   );
 await pressOnKey('KeyA');
 await sleep(500);
 check(
   'Enter on a focused key selects it and says so (aria-pressed)',
   JSON.stringify(await selectedCodes()) === '["KeyA"]' &&
-    (await p.q(`document.querySelector('.kmk[data-code="KeyA"]').getAttribute('aria-pressed')`)) === 'true',
+    (await p.q(`document.querySelector('${keyCell('KeyA')}').getAttribute('aria-pressed')`)) === 'true',
 );
 check(
   'the keyboard focus stays on the key after the picture is redrawn',
@@ -543,19 +557,19 @@ check(
 );
 check(
   'the spoken name says whether a key is selected',
-  (await p.q(`document.querySelector('.kmk[data-code="KeyA"]').getAttribute('aria-label')`)).includes('selected'),
+  (await p.q(`document.querySelector('${keyCell('KeyA')}').getAttribute('aria-label')`)).includes('selected'),
 );
 check(
   'the toolbar groups are named for assistive technology',
   (await p.q(
-    `[...document.querySelectorAll('.keytools .toolgroup')].map(g => g.getAttribute('aria-label')).join('|')`,
+    `[...document.querySelectorAll('${byTest('key-tool-group')}')].map(g => g.getAttribute('aria-label')).join('|')`,
   )) === 'Selection|Move selection|Align|Space evenly|History|View',
 );
 check(
   'the status line is announced politely when it changes',
-  (await p.q(`document.querySelector('.keystatus').getAttribute('aria-live')`)) === 'polite',
+  (await p.q(`document.querySelector('${byTest('key-status')}').getAttribute('aria-live')`)) === 'polite',
 );
-await clickButton('.keytools .toolgroup .btns button');
+await clickButton(byTest('key-clear-selection'));
 await sleep(300);
 
 // ---- hostile positions are cleaned by the app

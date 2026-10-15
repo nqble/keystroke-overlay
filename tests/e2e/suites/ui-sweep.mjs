@@ -1,7 +1,7 @@
 // Suite: walks the whole settings UI like a user would and fails on any JavaScript error:
 // every tab, every theme, every animation, every layout, key edits + revert, sliders at their ends, and the overlay
 // preview.
-import { connect, check, finish, sleep } from '../lib/cdp.mjs';
+import { connect, byTest, byTestStart, check, finish, sleep } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(3000);
@@ -11,19 +11,32 @@ await p.ev(
   `window.__errs = []; addEventListener('error', e => __errs.push(String(e.message))); addEventListener('unhandledrejection', e => __errs.push('rejection: ' + e.reason));`,
 );
 const errs = () => p.q(`window.__errs`);
-const tab = async (n) => {
-  await p.ev(`[...document.querySelectorAll('nav button')].find(b => b.textContent === '${n}').click()`);
+const tab = async (id) => {
+  await p.ev(`document.querySelector('${byTest('tab', `[data-tab="${id}"]`)}').click()`);
   await sleep(250);
 };
+// Every dropdown and slider on the Style and Animation tabs: the ones made from CONTROLS (their hooks start with
+// "control-") plus the theme and saved-preset dropdowns.
+const EVERY_SELECT = `select${byTestStart('control-')}, ${byTest('style-theme')}, ${byTest('preset-select')}`;
+const EVERY_SLIDER = `input[type=range]${byTestStart('control-')}`;
 
-for (const t of ['Layout', 'Keys', 'Style', 'Animation', 'Fonts', 'General']) {
-  await tab(t);
-  check(`tab ${t} renders content`, await p.q(`document.getElementById('pane').innerText.length > 40`));
+const TAB_IDS = {
+  Layout: 'layout',
+  Keys: 'keys',
+  Style: 'style',
+  Animation: 'animation',
+  Fonts: 'fonts',
+  General: 'general',
+};
+for (const [name, id] of Object.entries(TAB_IDS)) {
+  await tab(id);
+  check(`tab ${name} renders content`, await p.q(`document.querySelector('${byTest('pane')}').innerText.length > 40`));
 }
 check(
   'General sections are in the tidy order',
-  JSON.stringify(await p.q(`[...document.querySelectorAll('#pane h2')].map(h => h.textContent)`)) ===
-    JSON.stringify(['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates']),
+  JSON.stringify(
+    await p.q(`[...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent)`),
+  ) === JSON.stringify(['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates']),
 );
 
 // the overlay as OBS loads it (no ?preview) skips the theme files; the settings preview still loads them
@@ -46,78 +59,76 @@ check('the settings preview still lists the themes', (await p.q(`__ko.registry()
 check(
   'the header shows the logo image',
   await p.q(
-    `(() => { const i = document.querySelector('.brand .logo'); return !!i && i.complete && i.naturalWidth > 0; })()`,
+    `(() => { const i = document.querySelector('${byTest('brand-logo')}'); return !!i && i.complete && i.naturalWidth > 0; })()`,
   ),
 );
 check(
   'the window has no native title bar and the header is a drag area',
   await p.q(
-    `(async () => { const w = window.__TAURI__.window.getCurrentWindow(); return (await w.isDecorated()) === false && document.querySelector('header').hasAttribute('data-tauri-drag-region'); })()`,
+    `(async () => { const w = window.__TAURI__.window.getCurrentWindow(); return (await w.isDecorated()) === false && document.querySelector('${byTest('app-header')}').hasAttribute('data-tauri-drag-region'); })()`,
   ),
 );
 check(
   'the three window buttons sit in the top right corner',
   await p.q(
-    `(() => { const r = document.querySelector('header .winbtns').getBoundingClientRect(); return r.right >= innerWidth - 1 && r.top <= 1 && document.querySelectorAll('header .winbtns button').length === 3; })()`,
+    `(() => { const r = document.querySelector('${byTest('window-buttons')}').getBoundingClientRect(); return r.right >= innerWidth - 1 && r.top <= 1 && !!document.querySelector('${byTest('window-minimize')}') && !!document.querySelector('${byTest('window-maximize')}') && !!document.querySelector('${byTest('window-close')}'); })()`,
   ),
 );
 check(
   'maximize toggles (and the glyph follows), restore goes back',
   await (async () => {
     const state = () => p.q(`window.__TAURI__.window.getCurrentWindow().isMaximized()`);
-    await p.ev(`document.getElementById('wMax').click()`);
+    const maximize = byTest('window-maximize');
+    await p.ev(`document.querySelector('${maximize}').click()`);
     await sleep(700);
     const on = await state(),
-      glyph1 = await p.q(`document.getElementById('wMax').textContent.charCodeAt(0).toString(16)`);
-    await p.ev(`document.getElementById('wMax').click()`);
+      glyph1 = await p.q(`document.querySelector('${maximize}').textContent.charCodeAt(0).toString(16)`);
+    await p.ev(`document.querySelector('${maximize}').click()`);
     await sleep(700);
     return (
       on === true &&
       glyph1 === 'e923' &&
       (await state()) === false &&
-      (await p.q(`document.getElementById('wMax').textContent.charCodeAt(0).toString(16)`)) === 'e922'
+      (await p.q(`document.querySelector('${maximize}').textContent.charCodeAt(0).toString(16)`)) === 'e922'
     );
   })(),
 );
-await tab('Style');
+await tab('style');
 check(
   'Layout and Style tabs have the same Import / Export buttons',
   await p.q(
-    `['Import from file…', 'Export to file…'].every(t => [...document.querySelectorAll('#pane button')].some(b => b.textContent === t))`,
+    `!!document.querySelector('${byTest('style-import')}') && !!document.querySelector('${byTest('style-export')}')`,
   ),
 );
 check(
   'clicking a slider shows no focus outline',
   await p.q(
-    `(() => { const r = document.querySelector('#pane input[type=range]'); r.focus(); return getComputedStyle(r).outlineStyle === 'none' || getComputedStyle(r).outlineWidth === '0px'; })()`,
+    `(() => { const r = document.querySelector('${byTest('control-style-radius')}'); r.focus(); return getComputedStyle(r).outlineStyle === 'none' || getComputedStyle(r).outlineWidth === '0px'; })()`,
   ),
 );
 check(
   'the Fonts tab no longer has presets',
   await (async () => {
-    await tab('Fonts');
+    await tab('fonts');
     return !(await p.q(`!!document.querySelector('.fpre')`));
   })(),
 );
-await tab('Style');
+await tab('style');
+const fontSelect = `document.querySelector('${byTest('control-style-font-family')}')`;
 const fontOpts = await p.q(
-  `(() => { const s = [...document.querySelectorAll('#pane select')].find(x => [...x.options].some(o => o.value === 'Bahnschrift')); return s ? [...s.options].map(o => o.value) : null; })()`,
+  `(() => { const s = ${fontSelect}; return s ? [...s.options].map(o => o.value) : null; })()`,
 );
 check(
   'Style -> Font family is a dropdown with the Windows fonts and an "Other" option',
   Array.isArray(fontOpts) && fontOpts.length >= 20 && fontOpts.includes('Consolas') && fontOpts.includes('__custom'),
 );
-await p.ev(
-  `const s = [...document.querySelectorAll('#pane select')].find(x => [...x.options].some(o => o.value === 'Bahnschrift')); s.value = 'Bahnschrift'; s.dispatchEvent(new Event('change', { bubbles: true }))`,
-);
+await p.ev(`const s = ${fontSelect}; s.value = 'Bahnschrift'; s.dispatchEvent(new Event('change', { bubbles: true }))`);
 await sleep(500);
 check(
   'picking a font from the dropdown applies it',
   (await p.invoke('get_state')).ok.settings.style.fontFamily === 'Bahnschrift',
 );
-await p.ev(
-  `const s = [...document.querySelectorAll('#pane select')].find(x => [...x.options].some(o => o.value === 'Bahnschrift')); s.value = 'Segoe UI'; s.dispatchEvent(new Event('change', { bubbles: true }))`,
-);
+await p.ev(`const s = ${fontSelect}; s.value = 'Segoe UI'; s.dispatchEvent(new Event('change', { bubbles: true }))`);
 await sleep(300);
 
 // every layout, with a key edit and a revert
@@ -125,11 +136,11 @@ const ids = (await p.invoke('list_layouts')).ok.map((l) => l.id);
 for (const id of ids) {
   await p.invoke('set_layout', { id });
   await sleep(250);
-  await tab('Keys');
-  await p.ev(`const k = document.querySelector('.kmk'); k && k.click()`);
+  await tab('keys');
+  await p.ev(`const k = document.querySelector('${byTest('key-cell')}'); k && k.click()`);
   await sleep(150);
   const fit = await p.q(
-    `(() => { const m = document.querySelector('.keymap'); return m.scrollWidth <= m.clientWidth + 1 && m.scrollHeight <= m.clientHeight + 1; })()`,
+    `(() => { const m = document.querySelector('${byTest('keymap')}'); return m.scrollWidth <= m.clientWidth + 1 && m.scrollHeight <= m.clientHeight + 1; })()`,
   );
   check(`Keys tab: the whole "${id}" keyboard fits its box (no scrolling)`, fit);
 }
@@ -138,15 +149,15 @@ await p.invoke('set_layout', { id: 'tkl' });
 
 // every theme / animation via the saved settings (what presets and the selects do)
 const st = (await p.invoke('get_state')).ok;
-await tab('Animation');
+await tab('animation');
 const anims = await p.q(
-  `[...document.querySelectorAll('#pane select')].flatMap(s => [...s.options].map(o => o.value))`,
+  `[...document.querySelectorAll('${EVERY_SELECT}')].flatMap(s => [...s.options].map(o => o.value))`,
 );
-for (const sel of await p.q(`[...document.querySelectorAll('#pane select')].map((s, i) => i)`)) {
-  const opts = await p.q(`[...document.querySelectorAll('#pane select')][${sel}].options.length`);
+for (const sel of await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')].map((s, i) => i)`)) {
+  const opts = await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')][${sel}].options.length`);
   for (let o = 0; o < opts; o++) {
     await p.ev(
-      `const s = [...document.querySelectorAll('#pane select')][${sel}]; s.selectedIndex = ${o}; s.dispatchEvent(new Event('change', { bubbles: true }))`,
+      `const s = [...document.querySelectorAll('${EVERY_SELECT}')][${sel}]; s.selectedIndex = ${o}; s.dispatchEvent(new Event('change', { bubbles: true }))`,
     );
     await sleep(120);
   }
@@ -156,19 +167,19 @@ check(
   (await errs()).length === 0,
   JSON.stringify(await errs()),
 );
-await tab('Style');
-for (const sel of await p.q(`[...document.querySelectorAll('#pane select')].map((s, i) => i)`)) {
-  const opts = await p.q(`[...document.querySelectorAll('#pane select')][${sel}].options.length`);
+await tab('style');
+for (const sel of await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')].map((s, i) => i)`)) {
+  const opts = await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')][${sel}].options.length`);
   for (let o = 0; o < opts; o++) {
     await p.ev(
-      `const s = [...document.querySelectorAll('#pane select')][${sel}]; s.selectedIndex = ${o}; s.dispatchEvent(new Event('change', { bubbles: true }))`,
+      `const s = [...document.querySelectorAll('${EVERY_SELECT}')][${sel}]; s.selectedIndex = ${o}; s.dispatchEvent(new Event('change', { bubbles: true }))`,
     );
     await sleep(120);
   }
 }
 // sliders at both ends
 await p.ev(
-  `for (const r of document.querySelectorAll('#pane input[type=range]')) for (const v of [r.min, r.max]) { r.value = v; r.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(x => setTimeout(x, 20)); }`,
+  `for (const r of document.querySelectorAll('${EVERY_SLIDER}')) for (const v of [r.min, r.max]) { r.value = v; r.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(x => setTimeout(x, 20)); }`,
 );
 await sleep(800);
 const after = (await p.invoke('get_state')).ok.settings;

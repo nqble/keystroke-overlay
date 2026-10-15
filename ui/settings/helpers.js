@@ -17,18 +17,25 @@ export function put(obj, path, value) {
   keys.reduce((o, key) => o[key], obj)[last] = value;
 }
 
-/** Make a page element:  el('button', { textContent: 'Hi', onclick }, child1, child2) */
+/**
+ * Make a page element:  el('button', { textContent: 'Hi', onclick }, child1, child2)
+ * The special property `test` becomes the data-test attribute, a stable name the end-to-end tests use to find the element
+ * (see "Test hooks" in tests/README.md). It is an attribute only: no style may use it.
+ */
 export function el(tag, props = {}, ...children) {
-  const element = Object.assign(document.createElement(tag), props);
+  const { test, ...otherProps } = props;
+  const element = Object.assign(document.createElement(tag), otherProps);
+  if (test) element.dataset.test = test;
   for (const child of children.flat()) if (child != null) element.append(child);
   return element;
 }
 
-export const heading = (text) => el('h2', { textContent: text });
+export const heading = (text) => el('h2', { textContent: text, test: 'section-heading' });
 
 export const note = (text) => el('p', { className: 'note', textContent: text });
 
-export const button = (text, onclick, className = '') => el('button', { textContent: text, onclick, className });
+export const button = (text, onclick, className = '', test = '') =>
+  el('button', { textContent: text, onclick, className, test });
 
 /** One settings row: a label on the left, controls on the right. */
 export const row = (label, ...controls) =>

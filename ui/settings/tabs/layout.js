@@ -21,17 +21,24 @@ export function layoutTab() {
   cards.append(
     el(
       'div',
-      { className: 'card add', title: 'Add a layout', onclick: addLayoutDialog },
+      { className: 'card add', title: 'Add a layout', onclick: addLayoutDialog, test: 'layout-add' },
       el('span', { className: 'plus', textContent: '+' }),
       el('small', { textContent: `${mine}/${MAX_LAYOUTS} layouts` }),
     ),
   );
   page.append(cards, heading('Share'));
   page.append(
-    shareRow('Layouts you made', importLayouts, exportLayouts, !layouts.some((l) => l.user), {
-      imp: 'Add layouts from a file someone shared (or that you exported)',
-      exp: 'Save the layouts you made, with their key edits, to a file',
-    }),
+    shareRow(
+      'Layouts you made',
+      importLayouts,
+      exportLayouts,
+      !layouts.some((l) => l.user),
+      {
+        imp: 'Add layouts from a file someone shared (or that you exported)',
+        exp: 'Save the layouts you made, with their key edits, to a file',
+      },
+      'layout',
+    ),
   );
   return page;
 }
@@ -49,7 +56,7 @@ function layoutCard(layout) {
         },
       }
     : { label: 'Built-in layouts can’t be deleted', disabled: true };
-  return el(
+  const card = el(
     'div',
     {
       className: 'card' + (settings.layout.id === layout.id ? ' sel' : ''),
@@ -59,10 +66,13 @@ function layoutCard(layout) {
         changed(true);
       },
       oncontextmenu: (e) => showMenu(e, [deleteItem]),
+      test: 'layout-card',
     },
     el('b', { textContent: layout.name }),
     el('span', { textContent: layout.keys.length + ' keys' + (isCustom(layout.id) ? ' · customized' : '') }),
   );
+  card.dataset.layoutId = layout.id;
+  return card;
 }
 
 async function importLayouts() {

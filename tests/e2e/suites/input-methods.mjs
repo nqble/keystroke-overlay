@@ -1,6 +1,6 @@
 // Suite: keyboard input methods (Standard hook vs Compatibility Raw Input).
 // Injects real key presses and checks both methods deliver the same events, switching is clean, and cost is low.
-import { connect, inject, procStats, listenKeys, check, finish, sleep } from '../lib/cdp.mjs';
+import { connect, byTest, inject, procStats, listenKeys, check, finish, sleep } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(1500);
@@ -29,15 +29,15 @@ const EXPECT = [
   '-PrintScreen',
 ];
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const select = `[...document.querySelectorAll('#pane select')].find(s => [...s.options].some(o => o.value === 'rawinput'))`;
+const select = `document.querySelector('${byTest('input-method-select')}')`;
 
 // ------------------------------------------------------------ the General tab section
-await p.ev(`[...document.querySelectorAll('nav button')].find(b => b.textContent === 'General').click()`);
+await p.ev(`document.querySelector('${byTest('tab', '[data-tab="general"]')}').click()`);
 await sleep(500);
 const ui = await p.q(
-  `(() => { const s = ${select}; return { has: !!s, value: s?.value, labels: s && [...s.options].map(o => o.textContent), sections: [...document.querySelectorAll('#pane h2')].map(h => h.textContent) }; })()`,
+  `(() => { const s = ${select}; return { has: !!s, value: s?.value, labels: s && [...s.options].map(o => o.textContent), sections: [...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent) }; })()`,
 );
-const pageText = () => p.q(`document.getElementById('pane').innerText`);
+const pageText = () => p.q(`document.querySelector('${byTest('pane')}').innerText`);
 check('General has a "Keyboard input" section', ui.sections.includes('Keyboard input'));
 check(
   'default is Standard (hook), listed as recommended',

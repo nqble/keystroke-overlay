@@ -55,6 +55,77 @@ harmless copy of `whoami.exe`, signed with a throwaway key made for the run. Don
 **Not in CI.** GitHub's hosted runners have no real desktop session for window and keyboard tests, so the end-to-end
 suites run on your machine. CI runs the privacy check, syntax checks and the Rust tests.
 
+## Test hooks (data-test)
+
+The end-to-end tests find things in the settings window ONLY through `data-test="..."` attributes, never by position,
+CSS class, id or visible text. That way a redesign can move or restyle things without breaking the tests.
+
+Rules:
+
+- The name describes the **purpose**, not the looks: `layout-add`, not `dashed-card`. Kebab-case (lower case, words joined by `-`).
+- A hook is an attribute only. **No CSS (and no behaviour) may use it.**
+- Repeated things share one name and tell themselves apart with a `data-*` attribute that already exists or is added
+  (`key-cell` + `data-code`, `layout-card` + `data-layout-id`, `tab` + `data-tab`).
+- In the page code, `el('div', { test: 'name' })` and `button(text, onclick, className, 'name')` set the attribute; static
+  elements in `ui/settings/index.html` have it written in directly.
+- In the tests, `byTest('name', '[data-code="KeyW"]')` (from `tests/e2e/lib/cdp.mjs`) builds the selector.
+- Reading a state class such as `.sel`, `.clash` or `.down` to check what an element looks like is still allowed; finding
+  an element is not.
+
+| Hook | What it is |
+|---|---|
+| `app-header`, `brand-logo`, `brand-title` | The top bar, its logo and its title |
+| `obs-url`, `obs-copy`, `obs-size` | The OBS address box, its Copy button, the size text |
+| `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
+| `server-banner`, `pause-bar`, `pause-resume` | The server-problem banner, the paused bar and its Resume button |
+| `preview-frame` | The live preview frame |
+| `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `fonts`, `general`, `debug`) | The tab bar and its buttons |
+| `pane` | The area that shows the current tab |
+| `section-heading` | Every heading made by `heading()` inside a tab |
+| `toast` | The message at the bottom |
+| `notes-popup`, `notes-title`, `notes-body`, `notes-ok` | The "What's new" / release-notes popup |
+| `update-button` | The corner button that appears when an update exists |
+| `update-popup`, `update-title`, `update-body`, `update-progress`, `update-progress-text`, `update-later`, `update-go` | The update dialog |
+| `dialog`, `dialog-title`, `dialog-body`, `dialog-footer` | The shared dialog |
+| `dialog-ok`, `dialog-cancel`, `dialog-create`, `dialog-reset-confirm`, `dialog-layout-name` | Buttons and the name box inside dialogs |
+| `context-menu`, `context-menu-item` | The right-click menu and its entries |
+| `layout-card` + `data-layout-id` | One layout card |
+| `layout-add` | The dashed "+" card |
+| `layout-import`, `layout-export`, `style-import`, `style-export` | The Import / Export buttons of the Layout and Style tabs |
+| `keymap`, `keymap-canvas` | The keyboard picture and the area inside it that draws the grid |
+| `key-cell` + `data-code` | One key on the picture |
+| `key-toolbar`, `key-tool-group` | The toolbar and each of its groups |
+| `key-selection-summary`, `key-clear-selection` | "N keys selected" text and the Clear selection button |
+| `key-nudge` + `data-direction` (`left`, `up`, `down`, `right`), `key-nudge-whole` | The four arrow buttons and the "Whole key" tickbox |
+| `key-align-left`, `key-align-center`, `key-align-right`, `key-align-top`, `key-align-middle`, `key-align-bottom` | Align buttons |
+| `key-distribute-across`, `key-distribute-down` | Space evenly buttons |
+| `key-undo`, `key-redo` | History buttons |
+| `key-snap`, `key-grid` | The Snap menu and the Show grid tickbox |
+| `key-status`, `key-readout` | The line under the picture, the position label shown while dragging |
+| `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the picture |
+| `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back` | The editor under the picture (one key or several) |
+| `style-theme`, `preset-select`, `preset-load`, `preset-delete`, `preset-name`, `preset-save` | Themes and presets in the Style tab |
+| `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, colour picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
+| `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
+| `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
+| `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` in the General tab |
+| `general-obs-url`, `general-obs-copy`, `general-size-note` | The OBS section of General |
+| `server-port`, `server-port-apply`, `server-restart` | The Server section |
+| `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | The Secure link section |
+| `input-method-select`, `input-method-info`, `input-method-error` | The Keyboard input section |
+| `general-open-folder`, `general-reset`, `general-quit` | The App section buttons |
+| `update-channel`, `update-check`, `update-install`, `update-status`, `update-details`, `update-release-notes`, `general-update-progress`, `general-update-progress-text` | The Program updates section |
+| `debug-card` + `data-card`, `debug-card-title` | One box of the Debug tab and its title |
+| `debug-facts`, `debug-open-folder` | "This app" |
+| `debug-self-test-run`, `debug-test` | Self-test button, one result row |
+| `debug-log`, `debug-log-copy`, `debug-log-clear` | Event log |
+| `debug-monitor-toggle`, `debug-monitor-status`, `debug-monitor-log` | Key monitor (the Start / Stop button is one button) |
+| `debug-json`, `debug-raw-apply`, `debug-raw-reload`, `debug-raw-copy`, `debug-raw-result` | Raw settings |
+| `debug-fake-update`, `debug-clear-fake-update`, `debug-whats-new`, `debug-new-layout`, `debug-toast`, `debug-error-toast`, `debug-restart-server`, `debug-reload-window` | Test helpers |
+| `debug-copy-command`, `debug-bug-report` | Developer tools and Bug report |
+
+The live preview frame is a different page (the real overlay); the tests keep using its own selectors.
+
 ## Clean install and upgrade test
 
 `node tests/install/run.mjs` builds the previous release (v1.1.2) and the current code as **real installers** under a throwaway identity

@@ -37,7 +37,7 @@ export function nudgeSelection(layout, dx, dy) {
 function toolGroup(label, ...controls) {
   const group = el(
     'div',
-    { className: 'toolgroup' },
+    { className: 'toolgroup', test: 'key-tool-group' },
     el('span', { className: 'toolgroup-label', textContent: label }),
     el('div', { className: 'btns' }, controls),
   );
@@ -48,7 +48,12 @@ function toolGroup(label, ...controls) {
 
 /** The four arrow buttons that move the selection by one step (a quarter key, or a whole key when ticked). */
 function nudgePad(layout) {
-  const wholeKey = el('input', { type: 'checkbox', id: 'nudgeWhole', checked: nudgeByWholeKey });
+  const wholeKey = el('input', {
+    type: 'checkbox',
+    id: 'nudgeWhole',
+    checked: nudgeByWholeKey,
+    test: 'key-nudge-whole',
+  });
   wholeKey.onchange = () => {
     nudgeByWholeKey = wholeKey.checked;
   };
@@ -57,13 +62,14 @@ function nudgePad(layout) {
     nudgeSelection(layout, dx * step, dy * step);
   };
   const arrows = [
-    ['←', 'Move left', -1, 0],
-    ['↑', 'Move up', 0, -1],
-    ['↓', 'Move down', 0, 1],
-    ['→', 'Move right', 1, 0],
+    ['←', 'Move left', 'left', -1, 0],
+    ['↑', 'Move up', 'up', 0, -1],
+    ['↓', 'Move down', 'down', 0, 1],
+    ['→', 'Move right', 'right', 1, 0],
   ];
-  const buttons = arrows.map(([arrow, title, dx, dy]) => {
-    const arrowButton = button(arrow, move(dx, dy), 'nudge');
+  const buttons = arrows.map(([arrow, title, direction, dx, dy]) => {
+    const arrowButton = button(arrow, move(dx, dy), 'nudge', 'key-nudge');
+    arrowButton.dataset.direction = direction;
     arrowButton.title = title + (selectedKeys.size ? '' : ' (select a key first)');
     arrowButton.disabled = selectedKeys.size === 0;
     return arrowButton;
@@ -93,8 +99,8 @@ const MIN_KEYS_TO_ALIGN = 2;
 const MIN_KEYS_TO_DISTRIBUTE = 3;
 
 /** A button that needs at least `needed` selected keys; when it cannot be used, its tooltip says why. */
-function arrangeButton(label, tooltip, needed, onclick) {
-  const arrangeButton = button(label, onclick);
+function arrangeButton(label, tooltip, needed, onclick, test) {
+  const arrangeButton = button(label, onclick, '', test);
   const enough = selectedKeys.size >= needed;
   arrangeButton.disabled = !enough;
   arrangeButton.title = enough ? tooltip : `Select at least ${needed} keys first`;
@@ -103,16 +109,24 @@ function arrangeButton(label, tooltip, needed, onclick) {
 
 function alignButtons(layout) {
   return ALIGN_BUTTONS.map(([alignment, label, tooltip]) =>
-    arrangeButton(label, tooltip, MIN_KEYS_TO_ALIGN, () =>
-      applyPositions(layout, alignPositions(selectedBoxes(layout), alignment)),
+    arrangeButton(
+      label,
+      tooltip,
+      MIN_KEYS_TO_ALIGN,
+      () => applyPositions(layout, alignPositions(selectedBoxes(layout), alignment)),
+      'key-align-' + alignment,
     ),
   );
 }
 
 function distributeButtons(layout) {
   return DISTRIBUTE_BUTTONS.map(([direction, label, tooltip]) =>
-    arrangeButton(label, tooltip, MIN_KEYS_TO_DISTRIBUTE, () =>
-      applyPositions(layout, distributePositions(selectedBoxes(layout), direction)),
+    arrangeButton(
+      label,
+      tooltip,
+      MIN_KEYS_TO_DISTRIBUTE,
+      () => applyPositions(layout, distributePositions(selectedBoxes(layout), direction)),
+      'key-distribute-' + direction,
     ),
   );
 }
@@ -125,12 +139,12 @@ function setEditorChoice(name, value) {
 
 /** The Snap menu and the Show grid tickbox. Both are remembered between sessions. */
 function viewControls() {
-  const menu = el('select', { id: 'snapMenu', title: TEXT.snapMenuHelp });
+  const menu = el('select', { id: 'snapMenu', title: TEXT.snapMenuHelp, test: 'key-snap' });
   for (const [step, label] of SNAP_CHOICES) menu.append(el('option', { value: String(step), textContent: label }));
   menu.value = String(snapStep());
   menu.onchange = () => setEditorChoice('snap', Number(menu.value));
   const snapLabel = el('label', { className: 'inline', title: TEXT.snapMenuHelp }, 'Snap ', menu);
-  const grid = el('input', { type: 'checkbox', id: 'showGrid', checked: gridShown() });
+  const grid = el('input', { type: 'checkbox', id: 'showGrid', checked: gridShown(), test: 'key-grid' });
   grid.onchange = () => setEditorChoice('grid', grid.checked);
   const gridLabel = el('label', { className: 'inline', title: TEXT.gridHelp }, grid);
   gridLabel.append(' Show grid');
@@ -146,10 +160,10 @@ function stepHistory(layout, step) {
 }
 
 function historyButtons(layout) {
-  const undoButton = button('Undo', () => stepHistory(layout, undo));
+  const undoButton = button('Undo', () => stepHistory(layout, undo), '', 'key-undo');
   undoButton.disabled = !canUndo();
   undoButton.title = canUndo() ? 'Undo the last change to the keys of this layout' : 'Nothing to undo';
-  const redoButton = button('Redo', () => stepHistory(layout, redo));
+  const redoButton = button('Redo', () => stepHistory(layout, redo), '', 'key-redo');
   redoButton.disabled = !canRedo();
   redoButton.title = canRedo() ? 'Redo the change you just undid' : 'Nothing to redo';
   return [undoButton, redoButton];
@@ -160,16 +174,25 @@ export function selectionTools(layout) {
   const count = selectedKeys.size;
   const summary =
     count === 0 ? TEXT.nothingSelected : count === 1 ? `${selectedKey} selected` : `${count} keys selected`;
-  const clear = button('Clear selection', () => {
-    setSelectedKey(null);
-    render();
-  });
+  const clear = button(
+    'Clear selection',
+    () => {
+      setSelectedKey(null);
+      render();
+    },
+    '',
+    'key-clear-selection',
+  );
   clear.disabled = count === 0;
   clear.title = count === 0 ? 'Nothing is selected' : 'Deselect every key';
   return el(
     'div',
-    { className: 'keytools' },
-    toolGroup('Selection', el('span', { className: 'sel-summary', textContent: summary }), clear),
+    { className: 'keytools', test: 'key-toolbar' },
+    toolGroup(
+      'Selection',
+      el('span', { className: 'sel-summary', textContent: summary, test: 'key-selection-summary' }),
+      clear,
+    ),
     toolGroup('Move selection', ...nudgePad(layout)),
     toolGroup('Align', ...alignButtons(layout)),
     toolGroup('Space evenly', ...distributeButtons(layout)),

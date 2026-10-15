@@ -12,7 +12,7 @@
 //  stops by itself after 60 seconds or when you leave this tab.
 //
 //  HOW TO ADD A DEBUG TOOL (takes about ten lines):
-//    1. Add an object to SECTIONS below:   { title: 'My tool', build() { return [ ...page elements... ]; } }
+//    1. Add an object to SECTIONS below:   { id: 'my-tool', title: 'My tool', build() { return [ ...page elements... ]; } }
 //    2. Need data from the app?  Add a #[tauri::command] in src-tauri/src/debug.rs, list it in main.rs, then call it
 //    here
 //       with   await invoke('my_command', { arg })
@@ -77,13 +77,21 @@ function every(root, ms, fn) {
   }, ms);
 }
 
-/** A titled box. */
-const card = (title, ...content) =>
-  el('section', { className: 'dbg-card' }, el('h3', { textContent: title }), content.flat());
+/** A titled box. `id` goes into data-card, so the tests can pick one box without reading its title. */
+function card(id, title, ...content) {
+  const box = el(
+    'section',
+    { className: 'dbg-card', test: 'debug-card' },
+    el('h3', { textContent: title, test: 'debug-card-title' }),
+    content.flat(),
+  );
+  box.dataset.card = id;
+  return box;
+}
 
 /** A two-column list of label → value. Call `.set(rows)` to refresh it. */
 function facts() {
-  const box = el('div', { className: 'dbg-facts' });
+  const box = el('div', { className: 'dbg-facts', test: 'debug-facts' });
   box.set = (rows) =>
     box.replaceChildren(
       ...rows.flatMap(([label, value, state]) => [
@@ -194,6 +202,7 @@ function listenForKeys() {
 // -------------------------------------------------------------------------------------------------------------------
 const SECTIONS = [
   {
+    id: 'this-app',
     title: 'This app',
     build() {
       const table = facts(),
@@ -239,13 +248,14 @@ const SECTIONS = [
         el(
           'div',
           { className: 'btns' },
-          button('Open data folder', () => call('open_folder', { kind: 'root' })),
+          button('Open data folder', () => call('open_folder', { kind: 'root' }), '', 'debug-open-folder'),
         ),
       );
       return root;
     },
   },
   {
+    id: 'self-test',
     title: 'Self-test',
     build() {
       const results = el('div', { className: 'dbg-tests' });
@@ -256,7 +266,7 @@ const SECTIONS = [
           ...tests.map((testResult) =>
             el(
               'div',
-              { className: 'dbg-test ' + (testResult.ok ? 'good' : 'bad') },
+              { className: 'dbg-test ' + (testResult.ok ? 'good' : 'bad'), test: 'debug-test' },
               el('b', { textContent: testResult.ok ? '✔' : '✖' }),
               el('span', { textContent: testResult.name }),
               el('i', { textContent: testResult.detail }),
@@ -266,15 +276,16 @@ const SECTIONS = [
       };
       return [
         note(TEXT.selfTestHelp),
-        el('div', { className: 'btns' }, button('Run self-test', run, 'primary')),
+        el('div', { className: 'btns' }, button('Run self-test', run, 'primary', 'debug-self-test-run')),
         results,
       ];
     },
   },
   {
+    id: 'event-log',
     title: 'Event log',
     build() {
-      const box = el('div', { className: 'dbg-log' });
+      const box = el('div', { className: 'dbg-log', test: 'debug-log' });
       const refresh = async () => {
         const lines = await invoke('debug_log');
         const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 30;
@@ -290,16 +301,26 @@ const SECTIONS = [
         el(
           'div',
           { className: 'btns' },
-          button('Copy log', async () => {
-            await call('copy_text', {
-              text: scrub((await invoke('debug_log')).map(([ms, t]) => `${clock(ms)}  ${t}`).join('\n')),
-            });
-            toast('Log copied');
-          }),
-          button('Clear', async () => {
-            await invoke('debug_log_clear');
-            refresh();
-          }),
+          button(
+            'Copy log',
+            async () => {
+              await call('copy_text', {
+                text: scrub((await invoke('debug_log')).map(([ms, t]) => `${clock(ms)}  ${t}`).join('\n')),
+              });
+              toast('Log copied');
+            },
+            '',
+            'debug-log-copy',
+          ),
+          button(
+            'Clear',
+            async () => {
+              await invoke('debug_log_clear');
+              refresh();
+            },
+            '',
+            'debug-log-clear',
+          ),
         ),
       );
       every(root, 1500, refresh);
@@ -307,11 +328,12 @@ const SECTIONS = [
     },
   },
   {
+    id: 'key-monitor',
     title: 'Key monitor',
     build() {
       listenForKeys();
-      const list = el('div', { className: 'dbg-log short' }),
-        status = el('span', { className: 'hint' });
+      const list = el('div', { className: 'dbg-log short', test: 'debug-monitor-log' }),
+        status = el('span', { className: 'hint', test: 'debug-monitor-status' });
       let running = false,
         count = 0,
         previous = 0,
@@ -373,6 +395,7 @@ const SECTIONS = [
           paint();
         },
         'primary',
+        'debug-monitor-toggle',
       );
       const root = el('div', {}, note(TEXT.keyMonitorHelp), el('div', { className: 'btns' }, toggleBtn, status), list);
       every(root, 1000, () => {
@@ -383,14 +406,16 @@ const SECTIONS = [
     },
   },
   {
+    id: 'raw-settings',
     title: 'Settings (raw)',
     build() {
       const box = el('textarea', {
         className: 'dbg-json',
+        test: 'debug-json',
         spellcheck: false,
         value: JSON.stringify(redactedSettings(), null, 2),
       });
-      const result = el('div', { className: 'dbg-tests' });
+      const result = el('div', { className: 'dbg-tests', test: 'debug-raw-result' });
       const apply = async () => {
         let typed;
         try {
@@ -441,22 +466,33 @@ const SECTIONS = [
         el(
           'div',
           { className: 'btns' },
-          button('Apply', apply, 'primary'),
-          button('Reload from app', async () => {
-            await resync();
-            box.value = JSON.stringify(redactedSettings(), null, 2);
-            result.replaceChildren();
-          }),
-          button('Copy', async () => {
-            await call('copy_text', { text: box.value });
-            toast('Settings copied');
-          }),
+          button('Apply', apply, 'primary', 'debug-raw-apply'),
+          button(
+            'Reload from app',
+            async () => {
+              await resync();
+              box.value = JSON.stringify(redactedSettings(), null, 2);
+              result.replaceChildren();
+            },
+            '',
+            'debug-raw-reload',
+          ),
+          button(
+            'Copy',
+            async () => {
+              await call('copy_text', { text: box.value });
+              toast('Settings copied');
+            },
+            '',
+            'debug-raw-copy',
+          ),
         ),
         result,
       ];
     },
   },
   {
+    id: 'test-helpers',
     title: 'Test helpers',
     build() {
       return [
@@ -464,27 +500,43 @@ const SECTIONS = [
         el(
           'div',
           { className: 'btns' },
-          button('Fake update available', () => invoke('debug_simulate_update', { on: true })),
-          button('Clear fake update', () => invoke('debug_simulate_update', { on: false })),
-          button('Show “What’s new” popup', () => showNotes(appVersion, `What's new in v${appVersion}`)),
-          button('New layout popup', () => addLayoutDialog()),
+          button('Fake update available', () => invoke('debug_simulate_update', { on: true }), '', 'debug-fake-update'),
+          button(
+            'Clear fake update',
+            () => invoke('debug_simulate_update', { on: false }),
+            '',
+            'debug-clear-fake-update',
+          ),
+          button(
+            'Show “What’s new” popup',
+            () => showNotes(appVersion, `What's new in v${appVersion}`),
+            '',
+            'debug-whats-new',
+          ),
+          button('New layout popup', () => addLayoutDialog(), '', 'debug-new-layout'),
         ),
         el(
           'div',
           { className: 'btns' },
-          button('Toast', () => toast('A normal message')),
-          button('Error toast', () => toast('An error message', true)),
-          button('Restart server', async () => {
-            await call('restart_server');
-            toast('Server restarted');
-          }),
-          button('Reload this window', () => location.reload()),
+          button('Toast', () => toast('A normal message'), '', 'debug-toast'),
+          button('Error toast', () => toast('An error message', true), '', 'debug-error-toast'),
+          button(
+            'Restart server',
+            async () => {
+              await call('restart_server');
+              toast('Server restarted');
+            },
+            '',
+            'debug-restart-server',
+          ),
+          button('Reload this window', () => location.reload(), '', 'debug-reload-window'),
         ),
         note(TEXT.fakeUpdateHelp),
       ];
     },
   },
   {
+    id: 'developer-tools',
     title: 'Developer tools (full browser inspector)',
     build() {
       const command = 'set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222';
@@ -503,16 +555,22 @@ const SECTIONS = [
         el(
           'div',
           { className: 'btns' },
-          button('Copy command', async () => {
-            await call('copy_text', { text: command });
-            toast('Copied');
-          }),
+          button(
+            'Copy command',
+            async () => {
+              await call('copy_text', { text: command });
+              toast('Copied');
+            },
+            '',
+            'debug-copy-command',
+          ),
         ),
         note(TEXT.inspectorDeveloperNote),
       ];
     },
   },
   {
+    id: 'bug-report',
     title: 'Bug report',
     build() {
       return [
@@ -527,6 +585,7 @@ const SECTIONS = [
               toast('Bug report copied');
             },
             'primary',
+            'debug-bug-report',
           ),
         ),
       ];
@@ -552,7 +611,7 @@ async function renderDebugTab() {
     },
   };
   const page = el('div', { className: 'debug' }, heading('Debug'), note(TEXT.debugToolsIntro));
-  for (const section of SECTIONS) page.append(card(section.title, section.build()));
+  for (const section of SECTIONS) page.append(card(section.id, section.title, section.build()));
   return page;
 }
 

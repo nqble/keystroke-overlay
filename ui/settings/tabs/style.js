@@ -14,7 +14,7 @@ export async function styleTab() {
 
   const themes = el(
     'select',
-    {},
+    { test: 'style-theme' },
     el('option', { value: '', textContent: 'Built-in themes…' }),
     registry.themes.map((t) => el('option', { value: t.id, textContent: t.name })),
   );
@@ -30,7 +30,7 @@ export async function styleTab() {
   const names = await call('list_presets');
   const saved = el(
     'select',
-    {},
+    { test: 'preset-select' },
     el('option', { value: '', textContent: names.length ? 'My presets…' : 'No saved presets yet' }),
     names.map((n) => el('option', { value: n, textContent: n })),
   );
@@ -45,9 +45,14 @@ export async function styleTab() {
     row(
       'My presets',
       saved,
-      button('Load', async () => {
-        if (saved.value) apply(await call('load_preset', { name: saved.value }));
-      }),
+      button(
+        'Load',
+        async () => {
+          if (saved.value) apply(await call('load_preset', { name: saved.value }));
+        },
+        '',
+        'preset-load',
+      ),
       button(
         'Delete',
         async () => {
@@ -57,20 +62,26 @@ export async function styleTab() {
           }
         },
         'danger',
+        'preset-delete',
       ),
     ),
   );
 
-  const nameInput = el('input', { type: 'text', placeholder: 'Preset name' });
+  const nameInput = el('input', { type: 'text', placeholder: 'Preset name', test: 'preset-name' });
   page.append(
     row(
       'Save current as',
       nameInput,
-      button('Save', async () => {
-        await call('save_preset', { name: nameInput.value, data: currentLook() });
-        toast('Preset saved');
-        render();
-      }),
+      button(
+        'Save',
+        async () => {
+          await call('save_preset', { name: nameInput.value, data: currentLook() });
+          toast('Preset saved');
+          render();
+        },
+        '',
+        'preset-save',
+      ),
     ),
   );
   page.append(
@@ -88,6 +99,7 @@ export async function styleTab() {
       },
       false,
       { imp: 'Load a style from a file someone shared', exp: 'Save the current style and animation to a file' },
+      'style',
     ),
   );
   renderControls('style', page);

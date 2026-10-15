@@ -10,6 +10,16 @@ export const EXE_NAME = 'kotest-e2e';
 export const PORT = 7879; // test overlay port (the real app defaults to 7878)
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * A CSS selector for an element with a test hook:  byTest('tab', '[data-tab="keys"]')  ->  [data-test="tab"][data-tab="keys"]
+ * Every suite finds settings-window elements ONLY this way (the hooks are listed in tests/README.md), so a redesign
+ * can move or rename things without breaking the tests.
+ */
+export const byTest = (name, extra = '') => `[data-test="${name}"]${extra}`;
+
+/** Like byTest, but matches every hook whose name starts with `prefix`, e.g. all generated controls ('control-'). */
+export const byTestStart = (prefix, extra = '') => `[data-test^="${prefix}"]${extra}`;
+
 /** Connect to the test app's settings window. */
 export async function connect() {
   let target;

@@ -36,8 +36,12 @@ export function generalTab() {
 function obsSection() {
   return [
     heading('OBS'),
-    row('Browser Source URL', el('input', { value: obsUrl, readOnly: true }), button('Copy', copyUrl, 'primary')),
-    el('p', { className: 'note', id: 'sizeNote', textContent: sizeText() }),
+    row(
+      'Browser Source URL',
+      el('input', { value: obsUrl, readOnly: true, test: 'general-obs-url' }),
+      button('Copy', copyUrl, 'primary', 'general-obs-copy'),
+    ),
+    el('p', { className: 'note', id: 'sizeNote', textContent: sizeText(), test: 'general-size-note' }),
   ];
 }
 
@@ -48,6 +52,7 @@ function serverSection() {
     max: 65535,
     value: settings.general.port,
     style: 'width:100px',
+    test: 'server-port',
   });
   const applyPort = async () => {
     try {
@@ -74,8 +79,8 @@ function serverSection() {
   };
   return [
     heading('Server'),
-    row('Port', port, button('Apply', applyPort)),
-    el('div', { className: 'btns' }, button('Restart server', restart)),
+    row('Port', port, button('Apply', applyPort, '', 'server-port-apply')),
+    el('div', { className: 'btns' }, button('Restart server', restart, '', 'server-restart')),
     note(TEXT.serverNote),
   ];
 }
@@ -83,13 +88,17 @@ function serverSection() {
 function secureLinkSection() {
   const OFF = TEXT.secureLinkOff;
   const ON = TEXT.secureLinkOn;
-  const checkbox = el('input', { type: 'checkbox', checked: !!settings.general.secureLink });
-  const explanation = el('div', { className: 'note' });
-  const newKey = el('button', { className: 'danger', textContent: 'Make a new key' });
+  const checkbox = el('input', {
+    type: 'checkbox',
+    checked: !!settings.general.secureLink,
+    test: 'secure-link-toggle',
+  });
+  const explanation = el('div', { className: 'note', test: 'secure-link-note' });
+  const newKey = el('button', { className: 'danger', textContent: 'Make a new key', test: 'secure-link-new-key' });
   const buttons = el(
     'div',
     { className: 'btns', hidden: !settings.general.secureLink },
-    button('Copy secure link', copyUrl, 'primary'),
+    button('Copy secure link', copyUrl, 'primary', 'secure-link-copy'),
     newKey,
   );
   const paint = (on) => {
@@ -138,12 +147,17 @@ function inputSection() {
   };
   const select = el(
     'select',
-    {},
+    { test: 'input-method-select' },
     Object.entries(METHODS).map(([value, name]) => el('option', { value, textContent: name })),
   );
   select.value = inputActive;
-  const info = el('div', { className: 'note' });
-  const error = el('div', { className: 'errnote', hidden: !inputError, textContent: inputError || '' });
+  const info = el('div', { className: 'note', test: 'input-method-info' });
+  const error = el('div', {
+    className: 'errnote',
+    hidden: !inputError,
+    textContent: inputError || '',
+    test: 'input-method-error',
+  });
   const showInfo = () => info.replaceChildren(md(INFO[select.value]));
 
   select.onchange = async () => {
@@ -189,18 +203,23 @@ function appSection() {
     el(
       'div',
       { className: 'btns' },
-      button('Open data folder', () => call('open_folder', { kind: 'root' })),
-      button('Reset all settings…', resetDialog, 'danger'),
-      button('Quit app', () => call('quit_app'), 'danger'),
+      button('Open data folder', () => call('open_folder', { kind: 'root' }), '', 'general-open-folder'),
+      button('Reset all settings…', resetDialog, 'danger', 'general-reset'),
+      button('Quit app', () => call('quit_app'), 'danger', 'general-quit'),
     ),
   ];
 }
 
 function updatesSection() {
-  const status = el('span', { className: 'hint', textContent: '' });
-  const installBtn = el('button', { className: 'primary', textContent: 'Install update', hidden: true });
-  const checkBtn = el('button', { textContent: 'Check for updates' });
-  const details = el('p', { className: 'note', hidden: true });
+  const status = el('span', { className: 'hint', textContent: '', test: 'update-status' });
+  const installBtn = el('button', {
+    className: 'primary',
+    textContent: 'Install update',
+    hidden: true,
+    test: 'update-install',
+  });
+  const checkBtn = el('button', { textContent: 'Check for updates', test: 'update-check' });
+  const details = el('p', { className: 'note', hidden: true, test: 'update-details' });
 
   /** Show the answer of an update check in the status line and the Install button. */
   const showResult = (update) => {
@@ -243,7 +262,7 @@ function updatesSection() {
 
   const channel = el(
     'select',
-    {},
+    { test: 'update-channel' },
     el('option', { value: 'stable', textContent: 'Stable (recommended)' }),
     el('option', { value: 'latest', textContent: 'Latest' }),
   );
@@ -262,7 +281,7 @@ function updatesSection() {
 
   const progressBar = el(
     'div',
-    { className: 'bar', id: 'upBar', hidden: true },
+    { className: 'bar', id: 'upBar', hidden: true, test: 'general-update-progress' },
     el('div', { className: 'fill', id: 'upFill' }),
   );
   const statusRow = el(
@@ -274,7 +293,7 @@ function updatesSection() {
       { className: 'ctl', style: 'flex-direction:column;align-items:stretch;gap:6px' },
       status,
       progressBar,
-      el('span', { className: 'hint', id: 'upText' }),
+      el('span', { className: 'hint', id: 'upText', test: 'general-update-progress-text' }),
     ),
   );
   // after the page is built, show a download already in progress
@@ -285,7 +304,7 @@ function updatesSection() {
     row(
       'Current version',
       el('b', { textContent: 'v' + appVersion }),
-      button('View release notes', () => showNotes(appVersion)),
+      button('View release notes', () => showNotes(appVersion), '', 'update-release-notes'),
     ),
     row('Update channel', channel),
     note(TEXT.updateChannelHelp),

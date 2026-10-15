@@ -1,7 +1,7 @@
 // Suite: the settings window's content-security policy. It must (1) really block code and pages we did not ship, and
 // (2) never get in the way of the normal UI: walking every tab, dialogs, the live preview and an update check must
 // produce zero policy violations.
-import { connect, check, finish, sleep } from '../lib/cdp.mjs';
+import { connect, byTest, check, finish, sleep } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(3500);
@@ -9,21 +9,23 @@ await p.ev(
   `window.__csp = []; document.addEventListener('securitypolicyviolation', e => __csp.push(e.violatedDirective + ' ' + (e.blockedURI || 'inline')));`,
 );
 const violations = () => p.q(`window.__csp`);
-const tab = async (n) => {
-  await p.ev(`[...document.querySelectorAll('nav button')].find(b => b.textContent === '${n}').click()`);
+const tab = async (id) => {
+  await p.ev(`document.querySelector('${byTest('tab', `[data-tab="${id}"]`)}').click()`);
   await sleep(300);
 };
 
 // ---- normal use: no violations
-for (const t of ['Layout', 'Keys', 'Style', 'Animation', 'Fonts', 'General', 'Layout']) await tab(t);
-await p.ev(`document.querySelector('.card.add').click()`);
+for (const t of ['layout', 'keys', 'style', 'animation', 'fonts', 'general', 'layout']) await tab(t);
+await p.ev(`document.querySelector('${byTest('layout-add')}').click()`);
 await sleep(300);
 // open and close the New layout dialog
-await p.ev(`document.querySelector('#dFoot button').click()`);
+await p.ev(`document.querySelector('${byTest('dialog-cancel')}').click()`);
 await sleep(200);
-await p.ev(`document.getElementById('copyUrl').click()`);
+await p.ev(`document.querySelector('${byTest('obs-copy')}').click()`);
 await sleep(200);
-await p.ev(`document.querySelector('#dlg') && (document.getElementById('dlg').hidden = true)`);
+await p.ev(
+  `document.querySelector('${byTest('dialog')}') && (document.querySelector('${byTest('dialog')}').hidden = true)`,
+);
 // the live preview iframe (our own local server)
 await p.ev(`__ko.frame.src = __ko.previewSrc()`);
 await sleep(2500);

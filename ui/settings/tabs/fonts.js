@@ -26,8 +26,9 @@ export async function fontsTab() {
           }
         },
         'primary',
+        'fonts-add',
       ),
-      button('Open fonts folder', () => call('open_folder', { kind: 'fonts' })),
+      button('Open fonts folder', () => call('open_folder', { kind: 'fonts' }), '', 'fonts-open-folder'),
     ),
   );
 
@@ -35,26 +36,32 @@ export async function fontsTab() {
   if (!customFonts.length) list.append(note('No custom fonts yet.'));
   for (const file of customFonts) {
     const family = file.replace(/\.[^.]+$/, '');
-    list.append(
-      el(
-        'div',
-        { className: 'fontitem' },
-        el('span', { className: 'n', textContent: file }),
-        button(settings.style.fontFamily === family ? 'In use' : 'Use', () => {
+    const item = el(
+      'div',
+      { className: 'fontitem', test: 'font-item' },
+      el('span', { className: 'n', textContent: file }),
+      button(
+        settings.style.fontFamily === family ? 'In use' : 'Use',
+        () => {
           settings.style.fontFamily = family;
           changed(true);
-        }),
-        button(
-          'Remove',
-          async () => {
-            await call('remove_font', { name: file });
-            await reloadFonts();
-            render();
-          },
-          'danger',
-        ),
+        },
+        '',
+        'font-use',
+      ),
+      button(
+        'Remove',
+        async () => {
+          await call('remove_font', { name: file });
+          await reloadFonts();
+          render();
+        },
+        'danger',
+        'font-remove',
       ),
     );
+    item.dataset.font = file;
+    list.append(item);
   }
   page.append(list);
   return page;

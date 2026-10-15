@@ -1,7 +1,7 @@
 // Suite: the optional "secure link" (General -> Secure link).
 // Off by default; when on, the local server refuses data requests and the key-press stream without the private key,
 // the key never reaches the overlay, "Make a new key" invalidates old links, and the live preview keeps working.
-import { connect, inject, listenKeys, check, finish, sleep, PORT, INJECTED_KEYS } from '../lib/cdp.mjs';
+import { connect, byTest, inject, listenKeys, check, finish, sleep, PORT, INJECTED_KEYS } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(2000);
@@ -23,11 +23,11 @@ const wsOpens = (key) =>
   });
 const keyOf = (url) => new URL(url).searchParams.get('key');
 const state = async () => (await p.invoke('get_state')).ok;
-const toggle = `[...document.querySelectorAll('#pane .row')].find(r => r.innerText.includes('Secure my OBS link')).querySelector('input')`;
-const pageText = () => p.q(`document.getElementById('pane').innerText`);
+const toggle = `document.querySelector('${byTest('secure-link-toggle')}')`;
+const pageText = () => p.q(`document.querySelector('${byTest('pane')}').innerText`);
 
 // ------------------------------------------------------------ default: off, nothing changes for anyone
-await p.ev(`[...document.querySelectorAll('nav button')].find(b => b.textContent === 'General').click()`);
+await p.ev(`document.querySelector('${byTest('tab', '[data-tab="general"]')}').click()`);
 await sleep(500);
 let st = await state();
 check(
@@ -37,7 +37,9 @@ check(
 );
 check(
   'General has a "Secure link" section with the toggle off and the "Off (default)" explanation',
-  (await p.q(`[...document.querySelectorAll('#pane h2')].map(h => h.textContent)`)).includes('Secure link') &&
+  (await p.q(`[...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent)`)).includes(
+    'Secure link',
+  ) &&
     (await p.q(`!${toggle}.checked`)) &&
     /Off \(default\)/.test(await pageText()),
 );
@@ -59,11 +61,13 @@ check(
 check(
   'the explanation changes to "On" and the copy / new-key buttons appear',
   /On: your OBS link now contains a private key/.test(await pageText()) &&
-    (await p.q(`!!([...document.querySelectorAll('#pane button')].find(b => b.textContent === 'Copy secure link'))`)),
+    (await p.q(
+      `!!document.querySelector('${byTest('secure-link-copy')}') && !!document.querySelector('${byTest('secure-link-new-key')}')`,
+    )),
 );
 check(
   'the link in the header is hidden on screen (password field)',
-  (await p.q(`document.getElementById('obsUrl').type`)) === 'password',
+  (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'password',
 );
 
 for (const path of [
@@ -156,7 +160,7 @@ check(
 
 // ------------------------------------------------------------ "Make a new key" cuts off old links
 await p.ev(
-  `const b = () => [...document.querySelectorAll('#pane button')].find(x => /Make a new key|Click again/.test(x.textContent)); b().click(); await new Promise(r => setTimeout(r, 250)); b().click();`,
+  `const b = () => document.querySelector('${byTest('secure-link-new-key')}'); b().click(); await new Promise(r => setTimeout(r, 250)); b().click();`,
 );
 await sleep(2200);
 st = await state();
@@ -178,5 +182,8 @@ check(
   'turning it off returns the plain link and open endpoints',
   st.secureLink === false && st.url === `${base}/` && (await status('/api/config')) === 200 && (await wsOpens(null)),
 );
-check('the header link is visible text again', (await p.q(`document.getElementById('obsUrl').type`)) === 'text');
+check(
+  'the header link is visible text again',
+  (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'text',
+);
 finish();
