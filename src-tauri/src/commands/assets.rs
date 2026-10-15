@@ -106,6 +106,7 @@ pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Resul
     std::fs::write(dir.join(format!("{id}.json")), serde_json::to_string_pretty(&doc).unwrap()).map_err(|e| e.to_string())?;
     crate::tray::refresh_tray_layouts(&app);
     crate::debug::log(format!("layout created: {id}"));
+    let _ = st.shared.cfg_tx.send("assets");   // the overlay (OBS and the preview) must re-read its list of layouts before it is told to switch
     crate::tray::set_layout_inner(&app, &id)?;
     Ok(id)
 }
@@ -127,6 +128,7 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
         cur
     };
     crate::tray::refresh_tray_layouts(&app);
+    let _ = st.shared.cfg_tx.send("assets");   // the overlay (OBS and the preview) must re-read its list of layouts
     crate::state::announce(&app);
     crate::state::sync_tray(&app);
     crate::debug::log(format!("layout deleted: {id}"));
@@ -217,6 +219,7 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
         crate::settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
     }
     crate::tray::refresh_tray_layouts(&app);
+    let _ = st.shared.cfg_tx.send("assets");   // the overlay (OBS and the preview) must re-read its list of layouts
     crate::state::announce(&app);
     crate::debug::log(format!("layouts imported: {} added, {skipped} skipped", added.len()));
     Ok(Some((added.len(), skipped)))

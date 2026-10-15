@@ -124,8 +124,11 @@ function reportSize(w, h) {
   if (PREVIEW) parent.postMessage({ type: 'size', ...size }, '*');
 }
 
+let reloadedFor = '';   // the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
 function apply(s) {
   settings = s;
+  // The selected layout is not in our list: it was created or imported after we loaded. Re-read the list (once per id).
+  if (s.layout.id && !layouts.some(l => l.id === s.layout.id) && reloadedFor !== s.layout.id) { reloadedFor = s.layout.id; refresh(); }
   const layout = layouts.find(l => l.id === s.layout.id) ?? layouts[0];
   const key = JSON.stringify([layout?.id, profileOf(s, layout), s.style.keySize, s.style.gap, s.style.fontSize, s.style.scale]);
   applyVars(s);
