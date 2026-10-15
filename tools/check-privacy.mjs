@@ -59,6 +59,25 @@ for (const f of walk('ui', ['.js', '.html'])) {
   scan(file, text, /\bfetch\(\s*['"`]https?:/, (n) => bad(file, n, 'fetch() to an absolute address'));
 }
 
+// ------------------------------------------------------------------ the preview tool (npm run preview)
+// tools/ is not scanned like the app, so this one file gets its own narrow rules: it may only listen, and only on
+// 127.0.0.1, and it may only use Node's own modules (no network client, no downloads, no packages).
+const previewFile = 'tools/preview.mjs';
+const previewText = strip(readFileSync(previewFile, 'utf8'));
+const PREVIEW_NETWORK_CLIENT =
+  /\b(fetch|XMLHttpRequest|node:https|node:net|node:dgram)\b|https?\.(get|request)\(|new WebSocket\(/;
+const PREVIEW_OUTSIDE_IMPORT = /^\s*import\b.*\bfrom\s+['"](?!node:)/;
+scan(previewFile, previewText, PREVIEW_NETWORK_CLIENT, (n) =>
+  bad(previewFile, n, 'the preview tool must not make network requests'),
+);
+scan(previewFile, previewText, PREVIEW_OUTSIDE_IMPORT, (n) =>
+  bad(previewFile, n, 'the preview tool may only import Node built-in modules (node:...)'),
+);
+scan(previewFile, previewText, /\.listen\(/, (n, l) => {
+  if (!/HOST/.test(l)) bad(previewFile, n, 'the preview tool must listen on HOST, which must be 127.0.0.1');
+});
+if (!/const HOST = '127\.0\.0\.1';/.test(previewText)) bad(previewFile, 1, "HOST must be exactly '127.0.0.1'");
+
 if (problems.length) {
   console.error(
     'PRIVACY CHECK FAILED\n' +
@@ -68,5 +87,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, and a preview tool that only listens on 127.0.0.1',
 );

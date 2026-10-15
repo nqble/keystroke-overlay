@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "tauri dev",
     "dev:debug": "node tools/dev-debug.mjs",
+    "preview": "node tools/preview.mjs",
     "devbuild": "node tools/devbuild.mjs",
     "build": "tauri build",
     "release": "node tools/release.mjs",
