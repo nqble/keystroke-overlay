@@ -45,8 +45,9 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
             json!({ "available": true, "version": u.version, "notes": u.body, "current": u.current_version, "manual": manual, "url": url, "channel": channel })
         }
         Ok(None) => json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": channel }),
-        Err(e) => return Err(format!("Couldn't check for updates ({e}). You may be offline, or no {channel} release has been published yet.")),
+        Err(e) => { crate::debug::log(format!("update check ({channel}) failed: {e}")); return Err(format!("Couldn't check for updates ({e}). You may be offline, or no {channel} release has been published yet.")); }
     };
+    crate::debug::log(format!("update check ({channel}): {}", if result["available"].as_bool().unwrap_or(false) { format!("v{} is available", result["version"].as_str().unwrap_or("?")) } else { "up to date".to_string() }));
     *app.state::<AppState>().update_cache.lock().unwrap() = Some((std::time::Instant::now(), channel, result.clone()));
     crate::tray::set_update_badge(app, result["available"].as_bool().unwrap_or(false));
     let _ = app.emit("update-result", result.clone());   // an open settings window shows its update button right away

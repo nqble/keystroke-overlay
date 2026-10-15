@@ -9,6 +9,7 @@ pub fn open_settings(app: &AppHandle) {
         let _ = w.set_focus();
         return;
     }
+    crate::debug::log("settings window opened");
     let _ = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
         .title("Keystroke Overlay")
         .inner_size(1060.0, 800.0)

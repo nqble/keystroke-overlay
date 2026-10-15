@@ -5,7 +5,8 @@ Three layers, from quick to thorough:
 | Command | What it checks | Time | Disk |
 |---|---|---|---|
 | `npm run check:privacy` | The privacy promises in [PRIVACY.md](../PRIVACY.md): network code only in one file, server on 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests | 1 s | none |
-| `npm test` | Rust unit tests (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes) + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
+| `npm run check:style` | Code style basics: tabs and trailing spaces | 1 s | none |
+| `npm test` | Rust unit tests (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
 | `npm run test:e2e` | **End to end:** builds a throwaway copy of the app, drives its real settings window, injects real key presses, runs a real signed update download | ~5–8 min | ~4 GB **temporary, deleted when it finishes** |
 
 ## End-to-end tests
@@ -27,9 +28,17 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
 - `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
+- `csp` — the settings window's content-security policy: normal use (every tab, dialogs, the live preview) causes no policy violations,
+  while injected scripts, scripts or frames from other websites, outside fetches and object embeds are blocked.
+- `soak` — two minutes of steady typing plus tab switching, layout create/delete and setting changes: every key arrives, and threads,
+  handles and memory stay flat.
+- `whats-new` — the "What's new" popup shows once after an update and never again (whether or not OK was clicked).
 - `smoke` — every command group, tray actions (pause / layout / restart server), settings broadcast over the WebSocket, the
   update button and dialog, path-traversal and link-blocking guards, a check that **every socket the app holds is
   loopback-only**, and a real signed update: download with progress → signature verified → installer launched.
+
+**Running several tests at once.** All runs share ports 7879/9222 and the keyboard, so they queue on a shared lock (`tests/lib/lock.mjs`);
+`npm run test:lock` shows who is running. Runs started from different terminals or sessions simply wait their turn.
 
 **Safety.** The test copy has its own identity (`com.keyoverlay.test`), its own data folder, port 7879 and a different
 exe name (`kotest-e2e.exe`), so it can never touch an installed Keystroke Overlay. The "installer" it downloads is a

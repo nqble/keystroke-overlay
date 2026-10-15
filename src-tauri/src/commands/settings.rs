@@ -35,6 +35,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
         let cur = st.shared.settings.read().unwrap();
         for k in ["port", "autostart", "lastSeenVersion", "inputMethod", "secureLink", "linkKey"] { new["general"][k] = cur["general"][k].clone(); }
     }
+    crate::debug::set_enabled(new["general"]["debugMode"].as_bool().unwrap_or(false));
     let channel_changed = st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
     *st.shared.settings.write().unwrap() = new;
@@ -57,6 +58,7 @@ pub fn set_port(st: State<AppState>, port: u16) -> Result<String, String> {
     let _ = settings::save(&st.shared.paths.settings(), &s);
     drop(s);
     let _ = st.shared.cfg_tx.send("cfg");
+    crate::debug::log(format!("port changed to {port}"));
     Ok(obs_url(&st.shared))
 }
 
@@ -84,6 +86,7 @@ pub fn copy_text(app: AppHandle, text: String) -> Result<(), String> {
 pub fn set_input_method(st: State<AppState>, method: String) -> Result<(), String> {
     let m = crate::keyboard::Method::parse(&method).ok_or("Unknown input method")?;
     st.shared.bus.set_method(m)?;
+    crate::debug::log(format!("keyboard input method is now {}", m.id()));
     let mut s = st.shared.settings.write().unwrap();
     s["general"]["inputMethod"] = json!(m.id());
     let _ = settings::save(&st.shared.paths.settings(), &s);
@@ -99,6 +102,7 @@ pub async fn set_secure_link(app: AppHandle, enabled: bool) -> Result<String, St
         let mut s = st.shared.settings.write().unwrap();
         if enabled && s["general"]["linkKey"].as_str().unwrap_or("").is_empty() { s["general"]["linkKey"] = json!(settings::new_key()?); }
         s["general"]["secureLink"] = json!(enabled);
+        crate::debug::log(format!("secure link {}", if enabled { "on" } else { "off" }));
         settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
     }
     let a = app.clone();
@@ -126,6 +130,7 @@ pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
 #[tauri::command]
 pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
     let _ = app.autolaunch().disable();
+    crate::debug::log("all settings reset to defaults");
     {
         let st = app.state::<AppState>();
         let mut new = settings::defaults();

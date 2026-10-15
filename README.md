@@ -76,11 +76,12 @@ Right-click the tray icon for quick actions without opening settings:
 - **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume.
 - **Layout** — switch between layouts.
 - **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
+- **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to General → Program updates.
 - **Open settings**, **Copy OBS URL**, **Quit**.
 
 ## Updating
 
-When a new version is available, a small download button in the app's accent color appears in the bottom-left corner of the settings window (hover it: "New update"). Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Program updates → Check for updates** any time.
+While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window a small download button in the app's accent color also appears in the bottom-left corner (hover it: "New update"). Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Program updates → Check for updates** any time.
 
 **Update channel** (General → Program updates). Version numbers look like `x.y.z`: **the middle number is Stable, the last number is Latest.**
 - **Stable (recommended)** — the main, well-tested releases (the middle number goes up: 1.2.0, 1.3.0, …).
@@ -168,6 +169,13 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **Let the computer check.** `npm run check:privacy` (it also runs on every change on GitHub) fails the build if network access,
   file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. An automated test
   (`npm run test:e2e`) also confirms every socket the running app holds is loopback-only.
+- **Hostile-input tests.** Thousands of randomly corrupted settings files and imported layout files are thrown at the cleaning code on every
+  `npm test`; nothing may crash, escape its folder or get past the limits.
+- **Strict page policy.** The settings window runs under a content-security policy: it can only run its own scripts, talk to the app itself
+  and embed the local preview. A test confirms injected scripts and other websites are blocked.
+- **Manual security scans.** On GitHub, **Actions → Security scan → Run workflow** checks the libraries the app is built from against public
+  lists of known vulnerabilities, and **Actions → CodeQL → Run workflow** has GitHub's code scanner read our own code. Neither runs by itself.
+  More in [SECURITY.md](SECURITY.md).
 
 ## Troubleshooting
 
@@ -186,8 +194,10 @@ git clone https://github.com/nqble/keystroke-overlay.git
 cd keystroke-overlay
 npm install
 npm run dev          # run it
-npm test             # unit tests + privacy check
+npm test             # unit tests (including hostile-input tests) + privacy check
+npm run check:style  # tabs and trailing spaces
 npm run test:e2e     # end-to-end tests (builds a throwaway copy, cleans up after itself)
+npm run test:install # clean install + upgrade + uninstall with real installers (throwaway identity)
 npm run build        # installer in src-tauri/target/release/bundle/nsis/
 ```
 

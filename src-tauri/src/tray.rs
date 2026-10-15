@@ -21,10 +21,12 @@ pub fn toggle_pause_inner(app: &AppHandle) -> bool {
     if now { st.shared.bus.held.lock().unwrap().clear(); }
     announce(app);
     sync_tray(app);
+    crate::debug::log(format!("overlay {}", if now { "paused" } else { "resumed" }));
     now
 }
 
 pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
+    crate::debug::log(format!("layout set to {id}"));
     let st = app.state::<AppState>();
     if !server::layouts(&st.shared.paths).iter().any(|l| l["id"] == id) { return Err(format!("Unknown layout: {id}")); }
     {
@@ -71,6 +73,7 @@ pub fn set_update_badge(app: &AppHandle, available: bool) {
         t.update_shown = available;
         (t.tray.clone(), t.menu.clone(), t.update_item.clone(), if available { t.icon_badged.clone() } else { t.icon.clone() })
     };
+    crate::debug::log(format!("tray update indicator {}", if available { "shown" } else { "hidden" }));
     let _ = tray.set_icon(Some(icon));
     let _ = tray.set_tooltip(Some(if available { "Keystroke Overlay: update available" } else { "Keystroke Overlay" }));
     if available { let _ = menu.insert(&item, 0); } else { let _ = menu.remove(&item); }
@@ -111,12 +114,14 @@ pub fn restart_server_inner(app: &AppHandle) -> Result<(), String> {
             Ok(h) => {
                 *st.server.lock().unwrap() = Some(h);
                 *st.server_error.lock().unwrap() = None;
+                crate::debug::log(format!("server running on port {port}"));
                 let _ = app.emit("settings-changed", ());
                 return Ok(());
             }
             Err(e) => { last = e; std::thread::sleep(std::time::Duration::from_millis(100)); }
         }
     }
+    crate::debug::log(format!("server could not start on port {port}: {last}"));
     *st.server_error.lock().unwrap() = Some(last.clone());
     let _ = app.emit("settings-changed", ());
     open_settings_async(app); // make the problem visible

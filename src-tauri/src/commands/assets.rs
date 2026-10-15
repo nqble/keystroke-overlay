@@ -105,6 +105,7 @@ pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Resul
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     std::fs::write(dir.join(format!("{id}.json")), serde_json::to_string_pretty(&doc).unwrap()).map_err(|e| e.to_string())?;
     crate::tray::refresh_tray_layouts(&app);
+    crate::debug::log(format!("layout created: {id}"));
     crate::tray::set_layout_inner(&app, &id)?;
     Ok(id)
 }
@@ -128,6 +129,7 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
     crate::tray::refresh_tray_layouts(&app);
     crate::state::announce(&app);
     crate::state::sync_tray(&app);
+    crate::debug::log(format!("layout deleted: {id}"));
     Ok(())
 }
 
@@ -216,6 +218,7 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
     }
     crate::tray::refresh_tray_layouts(&app);
     crate::state::announce(&app);
+    crate::debug::log(format!("layouts imported: {} added, {skipped} skipped", added.len()));
     Ok(Some((added.len(), skipped)))
 }
 

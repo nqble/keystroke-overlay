@@ -157,3 +157,21 @@ button, .card, .kmk, nav button, select, input[type=checkbox], input[type=range]
 .card.add:hover { border-color: #5a6482; color: var(--text); background: rgba(255,255,255,.02); }
 .card.add .plus { font-size: 26px; line-height: 1; font-weight: 300; }
 .card.add small { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+/* Debug tab (ui/settings/debug.js) */
+.debug { max-width: 820px; }
+.dbg-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 12px; margin: 0 0 14px; }
+.dbg-card h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .02em; }
+.dbg-facts { display: grid; grid-template-columns: 190px 1fr; gap: 5px 14px; }
+.dbg-facts .k { color: var(--dim); }
+.dbg-facts .v { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; overflow-wrap: anywhere; user-select: text; }
+.dbg-facts .good, .dbg-test.good b { color: #5fd38d; }
+.dbg-facts .bad, .dbg-test.bad b { color: #ff7a85; }
+.dbg-test { display: grid; grid-template-columns: 18px auto 1fr; gap: 8px; align-items: baseline; padding: 2px 0; }
+.dbg-test i { color: var(--dim); font-style: normal; font-size: 12px; overflow-wrap: anywhere; }
+.dbg-log { background: #0d0f14; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; max-height: 230px; overflow: auto; font: 12px/1.5 Consolas, "Cascadia Mono", monospace; user-select: text; }
+.dbg-log.short { max-height: 150px; min-height: 60px; }
+.dbg-log .ts { color: var(--dim); margin-right: 10px; }
+.dbg-json { width: 100%; height: 240px; resize: vertical; background: #0d0f14; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: 12px/1.5 Consolas, "Cascadia Mono", monospace; }
+.dbg-steps { margin: 4px 0 8px; padding-left: 20px; color: var(--text); } .dbg-steps li { margin: 3px 0; }
+.dbg-cmd { display: block; background: #0d0f14; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: 12px Consolas, monospace; user-select: text; overflow-wrap: anywhere; }

@@ -18,6 +18,8 @@ pub fn defaults() -> Value {
         "version": CURRENT_VERSION,
         "general": {
             "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
+            // Developer tools: adds a Debug tab and an in-memory event log (src-tauri/src/debug.rs). Off by default.
+            "debugMode": false,
             // Background update check (about once an hour while the app runs, and when the settings window opens). Updates are
             // never installed without the user clicking the update button.
             "autoCheckUpdates": true,

@@ -5,6 +5,7 @@
 //! See docs/ARCHITECTURE.md for how the pieces fit together.
 
 mod commands;
+mod debug;
 mod keyboard;
 mod platform;
 mod server;
@@ -56,6 +57,11 @@ fn main() {
 
             let method = keyboard::Method::parse(cfg["general"]["inputMethod"].as_str().unwrap_or("hook")).unwrap_or(keyboard::Method::Hook);
 
+            // `npm run dev:debug` sets KEYOVERLAY_DEBUG so developers get the Debug tab without clicking anything.
+            if std::env::var_os("KEYOVERLAY_DEBUG").is_some() { cfg["general"]["debugMode"] = json!(true); }
+            debug::init(cfg["general"]["debugMode"].as_bool().unwrap_or(false));
+            debug::log(format!("app started (v{current})"));
+
             let (cfg_tx, _) = broadcast::channel(8);
             let shared = Arc::new(Shared { bus: keyboard::start(method), settings: cfg.into(), paths, cfg_tx });
             let (srv, err) = match server::start(shared.clone(), port) {
@@ -88,6 +94,7 @@ fn main() {
             commands::assets::delete_preset, commands::assets::export_preset, commands::assets::import_preset,
             commands::actions::toggle_pause, commands::actions::set_layout, commands::actions::restart_server,
             commands::updates::check_update, commands::updates::auto_check_update, commands::updates::install_update,
+            debug::debug_info, debug::debug_log, debug::debug_log_clear, debug::debug_simulate_update, debug::debug_key_monitor,
             commands::updates::open_release_page, commands::updates::ack_whats_new, commands::updates::get_release_notes,
         ])
         .build(tauri::generate_context!())
