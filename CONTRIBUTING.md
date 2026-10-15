@@ -30,6 +30,7 @@ Useful commands:
 | `npm run check:privacy` | Verifies the promises in [PRIVACY.md](PRIVACY.md) |
 | `npm run check:style` | No tabs, no trailing spaces, files end with a newline (CI runs it) |
 | `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings` | Rust lints; CI requires zero warnings |
+| `npm run dev:debug` | Runs a separate development copy with **Debug mode** on (a Debug tab with self-test, event log, key monitor and more). See [docs/DEBUGGING.md](docs/DEBUGGING.md) |
 | `npm run build` | Builds the app + installer into `src-tauri/target/release/bundle/` |
 
 Editor settings are in `.editorconfig` (most editors pick them up automatically). The code uses wide lines (up to ~160 characters)

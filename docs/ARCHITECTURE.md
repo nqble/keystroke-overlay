@@ -29,6 +29,7 @@ keystroke-overlay/
 │       ├── state.rs        shared app state + small helpers
 │       ├── window.rs       the settings window (created on demand, destroyed on close)
 │       ├── tray.rs         tray icon/menu + quick actions (pause, layout, restart server)
+│       ├── debug.rs        optional Debug mode: in-memory event log, health snapshot, test switches (docs/DEBUGGING.md)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
 │           ├── settings.rs   state, save, port, autostart

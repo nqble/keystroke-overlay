@@ -55,6 +55,8 @@ Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's no
 
 Nothing in there contains keystrokes. To remove everything: uninstall, then delete that folder.
 
+**Debug mode** (off by default; General → App) adds a developer tab. While it is on, the app keeps a short event log **in memory only** (what the app did, never which keys were pressed), nothing is written to disk, and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
+
 ## When the app talks to the internet
 
 Exactly three things, all with `github.com` / `api.github.com`, and all visible in the settings window:
