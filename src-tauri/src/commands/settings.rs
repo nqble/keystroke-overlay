@@ -33,13 +33,25 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
     let mut new = settings::migrate(settings);
     {
         let cur = st.shared.settings.read().unwrap();
-        for k in ["port", "autostart", "lastSeenVersion", "inputMethod", "secureLink", "linkKey"] { new["general"][k] = cur["general"][k].clone(); }
+        for k in [
+            "port",
+            "autostart",
+            "lastSeenVersion",
+            "inputMethod",
+            "secureLink",
+            "linkKey",
+        ] {
+            new["general"][k] = cur["general"][k].clone();
+        }
     }
     crate::debug::set_enabled(new["general"]["debugMode"].as_bool().unwrap_or(false));
-    let channel_changed = st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
+    let channel_changed =
+        st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
     *st.shared.settings.write().unwrap() = new;
-    if channel_changed { *st.update_cache.lock().unwrap() = None; }   // a different channel needs a fresh check
+    if channel_changed {
+        *st.update_cache.lock().unwrap() = None;
+    } // a different channel needs a fresh check
     let _ = st.shared.cfg_tx.send("cfg");
     sync_tray(&app);
     Ok(())
@@ -47,11 +59,17 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
 
 #[tauri::command]
 pub fn set_port(st: State<AppState>, port: u16) -> Result<String, String> {
-    if port < 1024 { return Err("Choose a port between 1024 and 65535".into()); }
+    if port < 1024 {
+        return Err("Choose a port between 1024 and 65535".into());
+    }
     let mut srv = st.server.lock().unwrap();
-    if srv.as_ref().is_some_and(|s| s.port == port) { return Ok(obs_url(&st.shared)); }
+    if srv.as_ref().is_some_and(|s| s.port == port) {
+        return Ok(obs_url(&st.shared));
+    }
     let new = server::start(st.shared.clone(), port)?; // bind first: on failure the old server keeps running
-    if let Some(old) = srv.replace(new) { old.stop(); }
+    if let Some(old) = srv.replace(new) {
+        old.stop();
+    }
     *st.server_error.lock().unwrap() = None;
     let mut s = st.shared.settings.write().unwrap();
     s["general"]["port"] = json!(port);
@@ -73,7 +91,9 @@ pub fn set_autostart(app: AppHandle, st: State<AppState>, enabled: bool) -> Resu
 }
 
 #[tauri::command]
-pub fn list_layouts(st: State<AppState>) -> Vec<Value> { server::layouts(&st.shared.paths) }
+pub fn list_layouts(st: State<AppState>) -> Vec<Value> {
+    server::layouts(&st.shared.paths)
+}
 
 #[tauri::command]
 pub fn copy_text(app: AppHandle, text: String) -> Result<(), String> {
@@ -100,13 +120,17 @@ pub async fn set_secure_link(app: AppHandle, enabled: bool) -> Result<String, St
     {
         let st = app.state::<AppState>();
         let mut s = st.shared.settings.write().unwrap();
-        if enabled && s["general"]["linkKey"].as_str().unwrap_or("").is_empty() { s["general"]["linkKey"] = json!(settings::new_key()?); }
+        if enabled && s["general"]["linkKey"].as_str().unwrap_or("").is_empty() {
+            s["general"]["linkKey"] = json!(settings::new_key()?);
+        }
         s["general"]["secureLink"] = json!(enabled);
         crate::debug::log(format!("secure link {}", if enabled { "on" } else { "off" }));
         settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
     }
     let a = app.clone();
-    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a)).await.map_err(|e| e.to_string())??;
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a))
+        .await
+        .map_err(|e| e.to_string())??;
     Ok(obs_url(&app.state::<AppState>().shared))
 }
 
@@ -117,12 +141,16 @@ pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
     {
         let st = app.state::<AppState>();
         let mut s = st.shared.settings.write().unwrap();
-        if !s["general"]["secureLink"].as_bool().unwrap_or(false) { return Err("Turn the secure link on first".into()); }
+        if !s["general"]["secureLink"].as_bool().unwrap_or(false) {
+            return Err("Turn the secure link on first".into());
+        }
         s["general"]["linkKey"] = json!(settings::new_key()?);
         settings::save(&st.shared.paths.settings(), &s).map_err(|e| e.to_string())?;
     }
     let a = app.clone();
-    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a)).await.map_err(|e| e.to_string())??;
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a))
+        .await
+        .map_err(|e| e.to_string())??;
     Ok(obs_url(&app.state::<AppState>().shared))
 }
 
@@ -136,18 +164,27 @@ pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
     {
         let st = app.state::<AppState>();
         let mut new = settings::defaults();
-        { let cur = st.shared.settings.read().unwrap(); for k in ["lastSeenVersion", "port"] { new["general"][k] = cur["general"][k].clone(); } }
+        {
+            let cur = st.shared.settings.read().unwrap();
+            for k in ["lastSeenVersion", "port"] {
+                new["general"][k] = cur["general"][k].clone();
+            }
+        }
         let _ = st.shared.bus.set_method(crate::keyboard::Method::Hook);
         settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
         *st.shared.settings.write().unwrap() = new;
         *st.update_cache.lock().unwrap() = None;
     }
     let a = app.clone();
-    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a)).await.map_err(|e| e.to_string())??;
+    tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&a))
+        .await
+        .map_err(|e| e.to_string())??;
     crate::state::announce(&app);
     sync_tray(&app);
     Ok(obs_url(&app.state::<AppState>().shared))
 }
 
 #[tauri::command]
-pub fn quit_app(app: AppHandle) { app.exit(0); }
+pub fn quit_app(app: AppHandle) {
+    app.exit(0);
+}

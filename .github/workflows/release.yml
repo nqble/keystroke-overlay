@@ -13,14 +13,14 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to release, typed to confirm (must match tauri.conf.json, e.g. 1.2.0)"
+        description: 'Version to release, typed to confirm (must match tauri.conf.json, e.g. 1.2.0)'
         required: true
       promote_to_stable:
-        description: "Also make this the Stable version (an important fix that Stable-channel users must get). x.y.0 versions always are."
+        description: 'Also make this the Stable version (an important fix that Stable-channel users must get). x.y.0 versions always are.'
         type: boolean
         default: false
   push:
-    tags: ["v*"]
+    tags: ['v*']
 
 permissions:
   contents: write
@@ -30,7 +30,7 @@ concurrency: release
 jobs:
   release:
     runs-on: windows-latest
-    environment: release        # optional protection: Settings -> Environments -> release -> "Required reviewers" = you
+    environment: release # optional protection: Settings -> Environments -> release -> "Required reviewers" = you
     env:
       GH_TOKEN: ${{ github.token }}
     steps:

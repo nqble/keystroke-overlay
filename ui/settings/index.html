@@ -1,66 +1,96 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Keystroke Overlay</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<!-- Critical style inline: the very first paint is already dark (no white flash before settings.css loads). -->
-<style>html,body{background:#12141a;color:#e6e9f0}</style>
-<link rel="stylesheet" href="settings.css">
-</head>
-<body>
-<header data-tauri-drag-region>
-  <div class="brand" data-tauri-drag-region><img class="logo" src="logo.png" alt="" width="26" height="26" draggable="false" data-tauri-drag-region><span data-tauri-drag-region>Keystroke Overlay</span></div>
-  <div class="obs" data-tauri-drag-region>
-    <span class="lbl" data-tauri-drag-region>OBS Browser Source URL</span>
-    <input id="obsUrl" readonly>
-    <button id="copyUrl" class="primary">Copy OBS URL</button>
-    <span id="obsSize" class="hint" data-tauri-drag-region></span>
-  </div>
-  <div class="winbtns">
-    <button id="wMin" type="button" tabindex="-1" aria-label="Minimize" title="Minimize">&#xE921;</button>
-    <button id="wMax" type="button" tabindex="-1" aria-label="Maximize" title="Maximize">&#xE922;</button>
-    <button id="wClose" type="button" tabindex="-1" aria-label="Close" title="Close">&#xE8BB;</button>
-  </div>
-</header>
-<div id="banner" hidden></div>
-<div id="pausebar" hidden>⏸ Overlay is paused — keystrokes are hidden in OBS. <button id="resumeBtn">Resume</button></div>
-<section class="preview" id="previewBox">
-  <iframe id="preview" title="Live preview"></iframe>
-</section>
-<main>
-  <nav id="tabs"></nav>
-  <div id="pane"></div>
-</main>
-<div id="modal" hidden>
-  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <h3 id="mTitle"></h3>
-    <div id="mBody"></div>
-    <div class="mfoot"><button id="mOk" class="primary">OK</button></div>
-  </div>
-</div>
-<button id="updateBtn" class="upd" type="button" hidden aria-label="New update" data-tip="New update">
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg>
-</button>
-<div id="updModal" hidden>
-  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="uTitle">
-    <h3 id="uTitle"></h3>
-    <div id="uBody"></div>
-    <div class="bar" id="uBar" hidden><div class="fill" id="uFill"></div></div>
-    <div class="hint" id="uText"></div>
-    <div class="mfoot"><button id="uLater" type="button">Later</button><button id="uGo" type="button" class="primary">Update now</button></div>
-  </div>
-</div>
-<div id="dlg" hidden>
-  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dTitle">
-    <h3 id="dTitle"></h3>
-    <div id="dBody"></div>
-    <div class="mfoot" id="dFoot"></div>
-  </div>
-</div>
-<div id="toast" hidden></div>
-<script src="debug.js"></script>
-<script src="settings.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Keystroke Overlay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <!-- Critical style inline: the very first paint is already dark (no white flash before settings.css loads). -->
+    <style>
+      html,
+      body {
+        background: #12141a;
+        color: #e6e9f0;
+      }
+    </style>
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+  <body>
+    <header data-tauri-drag-region>
+      <div class="brand" data-tauri-drag-region>
+        <img class="logo" src="logo.png" alt="" width="26" height="26" draggable="false" data-tauri-drag-region /><span
+          data-tauri-drag-region
+          >Keystroke Overlay</span
+        >
+      </div>
+      <div class="obs" data-tauri-drag-region>
+        <span class="lbl" data-tauri-drag-region>OBS Browser Source URL</span>
+        <input id="obsUrl" readonly />
+        <button id="copyUrl" class="primary">Copy OBS URL</button>
+        <span id="obsSize" class="hint" data-tauri-drag-region></span>
+      </div>
+      <div class="winbtns">
+        <button id="wMin" type="button" tabindex="-1" aria-label="Minimize" title="Minimize">&#xE921;</button>
+        <button id="wMax" type="button" tabindex="-1" aria-label="Maximize" title="Maximize">&#xE922;</button>
+        <button id="wClose" type="button" tabindex="-1" aria-label="Close" title="Close">&#xE8BB;</button>
+      </div>
+    </header>
+    <div id="banner" hidden></div>
+    <div id="pausebar" hidden>
+      ⏸ Overlay is paused — keystrokes are hidden in OBS. <button id="resumeBtn">Resume</button>
+    </div>
+    <section class="preview" id="previewBox">
+      <iframe id="preview" title="Live preview"></iframe>
+    </section>
+    <main>
+      <nav id="tabs"></nav>
+      <div id="pane"></div>
+    </main>
+    <div id="modal" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+        <h3 id="mTitle"></h3>
+        <div id="mBody"></div>
+        <div class="mfoot"><button id="mOk" class="primary">OK</button></div>
+      </div>
+    </div>
+    <button id="updateBtn" class="upd" type="button" hidden aria-label="New update" data-tip="New update">
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="#fff"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 4v10" />
+        <path d="M7.5 10.5 12 15l4.5-4.5" />
+        <path d="M5 19h14" />
+      </svg>
+    </button>
+    <div id="updModal" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="uTitle">
+        <h3 id="uTitle"></h3>
+        <div id="uBody"></div>
+        <div class="bar" id="uBar" hidden><div class="fill" id="uFill"></div></div>
+        <div class="hint" id="uText"></div>
+        <div class="mfoot">
+          <button id="uLater" type="button">Later</button
+          ><button id="uGo" type="button" class="primary">Update now</button>
+        </div>
+      </div>
+    </div>
+    <div id="dlg" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+        <h3 id="dTitle"></h3>
+        <div id="dBody"></div>
+        <div class="mfoot" id="dFoot"></div>
+      </div>
+    </div>
+    <div id="toast" hidden></div>
+    <script src="debug.js"></script>
+    <script src="settings.js"></script>
+  </body>
 </html>

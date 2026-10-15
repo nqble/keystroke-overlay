@@ -48,22 +48,34 @@ pub fn obs_url(s: &Shared) -> String {
     let base = format!("http://localhost:{}/", port_of(s));
     let st = s.settings.read().unwrap();
     let key = st["general"]["linkKey"].as_str().unwrap_or("");
-    if st["general"]["secureLink"].as_bool().unwrap_or(false) && !key.is_empty() { format!("{base}?key={key}") } else { base }
+    if st["general"]["secureLink"].as_bool().unwrap_or(false) && !key.is_empty() {
+        format!("{base}?key={key}")
+    } else {
+        base
+    }
 }
 
 /// Re-check the tray's Pause / Layout items to match the real state.
 pub fn sync_tray(app: &AppHandle) {
     let st = app.state::<AppState>();
-    let cur = st.shared.settings.read().unwrap()["layout"]["id"].as_str().unwrap_or("").to_string();
+    let cur = st.shared.settings.read().unwrap()["layout"]["id"]
+        .as_str()
+        .unwrap_or("")
+        .to_string();
     let paused = st.shared.bus.paused.load(Ordering::Relaxed);
     // Copy the items out and release the lock first: setting a check mark hops to the main thread, which may be
     // waiting for this same lock (a tray click), and holding it here could freeze the app.
     let (pause, layouts) = {
         let guard = st.tray.lock().unwrap();
-        match guard.as_ref() { Some(t) => (t.pause.clone(), t.layouts.clone()), None => return }
+        match guard.as_ref() {
+            Some(t) => (t.pause.clone(), t.layouts.clone()),
+            None => return,
+        }
     };
     let _ = pause.set_checked(paused);
-    for (id, it) in &layouts { let _ = it.set_checked(*id == cur); }
+    for (id, it) in &layouts {
+        let _ = it.set_checked(*id == cur);
+    }
 }
 
 /// Tell overlays (WebSocket) and the settings window that something changed.
@@ -75,5 +87,8 @@ pub fn announce(app: &AppHandle) {
 
 /// The selected update channel ("stable" unless the user chose "latest").
 pub fn channel_of_settings(settings: &Value) -> String {
-    settings["general"]["updateChannel"].as_str().unwrap_or("stable").to_string()
+    settings["general"]["updateChannel"]
+        .as_str()
+        .unwrap_or("stable")
+        .to_string()
 }

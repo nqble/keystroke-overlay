@@ -31,7 +31,8 @@ Keystroke Overlay (development copy)
 `);
 
 const child = spawn('npx', ['tauri', 'dev', '--config', JSON.stringify({ identifier: DEV_ID })], {
-  stdio: 'inherit', shell: true,
+  stdio: 'inherit',
+  shell: true,
   env: { ...process.env, KEYOVERLAY_DEBUG: '1', WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9222' },
 });
-child.on('exit', code => process.exit(code ?? 0));
+child.on('exit', (code) => process.exit(code ?? 0));

@@ -49,7 +49,9 @@ pub fn open_settings_async(app: &AppHandle) {
 
 /// Window events: "minimize to tray" destroys the window, and closing it releases memory.
 pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
-    if win.label() != "settings" { return; }
+    if win.label() != "settings" {
+        return;
+    }
     if let WindowEvent::Destroyed = ev {
         std::thread::spawn(|| {
             std::thread::sleep(std::time::Duration::from_millis(1500));
@@ -58,7 +60,11 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
     }
     if let WindowEvent::Resized(_) = ev {
         let st = win.state::<AppState>();
-        let mtt = st.shared.settings.read().unwrap()["general"]["minimizeToTray"].as_bool().unwrap_or(true);
-        if mtt && win.is_minimized().unwrap_or(false) { let _ = win.close(); }
+        let mtt = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]
+            .as_bool()
+            .unwrap_or(true);
+        if mtt && win.is_minimized().unwrap_or(false) {
+            let _ = win.close();
+        }
     }
 }

@@ -7,7 +7,7 @@ body:
     attributes:
       label: App version
       description: Shown in General -> Program updates
-      placeholder: "1.2.0"
+      placeholder: '1.2.0'
     validations: { required: true }
   - type: textarea
     id: what
@@ -29,7 +29,7 @@ body:
     id: system
     attributes:
       label: Windows version and OBS version
-      placeholder: "Windows 11 23H2, OBS 31"
+      placeholder: 'Windows 11 23H2, OBS 31'
   - type: markdown
     attributes:
       value: "Please don't paste anything private. The app never logs keystrokes, so there is nothing sensitive to attach."

@@ -4,28 +4,40 @@
 import { connect, inject, listenKeys, focus, check, finish, sleep, PORT } from '../lib/cdp.mjs';
 
 const TRIES = 5;
-const p = await connect(); await sleep(3500);          // let the preview frame finish loading
+const p = await connect();
+await sleep(3500); // let the preview frame finish loading
 const S0 = (await p.invoke('get_state')).ok.settings;
 // so minimizing doesn't close the window
 await p.invoke('save_settings', { settings: { ...S0, general: { ...S0.general, minimizeToTray: false } } });
-const events = await listenKeys(); await sleep(300);
-const downInPreview = code => p.evIn(`localhost:${PORT}`, `return document.querySelector('[data-code="${code}"]')?.classList.contains('down') ?? null`);
+const events = await listenKeys();
+await sleep(300);
+const downInPreview = (code) =>
+  p.evIn(
+    `localhost:${PORT}`,
+    `return document.querySelector('[data-code="${code}"]')?.classList.contains('down') ?? null`,
+  );
 
 async function press() {
   events.length = 0;
-  await inject('hold'); await sleep(500);              // Right Ctrl goes DOWN and stays down
+  await inject('hold');
+  await sleep(500); // Right Ctrl goes DOWN and stays down
   const wsSaw = events.includes('+ControlRight');
   const shown = await downInPreview('ControlRight').catch(() => null);
-  await inject('release'); await sleep(400);
+  await inject('release');
+  await sleep(400);
   return { wsSaw, shown };
 }
 async function state(label, to) {
   const front = await focus(to);
   const pageFocus = await p.q(`document.hasFocus()`);
-  await press();                                       // warm-up press, ignored
-  const r = []; for (let i = 0; i < TRIES; i++) r.push(await press());
-  const reached = r.filter(x => x.wsSaw).length, lit = r.filter(x => x.shown === true).length;
-  console.log(`   [${label}] foreground ok: ${front} | page focus: ${pageFocus} | key reached the overlay stream ${reached}/${TRIES} | preview key lit ${lit}/${TRIES}`);
+  await press(); // warm-up press, ignored
+  const r = [];
+  for (let i = 0; i < TRIES; i++) r.push(await press());
+  const reached = r.filter((x) => x.wsSaw).length,
+    lit = r.filter((x) => x.shown === true).length;
+  console.log(
+    `   [${label}] foreground ok: ${front} | page focus: ${pageFocus} | key reached the overlay stream ${reached}/${TRIES} | preview key lit ${lit}/${TRIES}`,
+  );
   return { front, pageFocus, reached, lit };
 }
 

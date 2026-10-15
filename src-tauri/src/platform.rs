@@ -7,7 +7,9 @@ use std::path::Path;
 #[cfg(windows)]
 pub fn trim_memory() {
     use windows::Win32::System::{ProcessStatus::EmptyWorkingSet, Threading::GetCurrentProcess};
-    unsafe { let _ = EmptyWorkingSet(GetCurrentProcess()); }
+    unsafe {
+        let _ = EmptyWorkingSet(GetCurrentProcess());
+    }
 }
 #[cfg(not(windows))]
 pub fn trim_memory() {}
@@ -16,10 +18,16 @@ pub fn trim_memory() {}
 /// unsupported.
 #[cfg(windows)]
 pub fn process_stats() -> (f64, u32) {
-    use windows::Win32::System::{ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS}, Threading::{GetCurrentProcess, GetProcessHandleCount}};
+    use windows::Win32::System::{
+        ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS},
+        Threading::{GetCurrentProcess, GetProcessHandleCount},
+    };
     unsafe {
         let process = GetCurrentProcess();
-        let mut counters = PROCESS_MEMORY_COUNTERS { cb: std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32, ..Default::default() };
+        let mut counters = PROCESS_MEMORY_COUNTERS {
+            cb: std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32,
+            ..Default::default()
+        };
         let _ = GetProcessMemoryInfo(process, &mut counters, counters.cb);
         let mut handles = 0u32;
         let _ = GetProcessHandleCount(process, &mut handles);
@@ -27,10 +35,18 @@ pub fn process_stats() -> (f64, u32) {
     }
 }
 #[cfg(not(windows))]
-pub fn process_stats() -> (f64, u32) { (0.0, 0) }
+pub fn process_stats() -> (f64, u32) {
+    (0.0, 0)
+}
 
 fn opener() -> &'static str {
-    if cfg!(windows) { "explorer" } else if cfg!(target_os = "macos") { "open" } else { "xdg-open" }
+    if cfg!(windows) {
+        "explorer"
+    } else if cfg!(target_os = "macos") {
+        "open"
+    } else {
+        "xdg-open"
+    }
 }
 
 /// Show a folder in the system file manager.

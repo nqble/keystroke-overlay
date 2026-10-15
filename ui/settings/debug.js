@@ -53,7 +53,7 @@
     inspectorDeveloperNote:
       'Developers working on the code can run “npm run dev:debug”, which does all of this and turns ' +
       'Debug mode on. In the inspector’s console, the object “ko” has shortcuts: ko.info(), ko.log(), ' +
-      'ko.settings(), ko.goto(\'style\').',
+      "ko.settings(), ko.goto('style').",
     bugReportHelp:
       'Copies one block of text for a GitHub issue: version, system, self-test results, your settings ' +
       '(without the private link key) and the recent event log. It contains no key presses, and your ' +
@@ -69,17 +69,26 @@
   /** Run `fn` now and then every `ms` milliseconds, until `root` has left the page (the tab was changed or redrawn). */
   function every(root, ms, fn) {
     fn();
-    const timer = setInterval(() => { if (!root.isConnected) clearInterval(timer); else fn(); }, ms);
+    const timer = setInterval(() => {
+      if (!root.isConnected) clearInterval(timer);
+      else fn();
+    }, ms);
   }
 
   /** A titled box. */
-  const card = (title, ...content) => el('section', { className: 'dbg-card' }, el('h3', { textContent: title }), content.flat());
+  const card = (title, ...content) =>
+    el('section', { className: 'dbg-card' }, el('h3', { textContent: title }), content.flat());
 
   /** A two-column list of label → value. Call `.set(rows)` to refresh it. */
   function facts() {
     const box = el('div', { className: 'dbg-facts' });
-    box.set = rows => box.replaceChildren(...rows.flatMap(([label, value, state]) =>
-      [el('span', { className: 'k', textContent: label }), el('span', { className: 'v ' + (state ?? ''), textContent: String(value) })]));
+    box.set = (rows) =>
+      box.replaceChildren(
+        ...rows.flatMap(([label, value, state]) => [
+          el('span', { className: 'k', textContent: label }),
+          el('span', { className: 'v ' + (state ?? ''), textContent: String(value) }),
+        ]),
+      );
     return box;
   }
 
@@ -91,10 +100,10 @@
   }
 
   /** Remove personal details (your Windows user name) from text that is going to be pasted somewhere. */
-  const scrub = text => String(text).replace(/([A-Za-z]:\\Users\\)[^\\\s"']+/gi, '$1<you>');
+  const scrub = (text) => String(text).replace(/([A-Za-z]:\\Users\\)[^\\\s"']+/gi, '$1<you>');
 
-  const seconds = s => s < 90 ? `${s} s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`;
-  const clock = ms => {
+  const seconds = (s) => (s < 90 ? `${s} s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
+  const clock = (ms) => {
     const pad = (n, width = 2) => String(n).padStart(width, '0');
     return `${pad(Math.floor(ms / 60000))}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`;
   };
@@ -112,41 +121,68 @@
   // -------------------------------------------------------------------------------------------------------------------
   async function runSelfTest() {
     const info = await invoke('debug_info');
-    const brokenLayouts = layouts.filter(l => !l.keys?.length || new Set(l.keys.map(k => k.code)).size !== l.keys.length);
+    const brokenLayouts = layouts.filter(
+      (l) => !l.keys?.length || new Set(l.keys.map((k) => k.code)).size !== l.keys.length,
+    );
     return [
       ['The overlay server is running', !info.serverError, info.serverError || `port ${info.port}`],
-      ['The live preview loaded (the overlay page works)', !!size, size ? `${size.w} × ${size.h}` : 'the preview has not reported in'],
-      ['Key capture is working', !info.inputError, (info.inputActive === 'hook' ? 'Standard method' : 'Compatibility method') + (info.inputError ? ': ' + info.inputError : '')],
+      [
+        'The live preview loaded (the overlay page works)',
+        !!size,
+        size ? `${size.w} × ${size.h}` : 'the preview has not reported in',
+      ],
+      [
+        'Key capture is working',
+        !info.inputError,
+        (info.inputActive === 'hook' ? 'Standard method' : 'Compatibility method') +
+          (info.inputError ? ': ' + info.inputError : ''),
+      ],
       ['Settings are valid (nothing needed correcting)', info.settingsValid, ''],
       ['The data folder can be written to', info.dataWritable, scrub(info.dataDir)],
-      [`All ${layouts.length} layouts have keys, and no key appears twice`, layouts.length > 0 && !brokenLayouts.length, brokenLayouts.map(l => l.id).join(', ')],
-      ['The selected layout exists', layouts.some(l => l.id === S.layout.id), S.layout.id],
+      [
+        `All ${layouts.length} layouts have keys, and no key appears twice`,
+        layouts.length > 0 && !brokenLayouts.length,
+        brokenLayouts.map((l) => l.id).join(', '),
+      ],
+      ['The selected layout exists', layouts.some((l) => l.id === S.layout.id), S.layout.id],
     ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail }));
   }
 
   /** One report a developer can paste into a GitHub issue. Contains no key presses and no personal paths. */
   async function buildReport() {
-    const info = await invoke('debug_info'), tests = await runSelfTest(), log = await invoke('debug_log');
-    return scrub([
-      `Keystroke Overlay v${info.version} (${info.build}) on ${info.os}`,
-      `Browser engine: ${navigator.userAgent}`,
-      `Screen: ${screen.width}x${screen.height} at ${devicePixelRatio}x, window ${innerWidth}x${innerHeight}`,
-      `Running for ${seconds(info.uptimeSecs)}; memory ${info.memoryMb} MB; ` + `${info.handles} handles; port ${info.port}`,
-      `Keyboard: ${info.inputActive}${info.inputError ? ' (error: ' + info.inputError + ')' : ''}`,
-      '', 'SELF-TEST', ...tests.map(t => `${t.ok ? 'PASS' : 'FAIL'}  ${t.name}${t.detail ? ' — ' + t.detail : ''}`),
-      '', 'SETTINGS', JSON.stringify(redactedSettings()),
-      '', `EVENT LOG (last ${Math.min(60, log.length)} of ${log.length})`, ...log.slice(-60).map(([ms, text]) => `${clock(ms)}  ${text}`),
-    ].join('\n'));
+    const info = await invoke('debug_info'),
+      tests = await runSelfTest(),
+      log = await invoke('debug_log');
+    return scrub(
+      [
+        `Keystroke Overlay v${info.version} (${info.build}) on ${info.os}`,
+        `Browser engine: ${navigator.userAgent}`,
+        `Screen: ${screen.width}x${screen.height} at ${devicePixelRatio}x, window ${innerWidth}x${innerHeight}`,
+        `Running for ${seconds(info.uptimeSecs)}; memory ${info.memoryMb} MB; ` +
+          `${info.handles} handles; port ${info.port}`,
+        `Keyboard: ${info.inputActive}${info.inputError ? ' (error: ' + info.inputError + ')' : ''}`,
+        '',
+        'SELF-TEST',
+        ...tests.map((t) => `${t.ok ? 'PASS' : 'FAIL'}  ${t.name}${t.detail ? ' — ' + t.detail : ''}`),
+        '',
+        'SETTINGS',
+        JSON.stringify(redactedSettings()),
+        '',
+        `EVENT LOG (last ${Math.min(60, log.length)} of ${log.length})`,
+        ...log.slice(-60).map(([ms, text]) => `${clock(ms)}  ${text}`),
+      ].join('\n'),
+    );
   }
 
   // -------------------------------------------------------------------------------------------------------------------
   // The key monitor sends events through Tauri; one listener is shared by whichever monitor is on screen
   // -------------------------------------------------------------------------------------------------------------------
-  let monitor = null, listening = false;
+  let monitor = null,
+    listening = false;
   function listenForKeys() {
     if (listening) return;
     listening = true;
-    ev.listen('debug-key', e => monitor?.onKey(e.payload));
+    ev.listen('debug-key', (e) => monitor?.onKey(e.payload));
     ev.listen('debug-key-stopped', () => monitor?.onStopped());
   }
 
@@ -157,23 +193,52 @@
     {
       title: 'This app',
       build() {
-        const table = facts(), peak = { memory: 0 };
+        const table = facts(),
+          peak = { memory: 0 };
         const root = el('div', {}, table);
         every(root, 2000, async () => {
           const i = await invoke('debug_info');
           peak.memory = Math.max(peak.memory, i.memoryMb);
           table.set([
-            ['Version', `v${i.version}  (${i.build})`], ['Running for', seconds(i.uptimeSecs)],
-            ['Memory (this program)', `${i.memoryMb} MB  (highest seen here: ${peak.memory} MB)`], ['Open handles', i.handles],
-            ['Overlay server', i.serverError ? `problem: ${i.serverError}` : `running on port ${i.port}`, i.serverError ? 'bad' : 'good'],
-            ['Key capture', `${i.inputActive === 'hook' ? 'Standard (hook)' : 'Compatibility (Raw Input)'}` + `${i.inputError ? ' — ' + i.inputError : ''}`, i.inputError ? 'bad' : 'good'],
-            ['Settings valid', i.settingsValid ? 'yes' : 'no: the sanitizer would change something', i.settingsValid ? 'good' : 'bad'],
-            ['Data folder', scrub(i.dataDir) + (i.dataWritable ? '' : '   (cannot write here!)'), i.dataWritable ? '' : 'bad'],
+            ['Version', `v${i.version}  (${i.build})`],
+            ['Running for', seconds(i.uptimeSecs)],
+            ['Memory (this program)', `${i.memoryMb} MB  (highest seen here: ${peak.memory} MB)`],
+            ['Open handles', i.handles],
+            [
+              'Overlay server',
+              i.serverError ? `problem: ${i.serverError}` : `running on port ${i.port}`,
+              i.serverError ? 'bad' : 'good',
+            ],
+            [
+              'Key capture',
+              `${i.inputActive === 'hook' ? 'Standard (hook)' : 'Compatibility (Raw Input)'}` +
+                `${i.inputError ? ' — ' + i.inputError : ''}`,
+              i.inputError ? 'bad' : 'good',
+            ],
+            [
+              'Settings valid',
+              i.settingsValid ? 'yes' : 'no: the sanitizer would change something',
+              i.settingsValid ? 'good' : 'bad',
+            ],
+            [
+              'Data folder',
+              scrub(i.dataDir) + (i.dataWritable ? '' : '   (cannot write here!)'),
+              i.dataWritable ? '' : 'bad',
+            ],
             ['Browser engine', (navigator.userAgent.match(/Edg\/[\d.]+/) || [navigator.userAgent])[0]],
-            ['Window / screen', `${innerWidth}×${innerHeight} window, ${screen.width}×${screen.height} screen at ${devicePixelRatio}×`],
+            [
+              'Window / screen',
+              `${innerWidth}×${innerHeight} window, ${screen.width}×${screen.height} screen at ${devicePixelRatio}×`,
+            ],
           ]);
         });
-        root.append(el('div', { className: 'btns' }, button('Open data folder', () => call('open_folder', { kind: 'root' }))));
+        root.append(
+          el(
+            'div',
+            { className: 'btns' },
+            button('Open data folder', () => call('open_folder', { kind: 'root' })),
+          ),
+        );
         return root;
       },
     },
@@ -184,11 +249,23 @@
         const run = async () => {
           results.replaceChildren(el('span', { className: 'hint', textContent: 'Running…' }));
           const tests = await runSelfTest();
-          results.replaceChildren(...tests.map(t => el('div', { className: 'dbg-test ' + (t.ok ? 'good' : 'bad') },
-            el('b', { textContent: t.ok ? '✔' : '✖' }), el('span', { textContent: t.name }), el('i', { textContent: t.detail }))));
+          results.replaceChildren(
+            ...tests.map((t) =>
+              el(
+                'div',
+                { className: 'dbg-test ' + (t.ok ? 'good' : 'bad') },
+                el('b', { textContent: t.ok ? '✔' : '✖' }),
+                el('span', { textContent: t.name }),
+                el('i', { textContent: t.detail }),
+              ),
+            ),
+          );
         };
-        return [note(TEXT.selfTestHelp),
-          el('div', { className: 'btns' }, button('Run self-test', run, 'primary')), results];
+        return [
+          note(TEXT.selfTestHelp),
+          el('div', { className: 'btns' }, button('Run self-test', run, 'primary')),
+          results,
+        ];
       },
     },
     {
@@ -198,14 +275,30 @@
         const refresh = async () => {
           const lines = await invoke('debug_log');
           const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 30;
-          box.replaceChildren(...(lines.length ? lines : [[0, '(nothing yet: use the app and lines appear here)']]).map(([ms, text]) =>
-            el('div', {}, el('span', { className: 'ts', textContent: clock(ms) }), el('span', { textContent: text }))));
+          box.replaceChildren(
+            ...(lines.length ? lines : [[0, '(nothing yet: use the app and lines appear here)']]).map(([ms, text]) =>
+              el('div', {}, el('span', { className: 'ts', textContent: clock(ms) }), el('span', { textContent: text })),
+            ),
+          );
           if (atEnd) box.scrollTop = box.scrollHeight;
         };
         const root = el('div', {}, note(TEXT.eventLogHelp), box);
-        root.append(el('div', { className: 'btns' },
-          button('Copy log', async () => { await call('copy_text', { text: scrub((await invoke('debug_log')).map(([ms, t]) => `${clock(ms)}  ${t}`).join('\n')) }); toast('Log copied'); }),
-          button('Clear', async () => { await invoke('debug_log_clear'); refresh(); })));
+        root.append(
+          el(
+            'div',
+            { className: 'btns' },
+            button('Copy log', async () => {
+              await call('copy_text', {
+                text: scrub((await invoke('debug_log')).map(([ms, t]) => `${clock(ms)}  ${t}`).join('\n')),
+              });
+              toast('Log copied');
+            }),
+            button('Clear', async () => {
+              await invoke('debug_log_clear');
+              refresh();
+            }),
+          ),
+        );
         every(root, 1500, refresh);
         return root;
       },
@@ -214,26 +307,80 @@
       title: 'Key monitor',
       build() {
         listenForKeys();
-        const list = el('div', { className: 'dbg-log short' }), status = el('span', { className: 'hint' });
-        let running = false, count = 0, previous = 0, lines = [];
+        const list = el('div', { className: 'dbg-log short' }),
+          status = el('span', { className: 'hint' });
+        let running = false,
+          count = 0,
+          previous = 0,
+          lines = [];
         const paint = () => {
-          status.textContent = running ? `Listening… ${count} events so far (stops by itself after 60 s)` : count ? `Stopped. ${count} events.` : 'Not running.';
-          list.replaceChildren(...lines.map(l => el('div', {}, el('span', { className: 'ts', textContent: l.gap }), el('span', { textContent: l.text }))));
+          status.textContent = running
+            ? `Listening… ${count} events so far (stops by itself after 60 s)`
+            : count
+              ? `Stopped. ${count} events.`
+              : 'Not running.';
+          list.replaceChildren(
+            ...lines.map((l) =>
+              el('div', {}, el('span', { className: 'ts', textContent: l.gap }), el('span', { textContent: l.text })),
+            ),
+          );
           list.scrollTop = list.scrollHeight;
         };
-        const stop = async () => { running = false; monitor = null; paint(); try { await invoke('debug_key_monitor', { on: false }); } catch { /* already stopped */ } };
-        const toggleBtn = button('Start', async () => {
-          if (running) { await stop(); toggleBtn.textContent = 'Start'; return; }
-          lines = []; count = 0; previous = 0; running = true; toggleBtn.textContent = 'Stop';
-          monitor = {
-            onKey: p => { count++; lines.push({ gap: previous ? `+${p.ms - previous} ms` : 'first', text: `${p.down ? '↓' : '↑'} ${p.k}` }); previous = p.ms; lines = lines.slice(-40); paint(); },
-            onStopped: () => { running = false; toggleBtn.textContent = 'Start'; paint(); },
-          };
-          await invoke('debug_key_monitor', { on: true }); paint();
-        }, 'primary');
-        const root = el('div', {}, note(TEXT.keyMonitorHelp),
-          el('div', { className: 'btns' }, toggleBtn, status), list);
-        every(root, 1000, () => { if (running && !root.isConnected) stop(); });
+        const stop = async () => {
+          running = false;
+          monitor = null;
+          paint();
+          try {
+            await invoke('debug_key_monitor', { on: false });
+          } catch {
+            /* already stopped */
+          }
+        };
+        const toggleBtn = button(
+          'Start',
+          async () => {
+            if (running) {
+              await stop();
+              toggleBtn.textContent = 'Start';
+              return;
+            }
+            lines = [];
+            count = 0;
+            previous = 0;
+            running = true;
+            toggleBtn.textContent = 'Stop';
+            monitor = {
+              onKey: (p) => {
+                count++;
+                lines.push({
+                  gap: previous ? `+${p.ms - previous} ms` : 'first',
+                  text: `${p.down ? '↓' : '↑'} ${p.k}`,
+                });
+                previous = p.ms;
+                lines = lines.slice(-40);
+                paint();
+              },
+              onStopped: () => {
+                running = false;
+                toggleBtn.textContent = 'Start';
+                paint();
+              },
+            };
+            await invoke('debug_key_monitor', { on: true });
+            paint();
+          },
+          'primary',
+        );
+        const root = el(
+          'div',
+          {},
+          note(TEXT.keyMonitorHelp),
+          el('div', { className: 'btns' }, toggleBtn, status),
+          list,
+        );
+        every(root, 1000, () => {
+          if (running && !root.isConnected) stop();
+        });
         paint();
         return root;
       },
@@ -241,63 +388,151 @@
     {
       title: 'Settings (raw)',
       build() {
-        const box = el('textarea', { className: 'dbg-json', spellcheck: false, value: JSON.stringify(redactedSettings(), null, 2) });
+        const box = el('textarea', {
+          className: 'dbg-json',
+          spellcheck: false,
+          value: JSON.stringify(redactedSettings(), null, 2),
+        });
         const result = el('div', { className: 'dbg-tests' });
         const apply = async () => {
           let typed;
-          try { typed = JSON.parse(box.value); } catch (e) { toast('That is not valid JSON: ' + e.message, true); return; }
-          try { await invoke('save_settings', { settings: typed }); } catch (e) { toast(String(e), true); return; }
+          try {
+            typed = JSON.parse(box.value);
+          } catch (e) {
+            toast('That is not valid JSON: ' + e.message, true);
+            return;
+          }
+          try {
+            await invoke('save_settings', { settings: typed });
+          } catch (e) {
+            toast(String(e), true);
+            return;
+          }
           const kept = (await invoke('get_state')).settings;
-          const before = flatten(typed), after = flatten(kept);
-          const changes = Object.keys(after).filter(k => before[k] !== after[k] && k !== 'general.linkKey');
+          const before = flatten(typed),
+            after = flatten(kept);
+          const changes = Object.keys(after).filter((k) => before[k] !== after[k] && k !== 'general.linkKey');
           await resync();
           box.value = JSON.stringify(redactedSettings(), null, 2);
-          result.replaceChildren(el('div', { className: 'dbg-test ' + (changes.length ? 'bad' : 'good') },
-            el('b', { textContent: changes.length ? '!' : '✔' }),
-            el('span', { textContent: changes.length ? `The app corrected ${changes.length} value(s) you typed:` : 'Applied exactly as typed.' })),
-            ...changes.slice(0, 20).map(k => el('div', { className: 'dbg-test' }, el('b'), el('span', { textContent: k }), el('i', { textContent: `typed ${before[k] ?? '(missing)'}  →  kept ${after[k]}` }))));
+          result.replaceChildren(
+            el(
+              'div',
+              { className: 'dbg-test ' + (changes.length ? 'bad' : 'good') },
+              el('b', { textContent: changes.length ? '!' : '✔' }),
+              el('span', {
+                textContent: changes.length
+                  ? `The app corrected ${changes.length} value(s) you typed:`
+                  : 'Applied exactly as typed.',
+              }),
+            ),
+            ...changes
+              .slice(0, 20)
+              .map((k) =>
+                el(
+                  'div',
+                  { className: 'dbg-test' },
+                  el('b'),
+                  el('span', { textContent: k }),
+                  el('i', { textContent: `typed ${before[k] ?? '(missing)'}  →  kept ${after[k]}` }),
+                ),
+              ),
+          );
         };
-        return [note(TEXT.rawSettingsHelp),
-          box, el('div', { className: 'btns' }, button('Apply', apply, 'primary'),
-            button('Reload from app', async () => { await resync(); box.value = JSON.stringify(redactedSettings(), null, 2); result.replaceChildren(); }),
-            button('Copy', async () => { await call('copy_text', { text: box.value }); toast('Settings copied'); })), result];
+        return [
+          note(TEXT.rawSettingsHelp),
+          box,
+          el(
+            'div',
+            { className: 'btns' },
+            button('Apply', apply, 'primary'),
+            button('Reload from app', async () => {
+              await resync();
+              box.value = JSON.stringify(redactedSettings(), null, 2);
+              result.replaceChildren();
+            }),
+            button('Copy', async () => {
+              await call('copy_text', { text: box.value });
+              toast('Settings copied');
+            }),
+          ),
+          result,
+        ];
       },
     },
     {
       title: 'Test helpers',
       build() {
-        return [note('Shortcuts for trying things that are hard to trigger on demand.'),
-          el('div', { className: 'btns' },
+        return [
+          note('Shortcuts for trying things that are hard to trigger on demand.'),
+          el(
+            'div',
+            { className: 'btns' },
             button('Fake update available', () => invoke('debug_simulate_update', { on: true })),
             button('Clear fake update', () => invoke('debug_simulate_update', { on: false })),
             button('Show “What’s new” popup', () => showNotes(appVersion, `What's new in v${appVersion}`)),
-            button('New layout popup', () => addLayoutDialog())),
-          el('div', { className: 'btns' },
-            button('Toast', () => toast('A normal message')), button('Error toast', () => toast('An error message', true)),
-            button('Restart server', async () => { await call('restart_server'); toast('Server restarted'); }),
-            button('Reload this window', () => location.reload())),
-          note(TEXT.fakeUpdateHelp)];
+            button('New layout popup', () => addLayoutDialog()),
+          ),
+          el(
+            'div',
+            { className: 'btns' },
+            button('Toast', () => toast('A normal message')),
+            button('Error toast', () => toast('An error message', true)),
+            button('Restart server', async () => {
+              await call('restart_server');
+              toast('Server restarted');
+            }),
+            button('Reload this window', () => location.reload()),
+          ),
+          note(TEXT.fakeUpdateHelp),
+        ];
       },
     },
     {
       title: 'Developer tools (full browser inspector)',
       build() {
         const command = 'set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222';
-        return [note('To inspect this window like a web page (elements, console, network):'),
-          el('ol', { className: 'dbg-steps' },
+        return [
+          note('To inspect this window like a web page (elements, console, network):'),
+          el(
+            'ol',
+            { className: 'dbg-steps' },
             el('li', { textContent: 'Quit Keystroke Overlay (tray icon → Quit).' }),
-            el('li', { textContent: 'In a Command Prompt, run the line below, then start the app from that same window.' }),
-            el('li', { textContent: TEXT.inspectorStepEdge })),
+            el('li', {
+              textContent: 'In a Command Prompt, run the line below, then start the app from that same window.',
+            }),
+            el('li', { textContent: TEXT.inspectorStepEdge }),
+          ),
           el('code', { className: 'dbg-cmd', textContent: command }),
-          el('div', { className: 'btns' }, button('Copy command', async () => { await call('copy_text', { text: command }); toast('Copied'); })),
-          note(TEXT.inspectorDeveloperNote)];
+          el(
+            'div',
+            { className: 'btns' },
+            button('Copy command', async () => {
+              await call('copy_text', { text: command });
+              toast('Copied');
+            }),
+          ),
+          note(TEXT.inspectorDeveloperNote),
+        ];
       },
     },
     {
       title: 'Bug report',
       build() {
-        return [note(TEXT.bugReportHelp),
-          el('div', { className: 'btns' }, button('Copy bug report', async () => { await call('copy_text', { text: await buildReport() }); toast('Bug report copied'); }, 'primary'))];
+        return [
+          note(TEXT.bugReportHelp),
+          el(
+            'div',
+            { className: 'btns' },
+            button(
+              'Copy bug report',
+              async () => {
+                await call('copy_text', { text: await buildReport() });
+                toast('Bug report copied');
+              },
+              'primary',
+            ),
+          ),
+        ];
       },
     },
   ];
@@ -308,11 +543,18 @@
   async function renderDebugTab() {
     // Handy from the inspector's console (see "Developer tools" above).
     window.ko = {
-      invoke, info: () => invoke('debug_info'), log: () => invoke('debug_log'), state: () => invoke('get_state'),
-      settings: () => S, layouts: () => layouts, goto: name => { tab = name; render(); },
+      invoke,
+      info: () => invoke('debug_info'),
+      log: () => invoke('debug_log'),
+      state: () => invoke('get_state'),
+      settings: () => S,
+      layouts: () => layouts,
+      goto: (name) => {
+        tab = name;
+        render();
+      },
     };
-    const page = el('div', { className: 'debug' }, heading('Debug'),
-      note(TEXT.debugToolsIntro));
+    const page = el('div', { className: 'debug' }, heading('Debug'), note(TEXT.debugToolsIntro));
     for (const section of SECTIONS) page.append(card(section.title, section.build()));
     return page;
   }

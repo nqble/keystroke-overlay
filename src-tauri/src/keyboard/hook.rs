@@ -25,33 +25,44 @@ pub struct Handle {
 }
 impl Handle {
     pub fn stop(self) {
-        unsafe { let _ = PostThreadMessageW(self.thread_id, WM_QUIT, WPARAM(0), LPARAM(0)); }
+        unsafe {
+            let _ = PostThreadMessageW(self.thread_id, WM_QUIT, WPARAM(0), LPARAM(0));
+        }
         let _ = self.join.join();
     }
 }
 
 pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
     let (ready_tx, ready_rx) = sync_channel::<Result<u32, String>>(1);
-    let join = std::thread::Builder::new().name("key-hook".into()).spawn(move || unsafe {
-        STATE.with(|s| *s.borrow_mut() = Some((KeyTracker::new(true), tx)));
-        let hmod = GetModuleHandleW(None).ok();
-        let hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(proc), hmod.map(|m| m.into()), 0) {
-            Ok(h) => h,
-            Err(e) => { let _ = ready_tx.send(Err(e.to_string())); return; }
-        };
-        let mut msg = MSG::default();
-        // make sure this thread has a message queue
-        let _ = PeekMessageW(&mut msg, None, WM_USER, WM_USER, PM_NOREMOVE);
-        let _ = ready_tx.send(Ok(GetCurrentThreadId()));
-        while GetMessageW(&mut msg, None, 0, 0).as_bool() {
-            let _ = TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        }
-        let _ = UnhookWindowsHookEx(hook);
-    }).map_err(|e| e.to_string())?;
+    let join = std::thread::Builder::new()
+        .name("key-hook".into())
+        .spawn(move || unsafe {
+            STATE.with(|s| *s.borrow_mut() = Some((KeyTracker::new(true), tx)));
+            let hmod = GetModuleHandleW(None).ok();
+            let hook = match SetWindowsHookExW(WH_KEYBOARD_LL, Some(proc), hmod.map(|m| m.into()), 0) {
+                Ok(h) => h,
+                Err(e) => {
+                    let _ = ready_tx.send(Err(e.to_string()));
+                    return;
+                }
+            };
+            let mut msg = MSG::default();
+            // make sure this thread has a message queue
+            let _ = PeekMessageW(&mut msg, None, WM_USER, WM_USER, PM_NOREMOVE);
+            let _ = ready_tx.send(Ok(GetCurrentThreadId()));
+            while GetMessageW(&mut msg, None, 0, 0).as_bool() {
+                let _ = TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+            let _ = UnhookWindowsHookEx(hook);
+        })
+        .map_err(|e| e.to_string())?;
     match ready_rx.recv() {
         Ok(Ok(thread_id)) => Ok(Handle { thread_id, join }),
-        Ok(Err(e)) => { let _ = join.join(); Err(e) }
+        Ok(Err(e)) => {
+            let _ = join.join();
+            Err(e)
+        }
         Err(_) => Err("the keyboard hook thread stopped unexpectedly".into()),
     }
 }

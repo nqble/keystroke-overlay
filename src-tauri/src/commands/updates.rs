@@ -22,7 +22,11 @@ fn manifest_url(channel: &str) -> String {
     if let Some(base) = option_env!("KEYOVERLAY_TEST_UPDATE_BASE") {
         return format!("{base}/{}.json", if channel == "latest" { "latest" } else { "stable" });
     }
-    if channel == "latest" { format!("{GITHUB}/latest/download/latest.json") } else { format!("{GITHUB}/download/channel-stable/stable.json") }
+    if channel == "latest" {
+        format!("{GITHUB}/latest/download/latest.json")
+    } else {
+        format!("{GITHUB}/download/channel-stable/stable.json")
+    }
 }
 
 fn channel_of(app: &AppHandle) -> String {
@@ -30,8 +34,14 @@ fn channel_of(app: &AppHandle) -> String {
 }
 
 fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::Updater, String> {
-    let url: tauri::Url = manifest_url(channel).parse().map_err(|_| "Bad update address".to_string())?;
-    app.updater_builder().endpoints(vec![url]).map_err(|e| e.to_string())?.build().map_err(|e| e.to_string())
+    let url: tauri::Url = manifest_url(channel)
+        .parse()
+        .map_err(|_| "Bad update address".to_string())?;
+    app.updater_builder()
+        .endpoints(vec![url])
+        .map_err(|e| e.to_string())?
+        .build()
+        .map_err(|e| e.to_string())
 }
 
 async fn do_check(app: &AppHandle) -> Result<Value, String> {
@@ -41,16 +51,32 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
         Ok(Some(u)) => {
             // The manifest may carry "manual": true (+ "manual_url") for updates the in-app installer can't apply.
             let manual = u.raw_json.get("manual").and_then(|v| v.as_bool()).unwrap_or(false);
-            let url = u.raw_json.get("manual_url").and_then(|v| v.as_str()).unwrap_or(RELEASES_URL);
+            let url = u
+                .raw_json
+                .get("manual_url")
+                .and_then(|v| v.as_str())
+                .unwrap_or(RELEASES_URL);
             json!({ "available": true, "version": u.version, "notes": u.body, "current": u.current_version, "manual": manual, "url": url, "channel": channel })
         }
         Ok(None) => json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": channel }),
-        Err(e) => { crate::debug::log(format!("update check ({channel}) failed: {e}")); return Err(format!("Couldn't check for updates ({e}). You may be offline, or no {channel} release has been published yet.")); }
+        Err(e) => {
+            crate::debug::log(format!("update check ({channel}) failed: {e}"));
+            return Err(format!(
+                "Couldn't check for updates ({e}). You may be offline, or no {channel} release has been published yet."
+            ));
+        }
     };
-    crate::debug::log(format!("update check ({channel}): {}", if result["available"].as_bool().unwrap_or(false) { format!("v{} is available", result["version"].as_str().unwrap_or("?")) } else { "up to date".to_string() }));
+    crate::debug::log(format!(
+        "update check ({channel}): {}",
+        if result["available"].as_bool().unwrap_or(false) {
+            format!("v{} is available", result["version"].as_str().unwrap_or("?"))
+        } else {
+            "up to date".to_string()
+        }
+    ));
     *app.state::<AppState>().update_cache.lock().unwrap() = Some((std::time::Instant::now(), channel, result.clone()));
     crate::tray::set_update_badge(app, result["available"].as_bool().unwrap_or(false));
-    let _ = app.emit("update-result", result.clone());   // an open settings window shows its update button right away
+    let _ = app.emit("update-result", result.clone()); // an open settings window shows its update button right away
     Ok(result)
 }
 
@@ -60,8 +86,12 @@ pub fn start_background_check(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(std::time::Duration::from_secs(45)).await;
         loop {
-            let on = app.state::<AppState>().shared.settings.read().unwrap()["general"]["autoCheckUpdates"].as_bool().unwrap_or(false);
-            if on { let _ = do_check(&app).await; }
+            let on = app.state::<AppState>().shared.settings.read().unwrap()["general"]["autoCheckUpdates"]
+                .as_bool()
+                .unwrap_or(false);
+            if on {
+                let _ = do_check(&app).await;
+            }
             tokio::time::sleep(std::time::Duration::from_secs(CHECK_EVERY_SECS)).await;
         }
     });
@@ -69,17 +99,26 @@ pub fn start_background_check(app: AppHandle) {
 
 /// Manual "Check for updates".
 #[tauri::command]
-pub async fn check_update(app: AppHandle) -> Result<Value, String> { do_check(&app).await }
+pub async fn check_update(app: AppHandle) -> Result<Value, String> {
+    do_check(&app).await
+}
 
 /// Background check when the settings window opens: only if enabled, and it reuses a result from the
 /// last hour so opening the window repeatedly doesn't keep contacting GitHub. Returns null if disabled.
 #[tauri::command]
 pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
     let st = app.state::<AppState>();
-    if !st.shared.settings.read().unwrap()["general"]["autoCheckUpdates"].as_bool().unwrap_or(false) { return Ok(Value::Null); }
+    if !st.shared.settings.read().unwrap()["general"]["autoCheckUpdates"]
+        .as_bool()
+        .unwrap_or(false)
+    {
+        return Ok(Value::Null);
+    }
     let ch = channel_of(&app);
     if let Some((t, c, v)) = st.update_cache.lock().unwrap().as_ref() {
-        if *c == ch && t.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) { return Ok(v.clone()); }
+        if *c == ch && t.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) {
+            return Ok(v.clone());
+        }
     }
     do_check(&app).await
 }
@@ -87,7 +126,9 @@ pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
 /// Opens the project's GitHub page in the default browser. Only this repo's URLs are allowed.
 #[tauri::command]
 pub fn open_release_page(url: String) -> Result<(), String> {
-    if !url.starts_with(&format!("https://github.com/{REPO}/")) { return Err("Blocked link".into()); }
+    if !url.starts_with(&format!("https://github.com/{REPO}/")) {
+        return Err("Blocked link".into());
+    }
     platform::open_url(&url).map_err(|e| e.to_string())
 }
 
@@ -97,13 +138,22 @@ pub fn open_release_page(url: String) -> Result<(), String> {
 pub async fn install_update(app: AppHandle) -> Result<(), String> {
     let channel = channel_of(&app);
     let upd = updater_for(&app, &channel)?;
-    let Some(u) = upd.check().await.map_err(|e| e.to_string())? else { return Err("Already up to date".into()) };
+    let Some(u) = upd.check().await.map_err(|e| e.to_string())? else {
+        return Err("Already up to date".into());
+    };
     let (a1, a2) = (app.clone(), app.clone());
     let mut done: u64 = 0;
     u.download_and_install(
-        move |chunk, total| { done += chunk as u64; let _ = a1.emit("update-progress", json!({ "done": done, "total": total })); },
-        move || { let _ = a2.emit("update-installing", ()); },
-    ).await.map_err(|e| format!("Update failed: {e}"))?;
+        move |chunk, total| {
+            done += chunk as u64;
+            let _ = a1.emit("update-progress", json!({ "done": done, "total": total }));
+        },
+        move || {
+            let _ = a2.emit("update-installing", ());
+        },
+    )
+    .await
+    .map_err(|e| format!("Update failed: {e}"))?;
     app.restart();
 }
 
@@ -131,17 +181,30 @@ fn release_notes_from(j: &Value, ver: &str) -> Value {
 #[tauri::command]
 pub async fn get_release_notes(version: Option<String>) -> Result<Value, String> {
     let ver = version.unwrap_or_else(|| env!("CARGO_PKG_VERSION").to_string());
-    if ver.is_empty() || !ver.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-') { return Err("Bad version".into()); }
+    if ver.is_empty() || !ver.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-') {
+        return Err("Bad version".into());
+    }
     let client = reqwest::Client::builder()
         .user_agent(concat!("KeystrokeOverlay/", env!("CARGO_PKG_VERSION")))
         .timeout(std::time::Duration::from_secs(8))
-        .build().map_err(|e| e.to_string())?;
-    let resp = client.get(format!("https://api.github.com/repos/{REPO}/releases/tags/v{ver}"))
-        .header("Accept", "application/vnd.github+json").send().await
+        .build()
+        .map_err(|e| e.to_string())?;
+    let resp = client
+        .get(format!("https://api.github.com/repos/{REPO}/releases/tags/v{ver}"))
+        .header("Accept", "application/vnd.github+json")
+        .send()
+        .await
         .map_err(|_| "Couldn't reach GitHub. Check your internet connection.".to_string())?;
-    if resp.status() == reqwest::StatusCode::NOT_FOUND { return Err(format!("No release notes are published for v{ver} yet.")); }
-    if !resp.status().is_success() { return Err(format!("GitHub returned an error ({}).", resp.status())); }
-    let j: Value = resp.json().await.map_err(|_| "GitHub sent something unexpected.".to_string())?;
+    if resp.status() == reqwest::StatusCode::NOT_FOUND {
+        return Err(format!("No release notes are published for v{ver} yet."));
+    }
+    if !resp.status().is_success() {
+        return Err(format!("GitHub returned an error ({}).", resp.status()));
+    }
+    let j: Value = resp
+        .json()
+        .await
+        .map_err(|_| "GitHub sent something unexpected.".to_string())?;
     Ok(release_notes_from(&j, &ver))
 }
 
@@ -162,6 +225,6 @@ mod tests {
     fn channel_urls() {
         assert!(manifest_url("latest").ends_with("/latest.json"));
         assert!(manifest_url("stable").ends_with("/stable.json"));
-        assert!(manifest_url("anything-else").ends_with("/stable.json"));   // unknown channel falls back to Stable
+        assert!(manifest_url("anything-else").ends_with("/stable.json")); // unknown channel falls back to Stable
     }
 }

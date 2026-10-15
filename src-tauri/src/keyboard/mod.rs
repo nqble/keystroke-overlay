@@ -35,13 +35,23 @@ pub enum Method {
 }
 impl Method {
     pub fn parse(s: &str) -> Option<Self> {
-        match s { "hook" => Some(Self::Hook), "rawinput" => Some(Self::RawInput), _ => None }
+        match s {
+            "hook" => Some(Self::Hook),
+            "rawinput" => Some(Self::RawInput),
+            _ => None,
+        }
     }
     pub fn id(self) -> &'static str {
-        match self { Self::Hook => "hook", Self::RawInput => "rawinput" }
+        match self {
+            Self::Hook => "hook",
+            Self::RawInput => "rawinput",
+        }
     }
     pub fn label(self) -> &'static str {
-        match self { Self::Hook => "Standard (keyboard hook)", Self::RawInput => "Compatibility (Raw Input)" }
+        match self {
+            Self::Hook => "Standard (keyboard hook)",
+            Self::RawInput => "Compatibility (Raw Input)",
+        }
     }
 }
 
@@ -57,7 +67,10 @@ impl Source {
         }
     }
     fn stop(self) {
-        match self { Source::Hook(h) => h.stop(), Source::RawInput(h) => h.stop() }
+        match self {
+            Source::Hook(h) => h.stop(),
+            Source::RawInput(h) => h.stop(),
+        }
     }
 }
 
@@ -78,26 +91,41 @@ pub struct Bus {
 }
 
 impl Bus {
-    pub fn method(&self) -> Method { self.capture.lock().unwrap().method }
+    pub fn method(&self) -> Method {
+        self.capture.lock().unwrap().method
+    }
 
     /// The last problem starting the selected capture method, if any (shown in the settings window).
-    pub fn error(&self) -> Option<String> { self.capture.lock().unwrap().error.clone() }
+    pub fn error(&self) -> Option<String> {
+        self.capture.lock().unwrap().error.clone()
+    }
 
     /// Switch capture method while running. If the new method can't start, the old one is restored and an error
     /// returned.
     pub fn set_method(&self, new: Method) -> Result<(), String> {
         let mut c = self.capture.lock().unwrap();
-        if c.method == new && c.source.is_some() { return Ok(()); }
+        if c.method == new && c.source.is_some() {
+            return Ok(());
+        }
         let old_method = c.method;
-        if let Some(s) = c.source.take() { s.stop(); }
+        if let Some(s) = c.source.take() {
+            s.stop();
+        }
         // Keys held through the switch would never get a release from the old source: release them now.
         let held: Vec<&'static str> = self.held.lock().unwrap().iter().copied().collect();
-        for code in held { let _ = self.ev_tx.send(KeyEvent { down: false, code }); }
+        for code in held {
+            let _ = self.ev_tx.send(KeyEvent { down: false, code });
+        }
         match Source::start(new, self.ev_tx.clone()) {
-            Ok(s) => { c.method = new; c.source = Some(s); c.error = None; Ok(()) }
+            Ok(s) => {
+                c.method = new;
+                c.source = Some(s);
+                c.error = None;
+                Ok(())
+            }
             Err(e) => {
                 let msg = format!("{} couldn't start: {e}", new.label());
-                c.source = Source::start(old_method, self.ev_tx.clone()).ok();   // keep the overlay working
+                c.source = Source::start(old_method, self.ev_tx.clone()).ok(); // keep the overlay working
                 c.method = old_method;
                 c.error = if c.source.is_none() { Some(msg.clone()) } else { None };
                 Err(msg)
@@ -115,20 +143,32 @@ pub fn start(method: Method) -> Arc<Bus> {
         Err(e) => (None, Some(format!("{} couldn't start: {e}", method.label()))),
     };
     let bus = Arc::new(Bus {
-        tx: btx, held: Mutex::new(HashSet::new()), paused: AtomicBool::new(false), ev_tx,
+        tx: btx,
+        held: Mutex::new(HashSet::new()),
+        paused: AtomicBool::new(false),
+        ev_tx,
         capture: Mutex::new(Capture { method, source, error }),
     });
 
     let b = bus.clone();
-    std::thread::Builder::new().name("key-dispatch".into()).spawn(move || {
-        while let Ok(ev) = rx.recv() {
-            if b.paused.load(Ordering::Relaxed) { continue; }   // paused: forward nothing
-            {
-                let mut h = b.held.lock().unwrap();
-                if ev.down { h.insert(ev.code); } else { h.remove(ev.code); }
+    std::thread::Builder::new()
+        .name("key-dispatch".into())
+        .spawn(move || {
+            while let Ok(ev) = rx.recv() {
+                if b.paused.load(Ordering::Relaxed) {
+                    continue;
+                } // paused: forward nothing
+                {
+                    let mut h = b.held.lock().unwrap();
+                    if ev.down {
+                        h.insert(ev.code);
+                    } else {
+                        h.remove(ev.code);
+                    }
+                }
+                let _ = b.tx.send(ev); // Err = no listeners; fine.
             }
-            let _ = b.tx.send(ev); // Err = no listeners; fine.
-        }
-    }).unwrap();
+        })
+        .unwrap();
     bus
 }

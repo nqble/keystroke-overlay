@@ -42,7 +42,9 @@ static LOG: Mutex<VecDeque<(u64, String)>> = Mutex::new(VecDeque::new());
 /// quits.
 static MONITOR: AtomicU64 = AtomicU64::new(0);
 
-fn uptime_ms() -> u64 { STARTED.get_or_init(Instant::now).elapsed().as_millis() as u64 }
+fn uptime_ms() -> u64 {
+    STARTED.get_or_init(Instant::now).elapsed().as_millis() as u64
+}
 
 /// Called once at start-up with the saved setting.
 pub fn init(enabled: bool) {
@@ -53,15 +55,23 @@ pub fn init(enabled: bool) {
 /// Turn the event log on or off. Turning it off also forgets everything that was recorded.
 pub fn set_enabled(on: bool) {
     let was = ENABLED.swap(on, Ordering::Relaxed);
-    if on && !was { log("debug mode turned on"); }
-    if !on && was { LOG.lock().unwrap().clear(); }
+    if on && !was {
+        log("debug mode turned on");
+    }
+    if !on && was {
+        LOG.lock().unwrap().clear();
+    }
 }
 
 /// Record one line in the event log (does nothing unless Debug mode is on).
 pub fn log(what: impl AsRef<str>) {
-    if !ENABLED.load(Ordering::Relaxed) { return; }
+    if !ENABLED.load(Ordering::Relaxed) {
+        return;
+    }
     let mut log = LOG.lock().unwrap();
-    if log.len() >= LOG_CAPACITY { log.pop_front(); }
+    if log.len() >= LOG_CAPACITY {
+        log.pop_front();
+    }
     log.push_back((uptime_ms(), what.as_ref().chars().take(300).collect()));
 }
 
@@ -101,10 +111,14 @@ pub fn debug_info(st: State<AppState>) -> Value {
 
 /// The event log as [[milliseconds since start, text], ...], oldest first.
 #[tauri::command]
-pub fn debug_log() -> Vec<(u64, String)> { LOG.lock().unwrap().iter().cloned().collect() }
+pub fn debug_log() -> Vec<(u64, String)> {
+    LOG.lock().unwrap().iter().cloned().collect()
+}
 
 #[tauri::command]
-pub fn debug_log_clear() { LOG.lock().unwrap().clear(); }
+pub fn debug_log_clear() {
+    LOG.lock().unwrap().clear();
+}
 
 /// Pretend an update is (or is no longer) available, so the update button, the tray dot and the tray entry can be tried
 /// without publishing a release. Nothing is downloaded; "Update now" on a fake update just says "Already up to date".
@@ -126,17 +140,27 @@ pub fn debug_simulate_update(app: AppHandle, on: bool) {
 #[tauri::command]
 pub fn debug_key_monitor(app: AppHandle, st: State<AppState>, on: bool) {
     let me = MONITOR.fetch_add(1, Ordering::SeqCst) + 1;
-    if !on { return; }
+    if !on {
+        return;
+    }
     let mut rx = st.shared.bus.tx.subscribe();
     let begun = Instant::now();
     tauri::async_runtime::spawn(async move {
-        while MONITOR.load(Ordering::SeqCst) == me && begun.elapsed() < MONITOR_MAX && app.get_webview_window("settings").is_some() {
+        while MONITOR.load(Ordering::SeqCst) == me
+            && begun.elapsed() < MONITOR_MAX
+            && app.get_webview_window("settings").is_some()
+        {
             use tokio::sync::broadcast::error::RecvError;
             match tokio::time::timeout(Duration::from_millis(400), rx.recv()).await {
-                Ok(Ok(e)) => { let _ = app.emit("debug-key", json!({ "k": e.code, "down": e.down, "ms": begun.elapsed().as_millis() as u64 })); }
+                Ok(Ok(e)) => {
+                    let _ = app.emit(
+                        "debug-key",
+                        json!({ "k": e.code, "down": e.down, "ms": begun.elapsed().as_millis() as u64 }),
+                    );
+                }
                 Ok(Err(RecvError::Lagged(_))) => {}
                 Ok(Err(RecvError::Closed)) => break,
-                Err(_) => {}   // nothing arrived; loop around and re-check whether we should stop
+                Err(_) => {} // nothing arrived; loop around and re-check whether we should stop
             }
         }
         let _ = app.emit("debug-key-stopped", ());
@@ -155,13 +179,22 @@ mod tests {
         assert!(debug_log().is_empty());
 
         set_enabled(true);
-        for i in 0..(LOG_CAPACITY + 50) { log(format!("line {i}")); }
+        for i in 0..(LOG_CAPACITY + 50) {
+            log(format!("line {i}"));
+        }
         let lines = debug_log();
         assert_eq!(lines.len(), LOG_CAPACITY);
         assert_eq!(lines.last().unwrap().1, format!("line {}", LOG_CAPACITY + 49));
-        assert!(!lines.iter().any(|(_, t)| t == "line 0"), "the oldest lines should have been dropped");
+        assert!(
+            !lines.iter().any(|(_, t)| t == "line 0"),
+            "the oldest lines should have been dropped"
+        );
         log("x".repeat(1000));
-        assert_eq!(debug_log().last().unwrap().1.chars().count(), 300, "a long line is cut to 300 characters");
+        assert_eq!(
+            debug_log().last().unwrap().1.chars().count(),
+            300,
+            "a long line is cut to 300 characters"
+        );
 
         set_enabled(false);
         assert!(debug_log().is_empty(), "turning debug mode off forgets the log");

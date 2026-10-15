@@ -28,7 +28,9 @@ function check(file) {
 
 for (const r of ROOTS) walk(r);
 if (problems.length) {
-  console.error(problems.slice(0, 40).join('\n') + (problems.length > 40 ? `\n... and ${problems.length - 40} more` : ''));
+  console.error(
+    problems.slice(0, 40).join('\n') + (problems.length > 40 ? `\n... and ${problems.length - 40} more` : ''),
+  );
   console.error(`\nstyle check failed: ${problems.length} problem(s)`);
   process.exit(1);
 }

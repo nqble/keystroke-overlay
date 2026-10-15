@@ -17,9 +17,9 @@ export const animations = new Map();
 export const themes = new Map();
 export const easings = new Map();
 
-export const registerAnimation = a => animations.set(a.id, a);
-export const registerTheme = t => themes.set(t.id, t);
-export const registerEasing = e => easings.set(e.id, e);
+export const registerAnimation = (a) => animations.set(a.id, a);
+export const registerTheme = (t) => themes.set(t.id, t);
+export const registerEasing = (e) => easings.set(e.id, e);
 
 registerEasing({ id: 'linear', name: 'Linear', css: 'linear' });
 registerEasing({ id: 'ease-out', name: 'Ease out', css: 'cubic-bezier(.16,1,.3,1)' });

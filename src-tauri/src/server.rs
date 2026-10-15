@@ -38,18 +38,33 @@ pub struct ServerHandle {
     shutdown: watch::Sender<bool>,
 }
 impl ServerHandle {
-    pub fn stop(&self) { let _ = self.shutdown.send(true); }
+    pub fn stop(&self) {
+        let _ = self.shutdown.send(true);
+    }
 }
 
 #[derive(Clone)]
-struct St { shared: Arc<Shared>, port: u16, sd: watch::Receiver<bool> }
+struct St {
+    shared: Arc<Shared>,
+    port: u16,
+    sd: watch::Receiver<bool>,
+}
 
 pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
-    let std_l = std::net::TcpListener::bind(("127.0.0.1", port))
-        .map_err(|e| if e.kind() == std::io::ErrorKind::AddrInUse { format!("Port {port} is already in use by another program") } else { format!("Port {port} unavailable: {e}") })?;
+    let std_l = std::net::TcpListener::bind(("127.0.0.1", port)).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::AddrInUse {
+            format!("Port {port} is already in use by another program")
+        } else {
+            format!("Port {port} unavailable: {e}")
+        }
+    })?;
     std_l.set_nonblocking(true).map_err(|e| e.to_string())?;
     let (sd_tx, sd_rx) = watch::channel(false);
-    let st = St { shared, port, sd: sd_rx.clone() };
+    let st = St {
+        shared,
+        port,
+        sd: sd_rx.clone(),
+    };
 
     let app = Router::new()
         .route("/", get(|| serve_overlay(Path("index.html".into()))))
@@ -68,7 +83,9 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
     tauri::async_runtime::spawn(async move {
         let l = tokio::net::TcpListener::from_std(std_l).unwrap();
         let _ = axum::serve(l, app)
-            .with_graceful_shutdown(async move { let _ = sd.changed().await; })
+            .with_graceful_shutdown(async move {
+                let _ = sd.changed().await;
+            })
             .await;
     });
     Ok(ServerHandle { port, shutdown: sd_tx })
@@ -77,11 +94,14 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
 /// Reject requests whose Host/Origin isn't this server on localhost.
 async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
     let p = st.port;
-    let host_ok = req.headers().get(header::HOST).and_then(|h| h.to_str().ok()).is_some_and(|h| {
-        h == format!("localhost:{p}") || h == format!("127.0.0.1:{p}")
-    });
+    let host_ok = req
+        .headers()
+        .get(header::HOST)
+        .and_then(|h| h.to_str().ok())
+        .is_some_and(|h| h == format!("localhost:{p}") || h == format!("127.0.0.1:{p}"));
     let origin_ok = req.headers().get(header::ORIGIN).is_none_or(|o| {
-        o.to_str().is_ok_and(|o| o == format!("http://localhost:{p}") || o == format!("http://127.0.0.1:{p}"))
+        o.to_str()
+            .is_ok_and(|o| o == format!("http://localhost:{p}") || o == format!("http://127.0.0.1:{p}"))
     });
     if !host_ok || !origin_ok {
         return StatusCode::FORBIDDEN.into_response();
@@ -90,10 +110,15 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
     // and
     // scripts (/ and /overlay/*) are open-source code with nothing private in them, so they stay open.
     if is_protected(req.uri().path()) && !key_ok(&st.shared.settings.read().unwrap(), req.uri().query()) {
-        return (StatusCode::UNAUTHORIZED, "This overlay link is secured. Copy the current link from Keystroke Overlay (General > Secure link).").into_response();
+        return (
+            StatusCode::UNAUTHORIZED,
+            "This overlay link is secured. Copy the current link from Keystroke Overlay (General > Secure link).",
+        )
+            .into_response();
     }
     let mut r = next.run(req).await;
-    r.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    r.headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     r
 }
 
@@ -105,10 +130,16 @@ fn is_protected(path: &str) -> bool {
 /// True if the secure link is off, or the request carries the right `key=` (compared in constant time).
 pub fn key_ok(settings: &Value, query: Option<&str>) -> bool {
     let g = &settings["general"];
-    if !g["secureLink"].as_bool().unwrap_or(false) { return true; }
+    if !g["secureLink"].as_bool().unwrap_or(false) {
+        return true;
+    }
     let want = g["linkKey"].as_str().unwrap_or("");
-    if want.is_empty() { return false; }   // secure link on but no key: refuse everything rather than open up
-    let got = query.and_then(|q| q.split('&').find_map(|kv| kv.strip_prefix("key="))).unwrap_or("");
+    if want.is_empty() {
+        return false;
+    } // secure link on but no key: refuse everything rather than open up
+    let got = query
+        .and_then(|q| q.split('&').find_map(|kv| kv.strip_prefix("key=")))
+        .unwrap_or("");
     got.len() == want.len() && got.bytes().zip(want.bytes()).fold(0u8, |acc, (a, b)| acc | (a ^ b)) == 0
 }
 
@@ -118,7 +149,10 @@ fn mime(name: &str) -> &'static str {
         "js" | "mjs" => "text/javascript; charset=utf-8",
         "css" => "text/css; charset=utf-8",
         "json" => "application/json",
-        "ttf" => "font/ttf", "otf" => "font/otf", "woff" => "font/woff", "woff2" => "font/woff2",
+        "ttf" => "font/ttf",
+        "otf" => "font/otf",
+        "woff" => "font/woff",
+        "woff2" => "font/woff2",
         _ => "application/octet-stream",
     }
 }
@@ -130,7 +164,9 @@ fn safe(name: &str) -> bool {
 }
 
 async fn serve_overlay(Path(p): Path<String>) -> Response {
-    if p.split('/').any(|s| s == "..") { return StatusCode::NOT_FOUND.into_response(); }
+    if p.split('/').any(|s| s == "..") {
+        return StatusCode::NOT_FOUND.into_response();
+    }
     match OVERLAY.get_file(&p) {
         Some(f) => bytes_resp(&p, f.contents().to_vec()),
         None => StatusCode::NOT_FOUND.into_response(),
@@ -146,7 +182,9 @@ async fn serve_user(State(st): State<St>, Path((kind, file)): Path<(String, Stri
     }
 }
 async fn serve_font(State(st): State<St>, Path(file): Path<String>) -> Response {
-    if !safe(&file) { return StatusCode::NOT_FOUND.into_response(); }
+    if !safe(&file) {
+        return StatusCode::NOT_FOUND.into_response();
+    }
     match std::fs::read(st.shared.paths.fonts().join(&file)) {
         Ok(b) => bytes_resp(&file, b),
         Err(_) => StatusCode::NOT_FOUND.into_response(),
@@ -154,10 +192,16 @@ async fn serve_font(State(st): State<St>, Path(file): Path<String>) -> Response 
 }
 
 async fn api_config(State(st): State<St>) -> Json<Value> {
-    Json(json!({ "settings": public_settings(&st.shared.settings.read().unwrap()), "port": st.port, "paused": st.shared.bus.paused.load(Ordering::Relaxed) }))
+    Json(
+        json!({ "settings": public_settings(&st.shared.settings.read().unwrap()), "port": st.port, "paused": st.shared.bus.paused.load(Ordering::Relaxed) }),
+    )
 }
-async fn api_layouts(State(st): State<St>) -> Json<Value> { Json(json!(layouts(&st.shared.paths))) }
-async fn api_fonts(State(st): State<St>) -> Json<Value> { Json(json!(font_files(&st.shared.paths))) }
+async fn api_layouts(State(st): State<St>) -> Json<Value> {
+    Json(json!(layouts(&st.shared.paths)))
+}
+async fn api_fonts(State(st): State<St>) -> Json<Value> {
+    Json(json!(font_files(&st.shared.paths)))
+}
 async fn api_modules(State(st): State<St>) -> Json<Value> {
     Json(json!({
         "animations": module_urls("animations", &st.shared.paths),
@@ -168,16 +212,28 @@ async fn api_modules(State(st): State<St>) -> Json<Value> {
 /// A layout must have an id and a list of keys that each have a code and x/y position.
 pub fn valid_layout(v: &Value) -> bool {
     v["id"].as_str().is_some_and(|s| !s.is_empty())
-        && v["keys"].as_array().is_some_and(|k| k.iter().all(|k| k["code"].is_string() && k["x"].is_number() && k["y"].is_number()))
+        && v["keys"].as_array().is_some_and(|k| {
+            k.iter()
+                .all(|k| k["code"].is_string() && k["x"].is_number() && k["y"].is_number())
+        })
 }
 
 /// All layouts: built-in first, then user ones (same id overrides built-in).
 pub fn layouts(paths: &Paths) -> Vec<Value> {
-    let mut out: Vec<Value> = OVERLAY.get_dir("layouts").into_iter().flat_map(|d| d.files())
-        .filter_map(|f| serde_json::from_slice::<Value>(f.contents()).ok()).filter(valid_layout).collect();
+    let mut out: Vec<Value> = OVERLAY
+        .get_dir("layouts")
+        .into_iter()
+        .flat_map(|d| d.files())
+        .filter_map(|f| serde_json::from_slice::<Value>(f.contents()).ok())
+        .filter(valid_layout)
+        .collect();
     if let Ok(rd) = std::fs::read_dir(paths.user("layouts")) {
         for e in rd.flatten() {
-            if let Some(v) = std::fs::read_to_string(e.path()).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()).filter(valid_layout) {
+            if let Some(v) = std::fs::read_to_string(e.path())
+                .ok()
+                .and_then(|s| serde_json::from_str::<Value>(&s).ok())
+                .filter(valid_layout)
+            {
                 let mut v = v;
                 v["user"] = Value::Bool(true);
                 out.retain(|o| o["id"] != v["id"]);
@@ -188,18 +244,28 @@ pub fn layouts(paths: &Paths) -> Vec<Value> {
     out
 }
 pub fn font_files(paths: &Paths) -> Vec<String> {
-    let mut v: Vec<String> = std::fs::read_dir(paths.fonts()).into_iter().flatten().flatten()
-        .filter_map(|e| e.file_name().into_string().ok()).collect();
+    let mut v: Vec<String> = std::fs::read_dir(paths.fonts())
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter_map(|e| e.file_name().into_string().ok())
+        .collect();
     v.sort();
     v
 }
 fn module_urls(kind: &str, paths: &Paths) -> Vec<String> {
-    let mut v: Vec<String> = OVERLAY.get_dir(kind).into_iter().flat_map(|d| d.files())
-        .filter_map(|f| f.path().file_name()?.to_str().map(|n| format!("/overlay/{kind}/{n}"))).collect();
+    let mut v: Vec<String> = OVERLAY
+        .get_dir(kind)
+        .into_iter()
+        .flat_map(|d| d.files())
+        .filter_map(|f| f.path().file_name()?.to_str().map(|n| format!("/overlay/{kind}/{n}")))
+        .collect();
     if let Ok(rd) = std::fs::read_dir(paths.user(kind)) {
         for e in rd.flatten() {
             if let Ok(n) = e.file_name().into_string() {
-                if n.ends_with(".js") { v.push(format!("/user/{kind}/{n}")); }
+                if n.ends_with(".js") {
+                    v.push(format!("/user/{kind}/{n}"));
+                }
             }
         }
     }
@@ -217,12 +283,22 @@ fn ev_msg(e: KeyEvent) -> Message {
 /// One WebSocket message describing a settings change. Sending the settings inline saves the overlay
 /// three HTTP requests per change (it used to re-fetch config, layouts and fonts every time).
 fn cfg_msg(st: &St, kind: &str) -> Message {
-    if kind == "assets" { return Message::Text(r#"{"t":"assets"}"#.into()); }
+    if kind == "assets" {
+        return Message::Text(r#"{"t":"assets"}"#.into());
+    }
     let paused = st.shared.bus.paused.load(Ordering::Relaxed);
-    Message::Text(json!({ "t": "cfg", "s": public_settings(&st.shared.settings.read().unwrap()), "paused": paused }).to_string().into())
+    Message::Text(
+        json!({ "t": "cfg", "s": public_settings(&st.shared.settings.read().unwrap()), "paused": paused })
+            .to_string()
+            .into(),
+    )
 }
 fn snapshot(st: &St) -> Message {
-    let held: Vec<&str> = if st.shared.bus.paused.load(Ordering::Relaxed) { vec![] } else { st.shared.bus.held.lock().unwrap().iter().copied().collect() };
+    let held: Vec<&str> = if st.shared.bus.paused.load(Ordering::Relaxed) {
+        vec![]
+    } else {
+        st.shared.bus.held.lock().unwrap().iter().copied().collect()
+    };
     Message::Text(json!({ "t": "snap", "down": held }).to_string().into())
 }
 
@@ -231,7 +307,9 @@ async fn client(mut sock: WebSocket, st: St) {
     let mut keys = st.shared.bus.tx.subscribe();
     let mut cfg = st.shared.cfg_tx.subscribe();
     let mut sd = st.sd.clone();
-    if sock.send(snapshot(&st)).await.is_err() { return; }
+    if sock.send(snapshot(&st)).await.is_err() {
+        return;
+    }
     loop {
         let msg = tokio::select! {
             r = keys.recv() => match r {
@@ -248,14 +326,18 @@ async fn client(mut sock: WebSocket, st: St) {
             m = sock.recv() => match m { Some(Ok(Message::Close(_))) | None | Some(Err(_)) => break, _ => continue },
             _ = sd.changed() => break,
         };
-        if sock.send(msg).await.is_err() { break; }
+        if sock.send(msg).await.is_err() {
+            break;
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn cfg(on: bool, key: &str) -> Value { json!({ "general": { "secureLink": on, "linkKey": key } }) }
+    fn cfg(on: bool, key: &str) -> Value {
+        json!({ "general": { "secureLink": on, "linkKey": key } })
+    }
     #[test]
     fn open_when_secure_link_is_off() {
         assert!(key_ok(&cfg(false, ""), None));
@@ -279,7 +361,17 @@ mod tests {
     }
     #[test]
     fn only_data_endpoints_are_protected() {
-        for p in ["/api/config", "/api/layouts", "/ws", "/fonts/a.ttf", "/user/animations/x.js"] { assert!(is_protected(p), "{p}"); }
-        for p in ["/", "/overlay/overlay.js", "/overlay/animations/glow.js"] { assert!(!is_protected(p), "{p}"); }
+        for p in [
+            "/api/config",
+            "/api/layouts",
+            "/ws",
+            "/fonts/a.ttf",
+            "/user/animations/x.js",
+        ] {
+            assert!(is_protected(p), "{p}");
+        }
+        for p in ["/", "/overlay/overlay.js", "/overlay/animations/glow.js"] {
+            assert!(!is_protected(p), "{p}");
+        }
     }
 }
