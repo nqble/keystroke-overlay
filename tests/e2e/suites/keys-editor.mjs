@@ -343,6 +343,59 @@ check(
   })(),
 );
 
+// ---- undo and redo (the steps above are all in the history now)
+const xs = async () => [(await placeOf('KeyA')).x, (await placeOf('KeyS')).x, (await placeOf('KeyD')).x];
+check(
+  'after the earlier changes Undo is available and Redo is not',
+  await p.q(`!${arrangeButton('Undo')}.disabled && ${arrangeButton('Redo')}.disabled`),
+);
+await p.ev(`${arrangeButton('Undo')}.click()`);
+await sleep(600);
+check(
+  'Undo takes back the last Align (Left): the keys are spread out again',
+  JSON.stringify(await xs()) === '[0,2.5,5]',
+  JSON.stringify(await xs()),
+);
+await p.ev(`${arrangeButton('Undo')}.click()`);
+await sleep(600);
+check(
+  'a second Undo takes back the Space evenly step',
+  JSON.stringify(await xs()) === '[0,1,5]',
+  JSON.stringify(await xs()),
+);
+check(
+  'the live preview follows an undo',
+  await (async () => {
+    const [s, d] = [await previewKey('KeyS'), await previewKey('KeyD')];
+    return !!s && !!d && d.left > s.left;
+  })(),
+);
+await p.ev(`${arrangeButton('Redo')}.click()`);
+await sleep(600);
+check('Redo puts the spread back', JSON.stringify(await xs()) === '[0,2.5,5]', JSON.stringify(await xs()));
+await p.ev(`${arrangeButton('Redo')}.click()`);
+await sleep(600);
+check(
+  'a second Redo puts the Left alignment back, and Redo is then disabled',
+  JSON.stringify(await xs()) === '[0,0,0]' && (await p.q(`${arrangeButton('Redo')}.disabled`)),
+);
+
+await p.ev(`${arrangeButton('Undo')}.click()`);
+await sleep(600);
+await p.ev(`document.querySelector('.keytools button[title^="Move right"]').click()`);
+await sleep(600);
+check('a new change after an Undo clears Redo', await p.q(`${arrangeButton('Redo')}.disabled`));
+await p.ev(`${arrangeButton('Undo')}.click()`);
+await sleep(600);
+check('Undo also takes back a nudge', JSON.stringify(await xs()) === '[0,2.5,5]', JSON.stringify(await xs()));
+
+await p.ev(`document.querySelector('.editor input[type=checkbox]').click()`);
+await sleep(600);
+check('hiding keys is one step too...', ((await profile(id)).disabledKeys ?? []).includes('KeyD'));
+await p.ev(`${arrangeButton('Undo')}.click()`);
+await sleep(600);
+check('...and Undo shows them again', !((await profile(id)).disabledKeys ?? []).includes('KeyD'));
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {

@@ -52,6 +52,16 @@ export function tidyProf() {
     delete settings.layout.profiles[id];
 }
 
+/** The layout's key edits as plain text (for undo and redo). "null" means the layout has no edits. */
+export const profileSnapshot = (id) => JSON.stringify(settings.layout.profiles[id] ?? null);
+
+/** Put a snapshot from profileSnapshot() back as the layout's key edits. */
+export function restoreProfile(id, snapshot) {
+  const edits = JSON.parse(snapshot);
+  if (edits === null) delete settings.layout.profiles[id];
+  else settings.layout.profiles[id] = edits;
+}
+
 export const SNAP = 0.25; // keys snap to quarter-key steps
 
 export const snap = (v) => Math.round(v / SNAP) * SNAP;

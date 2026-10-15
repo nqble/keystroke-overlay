@@ -9,6 +9,7 @@ import {
   editProf,
   isCustom,
   keyPos,
+  profileSnapshot,
   round2,
   setKeyPos,
   tidyPositions,
@@ -16,6 +17,7 @@ import {
   viewProf,
 } from '../profiles.js';
 import { render } from '../settings.js';
+import { observe } from './keys-history.js';
 import { keyboardMap } from './keys-map.js';
 import { nudgeSelection, selectionTools } from './keys-toolbar.js';
 import { settings, selectedKey, selectedKeys, setSelectedKey, tab } from '../state.js';
@@ -26,6 +28,7 @@ export function keysTab() {
   const page = el('div'),
     layout = curLayout();
   if (!layout) return page;
+  observe(layout.id, profileSnapshot(layout.id)); // undo / redo: notice what changed since the last draw
   const profile = viewProf();
   page.append(heading('Keys — ' + layout.name), note(TEXT.keysTabHelp));
   page.append(selectionTools(layout), keyboardMap(layout, profile), keyButtons(layout));

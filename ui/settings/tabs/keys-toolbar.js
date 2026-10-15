@@ -4,11 +4,12 @@
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
 import { changed } from '../preview.js';
-import { SNAP, setKeyPos } from '../profiles.js';
+import { SNAP, restoreProfile, setKeyPos } from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKey, selectedKeys, setSelectedKey } from '../state.js';
 import { TEXT } from '../text.js';
 import { alignPositions, clampMove, distributePositions, movedPositions } from './keys-arrange.js';
+import { canRedo, canUndo, redo, undo } from './keys-history.js';
 import { selectedBoxes } from './keys-map.js';
 
 let nudgeByWholeKey = false; // the "Whole key" tickbox next to the nudge buttons (kept while the tab redraws)
@@ -113,6 +114,24 @@ function distributeButtons(layout) {
   );
 }
 
+/** Put back the edits from one step earlier (undo) or later (redo), then redraw. */
+function stepHistory(layout, step) {
+  const snapshot = step();
+  if (snapshot === null) return;
+  restoreProfile(layout.id, snapshot);
+  changed(true);
+}
+
+function historyButtons(layout) {
+  const undoButton = button('Undo', () => stepHistory(layout, undo));
+  undoButton.disabled = !canUndo();
+  undoButton.title = canUndo() ? 'Undo the last change to the keys of this layout' : 'Nothing to undo';
+  const redoButton = button('Redo', () => stepHistory(layout, redo));
+  redoButton.disabled = !canRedo();
+  redoButton.title = canRedo() ? 'Redo the change you just undid' : 'Nothing to redo';
+  return [undoButton, redoButton];
+}
+
 /** The toolbar above the picture: what is selected, clear it, and the nudge pad. */
 export function selectionTools(layout) {
   const count = selectedKeys.size;
@@ -131,5 +150,6 @@ export function selectionTools(layout) {
     toolGroup('Move selection', ...nudgePad(layout)),
     toolGroup('Align', ...alignButtons(layout)),
     toolGroup('Space evenly', ...distributeButtons(layout)),
+    toolGroup('History', ...historyButtons(layout)),
   );
 }
