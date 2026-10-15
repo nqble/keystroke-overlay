@@ -16,8 +16,8 @@ import {
   viewProf,
 } from '../profiles.js';
 import { render } from '../settings.js';
-import { keyboardMap, selectedBoxes } from './keys-map.js';
-import { clampMove, movedPositions } from './keys-arrange.js';
+import { keyboardMap } from './keys-map.js';
+import { nudgeSelection, selectionTools } from './keys-toolbar.js';
 import { settings, selectedKey, selectedKeys, setSelectedKey, tab } from '../state.js';
 import { TEXT } from '../text.js';
 
@@ -33,83 +33,6 @@ export function keysTab() {
   if (selected) page.append(keyEditor(selected, profile));
   else if (selectedKeys.size > 1) page.append(groupEditor(layout, profile));
   return page;
-}
-
-let nudgeByWholeKey = false; // the "Whole key" tickbox next to the nudge buttons (kept while the tab redraws)
-const MAX_POSITION = 100; // a key's position is limited to 0–100 key units (keep in step with settings.rs)
-
-/** Move every selected key by (dx, dy) key units, keeping the group's shape and staying inside 0 to MAX_POSITION. */
-function nudgeSelection(layout, dx, dy) {
-  const boxes = selectedBoxes(layout);
-  if (!boxes.length) return;
-  const area = { minX: 0, minY: 0, maxX: MAX_POSITION, maxY: MAX_POSITION };
-  const allowed = clampMove(boxes, dx, dy, area);
-  const positions = movedPositions(boxes, allowed.dx, allowed.dy);
-  for (const key of layout.keys) {
-    const position = positions[key.code];
-    if (position) setKeyPos(key, position.x, position.y);
-  }
-  changed(true);
-}
-
-/** A small labelled group of controls in the toolbar above the picture. */
-function toolGroup(label, ...controls) {
-  return el(
-    'div',
-    { className: 'toolgroup' },
-    el('span', { className: 'toolgroup-label', textContent: label }),
-    el('div', { className: 'btns' }, controls),
-  );
-}
-
-/** The four arrow buttons that move the selection by one step (a quarter key, or a whole key when ticked). */
-function nudgePad(layout) {
-  const wholeKey = el('input', { type: 'checkbox', id: 'nudgeWhole', checked: nudgeByWholeKey });
-  wholeKey.onchange = () => {
-    nudgeByWholeKey = wholeKey.checked;
-  };
-  const move = (dx, dy) => () => {
-    const step = nudgeByWholeKey ? 1 : SNAP;
-    nudgeSelection(layout, dx * step, dy * step);
-  };
-  const arrows = [
-    ['←', 'Move left', -1, 0],
-    ['↑', 'Move up', 0, -1],
-    ['↓', 'Move down', 0, 1],
-    ['→', 'Move right', 1, 0],
-  ];
-  const buttons = arrows.map(([arrow, title, dx, dy]) => {
-    const arrowButton = button(arrow, move(dx, dy), 'nudge');
-    arrowButton.title = title + (selectedKeys.size ? '' : ' (select a key first)');
-    arrowButton.disabled = selectedKeys.size === 0;
-    return arrowButton;
-  });
-  const wholeLabel = el(
-    'label',
-    { className: 'inline', title: 'Move by a whole key instead of a quarter key' },
-    wholeKey,
-  );
-  wholeLabel.append(' Whole key');
-  return [...buttons, wholeLabel];
-}
-
-/** The toolbar above the picture: what is selected, clear it, and the nudge pad. */
-function selectionTools(layout) {
-  const count = selectedKeys.size;
-  const summary =
-    count === 0 ? TEXT.nothingSelected : count === 1 ? `${selectedKey} selected` : `${count} keys selected`;
-  const clear = button('Clear selection', () => {
-    setSelectedKey(null);
-    render();
-  });
-  clear.disabled = count === 0;
-  clear.title = count === 0 ? 'Nothing is selected' : 'Deselect every key';
-  return el(
-    'div',
-    { className: 'keytools' },
-    toolGroup('Selection', el('span', { className: 'sel-summary', textContent: summary }), clear),
-    toolGroup('Move selection', ...nudgePad(layout)),
-  );
 }
 
 // Arrow keys nudge the selection (Shift = a whole key). Ignored while typing in a field or while a popup is open.

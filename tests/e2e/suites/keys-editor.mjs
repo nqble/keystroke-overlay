@@ -270,6 +270,79 @@ await p.ev(`
 await sleep(400);
 check('clicking the empty background clears the selection', (await selectedCodes()).length === 0);
 
+// ---- align and space evenly
+const S2 = (await state()).settings;
+await p.invoke('save_settings', {
+  settings: {
+    ...S2,
+    layout: {
+      ...S2.layout,
+      profiles: {
+        ...S2.layout.profiles,
+        [id]: {
+          ...S2.layout.profiles[id],
+          positions: { KeyA: { x: 0, y: 0 }, KeyS: { x: 1, y: 1 }, KeyD: { x: 5, y: 3 } },
+        },
+      },
+    },
+  },
+});
+await p.ev(`await __ko.resync()`);
+await sleep(600);
+const arrangeButton = (label) =>
+  `[...document.querySelectorAll('.keytools .toolgroup button')].find(b => b.textContent === '${label}')`;
+await clickKey('KeyA');
+await sleep(300);
+check(
+  'align and space-evenly buttons are disabled until enough keys are selected',
+  await p.q(`${arrangeButton('Left')}.disabled && ${arrangeButton('Across')}.disabled`),
+);
+check(
+  '...and the tooltip says why',
+  (await p.q(`${arrangeButton('Left')}.title`)) === 'Select at least 2 keys first' &&
+    (await p.q(`${arrangeButton('Across')}.title`)) === 'Select at least 3 keys first',
+);
+await clickKey('KeyS', true);
+await clickKey('KeyD', true);
+await sleep(300);
+check(
+  'with three keys selected every arrange button is enabled',
+  await p.q(
+    `[...document.querySelectorAll('.keytools .toolgroup button')].filter(b => ['Left','Centre','Right','Top','Middle','Bottom','Across','Down'].includes(b.textContent)).every(b => !b.disabled)`,
+  ),
+);
+await p.ev(`${arrangeButton('Top')}.click()`);
+await sleep(500);
+const topAligned = { A: await placeOf('KeyA'), S: await placeOf('KeyS'), D: await placeOf('KeyD') };
+check(
+  'Top lines the keys up on the same row and leaves x alone',
+  topAligned.A.y === 0 && topAligned.S.y === 0 && topAligned.D.y === 0 && topAligned.S.x === 1 && topAligned.D.x === 5,
+  JSON.stringify(topAligned),
+);
+await p.ev(`${arrangeButton('Across')}.click()`);
+await sleep(500);
+const spread = { A: await placeOf('KeyA'), S: await placeOf('KeyS'), D: await placeOf('KeyD') };
+check(
+  'Across makes the gaps equal and keeps the first and last key where they were',
+  spread.A.x === 0 && spread.S.x === 2.5 && spread.D.x === 5,
+  JSON.stringify(spread),
+);
+await p.ev(`${arrangeButton('Left')}.click()`);
+await sleep(500);
+const leftAligned = { A: await placeOf('KeyA'), S: await placeOf('KeyS'), D: await placeOf('KeyD') };
+check(
+  'Left puts all three on the same column',
+  leftAligned.A.x === 0 && leftAligned.S.x === 0 && leftAligned.D.x === 0,
+  JSON.stringify(leftAligned),
+);
+check(
+  'the live preview shows the aligned keys',
+  await (async () => {
+    const [a, s] = [await previewKey('KeyA'), await previewKey('KeyS')];
+    return !!a && !!s && Math.abs(a.left - s.left) < 1;
+  })(),
+);
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {
