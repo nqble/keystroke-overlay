@@ -41,9 +41,11 @@ If you change the port in settings, update the URL in OBS too.
 | **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
 | **Fonts** | Add your own TTF / OTF / WOFF fonts. |
-| **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, program updates (channel, release notes), and **Reset all settings**. |
+| **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, program updates (channel, release notes), **Debug mode** and **Reset all settings**. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
+
+**Debug mode (for developers).** **General → App → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is saved to disk or sent anywhere, and the log never contains key presses. Details in [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## Keyboard input method
 
@@ -182,6 +184,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Open an issue naming the game and its anti-cheat.
+- **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
 - **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
 
@@ -194,6 +197,7 @@ git clone https://github.com/nqble/keystroke-overlay.git
 cd keystroke-overlay
 npm install
 npm run dev          # run it
+npm run dev:debug    # run a separate development copy with Debug mode on (see docs/DEBUGGING.md)
 npm test             # unit tests (including hostile-input tests) + privacy check
 npm run check:style  # tabs and trailing spaces
 npm run test:e2e     # end-to-end tests (builds a throwaway copy, cleans up after itself)
@@ -202,7 +206,7 @@ npm run build        # installer in src-tauri/target/release/bundle/nsis/
 ```
 
 Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organised:
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). A Mac port has been researched: [docs/MAC-PORT.md](docs/MAC-PORT.md).
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). A Mac port has been researched: [docs/MAC-PORT.md](docs/MAC-PORT.md).
 Maintaining the project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).
 
 ## Requirements

@@ -13,7 +13,7 @@ Three layers, from quick to thorough:
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | ui-sweep
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | ui-sweep | csp | soak | whats-new | debug
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -33,6 +33,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `soak` — two minutes of steady typing plus tab switching, layout create/delete and setting changes: every key arrives, and threads,
   handles and memory stay flat.
 - `whats-new` — the "What's new" popup shows once after an update and never again (whether or not OK was clicked).
+- `debug` — Debug mode: off by default (no tab, nothing recorded), the switch adds and removes the Debug tab, every tool works (this-app facts, self-test, event log, key monitor, raw settings correction, fake update, bug report read from the real clipboard), and the privacy rules hold (no key presses in the log or the report, log forgotten when switched off).
 - `smoke` — every command group, tray actions (pause / layout / restart server), settings broadcast over the WebSocket, the
   update button and dialog, path-traversal and link-blocking guards, a check that **every socket the app holds is
   loopback-only**, and a real signed update: download with progress → signature verified → installer launched.
