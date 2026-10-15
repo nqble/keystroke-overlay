@@ -15,6 +15,7 @@ All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-S
 - **Share layouts:** Layout tab → **Export layouts** saves everything you made (with your hidden keys and labels) to one file, and **Import layouts** adds layouts from a file a friend sent you. Bad or oversized files are cleaned up or skipped, never trusted.
 - **Reset all settings:** General → App → **Reset all settings…** puts every option back to its default after one confirmation. Your layouts, presets, fonts and port are kept.
 - **More fonts, easier to pick:** Style → Font family is now a dropdown of 23 Windows fonts (each shown in its own font) plus your own added fonts, with an "Other" option to type any name.
+- **Debug mode (for tinkerers):** General → App → Debug mode adds a Debug tab with a one-click self-test, an event log, a key monitor and a "copy bug report" button. It's off by default, lives in memory only, and never records which keys you press.
 - **Keyboard input method:** General → Keyboard input lets you pick **Standard** (what the app always used) or **Compatibility** (Windows Raw Input). If keys don't light up in one particular game, try Compatibility. You can switch live, no restart.
 - **Secure link (optional):** a new toggle in General → Secure link. Off by default, so your OBS link stays simple. Turn it on and the link carries a private key, so only a program that knows the full link can read your key presses. Paste the new link into OBS once. Hit "Make a new key" to cut off old links.
 - **Update dot in the tray:** when a new version is out, the tray icon gets a small orange dot and the right-click menu gets **Update available** at the very top. Click it to jump straight to General → Program updates.
@@ -30,6 +31,8 @@ All notable changes. Newest first. Written to be read, see [docs/RELEASE-NOTES-S
 - **Matching Import / Export buttons:** Layout and Style now share the same buttons, labels and spot.
 - **No blue box on sliders:** clicking a slider no longer draws an outline around it.
 - **TSB layout retired:** it's no longer built in. If you had it selected, the app switches you to Tenkeyless. Make your own with the **+** card.
+- **Tougher security:** the settings window now runs under a strict content-security policy, thousands of deliberately broken settings and layout files are thrown at the app on every test run, and GitHub has manual scans for known library problems and code bugs.
+- **Our own window buttons:** the native Windows title bar is gone. Minimize, maximize and close now live in the header's top right, and you can drag the window by the header.
 - **Cleaner, roomier settings:** a bit more breathing room between sections, and General is now in a sensible order: OBS, Server, Secure link, Keyboard input, App, then Updates.
 - **Feels like a real app:** only text boxes can be selected, and right-click shows a small custom menu instead of the browser's. The live preview no longer carries a hint caption.
 - **One popup style everywhere:** release notes, updates, new layouts and warnings all look and behave the same.
