@@ -509,6 +509,55 @@ await p.ev(`document.getElementById('showGrid').click()`);
 await sleep(500);
 check('snap and grid are put back for the rest of the suite', await choicesAre(0.25, false));
 
+// ---- keyboard use and screen-reader labels
+await clickButton('.keytools .toolgroup .btns button'); // Clear selection
+await sleep(400);
+check(
+  'every key is a tab stop with a button role and a spoken name',
+  await p.q(
+    `[...document.querySelectorAll('.kmk')].every(n => n.tabIndex === 0 && n.getAttribute('role') === 'button' && n.getAttribute('aria-label').startsWith(n.dataset.code) && n.hasAttribute('aria-pressed'))`,
+  ),
+);
+const pressOnKey = (code, extra = '') =>
+  p.ev(
+    `const n = document.querySelector('.kmk[data-code="${code}"]'); n.focus(); n.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true${extra} }))`,
+  );
+await pressOnKey('KeyA');
+await sleep(500);
+check(
+  'Enter on a focused key selects it and says so (aria-pressed)',
+  JSON.stringify(await selectedCodes()) === '["KeyA"]' &&
+    (await p.q(`document.querySelector('.kmk[data-code="KeyA"]').getAttribute('aria-pressed')`)) === 'true',
+);
+check(
+  'the keyboard focus stays on the key after the picture is redrawn',
+  (await p.q(
+    `document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.code : null`,
+  )) === 'KeyA',
+);
+await pressOnKey('KeyS', ', ctrlKey: true');
+await sleep(500);
+check(
+  'Ctrl+Enter on another key adds it to the selection',
+  JSON.stringify(await selectedCodes()) === '["KeyA","KeyS"]',
+);
+check(
+  'the spoken name says whether a key is selected',
+  (await p.q(`document.querySelector('.kmk[data-code="KeyA"]').getAttribute('aria-label')`)).includes('selected'),
+);
+check(
+  'the toolbar groups are named for assistive technology',
+  (await p.q(
+    `[...document.querySelectorAll('.keytools .toolgroup')].map(g => g.getAttribute('aria-label')).join('|')`,
+  )) === 'Selection|Move selection|Align|Space evenly|History|View',
+);
+check(
+  'the status line is announced politely when it changes',
+  (await p.q(`document.querySelector('.keystatus').getAttribute('aria-live')`)) === 'polite',
+);
+await clickButton('.keytools .toolgroup .btns button');
+await sleep(300);
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {

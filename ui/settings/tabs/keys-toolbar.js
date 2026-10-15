@@ -35,12 +35,15 @@ export function nudgeSelection(layout, dx, dy) {
 
 /** A small labelled group of controls in the toolbar above the picture. */
 function toolGroup(label, ...controls) {
-  return el(
+  const group = el(
     'div',
     { className: 'toolgroup' },
     el('span', { className: 'toolgroup-label', textContent: label }),
     el('div', { className: 'btns' }, controls),
   );
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', label);
+  return group;
 }
 
 /** The four arrow buttons that move the selection by one step (a quarter key, or a whole key when ticked). */

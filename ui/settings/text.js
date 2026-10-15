@@ -43,7 +43,10 @@ export const TEXT = {
     'in Style → Font family (under “Your fonts”), or click Use.',
   keyEditorTip:
     'Tip: use symbols like ⎵ or ↑, or words like "Jump". Drag a key on the keyboard to move it, or ' +
-    'select it and use the arrow keys (Shift moves a whole key).',
+    'select it and use the arrow buttons above or the arrow keys (Shift moves a whole key).',
+  keyPictureHelp:
+    'Drag a key to move it. Drag on the empty background to select several keys. Tab to a key and press ' +
+    'Enter to select it.',
   serverNote:
     'The server only listens on 127.0.0.1 (this PC). Keystrokes are never saved or sent anywhere. OBS ' +
     'reconnects by itself after a restart.',

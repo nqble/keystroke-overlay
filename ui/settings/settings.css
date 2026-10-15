@@ -1016,3 +1016,16 @@ label.inline {
 .toolgroup select {
   margin-left: 2px;
 }
+.kmk:focus {
+  outline: none;
+}
+.kmk:focus-visible {
+  outline: 2px dashed var(--text);
+  outline-offset: 3px;
+}
+.kmk.sel:focus-visible {
+  outline: 2px solid var(--accent);
+  box-shadow:
+    0 0 0 4px var(--panel),
+    0 0 0 6px var(--text);
+}

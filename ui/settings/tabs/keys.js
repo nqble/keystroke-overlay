@@ -66,7 +66,9 @@ function statusLine(layout, profile) {
   }
   const movedCount = Object.keys(profile.positions).length;
   parts.push(movedCount === 0 ? TEXT.noKeysMoved : `${plural(movedCount, 'key')} moved from the layout file`);
-  return el('p', { className: 'keystatus', textContent: parts.join(' · ') });
+  const status = el('p', { className: 'keystatus', textContent: parts.join(' · ') });
+  status.setAttribute('aria-live', 'polite'); // read out after a change
+  return status;
 }
 
 /** Enable all / Disable all / Reset all labels / Tidy up / Reset positions / Revert to Default. */

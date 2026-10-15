@@ -9,6 +9,7 @@ import { changed, push } from '../preview.js';
 import { gridShown, keyPos, round2, setKeyPos, snap, snapStep, viewProf } from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
+import { TEXT } from '../text.js';
 import { clampMove, movedPositions } from './keys-arrange.js';
 
 const PICTURE_MARGIN = 8; // pixels of room around the keys inside the picture
@@ -95,7 +96,9 @@ export function keyboardMap(layout, profile) {
   if (gridShown() && snapStep() > 0) drawGrid(inner, grid);
   inner.style.width = grid.spanX * grid.unit + PICTURE_MARGIN * 2 + 'px';
   inner.style.height = grid.spanY * grid.unit + PICTURE_MARGIN * 2 + 'px';
-  const box = el('div', { className: 'keymap' }, inner);
+  const box = el('div', { className: 'keymap', title: TEXT.keyPictureHelp }, inner);
+  box.setAttribute('role', 'group');
+  box.setAttribute('aria-label', `Keyboard layout ${layout.name}`);
   // +2 for the box border, or it scrolls by 2px
   box.style.height = grid.spanY * grid.unit + PICTURE_MARGIN * 2 + 2 + 'px';
   // A press on the empty background (a key stops its own presses) starts drawing a selection box.
@@ -133,17 +136,44 @@ function drawKey(item, picture, { hidden, clash, profile }) {
     title: key.code + ' (drag to move)',
   });
   node.dataset.code = key.code;
+  describeForAssistiveTech(node, key, { hidden, profile });
   node.onclick = (clickEvent) => {
     if (justDragged) return;
-    if (isAdditive(clickEvent)) toggleInSelection(key.code);
-    else setSelectedKeys([key.code]);
+    chooseKey(key.code, isAdditive(clickEvent));
     render();
+  };
+  // Enter or Space on a focused key selects it (with Ctrl or Shift: adds it), so the picture works without a mouse.
+  node.onkeydown = async (keyEvent) => {
+    if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return;
+    keyEvent.preventDefault();
+    chooseKey(key.code, isAdditive(keyEvent));
+    await render();
+    $(`.kmk[data-code="${key.code}"]`)?.focus(); // the picture was redrawn: put the focus back on the key
   };
   node.onpointerdown = (pointerEvent) => {
     pointerEvent.stopPropagation(); // do not also start a selection box
     dragKeys(pointerEvent, node, key, picture);
   };
   return node;
+}
+
+/** Make a key the selection, or add it to / remove it from the selection when `additive`. */
+function chooseKey(code, additive) {
+  if (additive) toggleInSelection(code);
+  else setSelectedKeys([code]);
+}
+
+/** Tab stop, button role and a spoken name for one key on the picture. */
+function describeForAssistiveTech(node, key, { hidden, profile }) {
+  const label = profile.labels[key.code] ?? key.label;
+  const state = [
+    hidden.has(key.code) ? 'hidden in the overlay' : 'shown',
+    selectedKeys.has(key.code) ? 'selected' : null,
+  ];
+  node.tabIndex = 0;
+  node.setAttribute('role', 'button');
+  node.setAttribute('aria-pressed', String(selectedKeys.has(key.code)));
+  node.setAttribute('aria-label', `${key.code}${label ? ', label ' + label : ''}, ${state.filter(Boolean).join(', ')}`);
 }
 
 function toggleInSelection(code) {

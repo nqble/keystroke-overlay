@@ -12,7 +12,7 @@
 //    popups.js      dialogs, the right-click menu, release notes, the update dialog
 //    messages.js    messages from the app (tray, updates, progress) and re-reading its state
 //    windowbar.js   the window's own minimize / maximize / close buttons
-//    tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
+//    tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general (the Keys tab has several, keys-*.js)
 //    debug.js       the optional Debug tab (see docs/DEBUGGING.md)
 //
 //  HOW TO ADD A SETTING: add a line to CONTROLS in controls.js; it is drawn automatically. Also add its default value

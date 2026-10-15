@@ -48,13 +48,16 @@ keystroke-overlay/
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
         ├── controls.js    CONTROLS: the table that draws every slider, colour picker and dropdown
         ├── preview.js     saving a change, the live preview, the OBS address bar
-        ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"
+        ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
         ├── popups.js      dialogs, right-click menu, release notes, update dialog
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── text.js        the longer explanations the user reads
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
         └── tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
+            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
+            drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),
+            keys-arrange.js (the movement maths, plain functions with unit tests) and keys-history.js (undo and redo)
 ```
 
 ## How a key press travels
