@@ -1,7 +1,7 @@
 // Suite: the optional "secure link" (General -> Secure link).
 // Off by default; when on, the local server refuses data requests and the key-press stream without the private key,
 // the key never reaches the overlay, "Make a new key" invalidates old links, and the live preview keeps working.
-import { connect, inject, listenKeys, check, finish, sleep, PORT } from '../lib/cdp.mjs';
+import { connect, inject, listenKeys, check, finish, sleep, PORT, INJECTED_KEYS } from '../lib/cdp.mjs';
 
 const p = await connect(); await sleep(2000);
 const base = `http://localhost:${PORT}`;
@@ -47,7 +47,7 @@ check('stream without key -> refused; wrong key -> refused', !(await wsOpens(nul
 check('stream with the right key -> allowed', await wsOpens(key));
 const raw = []; const events = [];
 const w = new WebSocket(`ws://localhost:${PORT}/ws?key=${key}`);
-w.onmessage = e => { raw.push(e.data); const m = JSON.parse(e.data); if (m.t === 'd' || m.t === 'u') events.push((m.t === 'd' ? '+' : '-') + m.k); };
+w.onmessage = e => { raw.push(e.data); const m = JSON.parse(e.data); if ((m.t === 'd' || m.t === 'u') && INJECTED_KEYS.has(m.k)) events.push((m.t === 'd' ? '+' : '-') + m.k); };
 await new Promise(r => w.onopen = r); await sleep(300);
 await inject('flood', 1); await sleep(800);
 check('key presses flow through the secured stream', events.join(' ') === '+ControlRight -ControlRight', events.join(' '));

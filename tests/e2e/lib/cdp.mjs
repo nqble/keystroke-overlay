@@ -77,10 +77,13 @@ export const procStats = () => execSync(`powershell.exe -NoProfile -ExecutionPol
 export const appAlive = () => execSync(`tasklist /FI "IMAGENAME eq ${EXE_NAME}.exe" /NH`).toString().includes(EXE_NAME);
 
 /** Collect key events from the overlay WebSocket as '+KeyW' / '-KeyW'. */
+/** The only keys the test injector ever presses. Key events for any other key (someone typing while a test runs) are ignored. */
+export const INJECTED_KEYS = new Set(['KeyW', 'ControlRight', 'Space', 'KeyA', 'NumpadEnter', 'Enter', 'PrintScreen']);
+
 export async function listenKeys(port = PORT) {
   const events = [];
   const w = new WebSocket(`ws://localhost:${port}/ws`);
-  w.onmessage = e => { const m = JSON.parse(e.data); if (m.t === 'd' || m.t === 'u') events.push((m.t === 'd' ? '+' : '-') + m.k); };
+  w.onmessage = e => { const m = JSON.parse(e.data); if ((m.t === 'd' || m.t === 'u') && INJECTED_KEYS.has(m.k)) events.push((m.t === 'd' ? '+' : '-') + m.k); };
   await new Promise(r => w.onopen = r);
   return events;
 }
