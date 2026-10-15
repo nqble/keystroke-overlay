@@ -1,6 +1,6 @@
 # ⌨ Keystroke Overlay
 
-A Windows app that shows your keyboard presses live in OBS, for streams and recordings. Customize the layout and style.
+A Windows app that shows your keyboard presses live in OBS, for streams and recordings. Customizable layouts and style.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/nqble/keystroke-overlay)](../../releases/latest)
