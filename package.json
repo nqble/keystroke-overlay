@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "tauri dev",
     "dev:debug": "node tools/dev-debug.mjs",
+    "devbuild": "node tools/devbuild.mjs",
     "build": "tauri build",
     "release": "node tools/release.mjs",
     "test": "cargo test --manifest-path src-tauri/Cargo.toml && node tools/check-privacy.mjs",
