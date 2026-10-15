@@ -20,6 +20,8 @@ Releases are signed so the in-app updater can verify them. The signing key never
 
 - **`x.y.0`** (1.2.0, 1.3.0, …) → published to **Stable and Latest**. These are the releases to recommend to everyone.
 - **`x.y.z`, z > 0** (1.2.1, 1.2.2, …) → **Latest only**: quick fixes for people who want them right away.
+- **An important fix for Stable users** (say, a bug in the first Stable release): when you run the Release workflow on a patch version, tick
+  **"Also make this the Stable version"**. The release is then published to Stable too (this is what 1.2.1 did).
 
 `tools/release.mjs` applies this automatically (it writes `stable.json` only when the version ends in `.0`;
 `--stable` / `--latest-only` override it for a rare exception).

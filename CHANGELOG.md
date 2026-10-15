@@ -2,7 +2,12 @@
 
 All notable changes. Newest first.
 
-## v1.2.0 — the first Stable release *(unreleased)*
+## v1.2.1 — the "preview keeps up" fix
+
+**🐛 Fixed**
+- **The live preview now keeps up with your custom layouts.** Make a layout, hide some keys, and the preview updates the moment you do. Before, it kept drawing a built-in layout until you closed and reopened the window, and OBS had the same blind spot until you refreshed the source. Creating, deleting or importing a layout now refreshes the overlay straight away, and the overlay re-checks by itself if it ever meets a layout it doesn't know.
+
+## v1.2.0 — the first Stable release
 
 **⚡ Performance — v1.2.0 vs v1.1.2**
 - **18% faster** to open (436 ms vs 533 ms)
