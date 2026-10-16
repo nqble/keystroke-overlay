@@ -15,6 +15,9 @@ palette). Change how each tab is organised and how its controls work.
 
 ## Change, everywhere
 
+- **One scrollbar everywhere:** slim rounded thumb, no track, no arrow buttons (`::-webkit-scrollbar` in settings.css;
+  `npm run check:style` refuses `scrollbar-width` and `scrollbar-color`, which would bring the system scrollbar back).
+  Scroll fades are an experiment on the Layout board only for now.
 - **Fewer words for users.** Every line a user reads is as short as it can be: a label, or one short sentence. No
   paragraphs, no explaining what the screen already shows, no repeating the header. Detail goes in a tooltip or in
   Debug mode. (Notes for developers, in code and docs, stay as full as they need to be.)
@@ -113,7 +116,12 @@ Approved by Jordan (Layout board on the canvas):
 default, expands the list: two columns, four rows visible; more scroll inside it, so the popup never grows; **Add** puts one at the end of the tab. Built-in layouts never count toward the 20.
 - **Hide** (built-in) sends a layout back to that library; **Delete…** (your own) removes it for good. The last layout
   can't be removed; removing the one in use selects the first card.
-- **Order** is yours: drag, the ⋯ menu, or Alt+arrows. The tray's Layout menu uses the same order.
+- **Order** is yours: drag, the ⋯ menu, or Alt+arrows (focus stays on the moved card). The tray's Layout menu uses the
+  same order. A card drops only **between** cards: a line shows in the gap when the pointer is within the gap plus about
+  28 px on either side; over the middle of a card nothing happens. While dragging, the card's own spot is a faint dashed
+  placeholder with no selection ring.
+- **Selection** shows on the card's border only; the mini picture's keys never change colour.
+- The "+ New layout" card says only that; the popup it opens holds "Other layouts".
 - **Reset all settings** brings back exactly the four defaults in their order. Your own layouts are kept, as today.
 - **Saved as one setting:** `layout.order`, the list of layout ids in order. A built-in layout shows only if it is in the
   list; your own layouts always show (a missing one is added at the end). The default is the four above, so existing
