@@ -39,8 +39,8 @@ palette). Change how each tab is organised and how its controls work.
 
 Smaller details: the Layout tab counts only your own layouts, **"Your layouts: N / 20"** (built-in layouts don't count, so a
 new install shows 0 / 20). The key editor's "No key selected" note is three short lines, not one long sentence (see
-[key-editor.md](key-editor.md)). Logo drafts, each with a black and purple devbuild version, are on the design canvas;
-none is chosen yet.
+[key-editor.md](key-editor.md)). Logo: design A, "Keycap K", is chosen; its sources, including the black and purple devbuild
+version, are in `assets/logo/`.
 
 ## Plain language, with detail in Debug mode
 
