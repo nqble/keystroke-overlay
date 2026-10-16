@@ -114,7 +114,7 @@ function drawGrid(inner, grid) {
   spacing *= every;
   const offsetOf = (min) => (((-min % snapStep()) + snapStep()) % snapStep()) * grid.unit + PICTURE_MARGIN;
   Object.assign(inner.style, {
-    backgroundImage: 'radial-gradient(circle, var(--dim) 0.8px, transparent 1.4px)',
+    backgroundImage: 'radial-gradient(circle, var(--color-text-dim) 0.8px, transparent 1.4px)',
     backgroundSize: `${spacing}px ${spacing}px`,
     backgroundPosition: `${offsetOf(grid.minX)}px ${offsetOf(grid.minY)}px`,
   });
