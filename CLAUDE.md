@@ -64,8 +64,3 @@ When two principles conflict, the higher one wins.
   changing repository settings, adding any dependency (even development-only), or starting a big refactor (restructuring
   files or moving code between modules). For a refactor, describe the plan first.
 - Version rule and the release steps are in `docs/RELEASING.md`.
-
-## 7. When you finish a task
-
-Report in plain, beginner-friendly language: what changed, the test results, and anything you skipped or changed from the
-plan, with the reason. Jordan is learning to code; explain jargon the first time you use it.
