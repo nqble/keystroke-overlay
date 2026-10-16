@@ -20,7 +20,7 @@ Goal: make a future redesign cheap and safe. Step 3 must change nothing visually
 - The window stays dark only, but token-ready, so a light theme would later be one added block.
 - The Advisory Session builds the Claude Design system right after the tokens land, from the real token list.
 
-**Before acting on two of these the master session asks Jordan to confirm in chat:** adding the dependencies (CLAUDE.md section 6
+**Before acting on two of these the master session asks Jordan to confirm in chat:** adding the dependencies (CLAUDE.md section 7
 requires asking, even for development-only ones) and editing CLAUDE.md (step 7).
 
 ## Order (each step its own commit or commits; run `npm test`, clippy, `check:format`, `check:privacy` and the full e2e suite between steps; stop and report on any failure)
