@@ -91,8 +91,8 @@ Built. One look for every scrolling area in the window; a new scrolling area get
   it never pops in. It is a CSS mask with a second, solid 10 px layer on the right, so the scrollbar never fades.
   `scroll-fade.js` sets `--fade-top` and `--fade-bottom` from one passive scroll listener for the whole window, plus a
   repaint when a tab is drawn, a popup opens or the window resizes. Nothing runs while nobody scrolls.
-- Used on: the tab area (`#pane`), every popup body (`#mBody`, `#uBody`, `#dBody`), the debug logs, and the
-  "Other layouts" list in New layout.
+- Used on: the tab area (`#pane`), every popup body (`#mBody`, `#uBody`, `#dBody`) and the "Other layouts" list in
+  New layout. Not on the debug logs: they are read like a terminal, and a fade would hide the newest line.
 
 ## 8. Header
 
@@ -140,7 +140,8 @@ Built. **One shared popup** (`popup.js`) for everything: the general dialog, Wha
 
 **Release notes** (What's new and the update popup) always use the same five sections, in this order. A section with
 nothing to say is left out. The colour is on the heading and a thin line beside its list; the list text stays normal,
-and the icon and word mean colour is never the only signal. Every release ends with one plain line on what was kept.
+and the icon and word mean colour is never the only signal. Each item has a small drawn dot, as far from the line as
+the text is from the dot. Every release ends with one plain line on what was kept.
 
 | Section | Icon | Token | For |
 |---|---|---|---|
@@ -183,6 +184,18 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 - **Saved as one setting,** `layout.order`: layout ids in order. A built-in layout shows only if it is listed; your own
   always show (a missing one is added at the end). The default is the four above, so nothing needs migrating.
   **Reset all settings** brings back exactly the four defaults; your own layouts are kept.
+
+### Add to OBS (first run)
+
+Designed (AddToObs board). A short three-step card at the top of the Layout tab: Copy OBS link, add a Browser source in
+OBS, paste it and use the size shown (the chosen layout's real size).
+
+- **New installs only.** It shows when the app starts with no settings file yet (neither `settings.json` nor its
+  `.bak`). After an update the file is already there, so it never shows again. No new setting, no timer: one yes/no
+  the app knows when it loads settings.
+- **Close any time** with ✕ (`aria-label` "Close setup steps"), set up or not. Nobody is ever stuck on it.
+- It goes for good once closed, once OBS first connects (after a short "✓ You're all set" line), or once the app
+  restarts. General → Connection has the same steps.
 
 ## 12. Adding more stays one file
 
