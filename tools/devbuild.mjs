@@ -20,6 +20,7 @@ import { cpSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync,
 import { join, dirname, resolve, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { addDevbuildLabel } from './devbuild-title.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const version = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
@@ -149,17 +150,7 @@ try {
   cpSync(join(ROOT, 'ui/settings'), ui, { recursive: true });
   copyFileSync(join(icons, '64x64.png'), join(ui, 'logo.png'));
   const page = join(ui, 'index.html');
-  const html = readFileSync(page, 'utf8');
-  // The formatter may wrap this tag over several lines, so match it whatever the whitespace is.
-  const headerTitle = /<span\s+data-tauri-drag-region\s*>\s*Keystroke Overlay\s*<\/span\s*>/;
-  if (!headerTitle.test(html)) throw new Error('the header markup changed: update tools/devbuild.mjs');
-  writeFileSync(
-    page,
-    html.replace(
-      headerTitle,
-      '<span data-tauri-drag-region>Keystroke Overlay <small style="color:#a78bfa;font-weight:600">devbuild</small></span>',
-    ),
-  );
+  writeFileSync(page, addDevbuildLabel(readFileSync(page, 'utf8')));
 
   // 3. build the installer with those icons and that page
   console.log('> Building the installer (about 5 minutes)');
