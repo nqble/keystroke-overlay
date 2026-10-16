@@ -9,3 +9,5 @@ dist/
 .claude/
 *.tmp
 .DS_Store
+# pictures of what changed in a failed visual test
+tests/visual/diff/

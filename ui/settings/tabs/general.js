@@ -303,7 +303,7 @@ function updatesSection() {
     heading('Program updates'),
     row(
       'Current version',
-      el('b', { textContent: 'v' + appVersion }),
+      el('b', { textContent: 'v' + appVersion, test: 'app-version' }),
       button('View release notes', () => showNotes(appVersion), '', 'update-release-notes'),
     ),
     row('Update channel', channel),
