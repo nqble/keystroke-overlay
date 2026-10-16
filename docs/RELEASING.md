@@ -11,8 +11,9 @@ Releases are signed so the in-app updater can verify them. The signing key never
    Paste the printed **public** key into `src-tauri/tauri.conf.json` → `plugins.updater.pubkey`.
    If the private key is lost, installed copies can never auto-update again; if it leaks, anyone could ship updates.
    `tools/release.mjs` reads it from `~/.keystroke-overlay-keys/updater.key`.
-2. **Stable channel release:** on GitHub create a release tagged `channel-stable`, tick *pre-release* (so it never becomes
-   "latest"), title "Stable channel". It only ever holds `stable.json`.
+2. **Stable channel release** (manual releases only; the Release workflow creates it if it is missing): on GitHub create a
+   release tagged `channel-stable`, tick *pre-release* (so it never becomes "latest"), title "Stable channel". It only ever
+   holds `stable.json`.
 
 ## Versioning rule (decides the channel)
 
@@ -21,7 +22,7 @@ Releases are signed so the in-app updater can verify them. The signing key never
 - **`x.y.0`** (1.2.0, 1.3.0, …) → published to **Stable and Latest**. These are the releases to recommend to everyone.
 - **`x.y.z`, z > 0** (1.2.1, 1.2.2, …) → **Latest only**: quick fixes for people who want them right away.
 - **An important fix for Stable users** (say, a bug in the first Stable release): when you run the Release workflow on a patch version, tick
-  **"Also make this the Stable version"**. The release is then published to Stable too (this is what 1.2.1 did).
+  **"Also make this the Stable version"**. The release is then published to Stable too.
 
 `tools/release.mjs` applies this automatically (it writes `stable.json` only when the version ends in `.0`;
 `--stable` / `--latest-only` override it for a rare exception).
@@ -35,7 +36,8 @@ One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): add th
 
 Each release (or just tell Claude "release v1.2.0": it can start the workflow for you with the GitHub command-line tool, and you only
 have to approve it — from the website or the GitHub phone app):
-1. Raise the version (`src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `package.json`) and add the CHANGELOG entry — Claude can do both.
+1. Raise the version (`package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`;
+   the release reads it from `tauri.conf.json`) and add the CHANGELOG entry — Claude can do both.
 2. GitHub → **Actions → Release → Run workflow** → type the version to confirm → **Run** (or push a tag named `v<version>`).
 3. It checks the version/tag/CHANGELOG match and that the release doesn't already exist, runs `npm test`, builds and signs the
    installer, creates the GitHub release with the CHANGELOG text as the notes, and — for `x.y.0` versions — updates the Stable channel.
@@ -45,7 +47,7 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## Release notes format
 
-Every CHANGELOG entry uses only these sections, in this order, each as a `###` heading. Leave out a section with
+From v1.4.0 (v1.3.0 and earlier used bold lines, which the app still colours), every CHANGELOG entry uses only these sections, in this order, each as a `###` heading. Leave out a section with
 nothing in it. The app colours each one in "What's new" and the update popup, and `tools/changelog-section.mjs` (run by
 the release workflow) refuses an entry with another heading, the wrong order or a section twice.
 
@@ -63,13 +65,15 @@ here.
 
 ## Every release (manual)
 
-1. Raise `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` (same number).
-2. Add an entry to [CHANGELOG.md](../CHANGELOG.md) in the release notes format below.
+1. Raise `version` in the same five files as above (same number).
+2. Add an entry to [CHANGELOG.md](../CHANGELOG.md) in the release notes format above.
 3. `npm test`
 4. Build + sign:
    ```bash
    npm run release -- "short note"              # Stable too, automatically, if the version is x.y.0
    npm run release -- --manual "short note"     # the in-app updater can't apply it; users are sent to GitHub
+   npm run release -- --stable "short note"     # a patch release that Stable users should get too
+   npm run release -- --latest-only "note"     # an x.y.0 that should not go to Stable (rare)
    ```
    Output goes to `release/<version>/` (git-ignored).
 5. On GitHub: Releases → new release tagged `v<version>`; paste the CHANGELOG entry as the description (the in-app

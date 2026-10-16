@@ -12,13 +12,14 @@ Users want a dependable release, and some want every small fix quickly. Updates 
   - **Latest:** `latest.json` on the newest release.
   - **Stable:** `stable.json` on the fixed pre-release named `channel-stable`, replaced only when an `x.y.0` release is promoted.
   - **Exception, on purpose:** an important fix that Stable users must get can be promoted too: tick "Also make this the Stable version"
-    when running the Release workflow (v1.2.1 was released this way).
+    when running the Release workflow.
 - Updates are signed with a private key; the public key is built into the app. A download that does not match is
   rejected and never run.
 - Users choose the channel in General → Program updates (Stable is the default and the recommended choice).
 
 ## Why
-- Tying the channel to the version number makes the rule mechanical: `tools/release.mjs` decides it, nobody has to remember.
+- Tying the channel to the version number makes the rule mechanical: the version number decides it (in `tools/release.mjs`, and in
+  the Release workflow), and the "Also make this the Stable version" tick box is the only override.
 - Hosting everything on GitHub Releases needs no server of our own.
 
 ## Consequences

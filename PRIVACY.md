@@ -54,12 +54,14 @@ to disk and no step that uses the network.
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's normal cache in `%LOCALAPPDATA%`):
 
 - `settings.json` (+ `settings.json.bak`, the previous copy): your style, layout choices, hidden keys, custom labels, port, preferences
+- from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app, so going back
+  a version never loses them
 - `presets/`, `fonts/`, `layouts/`: files you created or added
 - the app's installed files
 
 Nothing in there contains keystrokes. To remove everything: uninstall, then delete that folder.
 
-**Debug mode** (off by default; General → App) adds a developer tab. While it is on, the app keeps a short event log **in memory only** (what the app did, never which keys were pressed), nothing is written to disk, and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
+**Debug mode** (off by default; General → App) adds a developer tab. While it is on, the app keeps a short event log **in memory only** (what the app did, never which keys were pressed), nothing is written to disk (apart from the self-test's empty test file, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## When the app talks to the internet
 
@@ -110,7 +112,9 @@ You do not have to take our word for any of this.
 1. **Read the code.** It is small. These searches in `src-tauri/src/` show everything:
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
-   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts (never the keyboard or server code)
+   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), and the Debug self-test's empty
+     `.write-test` file, created and deleted at once
+     (never the keyboard or server code)
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on
    `127.0.0.1` and nothing else (the process id is in Task Manager). Nothing connects outward until you check for updates.

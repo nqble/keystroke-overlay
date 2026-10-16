@@ -15,7 +15,7 @@ Code conventions (for people and AI sessions alike) are in [CLAUDE.md](CLAUDE.md
 ## Set up
 
 You need **Windows 10/11**, [Rust](https://rustup.rs) (stable, MSVC toolchain + Visual Studio Build Tools),
-and [Node.js](https://nodejs.org) 20+. WebView2 is already part of Windows 11.
+and [Node.js](https://nodejs.org) 20+. WebView2 is already included in current Windows 10 and 11.
 
 **On Linux or macOS?** You can still work on almost everything: the app builds, runs (keys are captured on Linux X11 desktops) and passes
 its tests there. See [docs/CROSS-PLATFORM.md](docs/CROSS-PLATFORM.md) for setup and what works where.
@@ -31,7 +31,7 @@ Useful commands:
 
 | Command | What it does |
 |---|---|
-| `npm test` | Rust unit tests + the privacy check |
+| `npm test` | Rust unit tests, the UI unit tests (`tests/ui/`) and the privacy check |
 | `npm run check:privacy` | Verifies the promises in [PRIVACY.md](PRIVACY.md) |
 | `npm run format` | Formats all the code (Prettier for web files, rustfmt for Rust, 120 columns). Run it before you commit |
 | `npm run check:format` | Checks the formatting without changing anything (CI runs it) |

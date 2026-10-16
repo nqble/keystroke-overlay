@@ -4,8 +4,10 @@ v1.3.0 (free key placement) was released on 2026-10-16. This page tracks the wor
 released until Jordan says so.
 
 ## Already on the `v1.4.0-dev` branch
-Draft release notes for what is done so far, in the format the release check requires (docs/RELEASING.md). The key editor makeover
-adds its own lines under New and Improved when it is built. Do not copy this into CHANGELOG.md until the release is prepared.
+Draft release notes for what is done so far, in the format the release check requires (docs/RELEASING.md). Its groundwork (board geometry, zoom and
+pan, snapping guides, even-grid places) is in, with unit tests, but the editor itself is not built yet; it adds its own lines
+under New and Improved when it is. Before release, measure v1.4.0 against v1.3.0 with `tests/bench/run.mjs` and put the numbers
+in Performance (RELEASING.md requires them). Do not copy this into CHANGELOG.md until the release is prepared.
 
 ```
 ### 🛠 Improved
@@ -21,19 +23,21 @@ adds its own lines under New and Improved when it is built. Do not copy this int
 - **No more failed request for a missing icon** every time the overlay loads in OBS.
 
 ### ⚡ Performance — v1.4.0 vs v1.3.0
+- **Key presses reach OBS sooner:** the local server sends each one at once instead of waiting to bundle it (Nagle's delay off).
 - The Style tab remembers your saved presets instead of asking the app every time, and the Debug tab's code is only loaded when Debug mode is on.
+- (numbers from `tests/bench/run.mjs` to add before release)
 
 ### 🧰 Under the hood
 - The settings window's colours, sizes and spacing live in one list of design tokens, with a picture-by-picture test that catches any accidental change in the look.
-- Type checking for the interface code, a benchmark for key-press delay, and groundwork for building the app on Linux.
+- Type checking for the interface code, a benchmark for key-press delay, and key capture on Linux X11 desktops (for developers; there is no Linux release yet).
 ```
 
 ## Planned for v1.4
 The key editor makeover, designed in [design/key-editor.md](design/key-editor.md): the keyboard first, an inspector on the right,
 zoom and pan, drag handles to make keys wider, and a second layout style (even grid). The saved-data format for sizes and the grid
-style already shipped in 1.3.0, so 1.4 needs no further migration for them. Before it, the UI foundation
-([proposals/ui-foundation.md](proposals/ui-foundation.md)) and the loading plan
-([proposals/loading-and-lifetime.md](proposals/loading-and-lifetime.md)) are built, so the makeover sits on design tokens and shared
+style already shipped in 1.3.0, so 1.4 needs no further migration for them. Before it, the rest of the UI foundation
+([proposals/ui-foundation.md](proposals/ui-foundation.md); hooks, screenshot tests and tokens are done) and of the loading plan
+([proposals/loading-and-lifetime.md](proposals/loading-and-lifetime.md)) is built, so the makeover sits on design tokens and shared
 building blocks.
 
 ## How a release is made

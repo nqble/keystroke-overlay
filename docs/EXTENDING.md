@@ -49,11 +49,19 @@ Animate only `transform` and `opacity`, so the work stays on the graphics card a
 
 ## 4. A setting
 1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus a range or rule in the sanitiser if it has one).
-2. Add a control for it in the settings window (`ui/settings/`).
+2. Add a descriptor for its control to `CONTROLS` in `ui/settings/controls.js`.
 3. Use it in the overlay (`ui/overlay/overlay.js`).
 4. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
    `CURRENT_VERSION` and add a migration ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
 
+## Inside the settings window
+- **A tab:** its file in `ui/settings/tabs/`, a line in `TABS` in `settings.js` and its name in `TAB_NAMES` in `state.js`.
+- **A popup:** `dialog()` in `ui/settings/popups.js` gives you the frame, focus handling and Esc.
+- **A Debug tool:** one entry in `SECTIONS` in `ui/settings/debug.js` ([DEBUGGING.md](DEBUGGING.md)).
+- **Words the user reads:** the `TEXT` block of the file that shows them; shared ones are in `ui/settings/text.js`.
+- **A colour or size:** a design token in the `:root` block at the top of `ui/settings/settings.css`.
+
 ## Before you open a pull request
-`npm test` (unit tests and privacy check), `npm run check:style`, and for anything visible `npm run test:e2e`. See
+`npm test` (Rust and UI unit tests, privacy check), `npm run check:format`, `npm run check:types`, `npm run check:style` and
+clippy with zero warnings; for anything visible also `npm run test:visual` and, where it applies, `npm run test:e2e`. See
 [CONTRIBUTING.md](../CONTRIBUTING.md) and [tests/README.md](../tests/README.md).

@@ -4,7 +4,8 @@
 the issues and labels below are only text until you say "post them". Edit or delete anything you do not like first.
 
 Every issue below is small, touches one to three files, needs no network access, and never stores or logs key presses. Every file
-path mentioned was checked to exist on 2026-10-15 (files an issue asks someone to **create** are marked "(new)").
+path mentioned was checked to exist on 2026-10-15 (files an issue asks someone to **create** are marked "(new)"). Links inside the issue texts are written from the repository root on purpose (they
+are pasted into GitHub, not read from this folder); turn them into full GitHub links when posting.
 
 ## Suggested labels
 

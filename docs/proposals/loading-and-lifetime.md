@@ -1,6 +1,8 @@
-# Plan: loading and lifetime across the app (queued, from the Advisory Session)
+# Plan: loading and lifetime across the app (in progress, from the Advisory Session)
 
-Status: Queued. Not started. Approved by Jordan in the Advisory Session. It applies the ideas of section 9a of
+Status: **In progress** on `v1.4.0-dev` (checked 2026-10-16). Done: A3 for the Debug tab (8d9691e), A2 for presets
+(8d9691e), C8 (no change needed, see docs/CLEANUP.md). Not started: A1, A2 for fonts and layouts, A4, A5, B6, B7.
+Approved by Jordan in the Advisory Session. It applies the ideas of section 9a of
 [../design/key-editor.md](../design/key-editor.md) to the whole app.
 
 Each change is its own commit, with the full tests between them. Benchmark before and after where noted. Stop and report on any
