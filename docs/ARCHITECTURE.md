@@ -9,22 +9,30 @@ loads, and the settings window). No framework, no bundler.
 keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
 ├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
-├── docs/               you are here (ARCHITECTURE, PROTOCOL, FILE-FORMATS, EXTENDING, DEBUGGING, RELEASING, OPEN-SOURCE-GUIDE, CROSS-PLATFORM, LINUX-PORT, MAC-PORT, NEXT-RELEASE; decisions/ explains why things are the way they are; proposals/ holds larger ideas that are not decided yet)
+├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
+│                       design/ holds approved designs; proposals/ holds plans (queued, in progress or just proposed;
+│                       finished ones in proposals/done/); schemas/ holds the JSON schemas for layout and preset files
 ├── assets/             icon source image
-├── tests/              end-to-end suites + runner (see tests/README.md); Rust unit tests live next to the code
-├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes), check-privacy.mjs,
-│                       gen-layouts.mjs, make-icon.ps1
+├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
+│                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
+├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes + their format check),
+│                       check-privacy.mjs, check-style.mjs, gen-layouts.mjs, make-icon.ps1 (the icon source image),
+│                       preview.mjs (the overlay in a browser), devbuild.mjs + devbuild-title.mjs (a test installer),
+│                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app
 │   ├── tauri.conf.json   app + updater configuration
 │   └── src/
-│       ├── main.rs         entry point: starts everything (≈90 lines)
+│       ├── main.rs         entry point: starts everything
 │       ├── keyboard/       key capture: two interchangeable methods feeding one pipeline
 │       │   ├── mod.rs        controller (switch methods live), key bus, dispatcher thread
 │       │   ├── hook.rs       Standard method: Windows low-level keyboard hook (WH_KEYBOARD_LL)
 │       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
-│       │   └── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
+│       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
+│       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
+│       │   └── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
+│       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, validation, backup
 │       ├── state.rs        shared app state + small helpers
 │       ├── window.rs       the settings window (created on demand, destroyed on close)
@@ -32,8 +40,9 @@ keystroke-overlay/
 │       ├── debug.rs        optional Debug mode: in-memory event log, health snapshot, test switches (docs/DEBUGGING.md)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
+│           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart
-│           ├── assets.rs     fonts, presets, opening folders
+│           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
 │           ├── actions.rs    pause / layout / restart wrappers
 │           └── updates.rs    update check + install, release notes, "What's new"
 └── ui/
@@ -42,7 +51,9 @@ keystroke-overlay/
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
     │   └── registry.js, overlay.js, overlay.css, index.html
+    ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
+        ├── index.html     the window's page; settings.css its look (design tokens in its :root); logo.png
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
@@ -60,7 +71,8 @@ keystroke-overlay/
             The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
             drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),
             keys-arrange.js (the movement maths, plain functions with unit tests) and keys-history.js (undo and redo).
-            The approved design for the coming makeover of this tab is in [design/key-editor.md](design/key-editor.md)
+            Built for the coming makeover ([design/key-editor.md](design/key-editor.md)), not used by the tab yet:
+            keys-board.js (board geometry), keys-view.js (zoom and pan) and keys-guides.js (snapping guides), with unit tests.
 ```
 
 ## How a key press travels
@@ -127,10 +139,10 @@ rule (`x.Y.0` = Stable, `x.y.Z` = Latest) and the one-click GitHub release workf
 
 `npm run check:privacy` (also in CI) fails the build if network code appears outside `commands/updates.rs`, a server binds
 anything but `127.0.0.1`, the keyboard/server code writes files, anything logs or prints, or the UI calls an external address.
-`npm test` runs it together with the Rust unit tests (settings migration/validation, key naming and tracking, Raw Input decoding,
+`npm test` runs it together with the Rust unit tests and the JS unit tests in `tests/ui/` (settings migration/validation, key naming and tracking, Raw Input decoding,
 update URLs, release notes). `npm run test:e2e` builds a throwaway copy of the app and drives it for real (settings window, injected
 key presses through both input methods, a signed update download); it cleans up after itself — see [tests/README.md](../tests/README.md).
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` ([LINUX-PORT.md](LINUX-PORT.md)); for macOS, see [MAC-PORT.md](MAC-PORT.md).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs`, in development and in no release yet ([LINUX-PORT.md](LINUX-PORT.md)); for macOS, see [MAC-PORT.md](MAC-PORT.md).
