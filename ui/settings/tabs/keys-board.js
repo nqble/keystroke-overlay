@@ -15,8 +15,11 @@ export const BOARD_MARGIN_H = 6;
 export const BOARD_MIN_W = 24;
 export const BOARD_MIN_H = 12;
 
-/** A key can't be narrower than this (or than its own width in the layout file, if that is smaller). */
-export const MIN_KEY_WIDTH = 1;
+/**
+ * Dragging a resize handle can't make a key narrower than this (or than its own width in the layout file, if that is
+ * smaller). Not the same as profiles.js MIN_KEY_WIDTH, which is the hard limit for hand-edited settings files.
+ */
+export const MIN_RESIZE_WIDTH = 1;
 
 /** The gap "Close gaps" leaves between groups of keys, in keys. Even grid closes gaps completely. */
 export const CLOSED_GAP = 0.25;
@@ -47,6 +50,19 @@ export function boardSize(layoutBoxes, placedBoxes = []) {
   };
 }
 
+/**
+ * A layout's keys as boxes in Even grid style: every key 1 wide, placed at the column and row the app worked out
+ * (`layout.grid`, from src-tauri/src/grid.rs, so the editor and the overlay always agree). A key missing from
+ * `layout.grid` keeps its layout-file place.
+ */
+export function evenGridBoxes(layout) {
+  const grid = layout.grid ?? {};
+  return layout.keys.map((key) => {
+    const place = grid[key.code] ?? { x: key.x, y: key.y };
+    return { code: key.code, x: place.x, y: place.y, w: 1, h: key.h ?? 1 };
+  });
+}
+
 /** The board as an area for clampMove (keys-arrange.js): { minX, minY, maxX, maxY }. */
 export const boardArea = (board) => ({ minX: 0, minY: 0, maxX: board.w, maxY: board.h });
 
@@ -72,8 +88,8 @@ export function clampToBoard(box, board) {
  * The widths a key may take when dragged by one side ('left' or 'right'): { min, max }. The opposite edge stays put, so
  * growing to the right stops at the board's right edge and growing to the left stops at its left edge.
  */
-export function resizeLimits(box, side, board, layoutWidth = MIN_KEY_WIDTH) {
-  const min = Math.min(MIN_KEY_WIDTH, layoutWidth);
+export function resizeLimits(box, side, board, layoutWidth = MIN_RESIZE_WIDTH) {
+  const min = Math.min(MIN_RESIZE_WIDTH, layoutWidth);
   const max = side === 'right' ? board.w - box.x : box.x + box.w;
   return { min, max: Math.max(min, max) };
 }
@@ -82,7 +98,7 @@ export function resizeLimits(box, side, board, layoutWidth = MIN_KEY_WIDTH) {
  * Resize a key by dragging one side by `delta` keys. Snaps the width to `step` (0 = no snapping) and keeps it within
  * resizeLimits. Returns the key's new { x, w }.
  */
-export function resizeBox(box, side, delta, board, step, layoutWidth = MIN_KEY_WIDTH) {
+export function resizeBox(box, side, delta, board, step, layoutWidth = MIN_RESIZE_WIDTH) {
   const limits = resizeLimits(box, side, board, layoutWidth);
   const grow = side === 'right' ? delta : -delta;
   const wished = box.w + grow;

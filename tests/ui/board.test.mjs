@@ -9,6 +9,7 @@ import {
   centreOffset,
   clampToBoard,
   closeGapsPositions,
+  evenGridBoxes,
   overlappingCodes,
   resizeBox,
   resizeLimits,
@@ -110,4 +111,25 @@ test('close gaps keeps the keyboard shape when nothing needs closing', () => {
 
 test('close gaps with no keys does nothing', () => {
   assert.deepEqual(closeGapsPositions([], BOARD), {});
+});
+
+test('evenGridBoxes uses the places the app worked out, every key 1 wide', () => {
+  const layout = {
+    keys: [
+      { code: 'Tab', x: 0, y: 1, w: 1.5 },
+      { code: 'KeyQ', x: 1.5, y: 1 },
+      { code: 'Space', x: 3.75, y: 4, w: 6.25 },
+    ],
+    grid: { Tab: { x: 0, y: 0 }, KeyQ: { x: 1, y: 0 }, Space: { x: 0, y: 1 } },
+  };
+  assert.deepEqual(evenGridBoxes(layout), [
+    { code: 'Tab', x: 0, y: 0, w: 1, h: 1 },
+    { code: 'KeyQ', x: 1, y: 0, w: 1, h: 1 },
+    { code: 'Space', x: 0, y: 1, w: 1, h: 1 },
+  ]);
+});
+
+test('evenGridBoxes keeps a key missing from layout.grid in its layout-file place', () => {
+  const layout = { keys: [{ code: 'KeyW', x: 2, y: 3 }] };
+  assert.deepEqual(evenGridBoxes(layout), [{ code: 'KeyW', x: 2, y: 3, w: 1, h: 1 }]);
 });
