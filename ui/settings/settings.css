@@ -942,11 +942,30 @@ button:disabled:hover {
 #uBody h4.notes-section {
   color: var(--notes-color);
 }
+/* Drawn dots instead of the browser's bullets, so the gap from the line to the dot equals the gap from the dot to the
+   text (both --space-10); the browser places its own bullets wherever the font puts them. */
 #mBody ul.notes-section,
 #uBody ul.notes-section {
   border-left: 2px solid var(--notes-color);
-  padding-left: var(--space-20);
+  padding-left: var(--space-10);
   margin-left: var(--space-2);
+  list-style: none;
+}
+#mBody ul.notes-section li,
+#uBody ul.notes-section li {
+  position: relative;
+  padding-left: calc(var(--space-5) + var(--space-10)); /* the dot, then the same gap */
+}
+#mBody ul.notes-section li::before,
+#uBody ul.notes-section li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.68em; /* the middle of the first line at the body's 1.55 line height */
+  width: var(--space-5);
+  height: var(--space-5);
+  border-radius: 50%;
+  background: var(--color-text);
 }
 #uBody p {
   margin: var(--space-6) 0;
