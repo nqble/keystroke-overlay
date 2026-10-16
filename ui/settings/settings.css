@@ -1029,3 +1029,8 @@ label.inline {
     0 0 0 4px var(--panel),
     0 0 0 6px var(--text);
 }
+.keyhint {
+  margin: -8px 0 6px;
+  color: var(--dim);
+  font-size: 12px;
+}

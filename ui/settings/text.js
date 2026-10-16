@@ -28,6 +28,9 @@ export const TEXT = {
     '(or Ctrl-click keys one by one), then drag any of them or use the arrows. Disabled keys are hidden in the ' +
     'overlay. Changes are saved automatically for each layout.',
   nothingSelected: 'No keys selected',
+  shortcutsHint:
+    'Shortcuts: arrow keys nudge · Shift = a whole key · Delete hides · Ctrl+Z undo · Ctrl+Shift+Z redo · ' +
+    'Ctrl+A select all · Esc clear',
   noKeysMoved: 'No keys moved from the layout file',
   snapMenuHelp:
     'How far a key jumps while you drag it or use the arrow buttons. Off lets you place a key anywhere. ' +

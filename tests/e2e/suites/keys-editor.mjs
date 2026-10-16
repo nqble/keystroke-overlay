@@ -572,6 +572,51 @@ check(
 await clickButton(byTest('key-clear-selection'));
 await sleep(300);
 
+// ---- keyboard shortcuts (Delete, Ctrl+Z, Ctrl+Shift+Z, Ctrl+Y, Ctrl+A, Esc)
+const press = (key, extra = '', target = 'document.body') =>
+  p.ev(
+    `${target}.dispatchEvent(new KeyboardEvent('keydown', { key: '${key}', bubbles: true, cancelable: true${extra} }))`,
+  );
+const hiddenKeys = async () => (await profile(id)).disabledKeys ?? [];
+check(
+  'the hint line lists the shortcuts',
+  /Delete/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)) &&
+    /Ctrl\+Shift\+Z/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)),
+);
+await clickKey('KeyD');
+await sleep(400);
+await press('Delete');
+await sleep(600);
+check('Delete hides the selected key', (await hiddenKeys()).includes('KeyD'));
+await press('z', ', ctrlKey: true');
+await sleep(600);
+check('Ctrl+Z undoes it', !(await hiddenKeys()).includes('KeyD'));
+await press('Z', ', ctrlKey: true, shiftKey: true');
+await sleep(600);
+check('Ctrl+Shift+Z redoes it', (await hiddenKeys()).includes('KeyD'));
+await press('z', ', ctrlKey: true');
+await sleep(600);
+await press('y', ', ctrlKey: true');
+await sleep(600);
+check('Ctrl+Y also redoes', (await hiddenKeys()).includes('KeyD'));
+await press('z', ', ctrlKey: true');
+await sleep(600);
+check('...and Ctrl+Z puts it back for the rest of the suite', !(await hiddenKeys()).includes('KeyD'));
+await clickKey('KeyD');
+await sleep(400);
+await press('Delete', '', `document.querySelector('${byTest('key-label')}')`);
+await sleep(500);
+check('shortcuts are ignored while typing in the label field', !(await hiddenKeys()).includes('KeyD'));
+await press('a', ', ctrlKey: true');
+await sleep(500);
+check(
+  'Ctrl+A selects every key',
+  (await selectedCodes()).length === (await p.q(`document.querySelectorAll('${byTest('key-cell')}').length`)),
+);
+await press('Escape');
+await sleep(500);
+check('Esc clears the selection', (await selectedCodes()).length === 0);
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {

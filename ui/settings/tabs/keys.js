@@ -20,8 +20,8 @@ import {
 import { render } from '../settings.js';
 import { observe } from './keys-history.js';
 import { keyboardMap } from './keys-map.js';
-import { nudgeSelection, selectionTools } from './keys-toolbar.js';
-import { settings, selectedKey, selectedKeys, setSelectedKey, tab } from '../state.js';
+import { hideSelection, nudgeSelection, redoLastChange, selectionTools, undoLastChange } from './keys-toolbar.js';
+import { settings, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
 import { TEXT } from '../text.js';
 
 // ---- Keys: show / hide keys and rename them -----------------------------------------------------------------------
@@ -32,28 +32,57 @@ export function keysTab() {
   observe(layout.id, profileSnapshot(layout.id)); // undo / redo: notice what changed since the last draw
   const profile = viewProf();
   page.append(heading('Keys — ' + layout.name), note(TEXT.keysTabHelp));
-  page.append(selectionTools(layout), keyboardMap(layout, profile), statusLine(layout, profile), keyButtons(layout));
+  page.append(
+    selectionTools(layout),
+    keyboardMap(layout, profile),
+    el('p', { className: 'keyhint', textContent: TEXT.shortcutsHint, test: 'keys-shortcut-hint' }),
+    statusLine(layout, profile),
+    keyButtons(layout),
+  );
   const selected = selectedKey && layout.keys.find((k) => k.code === selectedKey);
   if (selected) page.append(keyEditor(selected, profile));
   else if (selectedKeys.size > 1) page.append(groupEditor(layout, profile));
   return page;
 }
 
-// Arrow keys nudge the selection (Shift = a whole key). Ignored while typing in a field or while a popup is open.
+/** True while a popup is open or the cursor is in a field you type into (shortcuts must not steal those keys). */
+function shortcutsBlocked(keyEvent) {
+  const typingField = keyEvent.target.closest?.(
+    'input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable]',
+  );
+  return !!typingField || !$('#dlg').hidden || !$('#modal').hidden || !$('#updModal').hidden;
+}
+
+/**
+ * Keyboard shortcuts for the Keys tab (only while it is open, and never while typing or while a popup is open):
+ * arrow keys nudge the selection (Shift = a whole key), Delete or Backspace hide it, Ctrl+Z undoes, Ctrl+Shift+Z or
+ * Ctrl+Y redoes, Ctrl+A selects every key and Esc clears the selection.
+ */
 addEventListener('keydown', (keyEvent) => {
-  if (tab !== 'keys' || !selectedKeys.size || !keyEvent.key.startsWith('Arrow')) return;
-  const typingOrPopup =
-    keyEvent.target.closest?.('input, select, textarea, button') ||
-    !$('#dlg').hidden ||
-    !$('#modal').hidden ||
-    !$('#updModal').hidden;
   const layout = curLayout();
-  if (typingOrPopup || !layout) return;
+  if (tab !== 'keys' || !layout || shortcutsBlocked(keyEvent)) return;
+  const withCtrl = keyEvent.ctrlKey || keyEvent.metaKey;
+  const key = keyEvent.key.toLowerCase();
+  const onControl = keyEvent.target.closest?.('input, select, textarea, button');
+  const hasSelection = selectedKeys.size > 0;
+
+  if (withCtrl && key === 'z') (keyEvent.shiftKey ? redoLastChange : undoLastChange)(layout);
+  else if (withCtrl && key === 'y') redoLastChange(layout);
+  else if (withCtrl && key === 'a') {
+    setSelectedKeys(layout.keys.map((layoutKey) => layoutKey.code));
+    render();
+  } else if (!withCtrl && (key === 'delete' || key === 'backspace') && hasSelection && !onControl)
+    hideSelection(layout);
+  else if (key === 'escape' && hasSelection) {
+    setSelectedKey(null);
+    render();
+  } else if (key.startsWith('arrow') && hasSelection && !onControl) {
+    const step = keyEvent.shiftKey ? 1 : nudgeStep();
+    const dx = { arrowleft: -1, arrowright: 1 }[key] ?? 0;
+    const dy = { arrowup: -1, arrowdown: 1 }[key] ?? 0;
+    nudgeSelection(layout, dx * step, dy * step);
+  } else return;
   keyEvent.preventDefault();
-  const step = keyEvent.shiftKey ? 1 : nudgeStep();
-  const dx = { ArrowLeft: -1, ArrowRight: 1 }[keyEvent.key] ?? 0;
-  const dy = { ArrowUp: -1, ArrowDown: 1 }[keyEvent.key] ?? 0;
-  nudgeSelection(layout, dx * step, dy * step);
 });
 
 /** One line under the picture: where the selected key is (when exactly one is selected), and how many keys are moved. */

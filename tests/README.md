@@ -102,6 +102,7 @@ Rules:
 | `key-undo`, `key-redo` | History buttons |
 | `key-snap`, `key-grid` | The Snap menu and the Show grid tickbox |
 | `key-status`, `key-readout` | The line under the picture, the position label shown while dragging |
+| `keys-shortcut-hint` | The one-line list of keyboard shortcuts under the picture |
 | `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the picture |
 | `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back` | The editor under the picture (one key or several) |
 | `style-theme`, `preset-select`, `preset-load`, `preset-delete`, `preset-name`, `preset-save` | Themes and presets in the Style tab |
