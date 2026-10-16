@@ -97,11 +97,11 @@ Built. One look for every scrolling area in the window; a new scrolling area get
 ## 8. Header
 
 Built. Left to right: the logo and name (with the **DEV** badge on a devbuild), the **OBS status**, **Copy OBS link**
-(only when needed), the **Update ready** chip (only when an update is ready), and the window buttons (drawn icons).
+(always), the **Update ready** chip (only when an update is ready), and the window buttons (drawn icons).
 
 - **No link box in the header.** It stays clean. The OBS link box lives only in General → Connection (hidden like a
-  password while the secure link is on). The header shows only the **Copy OBS link** button, when the link needs
-  copying.
+  password while the secure link is on). The header shows only the **Copy OBS link** button, always, so the link
+  is one click away on every tab.
 - **OBS status** (`obs-status.js`) is a button that opens General. It uses only the number of overlays connected to
   the local server (the live preview isn't counted). The first state that applies wins:
 

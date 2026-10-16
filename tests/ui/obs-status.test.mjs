@@ -1,7 +1,8 @@
 // Unit tests for the header's OBS status (ui/settings/obs-status.js). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { obsStatus, obsStatusDetail, showCopyLink } from '../../ui/settings/obs-status.js';
+import { readFileSync } from 'node:fs';
+import { obsStatus, obsStatusDetail } from '../../ui/settings/obs-status.js';
 
 test('live when OBS is connected and not paused', () => {
   assert.deepEqual(obsStatus({ paused: false, overlays: 1 }), { kind: 'live', text: '● Live in OBS' });
@@ -40,9 +41,8 @@ test('debug detail gives the exact count', () => {
   assert.equal(obsStatusDetail(true, 2), '2 overlay clients · paused: yes');
 });
 
-test('Copy OBS link shows only when it helps', () => {
-  assert.equal(showCopyLink({ overlays: 0 }), true);
-  assert.equal(showCopyLink({ overlays: 1 }), false);
-  assert.equal(showCopyLink({ overlays: 1, linkChanged: true }), true);
-  assert.equal(showCopyLink({ overlays: 0, serverError: 'Port 7878 is already in use' }), false);
+test('Copy OBS link is always in the header (ui-design-v2.md, Header)', () => {
+  const page = readFileSync(new URL('../../ui/settings/index.html', import.meta.url), 'utf8');
+  const copyButton = page.match(/<button id="copyUrl"[^>]*>/)[0];
+  assert.doesNotMatch(copyButton, /\shidden\b/);
 });

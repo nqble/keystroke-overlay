@@ -94,7 +94,7 @@ Rules:
 | Hook | What it is |
 |---|---|
 | `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge |
-| `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS link button (shown only when OBS isn't connected or the link changed) |
+| `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS link button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
 | `preview-frame` | The live preview frame |
