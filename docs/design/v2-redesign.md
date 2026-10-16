@@ -23,6 +23,11 @@ palette). Change how each tab is organised and how its controls work.
   Stable | Latest, Input method Standard | Compatibility.
 - **Reset ▾ menus** per tab where resetting makes sense, worded like the editor's.
 - **Plain language by default; technical detail in Debug mode** (see below).
+- **One set of states for everything you can click** (buttons, tabs, segmented switches, switches, menus, cards, the
+  pause button): rest → **hover** (a step lighter) → **pressed and held** (a step darker and 3% smaller, cards 1.5%) →
+  release springs back in 80 ms. Blue buttons: hover #4677e0, held #2f5cb8; plain buttons: held #181b23. Colours change
+  instantly; only `transform` animates. Keyboard focus shows the blue ring. Dragging keys in the editor is the exception:
+  a held key doesn't shrink, so it stays under the pointer.
 
 ## Per tab
 
