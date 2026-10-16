@@ -74,7 +74,7 @@ hover ends.
 
 | Tab | v2.0 |
 |---|---|
-| **Layout** | Cards show a **mini picture of the layout's shape**, a clear selected ring, and a **"⋯" menu** (rename, duplicate, export, delete) that works with the keyboard. "+" stays the first card. Import lives in the "+" card's menu. |
+| **Layout** | Cards show a **mini picture of the layout's shape**, a clear selected ring, and a **"⋯" menu** (Move left, Move right, Rename, Duplicate, Export; **Hide** for a built-in layout, **Delete…** for your own) that works with the keyboard. **Drag any card to reorder**, built-in and your own mixed; Alt+← / Alt+→ moves the focused card. The "+ New layout" card is always last. See "Layouts: order, hiding and ready-made layouts" below. |
 | **Keys** | The key editor makeover ([key-editor.md](key-editor.md)). |
 | **Style** | A **theme gallery** (clickable swatch cards). **My presets as cards** with a "Save current look" card. Controls in short sections: Colors (inline swatches), Shape, Text (font picker with **Add font file…** and **Your fonts**), Size; sliders show their value. **Reset ▾**. |
 | **Animation** | A **gallery of animation cards** (Animation board) that demo only while hovered or focused, then Speed, Strength (only for the animations that use it) and Easing as a segmented choice. |
@@ -102,6 +102,24 @@ step:
 
 So a seventh animation is still: add one file to `ui/overlay/animations/`, and it appears in the gallery with a working
 demo. docs/EXTENDING.md gets the two optional fields when the gallery is built.
+
+## Layouts: order, hiding and ready-made layouts
+
+Approved by Jordan (Layout board on the canvas):
+
+- **First install shows four built-in layouts:** Full size, TKL, Gameplay (left hand), WASD.
+- **More built-in layouts wait in a library** inside the New layout popup: 96%, 75%, 65%, 60%, Arrows, Numpad, Full size
+  (ISO) and TKL (ISO). Under the name box, a darker underlined text line, **"▸ Ready-made layouts (N)"**, collapsed by
+  default, expands the list; **Add** puts one at the end of the tab. Built-in layouts never count toward the 20.
+- **Hide** (built-in) sends a layout back to that library; **Delete…** (your own) removes it for good. The last layout
+  can't be removed; removing the one in use selects the first card.
+- **Order** is yours: drag, the ⋯ menu, or Alt+arrows. The tray's Layout menu uses the same order.
+- **Reset all settings** brings back exactly the four defaults in their order. Your own layouts are kept, as today.
+- **Saved as one setting:** `layout.order`, the list of layout ids in order. A built-in layout shows only if it is in the
+  list; your own layouts always show (a missing one is added at the end). The default is the four above, so existing
+  users see no change and nothing needs migrating.
+- **Adding a built-in layout** stays one file in `ui/overlay/layouts/` plus its place in the library list (CLAUDE.md,
+  principle 4); a unit test checks every library id has a file.
 
 ## Plain language, with detail in Debug mode
 

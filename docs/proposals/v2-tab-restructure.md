@@ -38,7 +38,11 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 7. **feat: General in section cards**, OBS link card, Advanced.
 8. **feat: Style with Fonts merged in**, theme gallery, preset cards. The Fonts tab is removed (nothing opens it by
    name today, so no redirect is needed).
-9. **feat: Layout cards** with mini pictures and the "⋯" menu (if v1.4's step 4b hasn't already).
+9. **feat: Layout cards** with mini pictures and the "⋯" menu, drag to reorder, Hide for built-in layouts, and the
+   ready-made library in New layout (v2-redesign.md, "Layouts: order, hiding and ready-made layouts"). The new
+   `layout.order` setting gets its default in `settings.rs`, a sanitizer rule (known ids only, no duplicates) and tests,
+   and Reset restores it. The eight new layout files (96%, 75%, 65%, 60%, Arrows, Numpad, Full ISO, TKL ISO) come first,
+   each with the existing layout tests.
 10. **feat: Animation gallery** (each card demos with the animation's own file; see v2-redesign.md, Adding more stays one
     file).
 11. **feat: the key editor makeover** (`docs/design/key-editor.md`).
@@ -47,4 +51,5 @@ Steps 1–4 can run on `advisor/v2.0` before the lifecycle lands, because they d
 
 ## Settings
 
-No setting changes shape, so no migration is needed.
+One setting is added (`layout.order`, step 9). It is additive with a default, so no migration is needed; nothing
+changes shape.
