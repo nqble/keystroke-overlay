@@ -1,0 +1,16 @@
+{
+  "//": "Type checking for the plain-JavaScript UI, with no build step: `npm run check:types` (also in CI), and editors such as VS Code use this file to underline mistakes while you type. Loose mode for now: it catches misspelled names and wrong calls without requiring type annotations. See CONTRIBUTING.md.",
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": false,
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "baseUrl": ".",
+    "paths": { "/overlay/*": ["./ui/overlay/*"] }
+  },
+  "include": ["ui/**/*.js", "ui/globals.d.ts"]
+}

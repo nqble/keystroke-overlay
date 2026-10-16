@@ -51,7 +51,7 @@ export function keysTab() {
 
 /** True while a popup is open or the cursor is in a field you type into (shortcuts must not steal those keys). */
 function shortcutsBlocked(keyEvent) {
-  const typingField = keyEvent.target.closest?.(
+  const typingField = /** @type {Element} */ (keyEvent.target).closest?.(
     'input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable]',
   );
   return !!typingField || !$('#dlg').hidden || !$('#modal').hidden || !$('#updModal').hidden;
@@ -67,7 +67,7 @@ addEventListener('keydown', (keyEvent) => {
   if (tab !== 'keys' || !layout || shortcutsBlocked(keyEvent)) return;
   const withCtrl = keyEvent.ctrlKey || keyEvent.metaKey;
   const key = keyEvent.key.toLowerCase();
-  const onControl = keyEvent.target.closest?.('input, select, textarea, button');
+  const onControl = /** @type {Element} */ (keyEvent.target).closest?.('input, select, textarea, button');
   const hasSelection = selectedKeys.size > 0;
 
   if (withCtrl && key === 'z') (keyEvent.shiftKey ? redoLastChange : undoLastChange)(layout);

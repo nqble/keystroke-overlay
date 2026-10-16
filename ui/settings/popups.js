@@ -255,7 +255,7 @@ function typeIn(root) {
       typed = document.createTextNode(''),
       rest = el('span', { textContent: full });
     rest.style.visibility = 'hidden';
-    node.replaceWith(typed, rest);
+    /** @type {ChildNode} */ (node).replaceWith(typed, rest);
     return { full, typed, rest, done: 0 };
   });
   const total = parts.reduce((sum, p) => sum + p.full.length, 0);

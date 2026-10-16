@@ -41,14 +41,17 @@ export const button = (text, onclick, className = '', test = '') =>
 export const row = (label, ...controls) =>
   el('div', { className: 'row' }, el('label', { textContent: label }), el('div', { className: 'ctl' }, controls));
 
+// The timer that hides the current toast, so a new message restarts it.
+let toastTimer = 0;
+
 /** A small message at the bottom of the window. */
 export function toast(message, isError = false) {
   const toastElement = $('#toast');
   toastElement.textContent = message;
   toastElement.className = isError ? 'err' : '';
   toastElement.hidden = false;
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => {
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
     toastElement.hidden = true;
   }, 2600);
 }

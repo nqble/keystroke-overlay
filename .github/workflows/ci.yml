@@ -29,6 +29,8 @@ jobs:
         run: npm run check:format
       - name: Code style (tabs, trailing spaces, final newline)
         run: npm run check:style
+      - name: JavaScript types (loose; see jsconfig.json)
+        run: npm run check:types
       - name: JavaScript syntax
         shell: bash
         run: for f in ui/overlay/*.js ui/overlay/*/*.js ui/settings/*.js tools/*.mjs; do node --check "$f"; done
@@ -69,6 +71,8 @@ jobs:
         run: npm run check:privacy
       - name: UI unit tests
         run: npm run test:ui
+      - name: JavaScript types (loose; see jsconfig.json)
+        run: npm run check:types
       - name: Rust lints (clippy, warnings are errors)
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
       - name: Rust tests
