@@ -4,7 +4,7 @@ All notable changes. Newest first.
 
 ## v1.3.0 — free key placement
 
-**✨ New**
+### ✨ New
 - **Place keys anywhere.** In the Keys tab, drag any key to a new spot, for every layout (including the built-in ones). The live preview and OBS follow straight away, and the overlay window shrinks to fit a compact layout. **Reset positions** puts everything back.
 - **Work with several keys at once.** Drag a box around keys (or Ctrl-click them), then move them together, nudge them with the arrow buttons, **align** them (left, centre, right, top, middle, bottom) or **space them evenly** across or down.
 - **Undo and Redo** for every change to a layout's keys (moves, aligns, hidden keys, labels), up to 50 steps.
@@ -14,30 +14,23 @@ All notable changes. Newest first.
 - **Easier to use without a mouse:** every key on the picture can be reached with Tab and selected with Enter, with clear focus outlines and spoken names for screen readers.
 - **Overlap warning:** keys that sit on top of each other get a red outline.
 
-**⚡ Performance — v1.3.0 vs v1.2.1**
+### ⚡ Performance — v1.3.0 vs v1.2.1
 - No slowdown: opens in about the same time (487 ms), 0% CPU at idle, the same 9 background threads, the same idle memory (3 MB) and settings-window memory (about 194 MB).
 
-**🧰 Under the hood**
+### 🧰 Under the hood
 - Your saved key edits move to a new, roomier format (it also prepares for resizing keys and a new layout style in a later version). Your existing settings are converted automatically, and nothing is lost.
 - The settings window's code is split into small files and formatted automatically, and there are many more tests.
 - Updated the Windows library the keyboard capture is built on, and the build tools used by the project's automatic checks.
 
-Your settings, presets and fonts are kept.
 
 ## v1.2.1 — the "preview keeps up" fix
 
-**🐛 Fixed**
+### 🐛 Fixed
 - **The live preview now keeps up with your custom layouts.** Make a layout, hide some keys, and the preview updates the moment you do. Before, it kept drawing a built-in layout until you closed and reopened the window, and OBS had the same blind spot until you refreshed the source. Creating, deleting or importing a layout now refreshes the overlay straight away, and the overlay re-checks by itself if it ever meets a layout it doesn't know.
 
 ## v1.2.0 — the first Stable release
 
-**⚡ Performance — v1.2.0 vs v1.1.2**
-- **18% faster** to open (436 ms vs 533 ms)
-- **61% fewer** background threads (9 vs 23)
-- **24% less** idle memory (2.9 MB vs 3.8 MB)
-- **11% less** memory with the settings window open (342 MB vs 385 MB)
-
-**✨ New**
+### ✨ New
 - **Make your own layouts:** click the dashed **+** card in the Layout tab, name it, and it starts as the full-size keyboard. Then hide the keys you don't want in the Keys tab. You can have up to 20 (a counter shows how many you've used). Right-click a layout you made to delete it.
 - **Share layouts:** Layout tab → **Export layouts** saves everything you made (with your hidden keys and labels) to one file, and **Import layouts** adds layouts from a file a friend sent you. Bad or oversized files are cleaned up or skipped, never trusted.
 - **Reset all settings:** General → App → **Reset all settings…** puts every option back to its default after one confirmation. Your layouts, presets, fonts and port are kept.
@@ -51,7 +44,7 @@ Your settings, presets and fonts are kept.
 - **Automatic update check:** on by default, one click to turn off. It only peeks at GitHub, about once an hour while the app runs.
 - **Sliders go all the way to zero:** opacity, animation intensity and font size can hit 0 on purpose (no border, no movement, no text. Your call).
 
-**🛠 Improved**
+### 🛠 Improved
 - **Instant, dark startup:** the settings window used to flash white like a camera. Now it opens dark, and the controls are drawn and usable in under half a second.
 - **Logo in the header:** the program's icon now sits next to its name.
 - **Keys tab fits:** the whole keyboard now scales to the window, so there's no scrolling inside the box.
@@ -68,36 +61,42 @@ Your settings, presets and fonts are kept.
 - **Tidier popups:** long release notes now scroll inside the popup, with breathing room around the text.
 - **Fewer web requests:** the overlay now gets new settings in the same message that announces them, instead of going back to ask.
 
-**🐛 Fixed**
+### 🐛 Fixed
 - **Keys didn't show while the settings window was in front:** the preview (and OBS) went blind whenever you clicked the app. Fixed. Keys light up whether or not the window has focus.
 - **Stuck-key check** now only looks at the keys you're actually holding, instead of scanning every possible key on every press.
 - **Pause key** no longer shares a slot with Ctrl, so holding Ctrl can't swallow it.
 
+### ⚡ Performance — v1.2.0 vs v1.1.2
+- **18% faster** to open (436 ms vs 533 ms)
+- **61% fewer** background threads (9 vs 23)
+- **24% less** idle memory (2.9 MB vs 3.8 MB)
+- **11% less** memory with the settings window open (342 MB vs 385 MB)
+
 ## v1.1.2 — the "quick actions" update
 
-**✨ New**
+### ✨ New
 - **Tray quick actions:** right-click the tray icon to **pause the overlay** (handy when typing a password on stream), **switch layout**, or **restart the server**.
 - **Per-layout key edits:** hidden keys and custom labels are now saved separately for each layout. Switch away and back and your edits are still there.
 - **Revert to Default:** one button in the Keys tab undoes your edits for the current layout (it asks you to click twice, so no accidents).
 - **Update progress bar:** watch the download instead of wondering.
 - **What's new window:** after an update, the release notes pop up once. Click **OK** and carry on.
 
-**🛠 Improved**
+### 🛠 Improved
 - **Version and release notes** now live in General → Program updates.
 
-**🐛 Fixed**
+### 🐛 Fixed
 - **Settings backup:** if the settings file ever gets corrupted, the app restores the last good copy by itself.
 - **Port already in use:** you now get a clear message and the settings window opens, instead of a silently dead overlay.
 - **Instant saving:** toggles save immediately, and anything pending is saved before an update.
 
 ## v1.1.1 — the tiny update with a job
 
-**✨ New**
+### ✨ New
 - **Version number** in the settings header. Small, but it proved in-app updating works.
 
 ## v1.1.0 — the "updates come to you" update
 
-**✨ New**
+### ✨ New
 - **In-app updates:** General → Program updates checks GitHub, downloads, verifies and installs. Updates that can't be done in-app point you to the installer instead.
 - **TSB layout:** a compact four-number-plus-WASD layout.
 - **Tray app with a keystroke overlay for OBS:** global keyboard hook, transparent overlay at `http://localhost:7878/`, staggered real-keyboard layouts, live-editable styles, animations (press down, glow, fade, bounce, scale), custom fonts, presets, and a settings window that vanishes completely when closed.
