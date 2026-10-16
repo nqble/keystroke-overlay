@@ -86,7 +86,7 @@ sessions can open it directly:
 | `?state=live` (default) / `off` | OBS connected / not connected |
 | `?state=paused` / `paused-no-obs` | paused, with and without OBS |
 | `?state=port-in-use` | the server could not start |
-| `?state=update` / `whats-new` | the update button and popup / the What's new popup |
+| `?state=update` / `whats-new` / `whats-new-long` | the update button and popup / the What's new popup / with notes long enough to scroll |
 | `?tab=debug` | Debug mode on, Debug tab open (any tab name works) |
 
 In the browser console, `__sandbox.emit('overlays-changed', 0)` sends an app message, and `__sandbox.copied` holds the

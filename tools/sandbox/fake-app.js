@@ -3,7 +3,7 @@
 // browser: no Windows, no build, no keyboard hook. Nothing is saved; reloading starts fresh.
 //
 // Pick what to show with the address (several can be combined with &):
-//   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new
+//   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new | whats-new-long
 //   ?tab=layout | keys | style | animation | fonts | general | debug     (debug also turns Debug mode on)
 // Add a state: a line in STATES below, and a line in the list above.
 // Tests and Claude sessions can call window.__sandbox.emit('event-name', payload) to send an app message.
@@ -21,11 +21,15 @@
     'port-in-use': { overlays: 0, serverError: 'Port 7878 is already in use by another program' },
     update: { overlays: 1, update: true },
     'whats-new': { overlays: 1, whatsNew: true },
+    'whats-new-long': { overlays: 1, whatsNew: true, longNotes: true },
   };
   const chosen = STATES[stateName] ?? STATES.live;
 
   const NOTES =
     '### ✨ New\n- **Sandbox notes:** made up for the UI sandbox.\n\n### 🐛 Fixed\n- Nothing real was fixed here.';
+  // Long enough to need scrolling, to check the popup's size rule.
+  const LONG_NOTES = Array.from({ length: 30 }, (_, i) => `- Sandbox line ${i + 1}: made up, to fill the popup.`);
+  const SHOWN_NOTES = chosen.longNotes ? `### ✨ New\n${LONG_NOTES.join('\n')}` : NOTES;
   const UPDATE = {
     available: true,
     version: '9.9.0',
@@ -82,7 +86,7 @@
       paused = !paused;
       return paused;
     },
-    get_release_notes: () => ({ body: NOTES }),
+    get_release_notes: () => ({ body: SHOWN_NOTES }),
     auto_check_update: () => (chosen.update ? UPDATE : NO_UPDATE),
     check_update: () => (chosen.update ? UPDATE : NO_UPDATE),
     debug_info: () => ({
