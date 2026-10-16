@@ -1,0 +1,14 @@
+# Same line endings for everyone, whatever system they work on (see .editorconfig).
+* text=auto eol=lf
+
+# PowerShell scripts are checked out with Windows line endings, as PowerShell expects.
+*.ps1 text eol=crlf
+
+# Never touch binary files.
+*.png binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
