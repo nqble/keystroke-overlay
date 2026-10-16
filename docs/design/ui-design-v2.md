@@ -163,7 +163,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 | **Style** | A theme gallery, My presets as cards with a "Save current look" card, then short sections: Colors, Shape, Text (font picker, **Add font file…**, **Your fonts**), Size. **Reset ▾**. | designed |
 | **Animation** | A gallery of animation cards that demo only while hovered or focused; then Speed, Strength (only for animations that use it) and Easing as a segmented switch. | designed |
 | **Fonts** | Removed as a tab: now Style → Text. | designed |
-| **General** | Section cards: **Connection** (the OBS link box with Copy, port, secure link), **Keyboard input**, **Startup**, **Updates**, and a collapsed **Advanced** (Debug mode, Reset all settings). | link box built; cards designed |
+| **General** | Section cards: **Connection** (the OBS link box with Copy, port, secure link, and **First run setup**), **Keyboard input**, **Startup**, **Updates**, and a collapsed **Advanced** (Debug mode, Reset all settings). | link box built; cards designed |
 | **Debug** | Only with Debug mode on. Cards for the app's state, the log and self-tests; **Copy bug report** copies the scrubbed report (`debug-report.js`, `BUG_REPORT_FORMAT`). | report built; cards designed |
 
 ### Layouts
@@ -185,17 +185,20 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
   always show (a missing one is added at the end). The default is the four above, so nothing needs migrating.
   **Reset all settings** brings back exactly the four defaults; your own layouts are kept.
 
-### Add to OBS (first run)
+### First run setup (Add to OBS)
 
-Designed (AddToObs board). A short three-step card at the top of the Layout tab: Copy OBS link, add a Browser source in
-OBS, paste it and use the size shown (the chosen layout's real size).
+Designed (AddToObs board). **A screen over the Layout tab:** it covers the tab's content (the header and the tab list
+stay) with three short steps: Copy OBS link, add a Browser source in OBS, paste it and use the size shown (the chosen
+layout's real size).
 
 - **New installs only.** It shows when the app starts with no settings file yet (neither `settings.json` nor its
-  `.bak`). After an update the file is already there, so it never shows again. No new setting, no timer: one yes/no
-  the app knows when it loads settings.
-- **Close any time** with ✕ (`aria-label` "Close setup steps"), set up or not. Nobody is ever stuck on it.
-- It goes for good once closed, once OBS first connects (after a short "✓ You're all set" line), or once the app
-  restarts. General → Connection has the same steps.
+  `.bak`). After an update the file is already there, so it never shows on its own again. No new setting, no timer:
+  one yes/no the app knows when it loads settings.
+- **Close any time** with ✕ in its top right corner (`aria-label` "Close first run setup"), set up or not. Closing
+  shows the normal Layout tab. Nobody is ever stuck on it.
+- When OBS first connects it closes by itself, and the Layout tab shows a short "✓ You're all set" line.
+- **Run it again:** General has a **First run setup** button. It switches to the Layout tab and shows the screen again,
+  which closes the same way.
 
 ## 12. Adding more stays one file
 
