@@ -118,9 +118,8 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 
 ## 7. Inspector panel (right of the editor)
 
-- **Nothing selected:** "No key selected" + two short tips: (1) click a key to change its label or hide it, drag keys
-  anywhere and they line up with their neighbours; (2) "Want every key the same size in neat columns? Switch Layout style to
-  Even grid."
+- **Nothing selected:** "No key selected" + three short lines, one tip each: "Click a key to edit it.", "Drag keys
+  to move them." and "Same-size keys? Try **Even grid**."
 - **One key:** "Key: W" title with a "Show" checkbox on the right; Label field; Width field ("Width in keys · or drag the blue
   handles"); Position X / Y fields (step 0.25); when it overlaps: a danger-tinted note "This key overlaps another. Drag it to a
   free spot, or press Close gaps."; when moved or resized: "Put back where it was".

@@ -34,7 +34,13 @@ palette). Change how each tab is organised and how its controls work.
 | **Animation** | A **gallery of animation cards** that demo on hover, then Speed, Intensity and Easing. |
 | **Fonts** | **Removed as a tab**: merged into Style → Text. |
 | **General** | Section cards in plain language: **Connection** (port, secure link), **Keyboard input**, **Startup**, **Updates**, and a collapsed **Advanced** (Debug mode, Reset all settings). The duplicate OBS link goes (the header has it). |
-| **Header** | Adds a small **"● OBS connected / Not connected"** status: the number of overlay connections, from the local server, nothing more. |
+| **Header** | Adds a small **"● OBS connected / Not connected"** status: the number of overlay connections, from the local server, nothing more. While paused it reads **"⏸ Paused"**. |
+| **Live preview** | A small **"⏸ Pause" / "▶ Resume"** button in its top right corner, the same switch as the tray's pause (one setting, kept in sync). While paused, OBS still shows the keyboard but no key presses, and a banner says so. |
+
+Smaller details: the Layout tab counts only your own layouts, **"Your layouts: N / 20"** (built-in layouts don't count, so a
+new install shows 0 / 20). The key editor's "No key selected" note is three short lines, not one long sentence (see
+[key-editor.md](key-editor.md)). Logo drafts, each with a black and purple devbuild version, are on the design canvas;
+none is chosen yet.
 
 ## Plain language, with detail in Debug mode
 
