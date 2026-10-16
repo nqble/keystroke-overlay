@@ -96,8 +96,9 @@ Built. One look for every scrolling area in the window; a new scrolling area get
 
 ## 8. Header
 
-Built. Left to right: the logo and name (with the **DEV** badge on a devbuild), the **OBS status**, **Copy OBS link**
-(always), the **Update ready** chip (only when an update is ready), and the window buttons (drawn icons).
+Built. On the left: the logo and name (with the **DEV** badge on a devbuild), then the **OBS status**. In the top right
+corner, just before the window buttons (drawn icons): **Copy OBS link** (always), and the **Update ready** chip to its
+right when an update is ready.
 
 - **No link box in the header.** It stays clean. The OBS link box lives only in General → Connection (hidden like a
   password while the secure link is on). The header shows only the **Copy OBS link** button, always, so the link

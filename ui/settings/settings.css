@@ -186,8 +186,17 @@ header {
   min-width: 0;
   white-space: nowrap; /* the header never wraps; at 820 px everything still fits */
 }
-.header-status button {
+.header-status button,
+.header-actions button {
   flex: none;
+}
+/* Top right, before the window buttons (ui-design-v2.md, Header): Copy OBS link, and Update ready to its right. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-right: var(--space-12);
+  white-space: nowrap;
 }
 /* Devbuilds only (tools/devbuild-title.mjs adds it): a small purple DEV badge after the name. */
 .dev-badge {
