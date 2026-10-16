@@ -55,7 +55,11 @@ entry with an unknown heading or the wrong order.
 
 **Update ready chip** (header, replaces the floating round button): on hover or keyboard focus its ↓ drops out of the
 bottom of its own small box and comes back in from the top, once, like a download. The box clips it, so only the arrow
-moves, never the chip. About half a second; `transform` and `opacity` only; no animation with "reduce motion" on.
+moves, never the chip. Same feel as the pause button: it starts 150 ms after the mouse arrives (a pass-over does
+nothing), and once started it always plays to the end, even if the mouse leaves. Keyboard focus starts it at once. About
+half a second; `transform` and `opacity` only; no animation with "reduce motion" on. Building it needs a little JS (a
+150 ms timer only while hovered, and a class removed on `animationend`), because CSS alone stops an animation the moment
+hover ends.
 
 ## Per tab
 
