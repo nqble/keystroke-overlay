@@ -8,11 +8,21 @@
 //! (tracks held keys, drops everything while paused) → broadcast to WebSocket clients.
 //! The method can be switched while the app runs (`Bus::set_method`).
 //!
+//! Both methods are Windows only. On other systems the app builds and runs without keyboard capture: starting a method
+//! fails with a clear message, shown in the settings window like any other start-up problem (docs/CROSS-PLATFORM.md).
+//! A port adds its own method here (docs/MAC-PORT.md).
+//!
 //! Privacy: events live only in memory and are forwarded to localhost WebSocket clients. Nothing is written to disk.
 
+#[cfg(windows)]
 mod hook;
+// keymap and tracker are plain logic used by the capture methods. They are built on every system so their unit tests run
+// everywhere; on systems without a capture method nothing calls them yet.
+#[cfg_attr(not(windows), allow(dead_code))]
 pub mod keymap;
+#[cfg(windows)]
 mod rawinput;
+#[cfg_attr(not(windows), allow(dead_code))]
 mod tracker;
 
 use std::collections::HashSet;
@@ -55,20 +65,33 @@ impl Method {
     }
 }
 
+/// Shown when the app runs on a system that has no keyboard capture method yet.
+#[cfg(not(windows))]
+const UNSUPPORTED: &str = "keyboard capture isn't available on this system yet";
+
 enum Source {
+    #[cfg(windows)]
     Hook(hook::Handle),
+    #[cfg(windows)]
     RawInput(rawinput::Handle),
 }
 impl Source {
+    #[cfg(windows)]
     fn start(method: Method, tx: Sender<KeyEvent>) -> Result<Self, String> {
         match method {
             Method::Hook => hook::start(tx).map(Source::Hook),
             Method::RawInput => rawinput::start(tx).map(Source::RawInput),
         }
     }
+    #[cfg(not(windows))]
+    fn start(_method: Method, _tx: Sender<KeyEvent>) -> Result<Self, String> {
+        Err(UNSUPPORTED.to_string())
+    }
     fn stop(self) {
         match self {
+            #[cfg(windows)]
             Source::Hook(handle) => handle.stop(),
+            #[cfg(windows)]
             Source::RawInput(handle) => handle.stop(),
         }
     }
