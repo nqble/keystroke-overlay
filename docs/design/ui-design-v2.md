@@ -16,6 +16,10 @@ Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (appr
   existing one. The key editor is the reference.
 - **Fast.** Only `transform` and `opacity` animate. Nothing runs while idle: no timers, and only passive listeners.
 - **One place to change.** Layouts, themes and animations stay one plain file each (section 12).
+- **Every design change keeps the code clean and efficient** (Jordan's rule). Before a design is approved, check what
+  it costs to build: it fits the existing files and building blocks (a new part gets its own small JS and CSS file,
+  no file past about 400 lines, no function past about 40), it adds nothing that runs while idle, and it follows
+  CLAUDE.md. A design that would need clever or tangled code is redesigned, not built that way.
 - **Keyboard and screen reader.** Everything clickable is a real control with a name (CLAUDE.md section 5).
 
 ## 2. Words
