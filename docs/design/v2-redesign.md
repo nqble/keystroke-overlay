@@ -15,6 +15,10 @@ palette). Change how each tab is organised and how its controls work.
 
 ## Change, everywhere
 
+- **Fewer words for users.** Every line a user reads is as short as it can be: a label, or one short sentence. No
+  paragraphs, no explaining what the screen already shows, no repeating the header. Detail goes in a tooltip or in
+  Debug mode. (Notes for developers, in code and docs, stay as full as they need to be.)
+
 - **The key editor's heading row on every tab:** title + one-line subtitle on the left, the tab's main switch or action on
   the right.
 - **Section cards** instead of one long form: a short section title, its controls, nothing else.
@@ -73,7 +77,7 @@ hover ends.
 | **Layout** | Cards show a **mini picture of the layout's shape**, a clear selected ring, and a **"⋯" menu** (rename, duplicate, export, delete) that works with the keyboard. "+" stays the first card. Import lives in the "+" card's menu. |
 | **Keys** | The key editor makeover ([key-editor.md](key-editor.md)). |
 | **Style** | A **theme gallery** (clickable swatch cards). **My presets as cards** with a "Save current look" card. Controls in short sections: Colors (inline swatches), Shape, Text (font picker with **Add font file…** and **Your fonts**), Size; sliders show their value. **Reset ▾**. |
-| **Animation** | A **gallery of animation cards** that demo on hover, then Speed, Intensity and Easing. |
+| **Animation** | A **gallery of animation cards** (Animation board) that demo only while hovered or focused, then Speed, Strength (only for the animations that use it) and Easing as a segmented choice. |
 | **Fonts** | **Removed as a tab**: merged into Style → Text. |
 | **General** | Section cards in plain language: **Connection** (port, secure link), **Keyboard input**, **Startup**, **Updates**, and a collapsed **Advanced** (Debug mode, Reset all settings). The duplicate OBS link goes (the header has it). |
 | **Header** | Adds a small status that shares the pause state: green **"● Live in OBS"**, amber **"⏸ Paused"** (paused wins; with OBS closed it reads **"⏸ Paused · OBS not connected"**), or grey **"○ Not connected to OBS"**. It uses only the number of overlay connections from the local server, nothing more. |
