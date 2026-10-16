@@ -1,6 +1,8 @@
 // =====================================================================================================================
 //  Small helpers every module uses: talking to the Rust side, building page elements, toasts.
+//  It imports only text.js (the words, which imports nothing), so every other module can import it without a cycle.
 // =====================================================================================================================
+import { TEXT } from './text.js';
 
 export const { invoke } = window.__TAURI__.core; // call a Rust command:  await invoke('name', { args })
 
@@ -38,8 +40,21 @@ export const button = (text, onclick, className = '', test = '') =>
   el('button', { textContent: text, onclick, className, test });
 
 /** One settings row: a label on the left, controls on the right. */
-export const row = (label, ...controls) =>
-  el('div', { className: 'row' }, el('label', { textContent: label }), el('div', { className: 'ctl' }, controls));
+let fieldCounter = 0;
+
+/**
+ * One settings row: a label on the left, controls on the right. The label is linked to the first field in the row (so a
+ * screen reader reads it out, and clicking the label focuses the field or toggles the tickbox).
+ */
+export const row = (label, ...controls) => {
+  const labelElement = el('label', { textContent: label });
+  const field = controls.flat().find((control) => control?.matches?.('input, select, textarea, button'));
+  if (field) {
+    field.id ||= `field-${++fieldCounter}`;
+    labelElement.htmlFor = field.id;
+  }
+  return el('div', { className: 'row' }, labelElement, el('div', { className: 'ctl' }, controls));
+};
 
 // The timer that hides the current toast, so a new message restarts it.
 let toastTimer = 0;
@@ -49,11 +64,19 @@ export function toast(message, isError = false) {
   const toastElement = $('#toast');
   toastElement.textContent = message;
   toastElement.className = isError ? 'err' : '';
+  toastElement.setAttribute('role', isError ? 'alert' : 'status'); // read out by screen readers
+  toastElement.title = isError ? TEXT.clickToDismiss : '';
+  toastElement.onclick = () => {
+    toastElement.hidden = true;
+  };
   toastElement.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toastElement.hidden = true;
-  }, 2600);
+  // a normal message goes away by itself; an error stays until it is clicked (or the next message replaces it)
+  if (!isError) {
+    toastTimer = setTimeout(() => {
+      toastElement.hidden = true;
+    }, 2600);
+  }
 }
 
 /** Run a Rust command; if it fails, show the error in a toast and pass the failure on. */

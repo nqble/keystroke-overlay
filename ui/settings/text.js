@@ -31,6 +31,7 @@ export const TEXT = {
   shortcutsHint:
     'Shortcuts: arrow keys nudge · Shift = a whole key · Delete hides · Ctrl+Z undo · Ctrl+Shift+Z redo · ' +
     'Ctrl+A select all · Esc clear',
+  clickToDismiss: 'Click to dismiss',
   noKeysMoved: 'No keys moved from the layout file',
   snapMenuHelp:
     'How far a key jumps while you drag it or use the arrow buttons. Off lets you place a key anywhere. ' +

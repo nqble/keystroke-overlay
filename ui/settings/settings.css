@@ -313,10 +313,16 @@ input[type='range'] {
   flex: 1;
   accent-color: var(--color-accent);
 }
-input[type='range']:focus,
+input[type='range']:focus {
+  outline: none; /* no blue box when a slider is clicked... */
+}
 input[type='range']:focus-visible {
-  outline: none;
-} /* no blue box when a slider is clicked */
+  outline: 2px solid var(--color-accent); /* ...but it shows when the slider is reached with the keyboard */
+  outline-offset: 2px;
+}
+#toast.err {
+  cursor: pointer; /* an error message stays until it is clicked */
+}
 input[type='color'] {
   width: 40px;
   height: 28px;

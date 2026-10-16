@@ -100,12 +100,28 @@ check(
     `!!document.querySelector('${byTest('style-import')}') && !!document.querySelector('${byTest('style-export')}')`,
   ),
 );
-check(
-  'clicking a slider shows no focus outline',
-  await p.q(
-    `(() => { const r = document.querySelector('${byTest('control-style-radius')}'); r.focus(); return getComputedStyle(r).outlineStyle === 'none' || getComputedStyle(r).outlineWidth === '0px'; })()`,
-  ),
+// a real mouse click on a slider shows no focus outline; reaching it with the Tab key does
+const sliderSelector = byTest('control-style-radius');
+const outlineShown = () =>
+  p.q(
+    `(() => { const r = document.querySelector('${sliderSelector}'); const s = getComputedStyle(r); return s.outlineStyle !== 'none' && s.outlineWidth !== '0px'; })()`,
+  );
+const sliderBox = await p.q(
+  `(() => { const r = document.querySelector('${sliderSelector}'); r.scrollIntoView({ block: 'center' }); const b = r.getBoundingClientRect(); const thumb = (r.value - r.min) / (r.max - r.min); return { x: b.left + 8 + thumb * (b.width - 16), y: b.top + b.height / 2 }; })()`,
 );
+await p.ev(`document.activeElement && document.activeElement.blur()`);
+for (const type of ['mousePressed', 'mouseReleased'])
+  await p.send('Input.dispatchMouseEvent', { type, x: sliderBox.x, y: sliderBox.y, button: 'left', clickCount: 1 });
+await sleep(200);
+check('clicking a slider shows no focus outline', !(await outlineShown()));
+await p.ev(`document.activeElement && document.activeElement.blur(); document.body.focus()`);
+let reached = false;
+for (let presses = 0; presses < 120 && !reached; presses++) {
+  for (const type of ['keyDown', 'keyUp'])
+    await p.send('Input.dispatchKeyEvent', { type, key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+  reached = await p.q(`document.activeElement === document.querySelector('${sliderSelector}')`);
+}
+check('reaching a slider with the Tab key shows a focus outline', reached && (await outlineShown()));
 check(
   'the Fonts tab no longer has presets',
   await (async () => {
@@ -200,4 +216,33 @@ check(
 await p.invoke('save_settings', { settings: st.settings });
 await sleep(300);
 check('no JavaScript errors anywhere in the walk', (await errs()).length === 0, JSON.stringify(await errs()));
+// ---- popups: keyboard focus moves in, stays in, and goes back to where it came from
+const pressKey = async (key, code, windowsVirtualKeyCode, modifiers = 0) => {
+  for (const type of ['keyDown', 'keyUp'])
+    await p.send('Input.dispatchKeyEvent', { type, key, code, windowsVirtualKeyCode, modifiers });
+};
+await p.ev(`document.querySelector('${byTest('tab', '[data-tab="general"]')}').click()`);
+await sleep(600);
+const popupOpener = byTest('update-release-notes');
+await p.ev(`const opener = document.querySelector('${popupOpener}'); opener.focus(); opener.click()`);
+await sleep(900);
+const insidePopup = () => p.q(`document.getElementById('modal').contains(document.activeElement)`);
+check('opening a popup moves the keyboard focus into it', await insidePopup());
+let staysInside = true;
+for (let presses = 0; presses < 5; presses++) {
+  await pressKey('Tab', 'Tab', 9);
+  staysInside = staysInside && (await insidePopup());
+}
+for (let presses = 0; presses < 5; presses++) {
+  await pressKey('Tab', 'Tab', 9, 8); // with Shift
+  staysInside = staysInside && (await insidePopup());
+}
+check('Tab and Shift+Tab stay inside an open popup', staysInside);
+await pressKey('Escape', 'Escape', 27);
+await sleep(500);
+check(
+  'closing a popup puts the keyboard focus back on what opened it',
+  await p.q(`document.activeElement === document.querySelector('${popupOpener}')`),
+);
+
 finish();
