@@ -53,7 +53,7 @@ When two principles conflict, the higher one wins.
 ## 5. Tests
 
 - **Every bug fix comes with a test** that fails without the fix. Every feature comes with tests for it.
-- Before committing: `npm test`, `npm run check:format`, and clippy with zero warnings.
+- Before committing: `npm test`, `npm run check:format`, `npm run check:types`, and clippy with zero warnings.
 - Before a release: the full e2e suite (`npm run test:e2e`) and the install test.
 - If a test fails, stop and report it. Never delete or weaken a test to make it pass.
 
