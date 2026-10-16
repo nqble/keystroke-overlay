@@ -1,9 +1,11 @@
-# Plan: UI foundation (queued, from the Advisory Session)
+# Plan: UI foundation (in progress, from the Advisory Session)
 
-Status: Queued. Not started. Written down so a fresh session can pick it up.
+Status: **In progress** on `v1.4.0-dev` (checked 2026-10-16). Done: step 1 (a2f37de), step 2 (7f9c432), step 3 (cec036f,
+6d81596, 65e188e), step 7's CLAUDE.md and tests/README.md parts (5f6a40d). Step 4 has started: keyboard and screen-reader basics in
+the shared controls (e3683c5) and layout cards as buttons (5e83596). Not started: the rest of step 4, steps 5 and 6, and step 7's
+ARCHITECTURE.md part.
 
-When it starts: only after (a) the key editor's features are finished, committed and screenshotted for Jordan, and (b) the readability
-steps already queued are done. This plan **replaces the `ui/settings/` part (area 2)** of the queued cleanup phase: the cleanup audit
+This plan **replaces the `ui/settings/` part (area 2)** of the queued cleanup phase: the cleanup audit
 (`docs/CLEANUP.md`) lists these items for `ui/settings` instead of a separate pass. The key editor **redesign** comes after this
 plan and is designed in the Advisory Session.
 

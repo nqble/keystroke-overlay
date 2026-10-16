@@ -14,7 +14,7 @@ that could expose keystrokes is treated as the top priority.
 
 ## Supported versions
 
-Only the latest release is supported. Update from inside the app (the blue update button) or from the
+Only the latest release is supported. Update from inside the app (the update button) or from the
 [Releases](../../releases) page.
 
 ## What is in scope

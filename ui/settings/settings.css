@@ -14,6 +14,7 @@
   /* Lines */
   --color-line: #2c3140; /* ordinary borders */
   --color-line-hover: #46506a; /* a card's border while hovered */
+  --color-control-line: #68708a; /* the border of anything you can use (fields, dropdowns, buttons, cards): 3:1 or more on every surface */
   --color-line-dashed: #353c50; /* the dashed "add" card */
   --color-line-dashed-hover: #5a6482; /* ...while hovered */
 
@@ -24,8 +25,8 @@
 
   /* Accent (the blue) */
   --color-accent: #4f8cff;
-  --color-accent-strong: #3a6fd8; /* fills under white text, hover of the accent */
-  --color-accent-hover: #6b9eff; /* the update button while hovered */
+  --color-accent-strong: #3a6fd8; /* blue fills under white text (active tab, primary button): 4.7:1 */
+  --color-accent-pressed: #2f5cb8; /* a blue fill while hovered or pressed (white text on it: 6.3:1) */
   --color-selected-bg: #1c2438; /* a selected card */
   --color-selection-fill: rgba(79, 140, 255, 0.16); /* the box drawn to select keys */
   --color-focus: #fff; /* the keyboard focus outline */
@@ -262,7 +263,7 @@ nav button:hover {
   color: var(--color-text);
 }
 nav button.active {
-  background: var(--color-accent);
+  background: var(--color-accent-strong);
   color: var(--color-on-fill);
   font-weight: var(--weight-semibold);
 }
@@ -325,7 +326,7 @@ input[type='number'],
 input:not([type]),
 select {
   background: var(--color-panel-raised);
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-control-line);
   border-radius: var(--radius-lg);
   padding: var(--space-6) var(--space-9);
   min-width: 0;
@@ -353,7 +354,7 @@ input[type='color'] {
   width: 40px;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-control-line);
   background: var(--color-panel-raised);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -365,7 +366,7 @@ input[type='checkbox'] {
 }
 button {
   background: var(--color-panel-raised);
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-control-line);
   border-radius: var(--radius-lg);
   padding: var(--space-6) var(--space-12);
   cursor: pointer;
@@ -374,17 +375,28 @@ button:hover {
   border-color: var(--color-accent);
 }
 button.primary {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
   color: var(--color-on-fill);
   font-weight: var(--weight-semibold);
 }
 button.primary:hover {
-  background: var(--color-accent-strong);
+  background: var(--color-accent-pressed);
+  border-color: var(--color-accent-pressed);
 }
 button.danger:hover {
   border-color: var(--color-danger);
   color: var(--color-danger);
+}
+/* anything that cannot be used right now looks dimmed, and does not react to the mouse */
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button:disabled:hover {
+  border-color: var(--color-control-line);
 }
 .btns {
   display: flex;
@@ -406,7 +418,7 @@ button.danger:hover {
 }
 .card {
   background: var(--color-panel);
-  border: 2px solid var(--color-line);
+  border: 2px solid var(--color-control-line);
   border-radius: var(--radius-2xl);
   padding: var(--space-12);
   cursor: pointer;

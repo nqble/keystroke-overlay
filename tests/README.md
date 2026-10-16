@@ -1,19 +1,20 @@
 # Tests
 
-Three layers, from quick to thorough:
+The layers, from quick to thorough:
 
 | Command | What it checks | Time | Disk |
 |---|---|---|---|
 | `npm run check:privacy` | The privacy promises in [PRIVACY.md](../PRIVACY.md): network code only in one file, server on 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests | 1 s | none |
-| `npm run check:style` | Code style basics: tabs and trailing spaces | 1 s | none |
-| `npm test` | Rust unit tests (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
+| `npm run check:style` | Code style basics: no tabs or trailing spaces, a final newline, and no raw colours in `settings.css` outside its `:root` design tokens | 1 s | none |
+| `npm run test:ui` | JS unit tests in `tests/ui/` for the settings window's plain logic (key arrange, history, board, view, guides, bug report, release-note sections, devbuild title) | 1 s | none |
+| `npm test` | Rust unit tests (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + `npm run test:ui` + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
 | `npm run test:e2e` | **End to end:** builds a throwaway copy of the app, drives its real settings window, injects real key presses, runs a real signed update download | ~5–8 min | ~4 GB **temporary, deleted when it finishes** |
 
 ## End-to-end tests
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | ui-sweep | csp | soak | whats-new | debug
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | ui-sweep | csp | soak | whats-new | debug (and the optional visual)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -40,13 +41,13 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
   update button and dialog, path-traversal and link-blocking guards, a check that **every socket the app holds is
   loopback-only**, and a real signed update: download with progress → signature verified → installer launched.
 
-**Running several tests at once.** All runs share ports 7879/9222 and the keyboard, so they queue on a shared lock (`tests/lib/lock.mjs`);
+**Running several tests at once.** All runs share ports 7879/7999/9222 and the keyboard, so they queue on a shared lock (`tests/lib/lock.mjs`);
 `npm run test:lock` shows who is running. Runs started from different terminals or sessions simply wait their turn.
 
 **Safety.** The test copy has its own identity (`com.keyoverlay.test`), its own data folder, port 7879 and a different
 exe name (`kotest-e2e.exe`), so it can never touch an installed Keystroke Overlay. The "installer" it downloads is a
 harmless copy of `whoami.exe`, signed with a throwaway key made for the run. Don't use your keyboard while it runs
-(it presses keys for real — only the Right Ctrl, W, A, Space, Enter and PrintScreen keys).
+(it presses keys for real — only the Right Ctrl, W, A, Space, Enter, Numpad Enter and PrintScreen keys).
 
 **Disk space.** The test files are ~30 KB. The ~4 GB is the compiled test build, written to your TEMP folder
 (or `E2E_WORK`) and **removed automatically** unless you pass `--keep`. Debug builds are also configured with
@@ -127,7 +128,7 @@ Rules:
 | `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, colour picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
 | `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
-| `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` in the General tab |
+| `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` (`ui/settings/controls.js`), used in the General tab |
 | `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS link: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number shown in the About part of General |
 | `server-port`, `server-port-apply`, `server-restart` | The Server section |
@@ -148,7 +149,7 @@ The live preview frame is a different page (the real overlay); the tests keep us
 
 ## Clean install and upgrade test
 
-`node tests/install/run.mjs` builds the previous release (v1.1.2) and the current code as **real installers** under a throwaway identity
+`node tests/install/run.mjs` builds an older release (v1.1.2 by default; `INSTALL_OLD=name:commit:version` picks another) and the current code as **real installers** under a throwaway identity
 (`KOTest`, `com.keyoverlay.test`), so an installed Keystroke Overlay is never touched. It then installs v1.1.2 on a clean slate, checks the first launch,
 creates user data, installs the current version over it (an upgrade) and checks that settings, layouts and key edits survived and the
 What's new popup appeared, uses the new features, and finally uninstalls (program and uninstall entry gone, your data folder kept).
@@ -156,8 +157,10 @@ It needs ~4 GB temporarily in your TEMP folder and deletes everything when it fi
 
 ## Performance comparison
 
-`node tests/bench/run.mjs` builds v1.1.0, v1.1.1, v1.1.2 and the current code as throwaway test copies and measures them side by side:
-startup time, background threads, idle memory, settings-window memory and CPU while 8,000 key presses flood in (median of 5 runs).
+`node tests/bench/run.mjs` builds v1.2.1, v1.3.0 and the current code as throwaway test copies and measures them side by side:
+startup time, background threads, idle memory, settings-window memory, CPU while 8,000 key presses flood in, and how long a
+key press takes to reach the overlay (`tests/bench/latency.mjs`) (median of 5 runs). The results are printed, not saved: copy
+the ones that matter into the release's Performance section in CHANGELOG.md.
 It needs ~6 GB temporarily in your TEMP folder; delete `keyoverlay-bench` there when it finishes.
 
 ## One test run at a time

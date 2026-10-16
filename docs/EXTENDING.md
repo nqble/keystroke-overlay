@@ -49,7 +49,7 @@ Animate only `transform` and `opacity`, so the work stays on the graphics card a
 
 ## 4. A setting
 1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus a range or rule in the sanitiser if it has one).
-2. Add a control for it in the settings window (`ui/settings/`).
+2. Add a descriptor for its control to `CONTROLS` in `ui/settings/controls.js`.
 3. Use it in the overlay (`ui/overlay/overlay.js`).
 4. Copy the new default into `tools/sandbox/default-settings.json` (a Rust test fails until you do).
 5. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
@@ -74,5 +74,6 @@ when it takes more than one, a check or test catches a forgotten one.
 | A tab | today: its file in `ui/settings/tabs/`, `TABS` in `settings.js` and `TAB_NAMES` in `state.js`. v2.0 makes this one file plus one line (docs/proposals/v2-tab-restructure.md) | 3 → 2 |
 
 ## Before you open a pull request
-`npm test` (unit tests and privacy check), `npm run check:style`, and for anything visible `npm run test:e2e`. See
+`npm test` (Rust and UI unit tests, privacy check), `npm run check:format`, `npm run check:types`, `npm run check:style` and
+clippy with zero warnings; for anything visible also `npm run test:visual` and, where it applies, `npm run test:e2e`. See
 [CONTRIBUTING.md](../CONTRIBUTING.md) and [tests/README.md](../tests/README.md).

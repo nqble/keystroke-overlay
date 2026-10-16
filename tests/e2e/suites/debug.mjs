@@ -23,6 +23,10 @@ check(
     !(await navNames()).includes('debug') &&
     (await state()).settings.general.debugMode === false,
 );
+check(
+  'while Debug mode is off the Debug tab code is not even loaded',
+  await p.q(`!performance.getEntriesByType('resource').some((entry) => /debug\.js/.test(entry.name))`),
+);
 check('while it is off nothing is recorded', (await p.invoke('debug_log')).ok.length === 0);
 await p.invoke('create_layout', { name: 'Quiet' });
 const quiet = (await p.invoke('debug_log')).ok.length;

@@ -20,6 +20,7 @@ import {
   setObsUrl,
   setOverlays,
   setPaused,
+  setPresets,
   setServerError,
   setSettings,
   setTab,
@@ -111,6 +112,7 @@ export async function resync() {
   } catch {
     /* keep the old list */
   }
+  setPresets(null); // anything may have changed behind our back: fetch the preset names again next time
   setSettings(state.settings);
   setPaused(state.paused);
   setOverlays(state.overlays);

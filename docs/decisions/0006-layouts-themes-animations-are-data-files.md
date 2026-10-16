@@ -20,7 +20,7 @@ Formats are documented in [FILE-FORMATS.md](../FILE-FORMATS.md) with JSON schema
 - Data files are easy to write, easy to review in a pull request, and safe to import (imports are validated and cleaned,
   never trusted).
 - A general plugin system would put arbitrary code next to a keyboard reader and break the trust model in
-  [0006](0005-keystrokes-live-in-memory-only.md).
+  [0005](0005-keystrokes-live-in-memory-only.md).
 
 ## Consequences
 - Theme and animation modules run only in the overlay page and receive only style options, never key input beyond
