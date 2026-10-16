@@ -95,7 +95,7 @@ Rules:
 | `app-header`, `brand-logo`, `brand-title` | The top bar, its logo and its title |
 | `obs-url`, `obs-copy`, `obs-size` | The OBS address box, its Copy button, the size text |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
-| `server-banner`, `pause-bar`, `pause-resume` | The server-problem banner, the paused bar and its Resume button |
+| `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
 | `preview-frame` | The live preview frame |
 | `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `fonts`, `general`, `debug`) | The tab bar and its buttons |
 | `pane` | The area that shows the current tab |

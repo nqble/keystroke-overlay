@@ -63,12 +63,20 @@
       </div>
     </header>
     <div id="banner" data-test="server-banner" hidden></div>
-    <div id="pausebar" data-test="pause-bar" hidden>
-      ⏸ Overlay is paused — keystrokes are hidden in OBS.
-      <button id="resumeBtn" data-test="pause-resume">Resume</button>
-    </div>
     <section class="preview" id="previewBox">
       <iframe id="preview" data-test="preview-frame" title="Live preview"></iframe>
+      <button
+        id="pauseBtn"
+        class="pause-btn"
+        data-test="pause-overlay"
+        type="button"
+        aria-pressed="false"
+        aria-label="Pause overlay"
+      >
+        <span class="pause-cap pause-cap-left" aria-hidden="true"></span
+        ><span class="pause-mid" aria-hidden="true"></span><span class="pause-cap" aria-hidden="true"></span
+        ><span class="pause-word" aria-hidden="true">Pause</span><span class="pause-icon" aria-hidden="true">⏸</span>
+      </button>
     </section>
     <main>
       <nav id="tabs" data-test="tab-bar" aria-label="Settings sections"></nav>

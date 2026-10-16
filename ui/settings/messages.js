@@ -5,6 +5,7 @@ import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './popups.js';
 import { flushPendingSave, push } from './preview.js';
 import { obsStatus, obsStatusDetail } from './obs-status.js';
+import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
 import {
   TAB_NAMES,
@@ -56,7 +57,7 @@ tauriEvent.listen('goto-tab', (e) => {
 });
 
 export function paintPause() {
-  $('#pausebar').hidden = !paused;
+  paintPauseButton($('#pauseBtn'), paused);
   paintObsStatus();
 }
 
@@ -75,8 +76,10 @@ tauriEvent.listen('overlays-changed', (e) => {
   paintObsStatus();
 });
 
-$('#resumeBtn').onclick = async () => {
-  await call('toggle_pause');
+// The same switch as the tray's "Pause overlay". The app answers with the new state; the tray hears it too.
+$('#pauseBtn').onclick = async () => {
+  setPaused(await call('toggle_pause'));
+  paintPause();
 };
 
 export function showServerError(message) {
