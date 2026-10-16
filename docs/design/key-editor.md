@@ -1,9 +1,11 @@
-# Key editor: design spec (v1.3.0 makeover, reference for the v2.0 redesign)
+# Key editor: design spec (makeover planned for v1.4, reference for the v2.0 redesign)
 
-Status: approved by Jordan, designed in the Advisory Session. Interactive prototype (Jordan's private link):
+Status: approved by Jordan, designed in the Advisory Session. **Not built yet** (checked 2026-10-16): the Keys tab is still the
+v1.3.0 editor. Built so far: the geometry it needs, with unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and
+`layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
 https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE. Where this file and the prototype disagree, this file wins.
 
-Build it AFTER UI foundation steps 1–5 (test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
+Build it AFTER UI foundation steps 1–5 (1–3 are done) (test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
 tokens and shared building blocks only. The colours below are today's values; map each one to its purpose token.
 
 ## 1. Goal

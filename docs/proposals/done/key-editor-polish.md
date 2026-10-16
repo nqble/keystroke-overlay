@@ -1,6 +1,6 @@
 # Proposal: polishing the key placement editor (v1.3.0)
 
-Status: Built (commits 1 to 7), and now SUPERSEDED by the approved design spec [../design/key-editor.md](../../design/key-editor.md), which
+Status: Built (commits 1 to 7), and now SUPERSEDED by the approved design spec [../../design/key-editor.md](../../design/key-editor.md), which
 describes the makeover that replaces this layout. Kept as the record of how the first version was planned.
 
 ## Where we are
