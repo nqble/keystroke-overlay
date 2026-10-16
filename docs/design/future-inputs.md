@@ -70,7 +70,7 @@ Today `keyboard::Bus` runs one keyboard capture method. When the first new input
 - The keyboard's two methods (Standard / Compatibility) stay a keyboard-only choice.
 - Likely system APIs, for whoever builds it: Windows mouse via a low-level mouse hook or Raw Input (buttons only); Windows
   controllers via XInput / Windows.Gaming.Input; Linux via evdev; macOS via IOKit / GameController. Ask Jordan before
-  adding a dependency (CLAUDE.md §6).
+  adding a dependency (CLAUDE.md §7).
 
 ## 5. Settings: reserved sections
 
@@ -117,7 +117,7 @@ keyboard's input method stays at `general.inputMethod`.
 
 ## 8. Building one of these: checklist
 
-1. Re-read this page and CLAUDE.md; propose the plan to Jordan (it's a big change, CLAUDE.md §6).
+1. Re-read this page and CLAUDE.md; propose the plan to Jordan (it's a big change, CLAUDE.md §7).
 2. Names (§2), protocol (§3), settings section (§5), privacy rules (§7): use them as written or update this page first.
 3. Windows first, behind the seam, with a fallback elsewhere; the setting is off by default.
 4. Tests: name-table unit tests, settings migration and sanitizer tests, an e2e for the feature, and benchmarks showing

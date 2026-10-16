@@ -48,7 +48,7 @@ devices directly:
   input, so the app must explain this plainly, never do it silently, and PRIVACY.md must say so.
 - Suggested design: a new method, shown as **Standard** on Wayland, chosen automatically when `WAYLAND_DISPLAY` is set; a
   settings-window notice with the one-line command and a "Check again" button when the devices can't be opened.
-- Crate options: `evdev` (pure Rust). Ask Jordan before adding it (CLAUDE.md §6). Test logic with recorded event streams;
+- Crate options: `evdev` (pure Rust). Ask Jordan before adding it (CLAUDE.md §7). Test logic with recorded event streams;
   the real-device test needs a Linux PC (containers usually have no `/dev/input`).
 
 ### Linux packaging and release (after Wayland)
