@@ -229,4 +229,13 @@ mod tests {
         assert!(manifest_url("stable").ends_with("/stable.json"));
         assert!(manifest_url("anything-else").ends_with("/stable.json")); // unknown channel falls back to Stable
     }
+
+    /// Updates install without showing Windows' installer window ("quiet"), so updating looks seamless. "quiet" needs no
+    /// admin rights only because the app installs per user (NSIS currentUser); both are checked here.
+    #[test]
+    fn updates_install_quietly_for_the_current_user() {
+        let config: serde_json::Value = serde_json::from_str(include_str!("../../tauri.conf.json")).unwrap();
+        assert_eq!(config["plugins"]["updater"]["windows"]["installMode"], "quiet");
+        assert_eq!(config["bundle"]["windows"]["nsis"]["installMode"], "currentUser");
+    }
 }

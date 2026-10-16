@@ -15,6 +15,7 @@ in Performance (RELEASING.md requires them). Do not copy this into CHANGELOG.md 
 - **Clearer to read.** White text on blue buttons is easier to read, fields, dropdowns, buttons and cards have visible borders, and buttons that cannot be used yet look dimmed.
 - **Copy bug report is more useful.** It now copies a short summary plus the details a developer needs (what you changed from the defaults, the self-test and the recent event log), and it removes your user name from file paths on every system.
 - **"What's new" is easier to scan.** Each section of the release notes has its own colour.
+- **Seamless updates.** Updating in the app no longer flashes the Windows installer; the app just restarts on the new version.
 
 ### 🐛 Fixed
 - **"Copy secure link" and "Make a new key" no longer show while the secure link is off.**
