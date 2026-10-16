@@ -20,12 +20,12 @@
 //  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
-import { flatten, redactSettings, scrub } from './debug-report.js';
+import { devReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
 import { addLayoutDialog, showNotes } from './popups.js';
 import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
 import { render } from './settings.js';
-import { settings, appVersion, layouts, setTab, size } from './state.js';
+import { settings, appVersion, layouts, paused, setTab, size } from './state.js';
 
 // -------------------------------------------------------------------------------------------------------------------
 // Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
@@ -61,6 +61,9 @@ const TEXT = {
     'Copies one block of text for a GitHub issue: version, system, self-test results, your settings ' +
     '(without the private link key) and the recent event log. It contains no key presses, and your ' +
     'Windows user name is removed.',
+  devReportHelp:
+    'The same facts as one block a developer or an AI assistant (such as Claude) can read exactly: a short ' +
+    'summary, then the details as JSON. Only the settings you changed are listed. Same privacy as the bug report.',
   debugToolsIntro:
     'Developer tools. Switch them off in General → App → Debug mode. Nothing here is saved to disk or ' +
     'sent anywhere.',
@@ -165,6 +168,44 @@ async function buildReport() {
       ...log.slice(-60).map(([ms, text]) => `${clock(ms)}  ${text}`),
     ].join('\n'),
   );
+}
+
+/** The facts for "Copy for a developer / AI" (debug-report.js formats them). No key presses, no personal paths. */
+async function buildDevReport() {
+  const [info, selfTest, log, defaults] = await Promise.all([
+    invoke('debug_info'),
+    runSelfTest(),
+    invoke('debug_log'),
+    invoke('debug_defaults'),
+  ]);
+  const engine = (navigator.userAgent.match(/Edg\/[\d.]+/) || [navigator.userAgent])[0];
+  const state = {
+    paused,
+    port: info.port,
+    serverError: info.serverError,
+    inputMethod: info.inputActive,
+    inputError: info.inputError,
+    secureLink: !!settings.general?.secureLink,
+    layout: settings.layout?.id,
+    settingsValid: info.settingsValid,
+    dataDir: info.dataDir,
+    dataWritable: info.dataWritable,
+    uptimeSecs: info.uptimeSecs,
+    memoryMb: info.memoryMb,
+    handles: info.handles,
+    window: `${innerWidth}x${innerHeight} at ${devicePixelRatio}x`,
+    overlaySize: size ? `${size.w}x${size.h}` : null,
+  };
+  return devReport({
+    version: info.version,
+    build: info.build,
+    os: info.os,
+    engine,
+    state,
+    selfTest,
+    settingsDiff: settingsDiff(redactSettings(settings), defaults),
+    log: log.slice(-60),
+  });
 }
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -569,7 +610,17 @@ const SECTIONS = [
             'primary',
             'debug-bug-report',
           ),
+          button(
+            'Copy for a developer / AI',
+            async () => {
+              await call('copy_text', { text: await buildDevReport() });
+              toast('Developer report copied');
+            },
+            '',
+            'debug-dev-report',
+          ),
         ),
+        note(TEXT.devReportHelp),
       ];
     },
   },
