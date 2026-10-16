@@ -13,6 +13,7 @@ import {
   setLayouts,
   setObsUrl,
   setPaused,
+  setPresets,
   setSettings,
   setTab,
   setUpdateProgress,
@@ -80,6 +81,7 @@ export async function resync() {
   } catch {
     /* keep the old list */
   }
+  setPresets(null); // anything may have changed behind our back: fetch the preset names again next time
   setSettings(state.settings);
   setPaused(state.paused);
   setInputActive(state.inputActive);

@@ -94,6 +94,56 @@ check(
   'delete removes it, the selection falls back to a built-in, the card disappears',
   !gone.some((l) => l.name === 'My Board') && st2.settings.layout.id === 'tkl' && !(await p.q(`!!${cardOf(mine.id)}`)),
 );
+// ---- the keyboard works on layout cards and the delete menu
+const pressKey = async (key, code, windowsVirtualKeyCode) => {
+  await p.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', key, code, windowsVirtualKeyCode });
+  // a real Enter press also produces a "character" event, which is what "presses" a focused button
+  if (key === 'Enter')
+    await p.send('Input.dispatchKeyEvent', { type: 'char', text: '\r', key, code, windowsVirtualKeyCode });
+  await p.send('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode });
+};
+const boardId = (await p.invoke('create_layout', { name: 'Keyboard Test' })).ok;
+await p.ev(`await __ko.resync()`);
+await tab('layout');
+await sleep(600);
+const boardCard = cardOf(boardId);
+await p.ev(`${boardCard}.focus()`);
+check(
+  'a layout card is a real button that the keyboard can reach',
+  await p.q(`${boardCard}.tagName === 'BUTTON' && document.activeElement === ${boardCard}`),
+);
+check(
+  'cards say which layout is picked (aria-pressed)',
+  await p.q(
+    `[...document.querySelectorAll('${byTest('layout-card')}')].every((card) => (card.getAttribute('aria-pressed') === 'true') === card.classList.contains('sel'))`,
+  ),
+);
+// what the Menu key does on a focused card: a context menu event at the card (a real Menu key press is handled by the browser itself)
+await p.ev(
+  `const box = ${boardCard}.getBoundingClientRect(); ${boardCard}.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + 20, clientY: box.top + 20 }))`,
+);
+await sleep(300);
+check(
+  'the menu takes keyboard focus on its first item',
+  await p.q(`document.activeElement === document.querySelector('${byTest('context-menu-item')}')`),
+);
+await pressKey('Escape', 'Escape', 27);
+await sleep(300);
+check(
+  'Esc closes the menu and gives focus back to the card',
+  await p.q(`!document.querySelector('${byTest('context-menu')}') && document.activeElement === ${boardCard}`),
+);
+await p.ev(
+  `const box = ${boardCard}.getBoundingClientRect(); ${boardCard}.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + 20, clientY: box.top + 20 }))`,
+);
+await sleep(300);
+await pressKey('Enter', 'Enter', 13);
+await sleep(1200);
+check(
+  'Enter on "Delete layout" deletes it, without touching the mouse',
+  !(await api()).some((l) => l.name === 'Keyboard Test') && !(await p.q(`!!${boardCard}`)),
+);
+
 // ---- reset all settings (keeps layouts), and the Export / Import buttons exist
 await tab('layout');
 await sleep(300);

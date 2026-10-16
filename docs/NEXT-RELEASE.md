@@ -4,11 +4,29 @@ v1.3.0 (free key placement) was released on 2026-10-16. This page tracks the wor
 released until Jordan says so.
 
 ## Already on the `v1.4.0-dev` branch
-- Key editor geometry for the makeover (board size and clamping, zoom and pan maths, smart-guide snapping), with unit tests.
-- The local server sends key events without Nagle's delay (`TCP_NODELAY`), with a test.
-- A cleanup audit against CLAUDE.md ([CLEANUP.md](CLEANUP.md)) and cross-platform build support
-  ([CROSS-PLATFORM.md](CROSS-PLATFORM.md)).
-- Benchmarks for key latency (press to WebSocket, before and after the server change) in `tests/bench`.
+Draft release notes for what is done so far, in the format the release check requires (docs/RELEASING.md). The key editor makeover
+adds its own lines under New and Improved when it is built. Do not copy this into CHANGELOG.md until the release is prepared.
+
+```
+### 🛠 Improved
+- **Easier with the keyboard and screen readers.** Every setting's label is linked to its control, popups keep keyboard focus inside them and give it back when they close, layout cards can be picked with Enter and deleted with the Menu key (or Shift+F10), the tab bar says which tab is open, and slider outlines show when you reach them with the keyboard.
+- **Clearer to read.** White text on blue buttons is easier to read, fields, dropdowns, buttons and cards have visible borders, and buttons that cannot be used yet look dimmed.
+- **Copy bug report is more useful.** It now copies a short summary plus the details a developer needs (what you changed from the defaults, the self-test and the recent event log), and it removes your user name from file paths on every system.
+- **"What's new" is easier to scan.** Each section of the release notes has its own colour.
+
+### 🐛 Fixed
+- **"Copy secure link" and "Make a new key" no longer show while the secure link is off.**
+- **Going back to an older version no longer loses settings from a newer one.** A copy of the newer settings file is kept next to it.
+- **A secure link with a missing key repairs itself** instead of leaving the overlay locked.
+- **No more failed request for a missing icon** every time the overlay loads in OBS.
+
+### ⚡ Performance — v1.4.0 vs v1.3.0
+- The Style tab remembers your saved presets instead of asking the app every time, and the Debug tab's code is only loaded when Debug mode is on.
+
+### 🧰 Under the hood
+- The settings window's colours, sizes and spacing live in one list of design tokens, with a picture-by-picture test that catches any accidental change in the look.
+- Type checking for the interface code, a benchmark for key-press delay, and groundwork for building the app on Linux.
+```
 
 ## Planned for v1.4
 The key editor makeover, designed in [design/key-editor.md](design/key-editor.md): the keyboard first, an inspector on the right,

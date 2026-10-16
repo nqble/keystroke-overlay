@@ -8,6 +8,7 @@
 export let settings = null; // the current settings (a copy of what the app keeps on disk)
 export let layouts = []; // every layout: [{ id, name, keys, user }]
 export let customFonts = []; // font files the user added
+export let presets = null; // the names of the saved style presets; null means "not fetched yet, or changed: fetch again"
 export let registry = { animations: [], themes: [], easings: [], layouts: [] }; // lists the live preview sends us
 export let tab = 'layout'; // which tab is showing
 export let selectedKeys = new Set(); // the keys selected in the Keys tab (by key code)
@@ -27,6 +28,9 @@ export function setSettings(value) {
 }
 export function setLayouts(value) {
   layouts = value;
+}
+export function setPresets(value) {
+  presets = value;
 }
 export function setCustomFonts(value) {
   customFonts = value;

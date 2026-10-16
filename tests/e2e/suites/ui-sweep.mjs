@@ -94,6 +94,18 @@ check(
   })(),
 );
 await tab('style');
+// the saved-preset names are fetched once and kept: coming back to the Style tab asks the app nothing
+await p.ev(
+  `window.__listPresetCalls = 0; const original = window.__TAURI_INTERNALS__.invoke; window.__TAURI_INTERNALS__.invoke = function (command, ...rest) { if (command === 'list_presets') window.__listPresetCalls++; return original.call(this, command, ...rest); }`,
+);
+await tab('animation');
+await tab('style');
+await tab('fonts');
+await tab('style');
+check(
+  'revisiting the Style tab does not ask the app for the preset list again',
+  (await p.q(`window.__listPresetCalls`)) === 0,
+);
 check(
   'Layout and Style tabs have the same Import / Export buttons',
   await p.q(
