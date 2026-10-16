@@ -41,6 +41,7 @@
     fetch('/__sandbox__/layouts.json').then((response) => response.json()),
   ]);
   let settings = null;
+  let paused = !!chosen.paused;
   const log = [[0, 'sandbox started: nothing here is real']];
 
   async function getState() {
@@ -52,7 +53,7 @@
       url: `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/`,
       serverError: chosen.serverError ?? null,
       version: '1.4.0',
-      paused: !!chosen.paused,
+      paused,
       overlays: chosen.overlays,
       whatsNew: !!chosen.whatsNew,
       inputError: null,
@@ -73,6 +74,10 @@
     },
     copy_text: ({ text }) => {
       window.__sandbox.copied = text;
+    },
+    toggle_pause: () => {
+      paused = !paused;
+      return paused;
     },
     get_release_notes: () => ({ body: NOTES }),
     auto_check_update: () => (chosen.update ? UPDATE : NO_UPDATE),
