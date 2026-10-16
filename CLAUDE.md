@@ -4,7 +4,7 @@ Read this before changing anything. It is the standing brief for every session a
 When this file and your habits disagree, this file wins. When this file is unclear, ask before guessing.
 Outside contributors: the "ask Jordan" rules below are covered by opening a pull request; Jordan reviews and merges.
 
-**Where to look:** `docs/ARCHITECTURE.md` (map), `docs/design/key-editor.md` (Keys tab), `docs/design/future-inputs.md`
+**Where to look:** `docs/ARCHITECTURE.md` (map), `docs/design/key-editor.md` (Keys tab), `docs/design/v2-redesign.md` (v2.0 look), `docs/design/future-inputs.md`
 (mouse, controller, hotkeys, game detection), `docs/ACCESSIBILITY.md`, `docs/CROSS-PLATFORM.md` and `docs/LINUX-PORT.md`,
 `PRIVACY.md`, `docs/RELEASING.md`.
 
