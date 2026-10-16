@@ -38,9 +38,6 @@ export function addLayoutDialog() {
       return false;
     }
   };
-  nameInput.onkeydown = (e) => {
-    if (e.key === 'Enter') $('#dFoot .primary').click();
-  };
   dialog({
     title: 'New layout',
     body: [el('p', { textContent: TEXT.newLayoutHelp }), nameInput],

@@ -25,7 +25,8 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 ## Order
 
 1. ~~**refactor: split `popups.js`**~~ Done.
-2. **feat: shared popup** (Popups board): every popup uses `popup.js`, with the approved sizing and button rules.
+2. ~~**feat: shared popup**~~ Done: every popup follows `popup.js`'s rules (focus, Esc, Enter, lock) and the approved
+   size. Each popup keeps its own markup so the e2e tests' hooks stay the same.
 3. **refactor: move the header into `header.js`**. No visible change.
 4. **feat: new header** (Header board): link out, DEV badge, Update ready chip, drawn window buttons.
 5. **refactor: split `debug.js` into `debug/`**. No visible change.

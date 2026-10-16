@@ -3,6 +3,7 @@
 //  (release-notes.js), the quick typing reveal, and the notes popup.
 // =====================================================================================================================
 import { $, el, invoke } from './helpers.js';
+import { popupKeys } from './popup.js';
 import { headingOf, sectionOf } from './release-notes.js';
 
 /**
@@ -65,12 +66,7 @@ export function md(source) {
 
 function closeModal() {
   $('#modal').hidden = true;
-  document.removeEventListener('keydown', closeOnKey);
 }
-
-const closeOnKey = (e) => {
-  if (e.key === 'Escape' || e.key === 'Enter') closeModal();
-};
 
 /*
  * "Typing" reveal for the release notes. Each piece of text is split into [typed part][hidden rest]. The hidden rest
@@ -146,7 +142,7 @@ export async function showNotes(version, title) {
   const body = $('#mBody');
   body.replaceChildren(loadingDots());
   $('#modal').hidden = false;
-  document.addEventListener('keydown', closeOnKey);
+  popupKeys('#modal', { onEscape: closeModal });
   $('#mOk').focus();
   try {
     const notes = await invoke('get_release_notes', { version });

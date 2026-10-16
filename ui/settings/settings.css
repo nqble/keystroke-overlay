@@ -704,9 +704,12 @@ button.danger:hover {
   justify-content: center;
   z-index: 20;
 }
+/* The shared popup's size (docs/design/v2-redesign.md, Popups): as wide as 560 px and only as tall as its text, up to
+   80% of the window and never more than 640 px; longer text scrolls in the middle while the title and buttons stay.
+   Measured against the window, so it follows window size and Windows' display scaling. */
 .dialog {
   width: min(560px, calc(100vw - 48px));
-  max-height: calc(100vh - 64px);
+  max-height: min(80vh, 640px);
   display: flex;
   flex-direction: column;
   overflow: hidden;

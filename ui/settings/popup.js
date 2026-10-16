@@ -1,14 +1,16 @@
 // =====================================================================================================================
-//  The shared popup: keyboard focus for every popup (focus moves in, Tab stays inside, focus goes back on close) and
-//  dialog(), the general-purpose popup. dialogs.js, notes.js and update-popup.js build on it.
+//  The shared popup: one set of rules for every popup (the general dialog, the release notes, the update popup):
+//    * focus moves in when it opens, Tab stays inside, focus goes back to what opened it on close;
+//    * Esc does the safe choice (close, Cancel, Later); Enter does the main (blue) button, never a red one;
+//    * neither key does anything while the popup is locked (an update installing);
+//    * the size rule is in settings.css (.dialog): up to 560 px wide and 80% of the window, the middle scrolls.
+//  Each popup keeps its own markup and test hooks (index.html); dialogs.js, notes.js and update-popup.js build on it.
 //  Design: docs/design/v2-redesign.md, Popups.
 // =====================================================================================================================
 import { $, el } from './helpers.js';
 
-// ---- Keyboard focus for popups ------------------------------------------------------------------------------------------
-// Three popups (the general dialog, the release notes, the update dialog) show and hide themselves by toggling `hidden`.
-// This one place gives all of them proper keyboard behaviour: when a popup opens, focus moves into it; while it is open,
-// Tab and Shift+Tab stay inside it; when it closes, focus goes back to whatever opened it.
+// ---- Keyboard focus ---------------------------------------------------------------------------------------------------
+// The popups show and hide themselves by toggling `hidden`; this watches them all.
 const POPUPS = ['#dlg', '#modal', '#updModal'];
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -61,6 +63,40 @@ addEventListener('keydown', (keyEvent) => {
   }
 });
 
+// ---- Esc and Enter -----------------------------------------------------------------------------------------------------
+// What Esc does, and whether the popup is locked, for each popup that is open: { onEscape, isLocked }.
+const keyRules = new Map();
+
+/** Give an open popup its Esc action and, optionally, a lock (while true, Esc and Enter do nothing). */
+export function popupKeys(selector, { onEscape, isLocked = () => false }) {
+  keyRules.set(selector, { onEscape, isLocked });
+}
+
+/** The popup on screen, if any (only one is ever open). */
+const openPopup = () => POPUPS.find((selector) => !$(selector).hidden);
+
+/** True while any popup is open (the Keys tab's shortcuts stay quiet then). */
+export const isPopupOpen = () => !!openPopup();
+
+addEventListener('keydown', (keyEvent) => {
+  const selector = openPopup();
+  const rules = selector && keyRules.get(selector);
+  if (!rules || rules.isLocked()) return;
+  if (keyEvent.key === 'Escape') {
+    keyEvent.preventDefault();
+    rules.onEscape();
+    return;
+  }
+  // Enter on a button already presses that button, and a text box may want Enter itself, except a one-line one.
+  const target = /** @type {HTMLElement} */ (keyEvent.target);
+  const ownEnter = target.tagName === 'BUTTON' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
+  if (keyEvent.key !== 'Enter' || ownEnter) return;
+  const main = /** @type {HTMLButtonElement | null} */ ($(`${selector} .primary`));
+  if (!main || main.disabled) return;
+  keyEvent.preventDefault();
+  main.click();
+});
+
 /**
  * Show a dialog. buttons: [{ label, test?, primary?, danger?, run? }]. `test` is the button's test hook. If `run` returns
  * false the dialog stays open.
@@ -70,11 +106,8 @@ export function dialog({ title, body, buttons }) {
   $('#dBody').replaceChildren(...body);
   const close = () => {
     $('#dlg').hidden = true;
-    document.removeEventListener('keydown', onKey);
   };
-  const onKey = (e) => {
-    if (e.key === 'Escape') close();
-  };
+  popupKeys('#dlg', { onEscape: close });
   $('#dFoot').replaceChildren(
     ...buttons.map((buttonSpec) =>
       el('button', {
@@ -89,6 +122,5 @@ export function dialog({ title, body, buttons }) {
     ),
   );
   $('#dlg').hidden = false;
-  document.addEventListener('keydown', onKey);
   return close;
 }

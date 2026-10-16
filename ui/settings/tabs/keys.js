@@ -1,7 +1,8 @@
 // =====================================================================================================================
 //  The Keys tab: show / hide keys, rename them, and select and move them (one at a time or as a group).
 // =====================================================================================================================
-import { $, button, confirmTwice, el, heading, note, plural, row, toast } from '../helpers.js';
+import { button, confirmTwice, el, heading, note, plural, row, toast } from '../helpers.js';
+import { isPopupOpen } from '../popup.js';
 import { changed } from '../preview.js';
 import {
   SNAP,
@@ -54,7 +55,7 @@ function shortcutsBlocked(keyEvent) {
   const typingField = /** @type {Element} */ (keyEvent.target).closest?.(
     'input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable]',
   );
-  return !!typingField || !$('#dlg').hidden || !$('#modal').hidden || !$('#updModal').hidden;
+  return !!typingField || isPopupOpen();
 }
 
 /**

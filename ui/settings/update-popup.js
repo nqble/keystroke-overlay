@@ -4,6 +4,7 @@
 // =====================================================================================================================
 import { $, el, invoke, toast } from './helpers.js';
 import { md } from './notes.js';
+import { popupKeys } from './popup.js';
 import { saveNow } from './preview.js';
 import { render } from './settings.js';
 import { lastUpdate, setLastUpdate, setUpdateProgress, tab, updateProgress } from './state.js';
@@ -47,18 +48,17 @@ export function openUpdateDialog() {
   paintProgress();
   $('#uText').textContent = '';
   $('#updModal').hidden = false;
+  popupKeys('#updModal', { onEscape: closeUpdatePopup, isLocked: () => updateBusy });
   $('#uGo').focus();
 }
 
 $('#updateBtn').onclick = openUpdateDialog;
 
-$('#uLater').onclick = () => {
+function closeUpdatePopup() {
   if (!updateBusy) $('#updModal').hidden = true;
-};
+}
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !updateBusy && !$('#updModal').hidden) $('#updModal').hidden = true;
-});
+$('#uLater').onclick = closeUpdatePopup;
 
 $('#uGo').onclick = async () => {
   const update = lastUpdate;
