@@ -108,9 +108,9 @@ demo. docs/EXTENDING.md gets the two optional fields when the gallery is built.
 Approved by Jordan (Layout board on the canvas):
 
 - **First install shows four built-in layouts:** Full size, TKL, Gameplay (left hand), WASD.
-- **More built-in layouts wait in a library** inside the New layout popup: 96%, 75%, 65%, 60%, Arrows, Numpad, Full size
-  (ISO) and TKL (ISO). Under the name box, a darker underlined text line, **"▸ Ready-made layouts (N)"**, collapsed by
-  default, expands the list; **Add** puts one at the end of the tab. Built-in layouts never count toward the 20.
+- **More built-in layouts wait in "Other layouts"** inside the New layout popup: 96%, 75%, 65%, 60%, Arrows, Numpad, Full size
+  (ISO) and TKL (ISO). Under the name box, a darker plain text line (no underline), **"▸ Other layouts (N)"**, collapsed by
+default, expands the list: two columns, four rows visible; more scroll inside it, so the popup never grows; **Add** puts one at the end of the tab. Built-in layouts never count toward the 20.
 - **Hide** (built-in) sends a layout back to that library; **Delete…** (your own) removes it for good. The last layout
   can't be removed; removing the one in use selects the first card.
 - **Order** is yours: drag, the ⋯ menu, or Alt+arrows. The tray's Layout menu uses the same order.
