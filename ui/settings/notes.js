@@ -12,56 +12,60 @@ import { headingOf, sectionOf } from './release-notes.js';
  * class.
  */
 export function md(source) {
-  const fragment = document.createDocumentFragment();
-  let list = null;
-  let sectionClass = ''; // e.g. "notes-section notes-fixed" while inside the Fixed section
-  const inline = (parent, text) => {
-    // turns **bold** and `code` into elements
-    const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
-    let last = 0,
-      match;
-    while ((match = pattern.exec(text))) {
-      if (match.index > last) parent.append(text.slice(last, match.index));
-      parent.append(
-        match[0].startsWith('**')
-          ? el('strong', { textContent: match[0].slice(2, -2) })
-          : el('code', { textContent: match[0].slice(1, -1) }),
-      );
-      last = match.index + match[0].length;
-    }
-    if (last < text.length) parent.append(text.slice(last));
-  };
+  const reader = { fragment: document.createDocumentFragment(), list: null, sectionClass: '' };
   for (const rawLine of source.replace(/\r/g, '').split('\n')) {
     const line = rawLine.trimEnd().replace(/\[([^\]]+)\]\([^)]*\)/g, '$1'); // links become plain text
-    let match;
-    if (!line.trim()) {
-      list = null;
-      continue;
-    }
-    const headingText = headingOf(line);
-    if (headingText !== null) {
-      list = null;
-      const section = sectionOf(headingText);
-      sectionClass = section ? `notes-section notes-${section.kind}` : '';
-      const heading = el('h4', { className: sectionClass });
-      inline(heading, headingText);
-      fragment.append(heading);
-    } else if ((match = /^\s*[-*+]\s+(.*)$/.exec(line))) {
-      if (!list) {
-        list = el('ul', { className: sectionClass });
-        fragment.append(list);
-      }
-      const li = el('li');
-      inline(li, match[1]);
-      list.append(li);
-    } else {
-      list = null;
-      const paragraph = el('p');
-      inline(paragraph, line);
-      fragment.append(paragraph);
-    }
+    readLine(reader, line);
   }
-  return fragment;
+  return reader.fragment;
+}
+
+/** One line of the notes: a blank line ends a list; otherwise a heading, a bullet or a paragraph. */
+function readLine(reader, line) {
+  if (!line.trim()) {
+    reader.list = null;
+    return;
+  }
+  const headingText = headingOf(line);
+  if (headingText !== null) return addHeading(reader, headingText);
+  const bullet = /^\s*[-*+]\s+(.*)$/.exec(line);
+  if (bullet) return addBullet(reader, bullet[1]);
+  reader.list = null;
+  reader.fragment.append(withInline(el('p'), line));
+}
+
+/** A heading; a known release-note section also colours the list under it (class e.g. "notes-section notes-fixed"). */
+function addHeading(reader, headingText) {
+  const section = sectionOf(headingText);
+  reader.list = null;
+  reader.sectionClass = section ? `notes-section notes-${section.kind}` : '';
+  reader.fragment.append(withInline(el('h4', { className: reader.sectionClass }), headingText));
+}
+
+function addBullet(reader, text) {
+  if (!reader.list) {
+    reader.list = el('ul', { className: reader.sectionClass });
+    reader.fragment.append(reader.list);
+  }
+  reader.list.append(withInline(el('li'), text));
+}
+
+/** Fills `parent` with `text`, turning **bold** and `code` into elements (always as plain text, never as HTML). */
+function withInline(parent, text) {
+  const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+  let last = 0;
+  for (const match of text.matchAll(pattern)) {
+    if (match.index > last) parent.append(text.slice(last, match.index));
+    parent.append(inlineElement(match[0]));
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parent.append(text.slice(last));
+  return parent;
+}
+
+function inlineElement(marked) {
+  if (marked.startsWith('**')) return el('strong', { textContent: marked.slice(2, -2) });
+  return el('code', { textContent: marked.slice(1, -1) });
 }
 
 function closeModal() {
