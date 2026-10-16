@@ -88,6 +88,21 @@ new install shows 0 / 20). The key editor's "No key selected" note is three shor
 [key-editor.md](key-editor.md)). Logo: design A, "Keycap K", is chosen; its sources, including the black and purple devbuild
 version, are in `assets/logo/`.
 
+## Adding more stays one file
+
+Layouts, themes and animations stay one plain file each (CLAUDE.md, principle 4). The galleries must not add a second
+step:
+
+- **Animation cards** demo with the animation's own file (a mini key driven by the same code OBS uses), never with
+  hand-made demo CSS per animation.
+- **Card text** comes from the file: an optional short `description` next to `name` (fallback: the name only).
+- **Strength** shows only for animations whose file says it uses it (an optional `usesIntensity: true`), not from a
+  hand-kept list.
+- **Theme cards and layout pictures** are drawn from the theme or layout file itself.
+
+So a seventh animation is still: add one file to `ui/overlay/animations/`, and it appears in the gallery with a working
+demo. docs/EXTENDING.md gets the two optional fields when the gallery is built.
+
 ## Plain language, with detail in Debug mode
 
 By default every label, note and message is written for a streamer, not a developer. When **Debug mode** is on, the same
