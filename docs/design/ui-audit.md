@@ -72,3 +72,43 @@ Each finding says **where** it was seen, **what** is wrong, and the **v2.0 answe
 
 The dark palette and blue accent, the left tab list, the always-visible OBS link, the live preview, the plain-English
 privacy notes, the button order in popups, and the light "typing" release notes. The redesign builds on these.
+
+## 7. Debug tab
+
+Today it is one long column of eight boxes: This app, Self-test, Event log, Key monitor, Settings (raw), Test helpers,
+Developer tools (inspector), Bug report. It is well explained and private by design. What would make development faster,
+for people and for other Claude sessions:
+
+| # | Finding | Change | |
+|---|---|---|---|
+| 7.1 | **Bug:** the user-name scrub only knows `C:\Users\<name>` with backslashes. A forward-slash path, `/home/<name>` (Linux) or `/Users/<name>` (macOS) keeps the real name in the bug report. | Scrub all three forms; add a unit test per form. | bug |
+| 7.2 | JavaScript errors in the settings window go nowhere unless the inspector is open. | Catch `error` and `unhandledrejection` while Debug mode is on and add them to the event log (message and file:line only, never page content). | new |
+| 7.3 | The bug report pastes the **whole** settings file, so the one changed value is hard to spot. | Report only what differs from the defaults ("settings diff"), plus the full file folded underneath. | new |
+| 7.4 | The bug report is prose for a human. Claude sessions and scripts have to parse it. | Add **Copy for a developer / AI**: the same facts as one Markdown block with a fenced JSON part (`version`, `os`, `selfTest[]`, `settingsDiff`, `log[]`, `overlays`, `paused`), so a session can read it exactly. Same privacy rules. | new |
+| 7.5 | No view of the connection to OBS. | A **Connections** box: OBS overlays connected (the new `overlays` count), whether the preview is connected, the last time a message was sent. Event-driven, like the header status. | new |
+| 7.6 | Hard-to-reach states need code changes to see (paused with OBS closed, port in use, secure link locked, update installing, What's new). | Extend **Test helpers** into a **state switcher**: one button per state, so every screen can be checked and screenshotted on demand. | new |
+| 7.7 | People and Claude sessions without Windows can't open the settings window at all (this audit had to build a stand-in). | Ship that stand-in as `npm run ui-sandbox`: serves `ui/settings/` with a fake app (`window.__TAURI__`) and the preview tool, on 127.0.0.1 only, Node only. Every state in 7.6 is a URL (`?state=paused-no-obs`), so screenshot tests and Claude sessions on Linux can check UI changes before Windows. Needs Jordan's OK as a new tool (no new dependency). | new |
+| 7.8 | "This app" refreshes every 2 seconds with a timer while the tab is open (fine: it stops when you leave the tab), but the memory "highest seen" resets on every visit. | Keep the timer rule; remember the peak for the whole run on the Rust side. | new |
+| 7.9 | The `ko` console helpers are documented only in a note. | List them in docs/DEBUGGING.md with one example each, and add `ko.state('paused')` for 7.6. | new |
+| 7.10 | Eight boxes in one column; the useful ones (event log, bug report) are far down. | v2.0 section cards in two columns, with a short jump list at the top. Same order of importance: status, self-test, bug report first. | new |
+
+## 8. The OBS link in the header
+
+**How often is it used?** Mostly once: when the streamer adds the Browser Source in OBS. Again only after changing the
+port, making a new secure key, or setting up a new scene. Yet today it takes the middle of the header on every tab, all
+the time. That is what makes the header cramped at small window sizes (1.2), and the devbuild's extra "devbuild" label
+squeezes it further.
+
+**Recommendation: take the link out of the header, and show it where and when it is needed.**
+
+1. **Header:** logo, name (plus a small purple **DEV** badge on devbuilds), the OBS status pill, window buttons. Nothing
+   else, so it fits at any window size.
+2. **The status pill is the way in.** When it says "○ Not connected to OBS", a **Copy OBS link** button sits next to it,
+   which is exactly when it is needed. Once OBS is live, the button goes away. Clicking the pill opens General → OBS link.
+3. **When the link changes** (new port, new secure key), the pill shows "OBS link changed: copy it again" until it is
+   copied (fixes 3.6).
+4. **General → OBS link** card holds everything: the link, Copy, the recommended Browser Source size, and the secure
+   link switch.
+5. **First run:** a short "Add to OBS" card on the Layout tab: copy the link, add a Browser Source in OBS, paste it, set
+   the size. It disappears once OBS has connected.
+6. **The tray** keeps "Copy OBS link" for people who never open the window.
