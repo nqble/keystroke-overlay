@@ -4,6 +4,7 @@ import { execSync } from 'node:child_process';
 import net from 'node:net';
 import { connect, byTest, listenKeys, appAlive, check, finish, sleep, EXE_NAME, PORT } from '../lib/cdp.mjs';
 
+const SETTINGS_VERSION = 3; // the settings file format version (CURRENT_VERSION in src-tauri/src/settings.rs)
 const VERSION = process.env.E2E_VERSION; // the app's real version, provided by run.mjs
 const p = await connect();
 await sleep(2500);
@@ -22,7 +23,7 @@ check(
   ),
 );
 const st = (await inv('get_state')).ok;
-check('get_state', st.version === VERSION && st.settings.version === 2 && st.paused === false);
+check('get_state', st.version === VERSION && st.settings.version === SETTINGS_VERSION && st.paused === false);
 check(
   'background update check found the mock update (update button visible)',
   await q(`!document.querySelector('${byTest('update-button')}').hidden`),

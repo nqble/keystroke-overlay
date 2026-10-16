@@ -6,18 +6,18 @@ is validated and cleaned first. Schemas for the two shareable formats are in [`d
 Where user files live: `%APPDATA%\com.keyoverlay.app\` (General → App → Open data folder).
 
 ## Settings (`settings.json`)
-Versioned (`"version": 2` today) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
+Versioned (`"version": 3` on the `v1.3.0-dev` branch; 2 in the released v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
 The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the single source of truth. Shape:
 
 ```jsonc
 {
-  "version": 2,
+  "version": 3,
   "general": { "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
                "autoCheckUpdates": true, "inputMethod": "hook",            // "hook" | "rawinput"
                "secureLink": false, "linkKey": "", "updateChannel": "stable", // "stable" | "latest"
                "debugMode": false, "lastSeenVersion": "" },
   "layout": { "id": "tkl",
-              "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } },   // see "positions" below
+              "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } },   // see "Key edits" below
               "editor": { "snap": 0.25, "grid": false } },   // the Keys tab's choices, see below
   "style": { "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff", "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff",
              "borderWidth": 2, "radius": 8, "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
@@ -27,11 +27,28 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
 }
 ```
 
-**`positions` (unreleased; exists on the `v1.3.0-dev` branch only).** A profile may also carry an optional
-`"positions": { "KeyW": { "x": 1.25, "y": 0 } }` map: where the user dragged individual keys to, in key units. Only keys the
-user moved are listed; every other key stays where the layout file puts it. On load, entries that are not a pair of finite
-numbers are dropped, values are limited to 0–100 and rounded to 2 decimals, at most 300 keys are kept, and a profile with no
-moved keys has no `positions` entry at all (so older settings files stay byte-identical). Until v1.3.0 ships this may still change.
+**Key edits (unreleased; `v1.3.0-dev` only).** Besides `disabledKeys` and `labels`, a profile can remember where the user moved
+keys to and how wide they made them. These belong to a *layout style*: `"shape"` (keys as the layout file draws them, the
+default) or `"grid"` (every key one key wide in neat columns). A profile picks its style with `"layoutStyle": "grid"` (written only
+when chosen), and keeps each style's edits under `styles`:
+
+```jsonc
+"<layoutId>": {
+  "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" },        // shared by both styles
+  "layoutStyle": "grid",                                           // omitted for the default "shape"
+  "styles": {
+    "shape": { "positions": { "KeyW": { "x": 1.25, "y": 0 } },     // where keys were dragged to, in key units
+               "sizes":     { "Space": { "w": 4.5 } } },           // how wide keys were made, in key widths
+    "grid":  { "positions": { }, "sizes": { } }
+  }
+}
+```
+
+Only keys the user moved or resized are listed; every other key stays where, and as wide as, the layout style puts it. On load,
+entries that are not finite numbers are dropped, positions are limited to 0–100 and widths to 0.25–100, values are rounded to
+2 decimals, at most 300 keys are kept per list, an unknown `layoutStyle` means `"shape"`, and parts with nothing in them are not
+written (so older settings files stay small). Files saved by version 2 kept `positions` directly on the profile; version 3 moves
+them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
 
 **`layout.editor` (unreleased; `v1.3.0-dev` only).** The Keys tab remembers two choices between sessions: `snap`, how far a
 dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1` are accepted), and `grid`, whether the faint

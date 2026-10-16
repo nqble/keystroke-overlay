@@ -6,7 +6,7 @@
 // =====================================================================================================================
 import { $, el } from '../helpers.js';
 import { changed, push } from '../preview.js';
-import { gridShown, keyPos, round2, setKeyPos, snap, snapStep, viewProf } from '../profiles.js';
+import { gridShown, keyPos, keyWidth, round2, setKeyPos, snap, snapStep, viewProf } from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
 import { TEXT } from '../text.js';
@@ -34,7 +34,7 @@ const isAdditive = (pointerEvent) => pointerEvent.ctrlKey || pointerEvent.shiftK
 // ---- Working out where everything goes ------------------------------------------------------------------------------
 /** Every key with its current place and size in key units: [{ key, x, y, w, h }]. */
 function placeKeys(layout, profile) {
-  return layout.keys.map((key) => ({ key, ...keyPos(key, profile), w: key.w ?? 1, h: key.h ?? 1 }));
+  return layout.keys.map((key) => ({ key, ...keyPos(key, profile), w: keyWidth(key, profile), h: key.h ?? 1 }));
 }
 
 /**

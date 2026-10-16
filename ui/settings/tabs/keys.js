@@ -5,8 +5,12 @@ import { $, button, confirmTwice, el, heading, note, plural, row, toast } from '
 import { changed } from '../preview.js';
 import {
   SNAP,
+  basePosition,
   curLayout,
+  editPositions,
   editProf,
+  forgetKeyEdits,
+  forgetStyleEdits,
   isCustom,
   keyPos,
   nudgeStep,
@@ -119,15 +123,16 @@ function keyButtons(layout) {
   const tidy = button(
     'Tidy up',
     () => {
-      const prof = editProf(),
-        next = tidyPositions(layout, viewProf());
-      // keep only positions that differ from the layout file
+      const view = viewProf();
+      const next = tidyPositions(layout, view);
+      // keep only positions that differ from where the layout style puts the key
       for (const layoutKey of layout.keys) {
         const newPosition = next[layoutKey.code];
         if (!newPosition) continue;
-        if (Math.abs(newPosition.x - layoutKey.x) < 1e-6 && Math.abs(newPosition.y - layoutKey.y) < 1e-6)
-          delete prof.positions[layoutKey.code];
-        else prof.positions[layoutKey.code] = { x: round2(newPosition.x), y: round2(newPosition.y) };
+        const base = basePosition(layoutKey, view.layoutStyle);
+        if (Math.abs(newPosition.x - base.x) < 1e-6 && Math.abs(newPosition.y - base.y) < 1e-6)
+          delete editPositions()[layoutKey.code];
+        else editPositions()[layoutKey.code] = { x: round2(newPosition.x), y: round2(newPosition.y) };
       }
       tidyProf();
       changed(true);
@@ -140,15 +145,14 @@ function keyButtons(layout) {
   const reset = button(
     'Reset positions',
     () => {
-      editProf().positions = {};
-      tidyProf();
+      forgetStyleEdits();
       changed(true);
     },
     '',
     'keys-reset-positions',
   );
   reset.disabled = !moved;
-  reset.title = 'Put every moved key back where the layout has it';
+  reset.title = 'Put every moved and resized key back where the layout has it';
   return el(
     'div',
     { className: 'btns' },
@@ -242,14 +246,13 @@ function keyEditor(key, profile) {
   const back = button(
     'Reset',
     () => {
-      delete editProf().positions[key.code];
-      tidyProf();
+      forgetKeyEdits([key.code]);
       changed(true);
     },
     '',
     'key-position-reset',
   );
-  back.disabled = !profile.positions[key.code];
+  back.disabled = !profile.positions[key.code] && !profile.sizes[key.code];
 
   return el(
     'div',
@@ -279,13 +282,11 @@ function groupEditor(layout, profile) {
     tidyProf();
     changed(true);
   };
-  const movedCodes = codes.filter((code) => profile.positions[code]);
+  const movedCodes = codes.filter((code) => profile.positions[code] || profile.sizes[code]);
   const putBack = button(
     'Put back',
     () => {
-      const edited = editProf();
-      for (const code of codes) delete edited.positions[code];
-      tidyProf();
+      forgetKeyEdits(codes);
       changed(true);
     },
     '',

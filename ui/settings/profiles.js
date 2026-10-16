@@ -5,51 +5,106 @@ import { settings, layouts } from './state.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 4. Per-layout key edits
-//    Every layout has its own hidden keys, labels and moved keys in
-//    settings.layout.profiles[layoutId] = { disabledKeys: [], labels: {}, positions: { KeyW: { x, y } } }.
-//    `positions` only lists keys the user moved; every other key stays where the layout file puts it. Units are key
-//    widths.
+//    Every layout has its own hidden keys, labels and moved / resized keys in settings.layout.profiles[layoutId]:
+//      { disabledKeys: [], labels: {}, layoutStyle: 'grid' (only when chosen),
+//        styles: { shape: { positions: { KeyW: { x, y } }, sizes: { Space: { w } } }, grid: { ... } } }
+//    hidden keys and labels are shared by both layout styles; positions and sizes belong to one style each ("shape" =
+//    the layout file's own shape, "grid" = even columns). Only keys the user moved or resized are listed; every other
+//    key stays where the layout file puts it. Units are key widths.
 // ---------------------------------------------------------------------------------------------------------------------
-const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {}, positions: {} });
+const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {} });
+
+export const LAYOUT_STYLES = ['shape', 'grid'];
+
+// Limits for positions and widths. Keep in step with MAX_POSITION, MIN_KEY_WIDTH and MAX_KEY_WIDTH in settings.rs.
+export const MAX_POSITION = 100;
+export const MIN_KEY_WIDTH = 0.25;
+export const MAX_KEY_WIDTH = 100;
 
 export const curLayout = () => layouts.find((l) => l.id === settings.layout.id) ?? layouts[0];
 
-/** For reading only. Always has all three parts, even for settings saved by older versions. */
+/** Which layout style a saved profile uses: "grid" when chosen, otherwise the default "shape". */
+export const styleOf = (profile) => (profile?.layoutStyle === 'grid' ? 'grid' : 'shape');
+
+/**
+ * For reading only: the profile with the positions and sizes of the layout style in use pulled up to the top. Always
+ * has every part, even for settings saved by older versions.
+ */
 export const viewProf = () => {
   const profile = settings.layout.profiles[curLayout()?.id];
-  return profile
-    ? { disabledKeys: profile.disabledKeys ?? [], labels: profile.labels ?? {}, positions: profile.positions ?? {} }
-    : EMPTY_PROFILE();
+  const style = styleOf(profile);
+  const edits = profile?.styles?.[style] ?? {};
+  return {
+    disabledKeys: profile?.disabledKeys ?? [],
+    labels: profile?.labels ?? {},
+    layoutStyle: style,
+    positions: edits.positions ?? {},
+    sizes: edits.sizes ?? {},
+  };
 };
 
-/** For changing: creates the profile on the first edit. */
-export const editProf = () => {
-  const profile = (settings.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());
-  profile.positions ??= {};
-  return profile;
-};
+/** For changing hidden keys, labels and the layout style: creates the profile on the first edit. */
+export const editProf = () => (settings.layout.profiles[curLayout().id] ??= EMPTY_PROFILE());
+
+/** The moved or resized keys of the layout style in use, for changing (created when missing). */
+function editStyle() {
+  const profile = editProf();
+  profile.styles ??= {};
+  return (profile.styles[styleOf(profile)] ??= {});
+}
+
+/** The positions of moved keys in the layout style in use, for changing. */
+export const editPositions = () => (editStyle().positions ??= {});
+
+/** True when a profile differs from the default in any way. */
+function hasEdits(profile) {
+  const styles = Object.values(profile.styles ?? {});
+  const editedStyle = styles.some(
+    (edits) => Object.keys(edits.positions ?? {}).length > 0 || Object.keys(edits.sizes ?? {}).length > 0,
+  );
+  return (
+    profile.disabledKeys?.length > 0 ||
+    Object.keys(profile.labels ?? {}).length > 0 ||
+    profile.layoutStyle === 'grid' ||
+    editedStyle
+  );
+}
 
 export const isCustom = (id) => {
   const profile = settings.layout.profiles[id];
-  return (
-    !!profile &&
-    (profile.disabledKeys?.length > 0 ||
-      Object.keys(profile.labels ?? {}).length > 0 ||
-      Object.keys(profile.positions ?? {}).length > 0)
-  );
+  return !!profile && hasEdits(profile);
 };
 
 /** Forget an edited profile that no longer differs from the default, so "customized" only shows when it should. */
 export function tidyProf() {
-  const id = curLayout().id,
-    profile = settings.layout.profiles[id];
-  if (
-    profile &&
-    !profile.disabledKeys.length &&
-    !Object.keys(profile.labels).length &&
-    !Object.keys(profile.positions ?? {}).length
-  )
-    delete settings.layout.profiles[id];
+  const id = curLayout().id;
+  const profile = settings.layout.profiles[id];
+  if (!profile) return;
+  for (const style of LAYOUT_STYLES) {
+    const edits = profile.styles?.[style];
+    if (!edits) continue;
+    for (const part of ['positions', 'sizes']) if (!Object.keys(edits[part] ?? {}).length) delete edits[part];
+    if (!Object.keys(edits).length) delete profile.styles[style];
+  }
+  if (profile.styles && !Object.keys(profile.styles).length) delete profile.styles;
+  if (!hasEdits(profile)) delete settings.layout.profiles[id];
+}
+
+/** Forget the moved and resized keys of the layout style in use (hidden keys and labels stay). */
+export function forgetStyleEdits() {
+  const profile = editProf();
+  delete profile.styles?.[styleOf(profile)];
+  tidyProf();
+}
+
+/** Put these keys back where, and as wide as, the layout style in use has them. */
+export function forgetKeyEdits(codes) {
+  const edits = editStyle();
+  for (const code of codes) {
+    delete edits.positions?.[code];
+    delete edits.sizes?.[code];
+  }
+  tidyProf();
 }
 
 /** The layout's key edits as plain text (for undo and redo). "null" means the layout has no edits. */
@@ -86,16 +141,29 @@ export const snap = (v, step = snapStep()) => (step === 0 ? v : Math.round(v / s
 
 export const round2 = (v) => Math.round(v * 100) / 100;
 
-/** Where a key is drawn: its saved position if the user moved it, otherwise the layout file's. */
-export const keyPos = (key, profile) => profile.positions[key.code] ?? { x: key.x, y: key.y };
+/** Where the layout style puts a key before the user moves it: the layout file's place, or its place in the even grid. */
+export function basePosition(key, style) {
+  const place = style === 'grid' ? curLayout()?.grid?.[key.code] : null;
+  return place ?? { x: key.x, y: key.y };
+}
 
-/** Save a key's position (dropping the entry when it is back where the layout file has it). */
+/** How wide the layout style makes a key before the user resizes it: as the layout file has it, or 1 in the even grid. */
+export const baseWidth = (key, style) => (style === 'grid' ? 1 : (key.w ?? 1));
+
+/** Where a key is drawn: its saved position if the user moved it, otherwise where the layout style puts it. */
+export const keyPos = (key, profile) => profile.positions[key.code] ?? basePosition(key, profile.layoutStyle);
+
+/** How wide a key is drawn: its saved width if the user resized it, otherwise the layout style's width. */
+export const keyWidth = (key, profile) => profile.sizes[key.code]?.w ?? baseWidth(key, profile.layoutStyle);
+
+/** Save a key's position (dropping the entry when it is back where the layout style puts it). */
 export function setKeyPos(key, x, y) {
-  const prof = editProf();
+  const style = styleOf(editProf());
+  const base = basePosition(key, style);
   x = round2(x);
   y = round2(y);
-  if (Math.abs(x - key.x) < 1e-6 && Math.abs(y - key.y) < 1e-6) delete prof.positions[key.code];
-  else prof.positions[key.code] = { x, y };
+  if (Math.abs(x - base.x) < 1e-6 && Math.abs(y - base.y) < 1e-6) delete editPositions()[key.code];
+  else editPositions()[key.code] = { x, y };
   tidyProf();
 }
 
@@ -130,7 +198,7 @@ export function tidyPositions(layout, profile) {
   };
   const newX = closeGaps(
       (it) => it.x,
-      (it) => it.k.w ?? 1,
+      (it) => keyWidth(it.k, profile),
     ),
     newY = closeGaps(
       (it) => it.y,

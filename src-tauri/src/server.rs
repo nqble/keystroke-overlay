@@ -242,6 +242,11 @@ pub fn layouts(paths: &Paths) -> Vec<Value> {
             }
         }
     }
+    // The even-grid style's positions are worked out here, once, for the Keys tab and the overlay (see grid.rs).
+    for layout in &mut out {
+        let grid = crate::grid::even_grid(layout["keys"].as_array().map(Vec::as_slice).unwrap_or(&[]));
+        layout["grid"] = grid;
+    }
     out
 }
 pub fn font_files(paths: &Paths) -> Vec<String> {

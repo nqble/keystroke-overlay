@@ -11,7 +11,7 @@
 use serde_json::{json, Map, Value};
 use std::path::{Path, PathBuf};
 
-pub const CURRENT_VERSION: u64 = 2;
+pub const CURRENT_VERSION: u64 = 3;
 
 pub fn defaults() -> Value {
     json!({
@@ -37,9 +37,10 @@ pub fn defaults() -> Value {
             // Last app version the user has seen the "What's new" window for (managed by the app).
             "lastSeenVersion": ""
         },
-        // profiles[layoutId] = { disabledKeys: [...], labels: { code: text }, positions: { code: { x, y } } }
-        // (one per layout, saved automatically). editor = the Keys tab's snap step (0 = off, else 0.25, 0.5 or 1 key)
-        // and whether it shows the grid.
+        // profiles[layoutId] = { disabledKeys: [...], labels: { code: text }, layoutStyle: "grid" (only when chosen),
+        //   styles: { shape: { positions: { code: { x, y } }, sizes: { code: { w } } }, grid: { ... } } }
+        // (one per layout, saved automatically; disabledKeys and labels are shared by both layout styles).
+        // editor = the Keys tab's snap step (0 = off, else 0.25, 0.5 or 1 key) and whether it shows the grid.
         "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false } },
         "style": {
             "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff",
@@ -56,7 +57,7 @@ pub fn defaults() -> Value {
 type Migration = fn(&mut Value);
 
 /// MIGRATIONS[i] upgrades a config from version (i+1) to (i+2).
-const MIGRATIONS: &[Migration] = &[v1_to_v2];
+const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3];
 
 /// v1 stored one global `layout.disabledKeys` / `layout.labels`.
 /// v2 stores them per layout in `layout.profiles[layoutId]`.
@@ -73,6 +74,20 @@ fn v1_to_v2(config: &mut Value) {
     let mut profiles = Map::new();
     profiles.insert(id, Value::Object(profile));
     layout.insert("profiles".into(), Value::Object(profiles));
+}
+
+/// v2 kept a layout's moved keys in `profile.positions`.
+/// v3 keeps positions (and key sizes) per layout style in `profile.styles.<style>`, so today's positions become the
+/// "shape" style's.
+fn v2_to_v3(config: &mut Value) {
+    let Some(profiles) = config.pointer_mut("/layout/profiles").and_then(Value::as_object_mut) else {
+        return;
+    };
+    for profile in profiles.values_mut().filter_map(Value::as_object_mut) {
+        if let Some(positions) = profile.remove("positions") {
+            profile.insert("styles".into(), json!({ "shape": { "positions": positions } }));
+        }
+    }
 }
 
 pub fn migrate(mut config: Value) -> Value {
@@ -162,28 +177,80 @@ fn clean_labels(value: Option<&Value>) -> Value {
             .unwrap_or_default(),
     )
 }
-/// Where the user dragged keys to in one layout: { "KeyW": { "x": 1.25, "y": 0 } } in key units. Anything that is not a
-/// pair of finite numbers is dropped; numbers are limited to 0..100 and rounded to 2 decimals.
+/// How far a key's position may be, in key widths. The Keys tab keeps keys inside a smaller board; this only stops a
+/// hand-edited file from breaking the overlay. Keep in step with MAX_POSITION in ui/settings/profiles.js.
+const MAX_POSITION: f64 = 100.0;
+/// The narrowest and widest a resized key may be, in key widths (the Keys tab limits it further, to the board).
+/// Keep in step with MIN_KEY_WIDTH and MAX_KEY_WIDTH in ui/settings/profiles.js and ui/overlay/overlay.js.
+const MIN_KEY_WIDTH: f64 = 0.25;
+const MAX_KEY_WIDTH: f64 = 100.0;
+/// The layout styles a profile can keep positions for: "shape" (keys as the layout file draws them) and "grid" (every
+/// key one key wide in neat columns).
+const LAYOUT_STYLES: [&str; 2] = ["shape", "grid"];
+/// The most keys one profile may move or resize.
+const MAX_EDITED_KEYS: usize = 300;
+
+fn round_to_hundredths(units: f64) -> f64 {
+    (units * 100.0).round() / 100.0
+}
+
+/// Where the user dragged keys to in one layout style: { "KeyW": { "x": 1.25, "y": 0 } } in key units. Anything that is
+/// not a pair of finite numbers is dropped; numbers are limited to 0..MAX_POSITION and rounded to 2 decimals.
 fn clean_positions(value: Option<&Value>) -> Value {
     let mut out = Map::new();
     if let Some(moved_keys) = value.and_then(|x| x.as_object()) {
         for (code, position) in moved_keys
             .iter()
             .filter(|(k, _)| !k.is_empty() && k.len() <= 40)
-            .take(300)
+            .take(MAX_EDITED_KEYS)
         {
             if let (Some(x), Some(y)) = (
                 position.get("x").and_then(Value::as_f64),
                 position.get("y").and_then(Value::as_f64),
             ) {
                 if x.is_finite() && y.is_finite() {
-                    let round_units = |units: f64| (units.clamp(0.0, 100.0) * 100.0).round() / 100.0;
-                    out.insert(code.clone(), json!({ "x": round_units(x), "y": round_units(y) }));
+                    let limited = |units: f64| round_to_hundredths(units.clamp(0.0, MAX_POSITION));
+                    out.insert(code.clone(), json!({ "x": limited(x), "y": limited(y) }));
                 }
             }
         }
     }
     Value::Object(out)
+}
+
+/// How wide the user made keys in one layout style: { "Space": { "w": 4.5 } } in key widths. Anything that is not a finite
+/// number is dropped; widths are limited to MIN_KEY_WIDTH..MAX_KEY_WIDTH and rounded to 2 decimals.
+fn clean_sizes(value: Option<&Value>) -> Value {
+    let mut out = Map::new();
+    if let Some(resized_keys) = value.and_then(|x| x.as_object()) {
+        for (code, size) in resized_keys
+            .iter()
+            .filter(|(k, _)| !k.is_empty() && k.len() <= 40)
+            .take(MAX_EDITED_KEYS)
+        {
+            if let Some(width) = size.get("w").and_then(Value::as_f64).filter(|w| w.is_finite()) {
+                out.insert(
+                    code.clone(),
+                    json!({ "w": round_to_hundredths(width.clamp(MIN_KEY_WIDTH, MAX_KEY_WIDTH)) }),
+                );
+            }
+        }
+    }
+    Value::Object(out)
+}
+
+/// One layout style's edits: only the parts that have something in them, so untouched profiles stay small.
+fn clean_style(raw_style: Option<&Value>, fallback_positions: Option<&Value>) -> Map<String, Value> {
+    let mut cleaned = Map::new();
+    let positions = clean_positions(raw_style.and_then(|s| s.get("positions")).or(fallback_positions));
+    if positions.as_object().is_some_and(|m| !m.is_empty()) {
+        cleaned.insert("positions".into(), positions);
+    }
+    let sizes = clean_sizes(raw_style.and_then(|s| s.get("sizes")));
+    if sizes.as_object().is_some_and(|m| !m.is_empty()) {
+        cleaned.insert("sizes".into(), sizes);
+    }
+    cleaned
 }
 
 pub fn clean_profiles(raw_profiles: &Value) -> Value {
@@ -193,10 +260,25 @@ pub fn clean_profiles(raw_profiles: &Value) -> Value {
             let mut cleaned = Map::new();
             cleaned.insert("disabledKeys".into(), clean_strings(profile.get("disabledKeys")));
             cleaned.insert("labels".into(), clean_labels(profile.get("labels")));
-            let positions = clean_positions(profile.get("positions"));
-            // only when keys were moved
-            if positions.as_object().is_some_and(|m| !m.is_empty()) {
-                cleaned.insert("positions".into(), positions);
+            // "shape" is the default style and is not written; only a chosen "grid" is
+            if profile.get("layoutStyle").and_then(Value::as_str) == Some("grid") {
+                cleaned.insert("layoutStyle".into(), json!("grid"));
+            }
+            let mut styles = Map::new();
+            for style in LAYOUT_STYLES {
+                // files written before version 3 (an older layout export, say) keep positions straight on the profile
+                let legacy_positions = if style == "shape" {
+                    profile.get("positions")
+                } else {
+                    None
+                };
+                let edits = clean_style(profile.get("styles").and_then(|s| s.get(style)), legacy_positions);
+                if !edits.is_empty() {
+                    styles.insert(style.to_string(), Value::Object(edits));
+                }
+            }
+            if !styles.is_empty() {
+                cleaned.insert("styles".into(), Value::Object(styles));
             }
             out.insert(id.clone(), Value::Object(cleaned));
         }
@@ -461,7 +543,7 @@ mod tests {
         let old = json!({ "version": 1, "general": { "port": 9000, "autoCheckUpdates": true },
                           "layout": { "id": "tsb", "disabledKeys": ["KeyQ"], "labels": { "Space": "Jump" } } });
         let migrated = migrate(old);
-        assert_eq!(migrated["version"], json!(2));
+        assert_eq!(migrated["version"], json!(CURRENT_VERSION));
         assert_eq!(migrated["general"]["port"], json!(9000));
         assert_eq!(migrated["general"]["autoCheckUpdates"], json!(true));
         assert_eq!(migrated["layout"]["id"], json!("tsb"));
@@ -711,10 +793,10 @@ mod robustness_tests {
         );
         for (id, profile) in settings["layout"]["profiles"].as_object().unwrap() {
             assert!(is_id(id), "seed {seed}: profile id {id:?}");
-            for (code, pos) in profile
-                .get("positions")
-                .and_then(|x| x.as_object())
-                .into_iter()
+            for (code, pos) in ["shape", "grid"]
+                .iter()
+                .filter_map(|style| profile.pointer(&format!("/styles/{style}/positions")))
+                .filter_map(|x| x.as_object())
                 .flatten()
             {
                 let (x, y) = (pos["x"].as_f64().unwrap(), pos["y"].as_f64().unwrap());
@@ -902,19 +984,128 @@ mod position_tests {
     use super::*;
     #[test]
     fn moved_keys_are_kept_clamped_and_junk_is_dropped() {
-        let raw = json!({ "wasd": { "positions": {
-            "KeyW": { "x": 1.256, "y": 0 }, "KeyA": { "x": -5, "y": 1e9 }, "KeyS": { "x": "1", "y": 2 }, "KeyD": { "x": 3 }, "": { "x": 1, "y": 1 } } } });
+        let raw = json!({ "wasd": { "styles": { "shape": { "positions": {
+            "KeyW": { "x": 1.256, "y": 0 }, "KeyA": { "x": -5, "y": 1e9 }, "KeyS": { "x": "1", "y": 2 }, "KeyD": { "x": 3 }, "": { "x": 1, "y": 1 } } } } } });
         let out = clean_profiles(&raw);
-        let pos = &out["wasd"]["positions"];
+        let pos = &out["wasd"]["styles"]["shape"]["positions"];
         assert_eq!(pos["KeyW"], json!({ "x": 1.26, "y": 0.0 }));
         assert_eq!(pos["KeyA"], json!({ "x": 0.0, "y": 100.0 }));
         assert!(pos.get("KeyS").is_none() && pos.get("KeyD").is_none() && pos.get("").is_none());
-        // A profile without moved keys has no "positions" entry at all (old settings files stay byte-identical).
-        assert!(clean_profiles(&json!({ "x": { "positions": {} } }))["x"]
-            .get("positions")
-            .is_none());
-        assert!(clean_profiles(&json!({ "x": { "positions": "nope" } }))["x"]
-            .get("positions")
-            .is_none());
+        // A profile without moved keys has no "styles" entry at all (old settings files stay small and byte-identical).
+        for empty in [
+            json!({ "styles": { "shape": { "positions": {} } } }),
+            json!({ "styles": "nope" }),
+        ] {
+            assert!(clean_profiles(&json!({ "x": empty }))["x"].get("styles").is_none());
+        }
+    }
+}
+
+#[cfg(test)]
+mod layout_style_tests {
+    use super::*;
+
+    #[test]
+    fn version_2_positions_move_into_the_shape_style() {
+        let old = json!({ "version": 2, "layout": { "id": "wasd", "profiles": {
+            "wasd": { "disabledKeys": ["KeyE"], "labels": { "Space": "Jump" }, "positions": { "KeyW": { "x": 2, "y": 1.5 } } },
+            "tkl": { "disabledKeys": [], "labels": {} } } } });
+        let migrated = migrate(old);
+        let wasd = &migrated["layout"]["profiles"]["wasd"];
+        assert_eq!(migrated["version"], json!(CURRENT_VERSION));
+        assert_eq!(wasd["disabledKeys"], json!(["KeyE"]));
+        assert_eq!(wasd["labels"], json!({ "Space": "Jump" }));
+        assert_eq!(
+            wasd["styles"]["shape"]["positions"]["KeyW"],
+            json!({ "x": 2.0, "y": 1.5 })
+        );
+        assert!(wasd.get("positions").is_none(), "the old place is gone");
+        assert!(
+            wasd.get("layoutStyle").is_none(),
+            "shape stays the default and is not written"
+        );
+        assert!(migrated["layout"]["profiles"]["tkl"].get("styles").is_none());
+    }
+
+    #[test]
+    fn both_styles_keep_their_own_positions_and_sizes_and_survive_a_round_trip() {
+        let raw = json!({ "a": { "disabledKeys": [], "labels": {}, "layoutStyle": "grid", "styles": {
+            "shape": { "positions": { "KeyW": { "x": 1, "y": 0 } }, "sizes": { "Space": { "w": 4.5 } } },
+            "grid": { "positions": { "KeyW": { "x": 3, "y": 2 } }, "sizes": { "KeyW": { "w": 2 } } } } } });
+        let once = clean_profiles(&raw);
+        assert_eq!(once["a"]["layoutStyle"], json!("grid"));
+        assert_eq!(once["a"]["styles"]["shape"]["sizes"]["Space"], json!({ "w": 4.5 }));
+        assert_eq!(
+            once["a"]["styles"]["grid"]["positions"]["KeyW"],
+            json!({ "x": 3.0, "y": 2.0 })
+        );
+        assert_eq!(once["a"]["styles"]["grid"]["sizes"]["KeyW"], json!({ "w": 2.0 }));
+        assert_eq!(clean_profiles(&once), once, "cleaning twice changes nothing");
+    }
+
+    #[test]
+    fn an_unknown_layout_style_means_shape() {
+        for style in [json!("evil"), json!(5), json!(null), json!(["grid"]), json!("Grid")] {
+            let out = clean_profiles(&json!({ "a": { "layoutStyle": style } }));
+            assert!(out["a"].get("layoutStyle").is_none(), "{style}");
+        }
+    }
+
+    #[test]
+    fn a_missing_grid_style_is_simply_absent() {
+        let out = clean_profiles(&json!({ "a": { "styles": { "shape": { "sizes": { "Space": { "w": 3 } } } } } }));
+        assert!(out["a"]["styles"].get("grid").is_none());
+        assert_eq!(out["a"]["styles"]["shape"]["sizes"]["Space"], json!({ "w": 3.0 }));
+    }
+
+    #[test]
+    fn key_widths_are_clamped_rounded_and_junk_is_dropped() {
+        let raw = json!({ "a": { "styles": { "shape": { "sizes": {
+            "Wide": { "w": 4.567 }, "Tiny": { "w": 0 }, "Huge": { "w": 1e9 }, "Neg": { "w": -3 },
+            "Text": { "w": "2" }, "Nothing": {}, "Plain": 5, "": { "w": 2 } } } } } });
+        let sizes = &clean_profiles(&raw)["a"]["styles"]["shape"]["sizes"];
+        assert_eq!(sizes["Wide"], json!({ "w": 4.57 }));
+        assert_eq!(sizes["Tiny"], json!({ "w": MIN_KEY_WIDTH }));
+        assert_eq!(sizes["Huge"], json!({ "w": MAX_KEY_WIDTH }));
+        assert_eq!(sizes["Neg"], json!({ "w": MIN_KEY_WIDTH }));
+        for dropped in ["Text", "Nothing", "Plain", ""] {
+            assert!(sizes.get(dropped).is_none(), "{dropped:?}");
+        }
+    }
+
+    #[test]
+    fn hostile_style_data_is_cleaned_without_panicking() {
+        let hostile = [
+            json!(null),
+            json!(5),
+            json!("x"),
+            json!([1, 2]),
+            json!({ "shape": 3 }),
+            json!({ "grid": [] }),
+            json!({ "shape": { "positions": [1], "sizes": "no" } }),
+        ];
+        for styles in hostile {
+            let out = clean_profiles(&json!({ "a": { "styles": styles } }));
+            assert!(out["a"].get("styles").is_none());
+        }
+    }
+
+    #[test]
+    fn at_most_three_hundred_resized_keys_are_kept() {
+        let sizes: Map<String, Value> = (0..400).map(|n| (format!("Key{n}"), json!({ "w": 2 }))).collect();
+        let out = clean_profiles(&json!({ "a": { "styles": { "shape": { "sizes": sizes } } } }));
+        assert_eq!(
+            out["a"]["styles"]["shape"]["sizes"].as_object().unwrap().len(),
+            MAX_EDITED_KEYS
+        );
+    }
+
+    #[test]
+    fn positions_written_by_older_versions_are_still_accepted_on_import() {
+        let out = clean_profiles(&json!({ "a": { "positions": { "KeyW": { "x": 1, "y": 2 } } } }));
+        assert_eq!(
+            out["a"]["styles"]["shape"]["positions"]["KeyW"],
+            json!({ "x": 1.0, "y": 2.0 })
+        );
     }
 }
