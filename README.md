@@ -259,3 +259,17 @@ Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already include
 ## License
 
 [MIT](LICENSE) © 2026 Jordan Phoutthavone. Third-party components keep their own licenses.
+
+### Name and logo
+
+The MIT license covers the **code**. It does not cover the **name "Keystroke Overlay"**, the **logo** or the **author's
+name**, which identify the official app by Jordan Phoutthavone. You're welcome to fork, change and share the code, but if
+you publish your own version:
+
+- give it a **different name and logo**, so people can tell it apart from the official app;
+- don't present it as the official app, or as made or endorsed by Jordan Phoutthavone;
+- keep the copyright and license notice, as the MIT license requires. Saying "based on Keystroke Overlay by Jordan
+  Phoutthavone" is welcome.
+
+Official releases are only published at [github.com/nqble/keystroke-overlay](https://github.com/nqble/keystroke-overlay/releases)
+and are signed, so the app's built-in updater only installs updates from there.
