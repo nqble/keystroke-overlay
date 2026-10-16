@@ -13,7 +13,7 @@ Rules, each enforced by `npm run check:privacy` (it runs on every change on GitH
 - network code lives in exactly one file (`src-tauri/src/commands/updates.rs`);
 - the server binds `127.0.0.1` only;
 - no file writes in the keyboard code or the server;
-- no logging calls;
+- no printing and no logging libraries (only Debug mode's in-memory event log, which never holds key presses);
 - no external requests from the web pages.
 
 The optional Debug mode keeps its event log in memory only and is off by default.

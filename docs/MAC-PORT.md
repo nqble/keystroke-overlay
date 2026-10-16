@@ -1,8 +1,8 @@
-# Porting to macOS — research (nothing implemented yet)
+# Porting to macOS — research (no macOS key capture yet; some groundwork done)
 
 **Verdict: yes, and the best route is to keep Tauri.** Roughly 80% of the app is already cross-platform
-(overlay, settings window, local server, settings storage, tray, updater, autostart). What is Windows-only is the
-keyboard hook, one memory call, and the way the app is packaged and signed.
+(overlay, settings window, local server, settings storage, tray, updater, autostart). What is Windows-only is key capture (the hook and Raw
+Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`), and the way the app is packaged and signed.
 
 ## What carries over unchanged
 
@@ -54,9 +54,10 @@ Silicon Macs.
 
 Everything is already prepared: OS-specific calls are isolated in `platform.rs`, and the Rust code is split into modules.
 
-1. **Phase 1 — it runs.** Introduce a small `KeySource` interface; keep the Windows methods (`keyboard/hook.rs`, `keyboard/rawinput.rs`) behind it; add
-   `keyboard/macos.rs` (CGEventTap + key-code map + repeat filter). Gate Windows-only crates with
-   `[target.'cfg(windows)'.dependencies]`. Add a `macos-latest` job to CI that builds (unsigned) and uploads the `.app`.
+1. **Phase 1 — it runs.** Already done: the capture methods sit behind one interface (`Method` in `keyboard/mod.rs`),
+   Windows-only crates are gated with `[target.'cfg(windows)'.dependencies]`, and CI builds and tests on `macos-latest` (the
+   `other-systems` job). Still to do: add `keyboard/macos.rs` (CGEventTap + key-code map + repeat filter) and make CI upload
+   an unsigned `.app`.
 2. **Phase 2 — it behaves.** Permission screen, Secure Input hint, menu-bar icon, Dock icon hidden, visual pass over
    the settings window in WKWebView.
 3. **Phase 3 — it ships.** Apple Developer ID, signing + notarization in a GitHub Actions release workflow, universal

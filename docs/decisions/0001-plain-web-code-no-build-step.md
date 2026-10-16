@@ -7,8 +7,9 @@ The program has two web pages: the **overlay** that OBS loads, and the **setting
 (React, Vue, Svelte…) could build either one.
 
 ## Decision
-Both pages are plain HTML, CSS and JavaScript files. There is no bundler, no compiler and no `node_modules`
-beyond the Tauri command-line tool. The files in `ui/` are exactly what runs.
+Both pages are plain HTML, CSS and JavaScript files. There is no bundler and no compiler. `node_modules` holds only
+development tools (the Tauri command-line tool, Prettier, TypeScript for type checks, pixelmatch and pngjs for screenshot
+tests); none of them ships to users. The files in `ui/` are exactly what runs.
 
 ## Why
 - **Easy to contribute:** open a file, edit, reload. Nothing to install or compile.

@@ -15,8 +15,6 @@ these is chosen, it gets its own numbered decision record and leaves this page.
 ## Project safety and structure
 - **Branch protection on `main`** (changes through pull requests, CI must pass, no force-pushes). It would change how pushes
   work, so it needs the owner's decision.
-- **A Linux CI job** that runs the platform-neutral unit tests, to keep the Windows-only code (keyboard hook, Raw Input,
-  tray details) cleanly separated. The crate does not build on Linux today, so this needs some `cfg(windows)` gating first.
 - **Performance budgets** (startup time, idle memory, thread count) checked against the benchmark tool before a release.
 
 ## Possible features (see the roadmap discussion)
