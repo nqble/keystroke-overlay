@@ -280,7 +280,7 @@ const SECTIONS = [
     id: 'event-log',
     title: 'Event log',
     build() {
-      const box = el('div', { className: 'dbg-log scroll-fade', test: 'debug-log' });
+      const box = el('div', { className: 'dbg-log', test: 'debug-log' });
       const refresh = async () => {
         const lines = await invoke('debug_log');
         const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 30;
@@ -327,7 +327,7 @@ const SECTIONS = [
     title: 'Key monitor',
     build() {
       listenForKeys();
-      const list = el('div', { className: 'dbg-log short scroll-fade', test: 'debug-monitor-log' }),
+      const list = el('div', { className: 'dbg-log short', test: 'debug-monitor-log' }),
         status = el('span', { className: 'hint', test: 'debug-monitor-status' });
       let running = false,
         count = 0,
