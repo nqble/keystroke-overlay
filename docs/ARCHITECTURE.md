@@ -50,6 +50,7 @@ keystroke-overlay/
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
         ├── popups.js      dialogs, right-click menu, release notes, update dialog
+        ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── text.js        the longer explanations the user reads
