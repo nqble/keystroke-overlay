@@ -32,6 +32,20 @@ Prefer to build it yourself? See [Building from source](#building-from-source).
 
 If you change the port in settings, update the URL in OBS too.
 
+### Keep it smooth and light in OBS
+
+These OBS settings make the biggest difference to how smooth the overlay looks and how little it costs while you stream:
+
+- **Size the source exactly** as shown in the app's header. To make the keys bigger or smaller, use **Style → Scale** in the app
+  instead of stretching the source in OBS: the keys stay sharp and OBS draws fewer pixels.
+- **Frame rate:** leave **Use custom frame rate** off; OBS then matches your stream's frame rate. Only turn it on to match a
+  60 fps stream if OBS runs at a different rate.
+- **Shutdown source when not visible:** turn it on if the overlay is only in some of your scenes. It stops using CPU while
+  hidden and reconnects in a moment when the scene shows again.
+- **Refresh browser when scene becomes active:** leave it off. The overlay updates itself; reloading only adds a short gap.
+- **Hardware acceleration:** in OBS, **Settings → Advanced → Sources → Enable Browser Source Hardware Acceleration** should be
+  on (it is by default). The overlay's animations are designed to run on the graphics card.
+
 ## Using two PCs (game on one, OBS on the other)
 
 Keystroke Overlay only talks to `127.0.0.1`, which means "this PC", so OBS has to run on the **same PC as the app**. If you play on
