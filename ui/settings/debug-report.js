@@ -1,11 +1,11 @@
 // =====================================================================================================================
 //  The Debug tab's reports, as plain logic: removing personal details, finding which settings differ from the
-//  defaults, and the "Copy for a developer / AI" report. No page code, so tests/ui can run it with Node.
+//  defaults, and the "Copy bug report" text. No page code, so tests/ui can run it with Node.
 //  debug.js gathers the facts and copies the result. Privacy rules: docs/DEBUGGING.md and PRIVACY.md.
 // =====================================================================================================================
 
 /** The report's format version. Raise it when a field is renamed or removed, so readers can tell the formats apart. */
-export const DEV_REPORT_FORMAT = 1;
+export const BUG_REPORT_FORMAT = 1;
 
 // A user's home folder on every system: C:\Users\name or C:/Users/name (Windows), /home/name (Linux),
 // /Users/name (macOS). The name is everything up to the next slash, space or quote. Slashes may be doubled, because
@@ -58,13 +58,13 @@ export function settingsDiff(settings, defaults) {
 }
 
 /**
- * "Copy for a developer / AI": one Markdown block with a short summary a person can read, and a fenced JSON part a
+ * "Copy bug report": one Markdown block with a short summary a person can read, and a fenced JSON part a
  * script or another Claude session can read exactly. `facts` comes from debug.js (see buildDevReport there).
  */
-export function devReport(facts) {
+export function bugReport(facts) {
   const failed = facts.selfTest.filter((check) => !check.ok);
   const data = {
-    format: DEV_REPORT_FORMAT,
+    format: BUG_REPORT_FORMAT,
     app: { version: facts.version, build: facts.build, os: facts.os, engine: facts.engine },
     state: facts.state,
     selfTest: facts.selfTest,

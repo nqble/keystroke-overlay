@@ -1,7 +1,7 @@
 // Unit tests for the Debug tab's reports (ui/settings/debug-report.js). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { devReport, redactSettings, scrub, settingsDiff } from '../../ui/settings/debug-report.js';
+import { bugReport, redactSettings, scrub, settingsDiff } from '../../ui/settings/debug-report.js';
 
 test('scrub removes the user name from home-folder paths on every system', () => {
   assert.equal(scrub('C:\\Users\\jordan\\AppData'), 'C:\\Users\\<you>\\AppData');
@@ -45,8 +45,8 @@ const facts = {
   log: [[1200, 'app started (v1.4.0)']],
 };
 
-test('the developer report has a readable summary and exact JSON', () => {
-  const report = devReport(facts);
+test('the bug report has a readable summary and exact JSON', () => {
+  const report = bugReport(facts);
   assert.match(report, /^## Keystroke Overlay v1\.4\.0 \(release\) on windows x86_64/);
   assert.match(report, /Self-test: 1 failed \(Key capture is working\)/);
   const json = JSON.parse(report.split('```json\n')[1].split('\n```')[0]);
@@ -55,6 +55,6 @@ test('the developer report has a readable summary and exact JSON', () => {
   assert.equal(json.selfTest.length, 2);
 });
 
-test('the developer report never carries the user name', () => {
-  assert.doesNotMatch(devReport(facts), /jordan/);
+test('the bug report never carries the user name', () => {
+  assert.doesNotMatch(bugReport(facts), /jordan/);
 });

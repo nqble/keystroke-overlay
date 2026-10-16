@@ -20,7 +20,7 @@
 //  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
-import { devReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
+import { bugReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
 import { addLayoutDialog, showNotes } from './popups.js';
 import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
@@ -58,12 +58,9 @@ const TEXT = {
     'Debug mode on. In the inspector’s console, the object “ko” has shortcuts: ko.info(), ko.log(), ' +
     "ko.settings(), ko.goto('style').",
   bugReportHelp:
-    'Copies one block of text for a GitHub issue: version, system, self-test results, your settings ' +
-    '(without the private link key) and the recent event log. It contains no key presses, and your ' +
-    'Windows user name is removed.',
-  devReportHelp:
-    'The same facts as one block a developer or an AI assistant (such as Claude) can read exactly: a short ' +
-    'summary, then the details as JSON. Only the settings you changed are listed. Same privacy as the bug report.',
+    'Copies one block of text for a GitHub issue, or to paste to an AI assistant such as Claude: a short summary, then ' +
+    'the details (version, system, self-test, the settings you changed and the recent event log). It contains no key ' +
+    'presses and no private link key, and your user name is removed.',
   debugToolsIntro:
     'Developer tools. Switch them off in General → App → Debug mode. Nothing here is saved to disk or ' +
     'sent anywhere.',
@@ -144,34 +141,8 @@ async function runSelfTest() {
   ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail }));
 }
 
-/** One report a developer can paste into a GitHub issue. Contains no key presses and no personal paths. */
+/** The facts for "Copy bug report" (debug-report.js formats them). No key presses, no personal paths. */
 async function buildReport() {
-  const info = await invoke('debug_info'),
-    tests = await runSelfTest(),
-    log = await invoke('debug_log');
-  return scrub(
-    [
-      `Keystroke Overlay v${info.version} (${info.build}) on ${info.os}`,
-      `Browser engine: ${navigator.userAgent}`,
-      `Screen: ${screen.width}x${screen.height} at ${devicePixelRatio}x, window ${innerWidth}x${innerHeight}`,
-      `Running for ${seconds(info.uptimeSecs)}; memory ${info.memoryMb} MB; ` +
-        `${info.handles} handles; port ${info.port}`,
-      `Keyboard: ${info.inputActive}${info.inputError ? ' (error: ' + info.inputError + ')' : ''}`,
-      '',
-      'SELF-TEST',
-      ...tests.map((t) => `${t.ok ? 'PASS' : 'FAIL'}  ${t.name}${t.detail ? ' — ' + t.detail : ''}`),
-      '',
-      'SETTINGS',
-      JSON.stringify(redactSettings(settings)),
-      '',
-      `EVENT LOG (last ${Math.min(60, log.length)} of ${log.length})`,
-      ...log.slice(-60).map(([ms, text]) => `${clock(ms)}  ${text}`),
-    ].join('\n'),
-  );
-}
-
-/** The facts for "Copy for a developer / AI" (debug-report.js formats them). No key presses, no personal paths. */
-async function buildDevReport() {
   const [info, selfTest, log, defaults] = await Promise.all([
     invoke('debug_info'),
     runSelfTest(),
@@ -196,7 +167,7 @@ async function buildDevReport() {
     window: `${innerWidth}x${innerHeight} at ${devicePixelRatio}x`,
     overlaySize: size ? `${size.w}x${size.h}` : null,
   };
-  return devReport({
+  return bugReport({
     version: info.version,
     build: info.build,
     os: info.os,
@@ -610,17 +581,7 @@ const SECTIONS = [
             'primary',
             'debug-bug-report',
           ),
-          button(
-            'Copy for a developer / AI',
-            async () => {
-              await call('copy_text', { text: await buildDevReport() });
-              toast('Developer report copied');
-            },
-            '',
-            'debug-dev-report',
-          ),
         ),
-        note(TEXT.devReportHelp),
       ];
     },
   },
