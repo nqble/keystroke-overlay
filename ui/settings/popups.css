@@ -1,0 +1,299 @@
+/* Every popup (the shared popup, What's new, the update popup, dialogs) and the "⋯" menu. Code: popup.js, notes.js,
+   update-popup.js, dialogs.js, menu.js. Design: docs/design/ui-design-v2.md, Popups and messages. */
+#banner[hidden],
+#modal[hidden] {
+  display: none;
+}
+
+.bar {
+  height: 10px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-width: 460px;
+}
+.bar[hidden] {
+  display: none;
+}
+.bar .fill {
+  height: 100%;
+  width: 0;
+  background: var(--color-accent);
+  border-radius: var(--radius-md);
+  transition: width var(--duration-medium) linear;
+}
+.bar .fill.indet {
+  width: 40% !important;
+  animation: slide 1.1s ease-in-out infinite alternate;
+}
+@keyframes slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(150%);
+  }
+}
+
+#modal {
+  position: fixed;
+  inset: 0;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+/* The shared popup's size (docs/design/ui-design-v2.md, Popups): as wide as 560 px and only as tall as its text, up to
+   80% of the window and never more than 640 px; longer text scrolls in the middle while the title and buttons stay.
+   Measured against the window, so it follows window size and Windows' display scaling. */
+.dialog {
+  width: min(560px, calc(100vw - 48px));
+  max-height: min(80vh, 640px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-popup);
+}
+.dialog h3 {
+  margin: 0;
+  padding: var(--space-20) var(--space-22) var(--space-12);
+  font-size: var(--text-xl);
+  overflow-wrap: anywhere;
+  flex: none;
+}
+/* Scrolling body: text keeps 22px from both borders; when the notes are taller than the dialog the shared slim
+   scrollbar appears inset from the edge (never touching the border), and the dialog never outgrows the window. */
+#mBody,
+#uBody,
+#dBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  line-height: 1.55;
+  padding: var(--space-2) var(--space-16) var(--space-16) var(--space-22);
+  margin-right: var(--space-6);
+  overflow-wrap: anywhere;
+}
+#mBody h4 {
+  margin: var(--space-14) 0 var(--space-4);
+  font-size: var(--text-md);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+#mBody p {
+  margin: var(--space-8) 0;
+}
+#mBody ul {
+  margin: var(--space-6) 0;
+  padding-left: var(--space-20);
+}
+#mBody li {
+  margin: var(--space-3) 0;
+}
+#mBody code {
+  background: var(--color-panel-raised);
+  padding: var(--space-1) var(--space-5);
+  border-radius: var(--radius-xs);
+}
+.mfoot {
+  flex: none;
+  padding: var(--space-12) var(--space-22) var(--space-18);
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-line);
+}
+
+/* Loading dots: 0.3s per step, hold the third dot 0.1s, then restart. Opacity only, no JS timers. */
+.dots {
+  margin: var(--space-10) 0;
+  font-size: var(--text-display);
+  line-height: 1;
+  letter-spacing: 3px;
+  color: var(--color-text-dim);
+  font-weight: var(--weight-bold);
+}
+.dots span {
+  opacity: 0;
+}
+.dots span:nth-child(1) {
+  opacity: 1;
+}
+.dots span:nth-child(2) {
+  animation: dot2 0.7s step-end infinite;
+}
+.dots span:nth-child(3) {
+  animation: dot3 0.7s step-end infinite;
+}
+@keyframes dot2 {
+  0% {
+    opacity: 0;
+  }
+  42.857% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes dot3 {
+  0% {
+    opacity: 0;
+  }
+  85.714% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dots span {
+    animation: none;
+    opacity: 1;
+  }
+  #pane {
+    animation: none;
+  }
+}
+
+/* Update dialog (same look as the What's new window) */
+#updModal,
+#dlg {
+  position: fixed;
+  inset: 0;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 21;
+}
+#updModal[hidden],
+#dlg[hidden] {
+  display: none;
+}
+#uBody h4 {
+  margin: var(--space-12) 0 var(--space-4);
+  font-size: var(--text-md);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+/* Release-note sections in What's new and the update popup. The colour is on the heading and a thin line beside the
+   list; the list text keeps the normal colour, and the icon and word say the same thing for anyone who can't see it. */
+.notes-new {
+  --notes-color: var(--color-notes-new);
+}
+.notes-improved {
+  --notes-color: var(--color-notes-improved);
+}
+.notes-fixed {
+  --notes-color: var(--color-notes-fixed);
+}
+.notes-perf {
+  --notes-color: var(--color-notes-perf);
+}
+.notes-hood {
+  --notes-color: var(--color-notes-hood);
+}
+#mBody h4.notes-section,
+#uBody h4.notes-section {
+  color: var(--notes-color);
+}
+/* Drawn dots instead of the browser's bullets, so the gap from the line to the dot equals the gap from the dot to the
+   text (both --space-10); the browser places its own bullets wherever the font puts them. */
+#mBody ul.notes-section,
+#uBody ul.notes-section {
+  border-left: 2px solid var(--notes-color);
+  padding-left: var(--space-10);
+  margin-left: var(--space-2);
+  list-style: none;
+}
+#mBody ul.notes-section li,
+#uBody ul.notes-section li {
+  position: relative;
+  padding-left: calc(var(--space-5) + var(--space-10)); /* the dot, then the same gap */
+}
+#mBody ul.notes-section li::before,
+#uBody ul.notes-section li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.68em; /* the middle of the first line at the body's 1.55 line height */
+  width: var(--space-5);
+  height: var(--space-5);
+  border-radius: 50%;
+  background: var(--color-text);
+}
+#uBody p {
+  margin: var(--space-6) 0;
+}
+#uBody ul {
+  margin: var(--space-6) 0;
+  padding-left: var(--space-20);
+}
+#uBody code {
+  background: var(--color-panel-raised);
+  padding: var(--space-1) var(--space-5);
+  border-radius: var(--radius-xs);
+}
+#updModal .bar {
+  margin: var(--space-4) var(--space-22) 0;
+  max-width: none;
+}
+#uText {
+  padding: var(--space-6) var(--space-22) 0;
+  min-height: 18px;
+}
+#updModal .mfoot,
+#dlg .mfoot {
+  gap: var(--space-10);
+}
+
+.ctxmenu {
+  position: fixed;
+  z-index: 100;
+  min-width: 170px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-menu);
+  display: flex;
+  flex-direction: column;
+}
+.ctxmenu button {
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--color-text);
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  font: inherit;
+  cursor: pointer;
+}
+.ctxmenu button:hover:not(:disabled) {
+  background: var(--color-menu-hover);
+}
+.ctxmenu button.danger {
+  color: var(--color-danger);
+}
+.ctxmenu button:disabled {
+  color: var(--color-text-dim);
+  cursor: default;
+}
+
+/* Dialog contents for the generic dialog (new layout, limit reached) */
+#dBody p {
+  margin: var(--space-8) 0;
+}
+#dBody input[type='text'] {
+  width: 100%;
+  margin-top: var(--space-6);
+}

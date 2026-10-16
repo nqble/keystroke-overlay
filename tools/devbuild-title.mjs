@@ -1,5 +1,5 @@
 // Adds the purple DEV badge after the app name in the settings header (used by tools/devbuild.mjs and the UI sandbox's
-// ?devbuild view). Its look is .dev-badge in ui/settings/settings.css.
+// ?devbuild view). Its look is .dev-badge in ui/settings/header.css.
 // It finds the name by its test hook, data-test="brand-title" (tests/README.md), not by the tag's other attributes, so
 // adding or reordering attributes can't break the devbuild again. tests/ui/devbuild-title.test.mjs runs it against the
 // real ui/settings/index.html.

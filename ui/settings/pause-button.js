@@ -1,8 +1,8 @@
 // =====================================================================================================================
 //  The round pause button on the live preview (docs/design/ui-design-v2.md, Live preview). It is the same setting as
 //  the tray's "Pause overlay", so the button, the header status (obs-status.js) and the tray always agree.
-//  messages.js wires the click and repaints after every change. The look (slide-out pill, timing) is in settings.css,
-//  section "Pause button"; this file only says which word, icon and name to show.
+//  messages.js wires the click and repaints after every change. The look (slide-out pill, timing) is in
+//  pause-button.css; this file only says which word, icon and name to show.
 // =====================================================================================================================
 
 const TEXT = {

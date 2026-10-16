@@ -1,0 +1,373 @@
+/* The window's frame and the controls every tab shares: the live preview, the tab list, rows, buttons, sliders,
+   cards, messages. Tokens are in settings.css; one tab's own look goes in its own file (debug.css, keys.css). */
+.hint {
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+
+#banner {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--color-error-line);
+}
+
+.preview {
+  position: relative;
+  height: 230px;
+  flex: none;
+  background: var(--color-well);
+  border-bottom: 1px solid var(--color-line);
+  overflow: hidden;
+}
+.preview iframe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 0;
+  transform-origin: 0 0;
+  background: transparent;
+  color-scheme: normal;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+nav {
+  width: 150px;
+  flex: none;
+  background: var(--color-panel);
+  border-right: 1px solid var(--color-line);
+  padding: var(--space-10) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+nav button {
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--color-text-dim);
+  padding: var(--space-9) var(--space-12);
+  border-radius: var(--radius-xl);
+  font: inherit;
+  cursor: pointer;
+}
+nav button:hover {
+  background: var(--color-panel-raised);
+  color: var(--color-text);
+}
+nav button.active {
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-weight: var(--weight-semibold);
+}
+#pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-20) var(--space-26) var(--space-48);
+}
+
+h2 {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-dim);
+  margin: var(--space-26) 0 var(--space-12);
+}
+h2:first-child {
+  margin-top: 0;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
+}
+.row > label {
+  width: 170px;
+  flex: none;
+  color: var(--color-text);
+}
+.row .ctl {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+  max-width: 460px;
+}
+.row .val {
+  width: 54px;
+  text-align: right;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.note {
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+  margin: var(--space-6) 0 var(--space-10);
+  max-width: 640px;
+}
+
+input,
+select,
+button {
+  font: inherit;
+  color: var(--color-text);
+}
+input[type='text'],
+input[type='number'],
+input:not([type]),
+select {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-9);
+  min-width: 0;
+}
+input:focus,
+select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+input[type='range'] {
+  flex: 1;
+  accent-color: var(--color-accent);
+}
+input[type='range']:focus {
+  outline: none; /* no blue box when a slider is clicked... */
+}
+input[type='range']:focus-visible {
+  outline: 2px solid var(--color-accent); /* ...but it shows when the slider is reached with the keyboard */
+  outline-offset: 2px;
+}
+#toast.err {
+  cursor: pointer; /* an error message stays until it is clicked */
+}
+input[type='color'] {
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-control-line);
+  background: var(--color-panel-raised);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+button {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-12);
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--color-accent);
+}
+button.primary {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-weight: var(--weight-semibold);
+}
+button.primary:hover {
+  background: var(--color-accent-pressed);
+  border-color: var(--color-accent-pressed);
+}
+button.danger:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+/* anything that cannot be used right now looks dimmed, and does not react to the mouse */
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button:disabled:hover {
+  border-color: var(--color-control-line);
+}
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: var(--space-8) 0;
+  align-items: center;
+}
+/* display: flex above beats the hidden attribute, so say it again (e.g. the secure link's buttons while it is off). */
+.btns[hidden] {
+  display: none;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--space-12);
+  max-width: 760px;
+}
+.card {
+  background: var(--color-panel);
+  border: 2px solid var(--color-control-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-12);
+  cursor: pointer;
+  /* a card is a button (so the keyboard can reach it): these make it look like the plain box it used to be */
+  width: 100%;
+  text-align: left;
+  display: flex; /* a button centres its content up and down; this keeps the text at the top, as in the old box */
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.card:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.card:hover {
+  border-color: var(--color-line-hover);
+}
+.card.sel {
+  border-color: var(--color-accent);
+  background: var(--color-selected-bg);
+}
+.card b {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+.card span {
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+
+.keymap {
+  position: relative;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  margin: var(--space-8) 0 var(--space-14);
+  overflow: hidden;
+}
+.kmk {
+  position: absolute;
+  border: 1px solid var(--color-key-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-key-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  cursor: pointer;
+  overflow: hidden;
+}
+.kmk.off {
+  opacity: 0.28;
+  background: transparent;
+  border-style: dashed;
+}
+.kmk.sel {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.editor {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-12) var(--space-14);
+  max-width: 560px;
+}
+
+.fontlist {
+  max-width: 560px;
+}
+.fontitem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+}
+.fontitem .n {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#toast {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-toast-bg);
+  border: 1px solid var(--color-accent);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-xl);
+  z-index: 9;
+}
+#toast.err {
+  background: var(--color-error-bg);
+  border-color: var(--color-danger);
+}
+
+#pane {
+  animation: fadein 0.18s ease-out;
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.errnote {
+  color: var(--color-error-text);
+  background: var(--color-error-bg-soft);
+  border: 1px solid var(--color-error-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-12);
+  margin: var(--space-6) 0;
+  max-width: 640px;
+}
+.errnote[hidden] {
+  display: none;
+}
+
+.card.add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: transparent;
+  border: 2px dashed var(--color-line-dashed);
+  color: var(--color-text-dim);
+  min-height: 66px;
+}
+.card.add:hover {
+  border-color: var(--color-line-dashed-hover);
+  color: var(--color-text);
+  background: var(--color-hover-faint);
+}
+.card.add .plus {
+  font-size: var(--text-display);
+  line-height: 1;
+  font-weight: var(--weight-light);
+}
+.card.add small {
+  font-size: var(--text-xs);
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+}

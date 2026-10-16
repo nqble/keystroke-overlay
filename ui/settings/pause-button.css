@@ -1,0 +1,130 @@
+/* The round pause button on the live preview (pause-button.js). Design: docs/design/ui-design-v2.md, Pause button. */
+/* ---- Pause button on the live preview (pause-button.js; docs/design/ui-design-v2.md, Live preview).
+   At rest a 34 px circle. On hover or keyboard focus it grows to the left into a pill with the word. It is drawn from two
+   round caps and a straight middle: the left cap slides while the middle stretches, so the round ends never squash.
+   Only transform and opacity animate (CLAUDE.md). Mouse: opens 150 ms after arriving (a pass-over does nothing) and
+   closes 150 ms after leaving, more slowly, so a quick point-click-leave never snaps shut. Keyboard focus opens at once. */
+.pause-btn {
+  --pause-size: 34px;
+  --pause-open: 70px; /* how far the pill grows: its full width (104 px) minus the circle */
+  position: absolute;
+  top: var(--space-12);
+  right: var(--space-12);
+  width: var(--pause-size);
+  height: var(--pause-size);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  z-index: 1;
+}
+.pause-cap,
+.pause-mid {
+  position: absolute;
+  top: 0;
+  height: var(--pause-size);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  transition: transform 260ms ease-in-out 150ms;
+}
+.pause-cap {
+  right: 0;
+  width: var(--pause-size);
+  border-radius: var(--radius-round);
+}
+.pause-mid {
+  z-index: 1;
+  right: calc(var(--pause-size) / 2);
+  width: var(--pause-open);
+  border-left: 0;
+  border-right: 0;
+  transform-origin: right center;
+  transform: scaleX(0);
+}
+.pause-word,
+.pause-icon {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  height: var(--pause-size);
+  display: flex;
+  align-items: center;
+  font-size: var(--text-sm);
+}
+.pause-icon {
+  right: 0;
+  width: var(--pause-size);
+  justify-content: center;
+}
+.pause-word {
+  right: calc(var(--pause-size) + 4px);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(36px);
+  transition:
+    opacity 120ms ease-out 150ms,
+    transform 260ms ease-in-out 150ms;
+}
+.pause-btn:hover .pause-cap-left,
+.pause-btn:focus-visible .pause-cap-left {
+  transform: translateX(calc(-1 * var(--pause-open)));
+}
+.pause-btn:hover .pause-mid,
+.pause-btn:focus-visible .pause-mid {
+  transform: scaleX(1);
+}
+.pause-btn:hover .pause-word,
+.pause-btn:focus-visible .pause-word {
+  opacity: 1;
+  transform: translateX(0);
+}
+.pause-btn:hover .pause-cap,
+.pause-btn:hover .pause-mid {
+  transition: transform 180ms ease-out 150ms;
+}
+.pause-btn:hover .pause-word {
+  transition:
+    opacity 90ms ease-out 240ms,
+    transform 180ms ease-out 150ms;
+}
+.pause-btn:focus-visible .pause-cap,
+.pause-btn:focus-visible .pause-mid {
+  transition: transform 160ms ease-out;
+}
+.pause-btn:focus-visible .pause-word {
+  transition:
+    opacity 80ms ease-out 80ms,
+    transform 160ms ease-out;
+}
+.pause-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: calc(var(--pause-size) / 2);
+}
+/* Pressed and held: one step darker, nothing moves (ui-design-v2.md, States). */
+.pause-btn:active .pause-cap,
+.pause-btn:active .pause-mid {
+  background: var(--color-control-pressed);
+}
+.pause-btn.paused {
+  color: var(--color-paused-text);
+}
+.pause-btn.paused .pause-cap,
+.pause-btn.paused .pause-mid {
+  background: var(--color-paused-bg);
+  border-color: var(--color-paused-line);
+}
+.pause-btn.paused:active .pause-cap,
+.pause-btn.paused:active .pause-mid {
+  background: var(--color-paused-pressed);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pause-cap,
+  .pause-mid,
+  .pause-word,
+  .pause-btn:hover *,
+  .pause-btn:focus-visible * {
+    transition: none;
+  }
+}

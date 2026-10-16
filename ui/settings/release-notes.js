@@ -5,7 +5,7 @@
 // =====================================================================================================================
 
 /**
- * Every section a release may have, in the order they must appear. `kind` picks the colour in settings.css
+ * Every section a release may have, in the order they must appear. `kind` picks the colour in popups.css
  * (.notes-new, .notes-improved, ...). To add a section: add it here, give it a colour token in settings.css, and
  * describe it in docs/RELEASING.md.
  */

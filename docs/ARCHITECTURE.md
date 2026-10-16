@@ -53,7 +53,9 @@ keystroke-overlay/
     │   └── registry.js, overlay.js, overlay.css, index.html
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
-        ├── index.html     the window's page; settings.css its look (design tokens in its :root); logo.png
+        ├── index.html     the window's page; logo.png
+        ├── settings.css   the shared look: design tokens (its :root), the page, scrollbar, scroll fade
+        ├── tabs.css, header.css, pause-button.css, popups.css, debug.css, keys.css   one file per part of the window
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)

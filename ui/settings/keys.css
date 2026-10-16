@@ -1,0 +1,109 @@
+/* The Keys tab (tabs/keys.js): the key picture, dragging, the selection toolbar. Design: docs/design/key-editor.md. */
+/* Keys tab: keys can be dragged. */
+.kmk,
+.kmk.sel {
+  cursor: grab;
+  touch-action: none;
+}
+.kmk.drag {
+  cursor: grabbing;
+  z-index: 3;
+  box-shadow: var(--shadow-lift);
+}
+.kmk.clash {
+  box-shadow: 0 0 0 2px var(--color-danger);
+}
+.kmk.moved:not(.off) {
+  border-color: var(--color-accent);
+}
+
+/* Keys tab: the selection toolbar above the keyboard picture, and the selection box. */
+.keytools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-22);
+  margin: var(--space-8) 0;
+}
+.toolgroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.toolgroup .btns {
+  margin: 0;
+}
+.toolgroup-label {
+  color: var(--color-text-dim);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sel-summary {
+  color: var(--color-text-dim);
+  font-size: var(--text-md);
+  min-width: 108px;
+}
+button.nudge {
+  min-width: 34px;
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
+label.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-md);
+  color: var(--color-text-dim);
+  cursor: pointer;
+}
+.keymap {
+  cursor: crosshair;
+  touch-action: none;
+}
+.marquee {
+  position: absolute;
+  z-index: 4;
+  border: 1px solid var(--color-accent);
+  background: var(--color-selection-fill);
+  pointer-events: none;
+}
+
+/* Keys tab: the label that follows a key while it is dragged, and the line under the picture. */
+.readout {
+  position: absolute;
+  z-index: 5;
+  padding: var(--space-2) var(--space-7);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-panel);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  white-space: pre;
+  pointer-events: none;
+}
+.keystatus {
+  margin: -6px 0 var(--space-10);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+.toolgroup select {
+  margin-left: var(--space-2);
+}
+.kmk:focus {
+  outline: none;
+}
+.kmk:focus-visible {
+  outline: 2px dashed var(--color-text);
+  outline-offset: 3px;
+}
+.kmk.sel:focus-visible {
+  outline: 2px solid var(--color-accent);
+  box-shadow:
+    0 0 0 4px var(--color-panel),
+    0 0 0 6px var(--color-text);
+}
+.keyhint {
+  margin: -8px 0 var(--space-6);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}

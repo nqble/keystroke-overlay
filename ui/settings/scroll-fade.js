@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  Scroll fades: every scrolling area fades out softly at an edge that has more to scroll to, and stays sharp at an
 //  edge that doesn't (docs/design/ui-design-v2.md, "Scrolling"). Give the scrolling element the class `scroll-fade`;
-//  the look (a CSS mask that leaves the scrollbar unfaded) is in settings.css, section "Scroll fade".
+//  the look (a CSS mask that leaves the scrollbar unfaded) is in settings.css, section "Scroll fade" (shared by every part of the window).
 //
 //  Speed: one passive scroll listener for the whole window, so nothing runs while nobody scrolls (idle CPU stays at 0).
 //  Content that appears without a scroll (a tab drawn, a popup opened) and a window resize repaint them once.

@@ -3,7 +3,7 @@
 //    * focus moves in when it opens, Tab stays inside, focus goes back to what opened it on close;
 //    * Esc does the safe choice (close, Cancel, Later); Enter does the main (blue) button, never a red one;
 //    * neither key does anything while the popup is locked (an update installing);
-//    * the size rule is in settings.css (.dialog): up to 560 px wide and 80% of the window, the middle scrolls.
+//    * the size rule is in popups.css (.dialog): up to 560 px wide and 80% of the window, the middle scrolls.
 //  Each popup keeps its own markup and test hooks (index.html); dialogs.js, notes.js and update-popup.js build on it.
 //  Design: docs/design/ui-design-v2.md, Popups.
 // =====================================================================================================================
