@@ -8,6 +8,11 @@
   --accent: #4f8cff;
   --accent2: #3a6fd8;
   --danger: #ff5d6c;
+  /* status colours: live (green) and paused (amber), used by the header status and pause controls */
+  --live-bg: #1f2a22;
+  --live-text: #8fe3a8;
+  --paused-bg: #3a2f12;
+  --paused-text: #ffd27a;
 }
 * {
   box-sizing: border-box;
@@ -374,12 +379,12 @@ button.danger:hover {
   font-weight: 400;
 }
 .obs-status.live {
-  background: #1f2a22;
-  color: #8fe3a8;
+  background: var(--live-bg);
+  color: var(--live-text);
 }
 .obs-status.paused {
-  background: #3a2f12;
-  color: #ffd27a;
+  background: var(--paused-bg);
+  color: var(--paused-text);
 }
 .obs-status.off {
   background: var(--panel2);
