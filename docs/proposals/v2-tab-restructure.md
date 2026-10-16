@@ -30,15 +30,20 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 3. ~~**refactor: move the header into `header.js`**~~ and
 4. ~~**feat: new header**~~ Done together: `header.js` has the status and chip buttons, `windowbar.js` keeps the window
    buttons (now drawn icons), and the link box lives only in General.
-5. **refactor: split `debug.js` into `debug/`**. No visible change.
-6. **feat: General in section cards**, OBS link card, Advanced.
-7. **feat: Style with Fonts merged in**, theme gallery, preset cards. The Fonts tab is removed (nothing opens it by
+5. **refactor: one list of tabs.** Each tab file exports `{ id, name, render }` (and the lifecycle), and one list in
+   `tabs/index.js` holds them in order. `TABS` in `settings.js` and `TAB_NAMES` in `state.js` go. Adding or removing a
+   tab is then one file and one line, and a unit test checks every listed tab has an id, a name and a render. Removing
+   the Fonts tab (step 8) becomes deleting one line.
+6. **refactor: split `debug.js` into `debug/`**. No visible change.
+7. **feat: General in section cards**, OBS link card, Advanced.
+8. **feat: Style with Fonts merged in**, theme gallery, preset cards. The Fonts tab is removed (nothing opens it by
    name today, so no redirect is needed).
-8. **feat: Layout cards** with mini pictures and the "⋯" menu (if v1.4's step 4b hasn't already).
-9. **feat: Animation gallery.**
-10. **feat: the key editor makeover** (`docs/design/key-editor.md`).
+9. **feat: Layout cards** with mini pictures and the "⋯" menu (if v1.4's step 4b hasn't already).
+10. **feat: Animation gallery** (each card demos with the animation's own file; see v2-redesign.md, Adding more stays one
+    file).
+11. **feat: the key editor makeover** (`docs/design/key-editor.md`).
 
-Steps 1–4 can run on `advisor/v2.0` before the lifecycle lands, because they don't touch the tabs. Steps 5–10 wait for it.
+Steps 1–4 can run on `advisor/v2.0` before the lifecycle lands, because they don't touch the tabs. Steps 5–11 wait for it.
 
 ## Settings
 

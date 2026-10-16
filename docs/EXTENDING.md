@@ -51,8 +51,27 @@ Animate only `transform` and `opacity`, so the work stays on the graphics card a
 1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus a range or rule in the sanitiser if it has one).
 2. Add a control for it in the settings window (`ui/settings/`).
 3. Use it in the overlay (`ui/overlay/overlay.js`).
-4. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
+4. Copy the new default into `tools/sandbox/default-settings.json` (a Rust test fails until you do).
+5. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
    `CURRENT_VERSION` and add a migration ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
+
+## Inside the settings window: where each thing lives
+
+The rule (CLAUDE.md, principle 4): adding, removing or changing a thing touches one place, or as few as possible, and
+when it takes more than one, a check or test catches a forgotten one.
+
+| To add, remove or change… | Where | Places |
+|---|---|---|
+| A layout, theme or animation | one file in `ui/overlay/layouts/`, `themes/` or `animations/` | 1 |
+| Words the user reads | the `TEXT` block of the file that shows them (shared ones: `ui/settings/text.js`) | 1 |
+| A colour, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colours) | 1 |
+| A header status | one rule in `obsStatus()`, `ui/settings/obs-status.js`, plus its test | 1 |
+| A popup | `dialog()` in `ui/settings/popup.js` (focus, Esc, Enter and size come with it) | 1 |
+| A Debug tool | one entry in `SECTIONS`, `ui/settings/debug.js` | 1 |
+| A UI sandbox state | one line in `STATES`, `tools/sandbox/fake-app.js` | 1 |
+| A release-note section | `NOTE_SECTIONS` in `ui/settings/release-notes.js`, a colour token, a row in RELEASING.md (the release check refuses unknown sections) | 3 |
+| A setting | section 4 above (a Rust test catches a missing sandbox copy) | 3 |
+| A tab | today: its file in `ui/settings/tabs/`, `TABS` in `settings.js` and `TAB_NAMES` in `state.js`. v2.0 makes this one file plus one line (docs/proposals/v2-tab-restructure.md) | 3 → 2 |
 
 ## Before you open a pull request
 `npm test` (unit tests and privacy check), `npm run check:style`, and for anything visible `npm run test:e2e`. See
