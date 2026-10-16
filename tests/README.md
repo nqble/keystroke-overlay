@@ -55,6 +55,24 @@ harmless copy of `whoami.exe`, signed with a throwaway key made for the run. Don
 **Not in CI.** GitHub's hosted runners have no real desktop session for window and keyboard tests, so the end-to-end
 suites run on your machine. CI runs the privacy check, syntax checks and the Rust tests.
 
+## Visual tests (`npm run test:visual`)
+
+A picture of every settings screen (each tab, the Keys tab with one key and with several keys selected, and the New layout
+popup), compared with the picture saved last time, so a look that changes by accident is caught.
+
+- `npm run test:visual` builds the test copy of the app (like the end-to-end tests), takes the pictures and compares them with
+  `tests/visual/baselines/`. It prints which screens changed. For each changed screen it writes pictures to `tests/visual/diff/`
+  (not saved in git): `name.diff.png` marks the changed pixels and `name.new.png` is what the window looks like now.
+- `npm run test:visual -- --update` replaces the baselines with the new pictures. Do this **only when the look was changed on
+  purpose**, and show Jordan the before and after pictures first (the old ones are in git, the new ones are in the working tree).
+- The window is given a fixed size (1060 by 1100) and 100% scaling. Things that change between runs (the version, the overlay
+  size text, animations, the blinking text cursor) are frozen or hidden. Two runs on the same PC give identical pictures, so
+  only 20 differing pixels are allowed per screen.
+- The baselines come from Jordan's PC and are **local**: they are not part of CI, and another PC (different Windows text
+  smoothing or display scaling) will give slightly different pictures, so re-take them there with `--update`.
+- It is an optional suite: `npm run test:e2e` (all suites) does not run it, because its baselines belong to one machine.
+- To add a screen, add a line to `SCREENS` in `tests/visual/visual.mjs` and run `--update` once.
+
 ## Test hooks (data-test)
 
 The end-to-end tests find things in the settings window ONLY through `data-test="..."` attributes, never by position,
@@ -102,6 +120,7 @@ Rules:
 | `key-undo`, `key-redo` | History buttons |
 | `key-snap`, `key-grid` | The Snap menu and the Show grid tickbox |
 | `key-status`, `key-readout` | The line under the picture, the position label shown while dragging |
+| `keys-shortcut-hint` | The one-line list of keyboard shortcuts under the picture |
 | `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the picture |
 | `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back` | The editor under the picture (one key or several) |
 | `style-theme`, `preset-select`, `preset-load`, `preset-delete`, `preset-name`, `preset-save` | Themes and presets in the Style tab |
@@ -110,6 +129,7 @@ Rules:
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` in the General tab |
 | `general-obs-url`, `general-obs-copy`, `general-size-note` | The OBS section of General |
+| `app-version` | The version number shown in the About part of General |
 | `server-port`, `server-port-apply`, `server-restart` | The Server section |
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | The Secure link section |
 | `input-method-select`, `input-method-info`, `input-method-error` | The Keyboard input section |

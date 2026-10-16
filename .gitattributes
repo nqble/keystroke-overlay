@@ -1,4 +1,5 @@
-# Same line endings for everyone, whatever system they work on (see .editorconfig).
+# Same line endings for everyone, whatever system they work on (see .editorconfig). This also keeps the format check in CI
+# (which runs on Windows) from seeing Windows line endings.
 * text=auto eol=lf
 
 # PowerShell scripts are checked out with Windows line endings, as PowerShell expects.
@@ -8,6 +9,7 @@
 *.png binary
 *.ico binary
 *.icns binary
+*.exe binary
 *.woff binary
 *.woff2 binary
 *.ttf binary

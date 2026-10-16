@@ -4,7 +4,7 @@
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
 import { changed } from '../preview.js';
-import { SNAP_CHOICES, gridShown, nudgeStep, restoreProfile, setKeyPos, snapStep } from '../profiles.js';
+import { SNAP_CHOICES, editProf, gridShown, nudgeStep, restoreProfile, setKeyPos, snapStep } from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKey, selectedKeys, setSelectedKey, settings } from '../state.js';
 import { TEXT } from '../text.js';
@@ -149,6 +149,21 @@ function viewControls() {
   const gridLabel = el('label', { className: 'inline', title: TEXT.gridHelp }, grid);
   gridLabel.append(' Show grid');
   return [snapLabel, gridLabel];
+}
+
+/** Undo the last change to this layout's keys (same as the Undo button). */
+export const undoLastChange = (layout) => stepHistory(layout, undo);
+
+/** Redo the change that was just undone (same as the Redo button). */
+export const redoLastChange = (layout) => stepHistory(layout, redo);
+
+/** Hide every selected key in the overlay (they stay clickable here, so they can be shown again). */
+export function hideSelection(layout) {
+  const edits = editProf();
+  const hidden = new Set(edits.disabledKeys);
+  for (const code of selectedKeys) hidden.add(code);
+  edits.disabledKeys = [...hidden];
+  changed(true);
 }
 
 /** Put back the edits from one step earlier (undo) or later (redo), then redraw. */

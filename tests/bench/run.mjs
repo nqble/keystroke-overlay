@@ -11,6 +11,7 @@ import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { acquire } from '../lib/lock.mjs';
+import { measureKeyLatency, summariseRounds } from './latency.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)),
   ROOT = resolve(HERE, '../..'),
@@ -21,11 +22,13 @@ const WORK = process.env.BENCH_WORK ?? join(tmpdir(), 'keyoverlay-bench');
 const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const VERSIONS = [
-  { name: 'v1.2.0', ref: '9016efe' },
   { name: 'v1.2.1', ref: '37eb19b' },
+  { name: 'v1.3.0', ref: '4e52017' }, // as released (the local server still had Nagle's delay on)
   // the code in this folder right now; `version` is what the app itself reports (so it does not open "What's new")
-  { name: 'v1.3.0-dev', ref: null, version: '1.2.1' },
+  { name: 'v1.4.0-dev', ref: null, version: '1.3.0' },
 ];
+const PORT = 7879; // the test copy's server port (the same one tests/e2e uses)
+const LATENCY_PRESSES = 120; // real key presses timed per round (single taps, fast taps and two keys 10 ms apart)
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const kill = () => spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
 const ps = (file, ...a) =>
@@ -160,7 +163,9 @@ const inject = (n) =>
     { stdio: 'ignore' },
   );
 
-const R = Object.fromEntries(VERSIONS.map((v) => [v.name, { usable: [], tray: [], win: [], flood: [], idle: [] }]));
+const R = Object.fromEntries(
+  VERSIONS.map((v) => [v.name, { usable: [], tray: [], win: [], flood: [], idle: [], latency: [] }]),
+);
 for (let run = 1; run <= RUNS; run++) {
   for (const v of VERSIONS) {
     lock.stage(`measuring ${v.name}, round ${run} of ${RUNS}`);
@@ -186,6 +191,7 @@ for (let run = 1; run <= RUNS; run++) {
     const f1 = proc(),
       secs = (Date.now() - tt) / 1000;
     R[v.name].flood.push(((f1[3] - f0[3]) / 1000 / secs) * 100);
+    R[v.name].latency.push(await measureKeyLatency(PORT, LATENCY_PRESSES));
     console.log(`usable ${ms} ms`);
   }
 }
@@ -210,6 +216,7 @@ for (const v of VERSIONS) {
     winPrivMB: w(1),
     winWsMB: w(2),
     floodCpuPct: +median(r.flood).toFixed(2),
+    keyLatencyMs: summariseRounds(r.latency), // key press -> the app's WebSocket; all / single / fast / two, plus missed
   };
 }
 console.log('\n' + JSON.stringify(out, null, 1));

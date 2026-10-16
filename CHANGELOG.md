@@ -2,6 +2,28 @@
 
 All notable changes. Newest first.
 
+## v1.3.0 — free key placement
+
+**✨ New**
+- **Place keys anywhere.** In the Keys tab, drag any key to a new spot, for every layout (including the built-in ones). The live preview and OBS follow straight away, and the overlay window shrinks to fit a compact layout. **Reset positions** puts everything back.
+- **Work with several keys at once.** Drag a box around keys (or Ctrl-click them), then move them together, nudge them with the arrow buttons, **align** them (left, centre, right, top, middle, bottom) or **space them evenly** across or down.
+- **Undo and Redo** for every change to a layout's keys (moves, aligns, hidden keys, labels), up to 50 steps.
+- **Snap and grid.** Choose how far keys jump while you drag (off, quarter, half or whole key) and show a grid. Your choice is remembered. A small label shows the exact position while you drag, and a line under the keyboard shows the selected key and how many keys are moved.
+- **Keyboard shortcuts** on the Keys tab: arrow keys nudge (Shift = a whole key), **Delete** hides the selected keys, **Ctrl+Z** undoes, **Ctrl+Shift+Z** (or Ctrl+Y) redoes, **Ctrl+A** selects every key and **Esc** clears the selection. They never act while you are typing in a field.
+- **Tidy up** closes the gaps left by hidden keys while keeping the keyboard's shape.
+- **Easier to use without a mouse:** every key on the picture can be reached with Tab and selected with Enter, with clear focus outlines and spoken names for screen readers.
+- **Overlap warning:** keys that sit on top of each other get a red outline.
+
+**⚡ Performance — v1.3.0 vs v1.2.1**
+- No slowdown: opens in about the same time (487 ms), 0% CPU at idle, the same 9 background threads, the same idle memory (3 MB) and settings-window memory (about 194 MB).
+
+**🧰 Under the hood**
+- Your saved key edits move to a new, roomier format (it also prepares for resizing keys and a new layout style in a later version). Your existing settings are converted automatically, and nothing is lost.
+- The settings window's code is split into small files and formatted automatically, and there are many more tests.
+- Updated the Windows library the keyboard capture is built on, and the build tools used by the project's automatic checks.
+
+Your settings, presets and fonts are kept.
+
 ## v1.2.1 — the "preview keeps up" fix
 
 **🐛 Fixed**

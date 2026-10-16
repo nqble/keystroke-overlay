@@ -22,6 +22,8 @@ const ARRANGE_HOOKS = [
   'key-distribute-across',
   'key-distribute-down',
 ];
+// a layout's moved keys are saved per layout style; these tests use the default "shape" style
+const shapeEdits = (savedProfile) => savedProfile.styles?.shape ?? {};
 const state = async () => (await p.invoke('get_state')).ok;
 const profile = async (id) => (await state()).settings.layout.profiles[id] ?? {};
 const previewKey = (code) =>
@@ -84,7 +86,7 @@ const w0 = orig.KeyW,
   before = await previewKey('KeyW');
 await drag('KeyW', 1.1, 0.6);
 await sleep(700);
-const pw = (await profile(id)).positions?.KeyW;
+const pw = shapeEdits(await profile(id)).positions?.KeyW;
 check(
   'dragging a key saves its position, snapped to quarter steps',
   !!pw &&
@@ -104,7 +106,7 @@ check('selecting by dragging did not hide or relabel anything', JSON.stringify((
 // ---- arrow keys nudge the selected key
 await p.ev(`document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))`);
 await sleep(500);
-const pw2 = (await profile(id)).positions?.KeyW;
+const pw2 = shapeEdits(await profile(id)).positions?.KeyW;
 check(
   'Right arrow nudges the selected key by a quarter key',
   !!pw2 && Math.abs(pw2.x - (pw.x + 0.25)) < 1e-6,
@@ -114,14 +116,17 @@ await p.ev(
   `document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', shiftKey: true, bubbles: true }))`,
 );
 await sleep(500);
-check('Shift + Down arrow moves it a whole key', Math.abs((await profile(id)).positions.KeyW.y - (pw.y + 1)) < 1e-6);
+check(
+  'Shift + Down arrow moves it a whole key',
+  Math.abs(shapeEdits(await profile(id)).positions.KeyW.y - (pw.y + 1)) < 1e-6,
+);
 
 // ---- exact fields
 await p.ev(
   `const x = document.querySelector('${byTest('key-x')}'), y = document.querySelector('${byTest('key-y')}'); x.value = '4.5'; x.dispatchEvent(new Event('input', { bubbles: true })); y.value = '0.25'; y.dispatchEvent(new Event('input', { bubbles: true }));`,
 );
 await sleep(500);
-const pw3 = (await profile(id)).positions?.KeyW;
+const pw3 = shapeEdits(await profile(id)).positions?.KeyW;
 check('the X / Y fields set an exact position', !!pw3 && pw3.x === 4.5 && pw3.y === 0.25, JSON.stringify(pw3));
 
 // ---- overlap warning (use the key's real width and height)
@@ -137,10 +142,10 @@ check(
 // ---- tidy up: keep the shape, close the dead space
 await p.ev(`document.querySelector('${byTest('keys-reset-positions')}').click()`);
 await sleep(500);
-check('Reset positions puts every key back', Object.keys((await profile(id)).positions ?? {}).length === 0);
+check('Reset positions puts every key back', Object.keys(shapeEdits(await profile(id)).positions ?? {}).length === 0);
 await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
 await sleep(800);
-const pos = (await profile(id)).positions ?? {};
+const pos = shapeEdits(await profile(id)).positions ?? {};
 const at = (c) => pos[c] ?? { x: orig[c].x, y: orig[c].y };
 const [W, A, Sx, D, Sp] = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].map(at);
 const minX = Math.min(...[W, A, Sx, D, Sp].map((q) => q.x)),
@@ -178,7 +183,8 @@ const clickKey = (code, ctrl = false) =>
     `document.querySelector('${keyCell(code)}').dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: ${ctrl} }))`,
   );
 const clickButton = (selector) => p.ev(`document.querySelector('${selector}').click()`);
-const placeOf = async (code) => ((await profile(id)).positions ?? {})[code] ?? { x: orig[code].x, y: orig[code].y };
+const placeOf = async (code) =>
+  (shapeEdits(await profile(id)).positions ?? {})[code] ?? { x: orig[code].x, y: orig[code].y };
 
 await clickKey('KeyA');
 await sleep(300);
@@ -295,7 +301,7 @@ await p.invoke('save_settings', {
         ...S2.layout.profiles,
         [id]: {
           ...S2.layout.profiles[id],
-          positions: { KeyA: { x: 0, y: 0 }, KeyS: { x: 1, y: 1 }, KeyD: { x: 5, y: 3 } },
+          styles: { shape: { positions: { KeyA: { x: 0, y: 0 }, KeyS: { x: 1, y: 1 }, KeyD: { x: 5, y: 3 } } } },
         },
       },
     },
@@ -572,6 +578,120 @@ check(
 await clickButton(byTest('key-clear-selection'));
 await sleep(300);
 
+// ---- keyboard shortcuts (Delete, Ctrl+Z, Ctrl+Shift+Z, Ctrl+Y, Ctrl+A, Esc)
+const press = (key, extra = '', target = 'document.body') =>
+  p.ev(
+    `${target}.dispatchEvent(new KeyboardEvent('keydown', { key: '${key}', bubbles: true, cancelable: true${extra} }))`,
+  );
+const hiddenKeys = async () => (await profile(id)).disabledKeys ?? [];
+check(
+  'the hint line lists the shortcuts',
+  /Delete/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)) &&
+    /Ctrl\+Shift\+Z/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)),
+);
+await clickKey('KeyD');
+await sleep(400);
+await press('Delete');
+await sleep(600);
+check('Delete hides the selected key', (await hiddenKeys()).includes('KeyD'));
+await press('z', ', ctrlKey: true');
+await sleep(600);
+check('Ctrl+Z undoes it', !(await hiddenKeys()).includes('KeyD'));
+await press('Z', ', ctrlKey: true, shiftKey: true');
+await sleep(600);
+check('Ctrl+Shift+Z redoes it', (await hiddenKeys()).includes('KeyD'));
+await press('z', ', ctrlKey: true');
+await sleep(600);
+await press('y', ', ctrlKey: true');
+await sleep(600);
+check('Ctrl+Y also redoes', (await hiddenKeys()).includes('KeyD'));
+await press('z', ', ctrlKey: true');
+await sleep(600);
+check('...and Ctrl+Z puts it back for the rest of the suite', !(await hiddenKeys()).includes('KeyD'));
+await clickKey('KeyD');
+await sleep(400);
+await press('Delete', '', `document.querySelector('${byTest('key-label')}')`);
+await sleep(500);
+check('shortcuts are ignored while typing in the label field', !(await hiddenKeys()).includes('KeyD'));
+await press('a', ', ctrlKey: true');
+await sleep(500);
+check(
+  'Ctrl+A selects every key',
+  (await selectedCodes()).length === (await p.q(`document.querySelectorAll('${byTest('key-cell')}').length`)),
+);
+await press('Escape');
+await sleep(500);
+check('Esc clears the selection', (await selectedCodes()).length === 0);
+
+// ---- saved sizes and the even-grid layout style show up in the overlay (settings version 3)
+const previewWidth = (code) =>
+  p
+    .evIn(
+      `localhost:${PORT}`,
+      `const e = document.querySelector('[data-code="${code}"]'); return e ? parseFloat(e.style.width) : null`,
+    )
+    .catch(() => null);
+const saveProfileEdits = async (edits) => {
+  const current = (await state()).settings;
+  await p.invoke('save_settings', {
+    settings: {
+      ...current,
+      layout: {
+        ...current.layout,
+        profiles: {
+          ...current.layout.profiles,
+          [id]: { disabledKeys: current.layout.profiles[id]?.disabledKeys ?? [], labels: {}, ...edits },
+        },
+      },
+    },
+  });
+};
+await saveProfileEdits({ styles: { shape: { sizes: { KeyW: { w: 3 } } } } });
+const wide = await eventually(async () => {
+  const [w, a] = [await previewWidth('KeyW'), await previewWidth('KeyA')];
+  return { ok: !!w && !!a && Math.abs(w - (3 * (a + 6) - 6)) < 0.5, w, a };
+});
+check('a saved width makes the key wider in the overlay (3 keys wide)', wide.ok, JSON.stringify(wide));
+check(
+  'a saved width survives the app cleaning the settings',
+  shapeEdits(await profile(id)).sizes?.KeyW?.w === 3,
+  JSON.stringify(shapeEdits(await profile(id))),
+);
+await saveProfileEdits({ styles: { shape: { sizes: { KeyW: { w: 0.01 }, KeyA: { w: 1e9 }, KeyS: { w: 'wide' } } } } });
+const cleanedSizes = shapeEdits(await profile(id)).sizes ?? {};
+check(
+  'hostile widths are clamped or dropped by the app',
+  cleanedSizes.KeyW?.w === 0.25 && cleanedSizes.KeyA?.w === 100 && !cleanedSizes.KeyS,
+  JSON.stringify(cleanedSizes),
+);
+
+await saveProfileEdits({ layoutStyle: 'grid' });
+const gridLook = await eventually(async () => {
+  const [a, s, space, aWidth] = [
+    await previewKey('KeyA'),
+    await previewKey('KeyS'),
+    await previewWidth('Space'),
+    await previewWidth('KeyA'),
+  ];
+  return {
+    ok:
+      !!a &&
+      !!s &&
+      !!space &&
+      !!aWidth &&
+      Math.abs(space - aWidth) < 0.5 &&
+      Math.abs(s.left - a.left - (aWidth + 6)) < 0.5,
+    a,
+    s,
+    space,
+    aWidth,
+  };
+});
+check('the even-grid style draws every key one key wide in neat columns', gridLook.ok, JSON.stringify(gridLook));
+await saveProfileEdits({ layoutStyle: 'nonsense' });
+check('an unknown layout style means the default shape', (await profile(id)).layoutStyle === undefined);
+await saveProfileEdits({});
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {
@@ -584,13 +704,13 @@ await p.invoke('save_settings', {
         [id]: {
           disabledKeys: [],
           labels: {},
-          positions: { KeyW: { x: -9, y: 1e9 }, KeyA: { x: 'no', y: 1 }, KeyS: 5 },
+          styles: { shape: { positions: { KeyW: { x: -9, y: 1e9 }, KeyA: { x: 'no', y: 1 }, KeyS: 5 } } },
         },
       },
     },
   },
 });
-const cleaned = (await profile(id)).positions ?? {};
+const cleaned = shapeEdits(await profile(id)).positions ?? {};
 check(
   'junk positions are clamped or dropped by the app',
   JSON.stringify(cleaned) === JSON.stringify({ KeyW: { x: 0, y: 100 } }),
@@ -599,5 +719,5 @@ check(
 
 // ---- delete removes the layout's moved keys with it
 await p.invoke('delete_layout', { id });
-check('deleting the layout also removes its saved positions', !(await profile(id)).positions);
+check('deleting the layout also removes its saved positions', !(await profile(id)).styles);
 finish();

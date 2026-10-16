@@ -28,7 +28,7 @@ in anything the server sends.
 | `GET /` | The overlay page (`ui/overlay/index.html`) |
 | `GET /overlay/*` | The overlay's own files (scripts, styles, built-in layouts, themes and animations) |
 | `GET /api/config` | `{ "settings": <public settings>, "port": <number>, "paused": <bool> }` |
-| `GET /api/layouts` | Array of layouts (see [FILE-FORMATS.md](FILE-FORMATS.md)); layouts made by the user have `"user": true` |
+| `GET /api/layouts` | Array of layouts (see [FILE-FORMATS.md](FILE-FORMATS.md)); layouts made by the user have `"user": true`. Every layout also carries a computed `"grid"`: `{ "KeyW": { "x": 0, "y": 1 }, ... }`, where each key sits in the even-grid layout style (worked out once in the app, `src-tauri/src/grid.rs`) |
 | `GET /api/modules` | `{ "animations": [urls], "themes": [urls] }`, the module files the overlay should load |
 | `GET /api/fonts` | Array of font file names the user added |
 | `GET /fonts/<file>` | A user-added font file |

@@ -142,6 +142,26 @@ Plain, short, friendly; sentence case; all text in `TEXT` (CLAUDE.md). Use "key"
   (measure with the benchmark).
 - Run the benchmark before and after; report idle CPU, threads and memory against the v1.2.0 numbers.
 
+## 9a. Loading and lifetime
+
+- **Its own module.** The editor (board, keys, pointer handling, zoom/pan, arrange bar, resize handles) lives in
+  `ui/settings/editor/` and exposes a small interface, e.g. `createEditor(container, { layout, profile, onChange })` returning
+  `{ setLayout, setProfile, show, hide, destroy }`. The Keys tab only places it on the page and wires the inspector and toolbar to it.
+- **Loaded on first use.** The editor's code is imported with `import()` the first time the Keys tab opens, not at
+  settings-window start-up. The window must open no slower than today (469ms in the v1.2.0 benchmark).
+- **Built once, kept alive.** Leaving the Keys tab HIDES the editor (like the top preview). It is not destroyed, and
+  `render()` must not rebuild it. Returning is instant, and zoom, pan, selection and undo history are kept. Everything is
+  destroyed with the settings window as usual (CLAUDE.md principle 3).
+- **Incremental updates only.** Moving, resizing, hiding/showing or relabelling keys updates only those keys' elements and the
+  inspector. A full rebuild of the key elements happens only when the layout itself changes (another layout picked, layout
+  style switched, import, or "Reset this layout completely"). No editor action calls the global `render()`.
+- **No rebuild on resize.** A `ResizeObserver` on the editor box updates the view limits and zoom bounds. Remove the 150ms
+  resize timer that re-renders the Keys tab.
+- **Measure.** Add to the benchmark: settings-window open time (no slower than before), first Keys-tab open, and switching
+  back to Keys (target under 50ms), plus memory with the editor kept alive versus not. Report before/after numbers to Jordan.
+- **Tests.** Switching Keys → Style → Keys keeps zoom, pan and selection. The editor module is not loaded until the Keys tab
+  opens. Moving a key doesn't re-create other key elements (check element identity in e2e).
+
 ## 10. Tests
 
 - e2e (via data-test hooks): select / ctrl-select / box select; drag with snap and with a smart guide; resize both edges,

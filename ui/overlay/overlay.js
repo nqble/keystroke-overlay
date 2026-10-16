@@ -101,14 +101,34 @@ function applyVars(nextSettings) {
   set('--ease-up', user ?? releaseSpec.ease ?? 'ease-out');
 }
 
-// Each layout keeps its own disabled keys, custom labels and moved keys (settings.layout.profiles[layoutId]).
+// Each layout keeps its own disabled keys, custom labels, and moved and resized keys
+// (settings.layout.profiles[layoutId]). Positions and sizes belong to a layout style: "shape" (the layout file's own
+// shape) or "grid" (every key one key wide in even columns).
 function profileOf(nextSettings, layout) {
   const savedProfile = nextSettings.layout.profiles?.[layout?.id] ?? {};
+  const layoutStyle = savedProfile.layoutStyle === 'grid' ? 'grid' : 'shape';
+  const edits = savedProfile.styles?.[layoutStyle] ?? {};
   return {
     disabledKeys: savedProfile.disabledKeys ?? [],
     labels: savedProfile.labels ?? {},
-    positions: savedProfile.positions ?? {},
+    layoutStyle,
+    positions: edits.positions ?? {},
+    sizes: edits.sizes ?? {},
   };
+}
+
+// The widest a resized key may be, in key widths. Keep in step with MAX_KEY_WIDTH in settings.rs and profiles.js.
+const MAX_KEY_WIDTH = 100;
+
+/** A key as it is drawn: the layout style's place and width, unless the user moved or resized it. */
+function placedKey(layoutKey, layout, prof) {
+  const inGrid = prof.layoutStyle === 'grid';
+  const base = (inGrid && layout.grid?.[layoutKey.code]) || layoutKey;
+  const moved = prof.positions[layoutKey.code];
+  const baseWidth = inGrid ? 1 : (layoutKey.w ?? 1);
+  const resized = prof.sizes[layoutKey.code]?.w;
+  const width = resized === undefined ? baseWidth : Math.min(MAX_KEY_WIDTH, Math.max(Math.min(1, baseWidth), resized));
+  return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width };
 }
 
 function build(nextSettings) {
@@ -122,12 +142,7 @@ function build(nextSettings) {
   // overlay's
   // size below comes from the keys actually drawn (their positions and widths), so a compact layout is a compact
   // overlay in OBS.
-  const keys = layout.keys
-    .filter((k) => !off.has(k.code))
-    .map((layoutKey) => {
-      const movedPosition = prof.positions[layoutKey.code];
-      return movedPosition ? { ...layoutKey, x: movedPosition.x, y: movedPosition.y } : layoutKey;
-    });
+  const keys = layout.keys.filter((k) => !off.has(k.code)).map((layoutKey) => placedKey(layoutKey, layout, prof));
   if (!keys.length) {
     reportSize(0, 0);
     return;

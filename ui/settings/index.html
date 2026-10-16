@@ -71,7 +71,7 @@
       <iframe id="preview" data-test="preview-frame" title="Live preview"></iframe>
     </section>
     <main>
-      <nav id="tabs" data-test="tab-bar"></nav>
+      <nav id="tabs" data-test="tab-bar" aria-label="Settings sections"></nav>
       <div id="pane" data-test="pane"></div>
     </main>
     <div id="modal" data-test="notes-popup" hidden>
@@ -125,7 +125,7 @@
         <div class="mfoot" id="dFoot" data-test="dialog-footer"></div>
       </div>
     </div>
-    <div id="toast" data-test="toast" hidden></div>
+    <div id="toast" data-test="toast" role="status" aria-live="polite" hidden></div>
     <script type="module" src="settings.js"></script>
   </body>
 </html>

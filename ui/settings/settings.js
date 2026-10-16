@@ -70,6 +70,7 @@ function tabButton(id, name) {
   };
   const tabItem = button(name, onclick, id === tab ? 'active' : '', 'tab');
   tabItem.dataset.tab = id;
+  if (id === tab) tabItem.setAttribute('aria-current', 'page'); // tells screen readers which tab is open
   return tabItem;
 }
 

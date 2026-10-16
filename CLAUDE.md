@@ -64,10 +64,12 @@ a linked label, or `aria-label`). The rest is strong guidance; improve it whenev
 - **Consistent:** every screen uses the same tokens, building blocks and interaction patterns (hover, selection, drag,
   menus, wording). A new screen should look like it was always part of the app; when in doubt, copy an existing screen.
   The key editor (`docs/design/key-editor.md`) is the reference for the v2.0 redesign.
-- **Use the design tokens** (CSS variables) and the **shared building blocks** instead of one-off colours, sizes or
-  controls. JavaScript sets only geometry (positions, sizes), through CSS variables.
-- **Give interactive elements a `data-test` hook**, and check visual changes with the screenshot tests where they exist,
-  showing Jordan before and after.
+- **Use the design tokens** and the **shared building blocks** instead of one-off colours, sizes or controls. The tokens
+  are the CSS variables in the `:root` block at the top of `ui/settings/settings.css` (a raw colour anywhere else in that
+  file fails `npm run check:style`). JavaScript sets only geometry (positions, sizes), through CSS variables.
+- **Give interactive elements a `data-test` hook** (the names are listed in `tests/README.md`), and check every visual
+  change with `npm run test:visual`, showing Jordan before and after. Re-take the baselines (`-- --update`) only for a
+  change that is meant to be seen.
 - More in `docs/ACCESSIBILITY.md` (guidance, not a gate).
 
 ## 6. Tests

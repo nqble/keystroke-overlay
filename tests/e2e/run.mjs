@@ -28,6 +28,9 @@ const ROOT = resolve(HERE, '../..');
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
 const only = args.includes('--suite') ? args[args.indexOf('--suite') + 1] : 'all';
+// Optional suites run only when asked for by name (never in "all"): the visual test's baselines are from one PC, not shared.
+const OPTIONAL_SUITES = ['visual'];
+if (args.includes('--update')) process.env.VISUAL_UPDATE = '1';
 // smoke LAST: it ends by installing an update, which exits the app
 const SUITES = [
   'input-methods',
@@ -125,7 +128,9 @@ async function main() {
 
   // ---- run the suites
   const failed = [];
-  for (const name of SUITES.filter((s) => only === 'all' || only === s)) {
+  for (const name of [...SUITES, ...OPTIONAL_SUITES].filter(
+    (s) => only === s || (only === 'all' && !OPTIONAL_SUITES.includes(s)),
+  )) {
     log(`Suite: ${name}`);
     lock?.stage(`suite ${name}`);
     killApp();
@@ -159,11 +164,15 @@ async function main() {
         break;
       await sleep(250);
     }
-    const r = spawnSync(process.execPath, [join(HERE, 'suites', `${name}.mjs`)], {
-      cwd: ROOT,
-      stdio: 'inherit',
-      env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA },
-    });
+    const r = spawnSync(
+      process.execPath,
+      [name === 'visual' ? join(ROOT, 'tests/visual/visual.mjs') : join(HERE, 'suites', `${name}.mjs`)],
+      {
+        cwd: ROOT,
+        stdio: 'inherit',
+        env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA },
+      },
+    );
     if (r.status !== 0) failed.push(name);
   }
   return failed;
