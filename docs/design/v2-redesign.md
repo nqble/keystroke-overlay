@@ -53,6 +53,10 @@ they are bold lines, which the app shows as plain text, not as headings); the no
 known heading its colour (tokens in settings.css); and the release check (tools/changelog-section.mjs) refuses an
 entry with an unknown heading or the wrong order.
 
+**Update ready chip** (header, replaces the floating round button): on hover or keyboard focus its ↓ drops out of the
+bottom of its own small box and comes back in from the top, once, like a download. The box clips it, so only the arrow
+moves, never the chip. About half a second; `transform` and `opacity` only; no animation with "reduce motion" on.
+
 ## Per tab
 
 | Tab | v2.0 |
