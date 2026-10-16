@@ -13,11 +13,13 @@ use axum::http::{header, HeaderValue, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
+use axum::serve::{Listener, ListenerExt, TapIo};
 use axum::{Json, Router};
 use include_dir::{include_dir, Dir};
 use serde_json::{json, Value};
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, RwLock};
+use tokio::net::TcpListener;
 use tokio::sync::{broadcast, watch};
 
 /// The overlay web app, embedded in the binary. Anything dropped into
@@ -81,7 +83,7 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
 
     let mut shutdown_rx = sd_rx;
     tauri::async_runtime::spawn(async move {
-        let listener = tokio::net::TcpListener::from_std(std_listener).unwrap();
+        let listener = without_send_delay(TcpListener::from_std(std_listener).unwrap());
         let _ = axum::serve(listener, app)
             .with_graceful_shutdown(async move {
                 let _ = shutdown_rx.changed().await;
@@ -89,6 +91,20 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
             .await;
     });
     Ok(ServerHandle { port, shutdown: sd_tx })
+}
+
+/// A connection the server accepted from the overlay (incoming only: this module never opens connections itself).
+type Connection = <TcpListener as Listener>::Io;
+
+/// Turns off Nagle's algorithm on one accepted connection. Each key press is a tiny WebSocket message; with Nagle on,
+/// the system may hold one back until the previous one is acknowledged, which can delay a key lighting up in OBS.
+fn send_without_delay(connection: &mut Connection) {
+    let _ = connection.set_nodelay(true);
+}
+
+/// The server's listener with Nagle's algorithm turned off on every connection it accepts (axum leaves it on).
+fn without_send_delay(listener: TcpListener) -> TapIo<TcpListener, fn(&mut Connection)> {
+    listener.tap_io(send_without_delay as fn(&mut Connection))
 }
 
 /// Reject requests whose Host/Origin isn't this server on localhost.
@@ -343,6 +359,19 @@ async fn client(mut sock: WebSocket, st: St) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn accepted_connections_send_without_delay() {
+        let std_listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        std_listener.set_nonblocking(true).unwrap();
+        let address = std_listener.local_addr().unwrap();
+        let mut listener = without_send_delay(TcpListener::from_std(std_listener).unwrap());
+        // Test only: a client on this machine connecting to the server's own 127.0.0.1 listener.
+        let _client = tokio::net::TcpSocket::new_v4().unwrap().connect(address).await.unwrap();
+        let (connection, _) = listener.accept().await;
+        assert!(connection.nodelay().unwrap());
+    }
+
     fn cfg(on: bool, key: &str) -> Value {
         json!({ "general": { "secureLink": on, "linkKey": key } })
     }
