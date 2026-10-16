@@ -35,6 +35,24 @@ The full audit of today's UI, including popups, the tray and the overlay's own m
 as its text, up to 80% of the window and never more than 640 px; longer text scrolls in the middle while the title and
 buttons stay in view. Sizes are measured against the window, so they follow window size and Windows' display scaling.
 
+**Release notes** (What's new and the update popup): always the same five sections, in this order, each with its own
+icon and colour, so a reader can find fixes or new features at a glance. A section with nothing to say is left out.
+
+| Section | Icon | Colour | For |
+|---|---|---|---|
+| New | ✨ | blue `#7aa8ff` | things you couldn't do before |
+| Improved | 🛠 | violet `#b79cff` | things that work better |
+| Fixed | 🐛 | amber `#ffd27a` | bugs that are gone |
+| Performance | ⚡ | green `#8fe3a8` | speed and memory, with numbers vs the last version |
+| Under the hood | 🧰 | grey `#8b93a7` | for developers |
+
+Colour is on the heading and a thin line beside its list only; the list text stays the normal colour, and the icon and
+word mean colour is never the only signal. Every release ends with one plain line on what was kept ("Your settings,
+layouts, presets and fonts are kept."). To make this real: CHANGELOG.md entries use `### ✨ New`-style headings (today
+they are bold lines, which the app shows as plain text, not as headings); the notes renderer in popups.js gives each
+known heading its colour (tokens in settings.css); and the release check (tools/changelog-section.mjs) refuses an
+entry with an unknown heading or the wrong order.
+
 ## Per tab
 
 | Tab | v2.0 |
