@@ -1,7 +1,8 @@
 # Working on Linux and macOS
 
-Keystroke Overlay is a Windows app, but you don't need Windows to work on most of it. Everything except **keyboard
-capture** builds, runs and is tested on Linux and macOS too. CI checks this on every push (the `other-systems` job in
+Keystroke Overlay is a Windows app, but you don't need Windows to work on most of it. Everything builds, runs and is
+tested on Linux and macOS too. Keyboard capture also works on **Linux X11 desktops**; Wayland and macOS capture are not
+built yet ([LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI checks this on every push (the `other-systems` job in
 `.github/workflows/ci.yml`), so it stays that way.
 
 ## What works where
@@ -12,12 +13,13 @@ capture** builds, runs and is tested on Linux and macOS too. CI checks this on e
 | UI unit tests (`npm run test:ui`) | yes | yes |
 | Rust lints and unit tests (`cargo clippy`, `cargo test`) | yes | yes |
 | Privacy and formatting checks | yes | yes |
-| Running the app: tray, settings window, local server, overlay in OBS | yes | yes, but **no keys are captured** |
+| Running the app: tray, settings window, local server, overlay in OBS | yes | yes |
+| Keyboard capture | yes | Linux X11: yes. Linux Wayland and macOS: not yet |
 | End-to-end tests (`npm run test:e2e`), install test, benchmark | yes | no (they drive Windows with PowerShell) |
 | Building the installer, releasing (`npm run build`, `npm run release`, `npm run devbuild`) | yes | no |
 
-Without keyboard capture the app still starts normally. The settings window shows "keyboard capture isn't available on
-this system yet" where it would show a capture problem on Windows. The overlay, settings, layouts and every other tab work,
+Where there is no capture method yet (macOS, Wayland-only setups), the app still starts normally. The settings window shows
+why keys aren't captured where it would show a capture problem on Windows. The overlay, settings, layouts and every other tab work,
 so you can try visual changes in the real app.
 
 ## Set up on Linux
@@ -30,7 +32,7 @@ sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicat
 git clone https://github.com/nqble/keystroke-overlay.git
 cd keystroke-overlay
 npm install
-npm run dev          # the app, without keyboard capture
+npm run dev          # the app (keys are captured on X11 desktops)
 npm test             # Rust tests, UI tests and the privacy check
 ```
 
@@ -48,8 +50,11 @@ Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://
   (`[target.'cfg(windows)'.dependencies]` in `src-tauri/Cargo.toml`).
 - **Everything else is shared**, including the key naming table (`keyboard/keymap.rs`) and the repeat and stuck-key
   logic (`keyboard/tracker.rs`), so their tests run on every system.
+- **Linux-only code:** `keyboard/x11.rs` (X11 capture), with the `x11rb` crate as a Linux-only dependency. The Linux key
+  names and repeat filter (`keyboard/linux_keys.rs`) are plain logic, built and tested everywhere.
 - On other systems, starting a capture method returns an error instead of capturing keys (`Source::start` in
-  `keyboard/mod.rs`). A port adds its own method there; [MAC-PORT.md](MAC-PORT.md) describes the macOS one.
+  `keyboard/mod.rs`). A port adds its own method there: [LINUX-PORT.md](LINUX-PORT.md) has the next Linux steps,
+  [MAC-PORT.md](MAC-PORT.md) the macOS plan.
 
 ## Keeping it cross-platform
 

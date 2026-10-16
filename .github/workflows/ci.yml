@@ -73,3 +73,8 @@ jobs:
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
       - name: Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Rust tests that need a display (X11 keyboard capture)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y xvfb
+          xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored

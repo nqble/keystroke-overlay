@@ -51,6 +51,10 @@ Key names follow the browser's `KeyboardEvent.code` (for example `KeyW`, `Digit1
 `ArrowUp`, `Numpad5`, `NumpadEnter`, `PrintScreen`, `Pause`). The list is in
 `src-tauri/src/keyboard/keymap.rs`, shared by every capture method so they all name keys the same way.
 
+**Reserved for the future** (not sent yet): mouse and controller buttons will use these same `d` / `u` / `snap` messages
+with names like `MouseLeft` and `PadA`, and analog controls (sticks, triggers) will use `{"t":"a",…}`. Clients must
+ignore message types they don't know. See [design/future-inputs.md](design/future-inputs.md).
+
 ### Behaviour you can rely on
 - **Repeats are filtered.** Holding a key sends one `d`, not a stream of them.
 - **No stuck keys.** If a release is missed, the app corrects itself; a `snap` is the ground truth.

@@ -44,6 +44,10 @@ to disk and no step that uses the network.
 - They differ only in *how Windows hands the key events to the app*. Both see the same keys, record the same two facts
   (which key, down or up), keep nothing, and send nothing anywhere except the local overlay page. Choosing one over the other
   changes nothing about your privacy.
+- **On Linux** (X11 desktops, still in development), Standard reads keys through X11's *XInput2 raw key events* instead. It
+  works the same way: listen-only, the same two facts per key, kept only in memory, sent only to the local overlay page. Any
+  program on an X11 desktop can listen this way; the app doesn't gain a power others don't already have
+  ([docs/LINUX-PORT.md](docs/LINUX-PORT.md)).
 
 ## What is stored on disk
 

@@ -8,22 +8,27 @@
 //! (tracks held keys, drops everything while paused) → broadcast to WebSocket clients.
 //! The method can be switched while the app runs (`Bus::set_method`).
 //!
-//! Both methods are Windows only. On other systems the app builds and runs without keyboard capture: starting a method
-//! fails with a clear message, shown in the settings window like any other start-up problem (docs/CROSS-PLATFORM.md).
-//! A port adds its own method here (docs/MAC-PORT.md).
+//! Both methods are Windows only. On Linux, the Standard method uses X11 instead (`x11`, docs/LINUX-PORT.md). On other
+//! systems the app builds and runs without keyboard capture: starting a method fails with a clear message, shown in the
+//! settings window like any other start-up problem (docs/CROSS-PLATFORM.md). A port adds its own method here
+//! (docs/MAC-PORT.md).
 //!
 //! Privacy: events live only in memory and are forwarded to localhost WebSocket clients. Nothing is written to disk.
 
 #[cfg(windows)]
 mod hook;
-// keymap and tracker are plain logic used by the capture methods. They are built on every system so their unit tests run
-// everywhere; on systems without a capture method nothing calls them yet.
+// keymap, tracker and linux_keys are plain logic used by the capture methods. They are built on every system so their
+// unit tests run everywhere; on other systems nothing calls them.
 #[cfg_attr(not(windows), allow(dead_code))]
 pub mod keymap;
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+mod linux_keys;
 #[cfg(windows)]
 mod rawinput;
 #[cfg_attr(not(windows), allow(dead_code))]
 mod tracker;
+#[cfg(target_os = "linux")]
+mod x11;
 
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -59,6 +64,7 @@ impl Method {
     }
     pub fn label(self) -> &'static str {
         match self {
+            Self::Hook if cfg!(target_os = "linux") => "Standard (X11)",
             Self::Hook => "Standard (keyboard hook)",
             Self::RawInput => "Compatibility (Raw Input)",
         }
@@ -66,14 +72,20 @@ impl Method {
 }
 
 /// Shown when the app runs on a system that has no keyboard capture method yet.
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "linux")))]
 const UNSUPPORTED: &str = "keyboard capture isn't available on this system yet";
+
+/// Shown when Compatibility is chosen on Linux, which only has the Standard method so far.
+#[cfg(target_os = "linux")]
+const LINUX_STANDARD_ONLY: &str = "only the Standard method is available on Linux so far";
 
 enum Source {
     #[cfg(windows)]
     Hook(hook::Handle),
     #[cfg(windows)]
     RawInput(rawinput::Handle),
+    #[cfg(target_os = "linux")]
+    X11(x11::Handle),
 }
 impl Source {
     #[cfg(windows)]
@@ -83,7 +95,14 @@ impl Source {
             Method::RawInput => rawinput::start(tx).map(Source::RawInput),
         }
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    fn start(method: Method, tx: Sender<KeyEvent>) -> Result<Self, String> {
+        match method {
+            Method::Hook => x11::start(tx).map(Source::X11),
+            Method::RawInput => Err(LINUX_STANDARD_ONLY.to_string()),
+        }
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
     fn start(_method: Method, _tx: Sender<KeyEvent>) -> Result<Self, String> {
         Err(UNSUPPORTED.to_string())
     }
@@ -93,6 +112,8 @@ impl Source {
             Source::Hook(handle) => handle.stop(),
             #[cfg(windows)]
             Source::RawInput(handle) => handle.stop(),
+            #[cfg(target_os = "linux")]
+            Source::X11(handle) => handle.stop(),
         }
     }
 }
