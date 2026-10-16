@@ -17,6 +17,9 @@ Code conventions (for people and AI sessions alike) are in [CLAUDE.md](CLAUDE.md
 You need **Windows 10/11**, [Rust](https://rustup.rs) (stable, MSVC toolchain + Visual Studio Build Tools),
 and [Node.js](https://nodejs.org) 20+. WebView2 is already part of Windows 11.
 
+**On Linux or macOS?** You can still work on almost everything: the app builds, runs (without keyboard capture) and passes
+its tests there. See [docs/CROSS-PLATFORM.md](docs/CROSS-PLATFORM.md) for setup and what works where.
+
 ```bash
 git clone https://github.com/nqble/keystroke-overlay.git
 cd keystroke-overlay
