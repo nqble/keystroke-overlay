@@ -109,6 +109,12 @@ pub fn debug_info(st: State<AppState>) -> Value {
     })
 }
 
+/// The default settings, so the Debug tab's developer report can list only what the user changed.
+#[tauri::command]
+pub fn debug_defaults() -> Value {
+    settings::defaults()
+}
+
 /// The event log as [[milliseconds since start, text], ...], oldest first.
 #[tauri::command]
 pub fn debug_log() -> Vec<(u64, String)> {

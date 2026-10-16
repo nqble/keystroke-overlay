@@ -150,6 +150,7 @@ fn main() {
             commands::updates::auto_check_update,
             commands::updates::install_update,
             debug::debug_info,
+            debug::debug_defaults,
             debug::debug_log,
             debug::debug_log_clear,
             debug::debug_simulate_update,

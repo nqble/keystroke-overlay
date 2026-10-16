@@ -43,10 +43,28 @@ have to approve it — from the website or the GitHub phone app):
 The signing key is read from the encrypted secret and never appears in logs; pull requests from forks cannot access it.
 The manual steps below are the fallback (and what the workflow runs internally).
 
+## Release notes format
+
+Every CHANGELOG entry uses only these sections, in this order, each as a `###` heading. Leave out a section with
+nothing in it. The app colours each one in "What's new" and the update popup, and `tools/changelog-section.mjs` (run by
+the release workflow) refuses an entry with another heading, the wrong order or a section twice.
+
+| Heading | For |
+|---|---|
+| `### ✨ New` | things you couldn't do before |
+| `### 🛠 Improved` | things that work better |
+| `### 🐛 Fixed` | bugs that are gone |
+| `### ⚡ Performance — vX.Y.Z vs vA.B.C` | speed and memory, with numbers against the last release (the part after " — " is free) |
+| `### 🧰 Under the hood` | changes for developers |
+
+Don't end the entry with "Your settings … are kept": the script adds that line to every release. The list of sections
+lives in `ui/settings/release-notes.js`; add a section there, give it a colour token in `settings.css`, and add a row
+here.
+
 ## Every release (manual)
 
 1. Raise `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` (same number).
-2. Add an entry to [CHANGELOG.md](../CHANGELOG.md).
+2. Add an entry to [CHANGELOG.md](../CHANGELOG.md) in the release notes format below.
 3. `npm test`
 4. Build + sign:
    ```bash

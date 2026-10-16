@@ -51,12 +51,14 @@ keystroke-overlay/
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
         ├── popups.js      dialogs, right-click menu, release notes, update dialog
+        ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)
         ├── pause-button.js  the round pause button on the live preview (same switch as the tray)
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── text.js        the longer explanations the user reads
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
+        ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
         └── tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
             The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
             drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),

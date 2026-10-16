@@ -52,6 +52,13 @@
   --color-key-fill: #2a3042;
   --color-key-line: #50597a;
 
+  /* Release-note sections (release-notes.js): one colour each, on the heading and the line beside its list */
+  --color-notes-new: #7aa8ff;
+  --color-notes-improved: #b79cff;
+  --color-notes-fixed: #ffd27a;
+  --color-notes-perf: #8fe3a8;
+  --color-notes-hood: #8b93a7;
+
   /* Messages and menus */
   --color-toast-bg: #263050;
   --color-menu-hover: #2d3345;
@@ -837,6 +844,33 @@ button.danger:hover {
   color: var(--color-accent);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+/* Release-note sections in What's new and the update popup. The colour is on the heading and a thin line beside the
+   list; the list text keeps the normal colour, and the icon and word say the same thing for anyone who can't see it. */
+.notes-new {
+  --notes-color: var(--color-notes-new);
+}
+.notes-improved {
+  --notes-color: var(--color-notes-improved);
+}
+.notes-fixed {
+  --notes-color: var(--color-notes-fixed);
+}
+.notes-perf {
+  --notes-color: var(--color-notes-perf);
+}
+.notes-hood {
+  --notes-color: var(--color-notes-hood);
+}
+#mBody h4.notes-section,
+#uBody h4.notes-section {
+  color: var(--notes-color);
+}
+#mBody ul.notes-section,
+#uBody ul.notes-section {
+  border-left: 2px solid var(--notes-color);
+  padding-left: var(--space-20);
+  margin-left: var(--space-2);
 }
 #uBody p {
   margin: var(--space-6) 0;
