@@ -28,6 +28,8 @@ When two principles conflict, the higher one wins.
 - **No magic numbers.** Name them as constants (`const MAX_LAYOUTS = 20`), and say where else they must match.
 - **No dead code, no commented-out code, no duplicate helpers.** Search for an existing helper before writing a new one.
 - **User-facing text** goes in the file's `TEXT` block, not inline in the logic. Write it in plain, friendly English.
+- **Accessible.** Anything clickable works with the keyboard and has a name. See `docs/ACCESSIBILITY.md` for the rest (guidance, not
+  a gate).
 
 ## 3. Comments
 
