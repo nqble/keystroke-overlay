@@ -67,7 +67,7 @@ requires asking, even for development-only ones) and editing CLAUDE.md (step 7).
 
 ## When it is done
 
-Tell Jordan in a beginner-friendly summary: the commits, test results, token count before and after, remaining JS style uses
+Tell Jordan in a plain-language summary: the commits, test results, token count before and after, remaining JS style uses
 (geometry only) and anything skipped. Jordan then brings it to the Advisory Session, which builds the Claude Design system from the
 tokens and prototypes the key editor redesign.
 
