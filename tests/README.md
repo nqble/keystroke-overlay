@@ -92,8 +92,8 @@ Rules:
 
 | Hook | What it is |
 |---|---|
-| `app-header`, `brand-logo`, `brand-title` | The top bar, its logo and its title |
-| `obs-url`, `obs-copy`, `obs-size` | The OBS address box, its Copy button, the size text |
+| `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge |
+| `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS link button (shown only when OBS isn't connected or the link changed) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
 | `preview-frame` | The live preview frame |
@@ -102,7 +102,7 @@ Rules:
 | `section-heading` | Every heading made by `heading()` inside a tab |
 | `toast` | The message at the bottom |
 | `notes-popup`, `notes-title`, `notes-body`, `notes-ok` | The "What's new" / release-notes popup |
-| `update-button` | The corner button that appears when an update exists |
+| `update-button` | The header's Update ready chip, shown when an update exists |
 | `update-popup`, `update-title`, `update-body`, `update-progress`, `update-progress-text`, `update-later`, `update-go` | The update dialog |
 | `dialog`, `dialog-title`, `dialog-body`, `dialog-footer` | The shared dialog |
 | `dialog-ok`, `dialog-cancel`, `dialog-create`, `dialog-reset-confirm`, `dialog-layout-name` | Buttons and the name box inside dialogs |
@@ -128,7 +128,7 @@ Rules:
 | `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` in the General tab |
-| `general-obs-url`, `general-obs-copy`, `general-size-note` | The OBS section of General |
+| `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS link: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number shown in the About part of General |
 | `server-port`, `server-port-apply`, `server-restart` | The Server section |
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | The Secure link section |

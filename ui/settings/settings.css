@@ -43,6 +43,12 @@
   --color-live-text: #8fe3a8;
   --color-paused-bg: #3a2f12;
   --color-paused-text: #ffd27a;
+  --color-update-bg: #1c2a4a; /* the Update ready chip */
+  --color-update-text: #9cc0ff;
+  --color-update-hover: #22345c;
+  --color-update-pressed: #172440;
+  --color-dev-bg: #2a1f45; /* the DEV badge on devbuilds */
+  --color-dev-text: #c9a8ff;
   --color-paused-line: #7a6430; /* the pause button's border while paused */
   --color-paused-pressed: #2a220c; /* ...while paused and held */
   --color-control-line: #5a6175; /* the border of a control sitting on the preview */
@@ -78,13 +84,11 @@
   --shadow-popup: 0 20px 60px rgba(0, 0, 0, 0.55);
   --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-lift: 0 6px 16px rgba(0, 0, 0, 0.5); /* a key being dragged */
-  --shadow-glow: 0 2px 10px rgba(79, 140, 255, 0.38); /* the update button */
 
   /* Font families */
   --font-ui: 'Segoe UI', system-ui, sans-serif;
   --font-mono: Consolas, 'Cascadia Mono', monospace;
   --font-mono-plain: Consolas, monospace; /* same look as --font-mono (Consolas comes first); merge candidate */
-  --font-icons: 'Segoe Fluent Icons', 'Segoe MDL2 Assets', 'Segoe UI Symbol', sans-serif; /* the window buttons */
 
   /* Text sizes. 11, 12 and 13 are close together: merge candidates for the redesign. */
   --text-2xs: 10px;
@@ -173,21 +177,30 @@ header {
   border-radius: var(--radius-lg);
   flex: none;
 }
-.obs {
+.header-status {
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  margin-left: auto;
-  margin-right: var(--space-16);
-  padding: var(--space-10) 0;
+  margin-left: var(--space-12);
+  margin-right: auto;
   min-width: 0;
+  white-space: nowrap; /* the header never wraps; at 820 px everything still fits */
 }
-.obs .lbl {
-  color: var(--color-text-dim);
-  white-space: nowrap;
+.header-status button {
+  flex: none;
 }
-.obs input {
-  width: 230px;
+/* Devbuilds only (tools/devbuild-title.mjs adds it): a small purple DEV badge after the name. */
+.dev-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-round);
+  background: var(--color-dev-bg);
+  color: var(--color-dev-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
 }
 .hint {
   color: var(--color-text-dim);
@@ -910,81 +923,66 @@ button.danger:hover {
   gap: var(--space-10);
 }
 
-/* Corner update button: white download icon on a circle in the app's accent colour (--accent). Shakes briefly every 7.5 s
-   (transform only), tooltip on hover. */
-.upd {
-  position: fixed;
-  left: 14px;
-  bottom: 14px;
-  z-index: 15;
-  width: 36px;
-  height: 36px;
-  padding: 0;
+/* Update ready chip in the header (update-popup.js shows it; header.js starts the arrow). On hover, after 150 ms, the
+   arrow drops out of the bottom of its own small box and comes back in from the top, once, like a download. The box
+   clips it, so only the arrow moves. Once started it always finishes. Only transform and opacity animate. */
+.update-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 26px;
+  padding: 0 var(--space-10);
   border: 0;
-  border-radius: var(--radius-round);
-  background: var(--color-accent);
-  display: grid;
-  place-items: center;
+  border-radius: 13px;
+  background: var(--color-update-bg);
+  color: var(--color-update-text);
+  font-size: var(--text-sm);
+  line-height: 1;
   cursor: pointer;
-  box-shadow: var(--shadow-glow);
-  animation: upd-shake 7.5s ease-in-out infinite;
 }
-.upd[hidden] {
+.update-chip[hidden] {
   display: none;
 }
-.upd:hover {
-  background: var(--color-accent-hover);
-  animation-play-state: paused;
+.update-chip:hover {
+  background: var(--color-update-hover);
 }
-.upd:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+.update-chip:active {
+  background: var(--color-update-pressed);
 }
-.upd::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: 46px;
-  top: 50%;
-  transform: translateY(-50%);
-  white-space: nowrap;
-  background: var(--color-well);
-  color: var(--color-on-fill);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  padding: var(--space-5) var(--space-10);
-  font-size: var(--text-sm);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fast);
+.update-arrow-box {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 12px;
+  height: 14px;
+  overflow: hidden;
 }
-.upd:hover::after,
-.upd:focus-visible::after {
-  opacity: 1;
+.update-arrow {
+  display: block;
 }
-@keyframes upd-shake {
-  0%,
-  12%,
+.update-arrow.dropping {
+  animation: update-arrow-drop 520ms ease-in-out 1;
+}
+@keyframes update-arrow-drop {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translateY(110%);
+    opacity: 0;
+  }
+  46% {
+    transform: translateY(-110%);
+    opacity: 0;
+  }
   100% {
-    transform: translateX(0) rotate(0);
-  }
-  2% {
-    transform: translateX(-3px) rotate(-12deg);
-  }
-  4% {
-    transform: translateX(3px) rotate(10deg);
-  }
-  6% {
-    transform: translateX(-2px) rotate(-7deg);
-  }
-  8% {
-    transform: translateX(2px) rotate(5deg);
-  }
-  10% {
-    transform: translateX(-1px) rotate(-2deg);
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .upd {
+  .update-arrow.dropping {
     animation: none;
   }
 }
@@ -1212,8 +1210,23 @@ input[type='range'] {
   border-radius: 0;
   background: transparent;
   color: var(--color-text);
-  font: var(--text-2xs)/1 var(--font-icons);
   cursor: default;
+}
+/* Drawn icons, so the buttons look the same on every system (not only where Windows' icon font exists). */
+.winbtns svg {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  vertical-align: middle;
+}
+.winbtns .icon-restore,
+.winbtns .maximized .icon-maximize {
+  display: none;
+}
+.winbtns .maximized .icon-restore {
+  display: inline;
 }
 .winbtns button:hover {
   background: var(--color-hover-soft);

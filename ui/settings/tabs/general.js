@@ -37,10 +37,16 @@ export function generalTab() {
 
 function obsSection() {
   return [
-    heading('OBS'),
+    heading('OBS link'),
     row(
-      'Browser Source URL',
-      el('input', { value: obsUrl, readOnly: true, test: 'general-obs-url' }),
+      'OBS link',
+      el('input', {
+        id: 'obsUrl',
+        value: obsUrl,
+        readOnly: true,
+        type: settings.general.secureLink ? 'password' : 'text',
+        test: 'obs-url',
+      }),
       button('Copy', copyUrl, 'primary', 'general-obs-copy'),
     ),
     el('p', { className: 'note', id: 'sizeNote', textContent: sizeText(), test: 'general-size-note' }),

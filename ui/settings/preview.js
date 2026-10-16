@@ -66,13 +66,15 @@ addEventListener('beforeunload', flushPendingSave);
 // ---------------------------------------------------------------------------------------------------------------------
 // 10. OBS link and preview
 // ---------------------------------------------------------------------------------------------------------------------
-export const sizeText = () => (size ? `Recommended Browser Source size: ${size.w} × ${size.h}` : '');
+export const sizeText = () => (size ? `Size in OBS: ${size.w} × ${size.h}` : '');
 
-/** Refresh the address bar at the top (a secured link is hidden on screen, but Copy still copies it). */
+/** Refresh the OBS link box and size in General, if it is showing (a secured link is hidden, but Copy copies it). */
 export function updateObs() {
-  $('#obsUrl').value = obsUrl;
-  $('#obsUrl').type = settings?.general?.secureLink ? 'password' : 'text';
-  $('#obsSize').textContent = size ? `Size: ${size.w}×${size.h}` : '';
+  const linkBox = /** @type {HTMLInputElement | null} */ ($('#obsUrl'));
+  if (linkBox) {
+    linkBox.value = obsUrl;
+    linkBox.type = settings?.general?.secureLink ? 'password' : 'text';
+  }
   const sizeNote = $('#sizeNote');
   if (sizeNote) sizeNote.textContent = sizeText();
 }

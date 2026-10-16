@@ -23,6 +23,7 @@ import { paintObsStatus, paintPause, showServerError, resync } from './messages.
 import { debugTab } from './debug.js';
 import { hideMenu } from './menu.js';
 import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
+import './header.js';
 import { showNotes } from './notes.js';
 import { showUpdateResult } from './update-popup.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';

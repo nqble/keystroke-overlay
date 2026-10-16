@@ -27,8 +27,9 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 1. ~~**refactor: split `popups.js`**~~ Done.
 2. ~~**feat: shared popup**~~ Done: every popup follows `popup.js`'s rules (focus, Esc, Enter, lock) and the approved
    size. Each popup keeps its own markup so the e2e tests' hooks stay the same.
-3. **refactor: move the header into `header.js`**. No visible change.
-4. **feat: new header** (Header board): link out, DEV badge, Update ready chip, drawn window buttons.
+3. ~~**refactor: move the header into `header.js`**~~ and
+4. ~~**feat: new header**~~ Done together: `header.js` has the status and chip buttons, `windowbar.js` keeps the window
+   buttons (now drawn icons), and the link box lives only in General.
 5. **refactor: split `debug.js` into `debug/`**. No visible change.
 6. **feat: General in section cards**, OBS link card, Advanced.
 7. **feat: Style with Fonts merged in**, theme gallery, preset cards. The Fonts tab is removed (nothing opens it by

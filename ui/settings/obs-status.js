@@ -34,6 +34,15 @@ export function obsStatus({ paused, overlays, serverError = null, linkChanged = 
   return { kind: 'off', text: TEXT.noObs };
 }
 
+/**
+ * Whether the header shows "Copy OBS link" next to the status: only when it helps, that is when OBS isn't connected
+ * or has the old link. Not while the server can't start (copying wouldn't fix that), and not once OBS is live.
+ */
+export function showCopyLink({ overlays, serverError = null, linkChanged = false }) {
+  if (serverError) return false;
+  return linkChanged || overlays === 0;
+}
+
 /** The extra line Debug mode shows next to the status. */
 export function obsStatusDetail(paused, overlays) {
   return TEXT.debug(overlays, paused);

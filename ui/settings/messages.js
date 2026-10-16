@@ -4,7 +4,7 @@
 import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './update-popup.js';
 import { flushPendingSave, push } from './preview.js';
-import { obsStatus, obsStatusDetail } from './obs-status.js';
+import { obsStatus, obsStatusDetail, showCopyLink } from './obs-status.js';
 import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
 import {
@@ -64,13 +64,16 @@ export function paintPause() {
   paintObsStatus();
 }
 
-/** The header's "Live in OBS / Paused / Not connected" pill. Debug mode adds the exact count as a tooltip. */
+/** The header's status pill and its "Copy OBS link" button. Debug mode adds the exact count as a tooltip. */
+const TEXT_STATUS_TIP = 'OBS link settings';
 export function paintObsStatus() {
-  const status = obsStatus({ paused, overlays, serverError, linkChanged });
+  const facts = { paused, overlays, serverError, linkChanged };
+  const status = obsStatus(facts);
   const pill = $('#obsStatus');
   pill.textContent = status.text;
   pill.className = 'obs-status ' + status.kind;
-  pill.title = settings?.general?.debugMode ? obsStatusDetail(paused, overlays) : '';
+  pill.title = settings?.general?.debugMode ? obsStatusDetail(paused, overlays) : TEXT_STATUS_TIP;
+  $('#copyUrl').hidden = !showCopyLink(facts);
 }
 
 // an OBS overlay connected or disconnected (sent only on a change, never polled)

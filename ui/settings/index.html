@@ -30,13 +30,21 @@
           draggable="false"
           data-tauri-drag-region
         /><span data-test="brand-title" data-tauri-drag-region>Keystroke Overlay</span>
-        <span id="obsStatus" class="obs-status off" data-test="obs-status" role="status"></span>
       </div>
-      <div class="obs" data-tauri-drag-region>
-        <span class="lbl" data-tauri-drag-region>OBS Browser Source URL</span>
-        <input id="obsUrl" data-test="obs-url" aria-label="OBS Browser Source URL" readonly />
-        <button id="copyUrl" data-test="obs-copy" class="primary">Copy OBS URL</button>
-        <span id="obsSize" data-test="obs-size" class="hint" data-tauri-drag-region></span>
+      <div class="header-status" data-tauri-drag-region>
+        <button
+          id="obsStatus"
+          class="obs-status off"
+          data-test="obs-status"
+          type="button"
+          aria-live="polite"
+          title="OBS link settings"
+        ></button>
+        <button id="copyUrl" data-test="obs-copy" class="primary" type="button" hidden>Copy OBS link</button>
+        <button id="updateBtn" data-test="update-button" class="update-chip" type="button" hidden>
+          <span class="update-arrow-box" aria-hidden="true"><span class="update-arrow">↓</span></span
+          >Update ready
+        </button>
       </div>
       <div class="winbtns" data-test="window-buttons">
         <button
@@ -47,7 +55,7 @@
           aria-label="Minimize"
           title="Minimize"
         >
-          &#xE921;
+          <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M0 5.5h10" /></svg>
         </button>
         <button
           id="wMax"
@@ -57,10 +65,16 @@
           aria-label="Maximize"
           title="Maximize"
         >
-          &#xE922;
+          <svg class="icon-maximize" viewBox="0 0 10 10" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="9" height="9" />
+          </svg>
+          <svg class="icon-restore" viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M2.5 2.5V0.5h7v7h-2" />
+            <rect x="0.5" y="2.5" width="7" height="7" />
+          </svg>
         </button>
         <button id="wClose" data-test="window-close" type="button" tabindex="-1" aria-label="Close" title="Close">
-          &#xE8BB;
+          <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9" /></svg>
         </button>
       </div>
     </header>
@@ -91,31 +105,6 @@
         <div class="mfoot"><button id="mOk" data-test="notes-ok" class="primary">OK</button></div>
       </div>
     </div>
-    <button
-      id="updateBtn"
-      data-test="update-button"
-      class="upd"
-      type="button"
-      hidden
-      aria-label="New update"
-      data-tip="New update"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        width="20"
-        height="20"
-        fill="none"
-        stroke="#fff"
-        stroke-width="2.4"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M12 4v10" />
-        <path d="M7.5 10.5 12 15l4.5-4.5" />
-        <path d="M5 19h14" />
-      </svg>
-    </button>
     <div id="updModal" data-test="update-popup" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="uTitle">
         <h3 id="uTitle" data-test="update-title"></h3>

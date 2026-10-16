@@ -112,7 +112,7 @@ async function verifyBuild(baseCfg, target, icons) {
     const r =
       await ask(`(async () => { const i = document.querySelector('.brand img'); if (!i || !i.complete || !i.naturalWidth) return { ok: false, why: 'logo missing', url: location.href };
       const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.drawImage(i, 0, 0, 64, 64); const [R, G, B] = x.getImageData(16, 18, 1, 1).data;
-      return { ok: document.querySelectorAll('nav button').length === 6 && R > G && B > R && document.querySelector('.brand').textContent.includes('devbuild'), url: location.href, rgb: [R, G, B], tabs: document.querySelectorAll('nav button').length }; })()`);
+      return { ok: document.querySelectorAll('nav button').length === 6 && R > G && B > R && !!document.querySelector('[data-test="dev-badge"]'), url: location.href, rgb: [R, G, B], tabs: document.querySelectorAll('nav button').length }; })()`);
     ws.close();
     const v = r.result?.result?.value;
     console.log('  window address:', v?.url, '| logo pixel:', v?.rgb, '| tabs:', v?.tabs);

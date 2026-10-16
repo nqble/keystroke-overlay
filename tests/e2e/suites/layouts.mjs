@@ -15,7 +15,7 @@ await tab('layout');
 await sleep(400);
 // ---- nothing is selectable except inputs
 const sel = await p.q(
-  `[getComputedStyle(document.querySelector('${byTest('section-heading')}')).userSelect, getComputedStyle(document.querySelector('${byTest('layout-card')}')).userSelect, getComputedStyle(document.querySelector('${byTest('obs-url')}')).userSelect]`,
+  `[getComputedStyle(document.querySelector('${byTest('section-heading')}')).userSelect, getComputedStyle(document.querySelector('${byTest('layout-card')}')).userSelect, (() => { const box = document.createElement('input'); document.body.append(box); const value = getComputedStyle(box).userSelect; box.remove(); return value; })()]`,
 );
 check(
   'labels / cards are not selectable, text boxes still are',

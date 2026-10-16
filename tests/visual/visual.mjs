@@ -29,7 +29,7 @@ const ALLOWED_DIFFERENT_PIXELS = 20;
 // What changes from run to run, or that animates, is frozen or hidden before every picture.
 const FREEZE_CSS = `
   *, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; scroll-behavior: auto !important; }
-  ${['app-version', 'obs-size', 'general-size-note'].map((name) => byTest(name)).join(', ')} { visibility: hidden !important; }
+  ${['app-version', 'general-size-note'].map((name) => byTest(name)).join(', ')} { visibility: hidden !important; }
 `;
 
 const p = await connect();

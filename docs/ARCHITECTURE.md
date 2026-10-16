@@ -59,6 +59,7 @@ keystroke-overlay/
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)
         ├── pause-button.js  the round pause button on the live preview (same switch as the tray)
+        ├── header.js    the header buttons: status opens General, the Update ready arrow
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── text.js        the longer explanations the user reads
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
