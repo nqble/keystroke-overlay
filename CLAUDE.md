@@ -34,6 +34,9 @@ When two principles conflict, the higher one wins.
 - **Explain why, not what.** The code already says what it does; the comment says why it has to be this way.
 - **Each file starts with a short header:** what the file is for, and where to look for related code.
 - **Keep comments true.** If you change the code, fix the comment in the same commit.
+- **Keep docs true.** If a change makes a doc wrong (README, `docs/`, a design spec, PRIVACY.md, a plan's status), fix the
+  doc in the same commit. When a plan in `docs/proposals/` is done or dropped, mark it so or delete it, so no stale plan
+  misleads the next person.
 
 ## 4. Structure
 
