@@ -6,7 +6,7 @@
 // browser then draws the key, which takes the same time whatever the app does, so it is left out.
 //
 // Used by tests/bench/run.mjs (one set of numbers per version, so two versions can be compared). Only talks to 127.0.0.1.
-import { execFileSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,6 +33,26 @@ export function summarise(latencies) {
   };
 }
 
+/** Run latency-inject.ps1 and resolve with what it printed (one line per key press), without blocking the event loop. */
+function runInjector(presses) {
+  return new Promise((resolve, reject) => {
+    const script = join(HERE, 'latency-inject.ps1');
+    const child = spawn('powershell.exe', [
+      '-NoProfile',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      script,
+      '-presses',
+      String(presses),
+    ]);
+    let printed = '';
+    child.stdout.on('data', (chunk) => (printed += chunk));
+    child.on('error', reject);
+    child.on('close', () => resolve(printed));
+  });
+}
+
 /** Listen on the app's WebSocket, press keys for real, and return { kind: [latency in ms, ...] } plus the number missed. */
 export async function measureKeyLatency(port, presses = 120) {
   const arrivals = []; // { code, at } for every "key down" message
@@ -47,19 +67,9 @@ export async function measureKeyLatency(port, presses = 120) {
   });
   await sleep(300); // let the first "snap" message and the connection settle
 
-  const output = execFileSync(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-File',
-      join(HERE, 'latency-inject.ps1'),
-      '-presses',
-      String(presses),
-    ],
-    { encoding: 'utf8' },
-  );
+  // Run the injector WITHOUT blocking this program: it must keep reading the WebSocket while keys are being pressed, or
+  // the messages would be read late and the timings would be wrong.
+  const output = await runInjector(presses);
   await sleep(MAX_WAIT_MS);
   socket.close();
 
