@@ -28,6 +28,9 @@ palette). Change how each tab is organised and how its controls work.
   buttons: hover #4677e0, held #2f5cb8; plain buttons: held #181b23. Colour only: nothing shrinks or moves. Keyboard
   focus shows the blue ring. Cards (layouts, themes, presets) keep just their hover and selected ring.
 
+The full audit of today's UI, including popups, the tray and the overlay's own messages, is in
+[ui-audit.md](ui-audit.md).
+
 ## Per tab
 
 | Tab | v2.0 |
