@@ -43,7 +43,7 @@ export function keysTab() {
 addEventListener('keydown', (keyEvent) => {
   if (tab !== 'keys' || !selectedKeys.size || !keyEvent.key.startsWith('Arrow')) return;
   const typingOrPopup =
-    keyEvent.target.closest?.('input, select, textarea, button') ||
+    /** @type {Element} */ (keyEvent.target).closest?.('input, select, textarea, button') ||
     !$('#dlg').hidden ||
     !$('#modal').hidden ||
     !$('#updModal').hidden;

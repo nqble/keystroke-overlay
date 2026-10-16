@@ -297,7 +297,8 @@ if (PREVIEW) {
   });
   // Click keys in the preview to test the look without typing.
   stage.addEventListener('pointerdown', (e) => {
-    const keyElement = e.target.closest('.key');
+    const target = /** @type {Element} */ (e.target);
+    const keyElement = /** @type {HTMLElement | null} */ (target.closest('.key'));
     if (keyElement) setKey(keyElement.dataset.code, true);
   });
   addEventListener('pointerup', () => releaseAll());
