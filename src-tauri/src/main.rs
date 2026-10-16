@@ -21,7 +21,7 @@ use state::AppState;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, RunEvent};
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, watch};
 use window::open_settings_async;
 
 fn main() {
@@ -86,6 +86,7 @@ fn main() {
                 settings: cfg.into(),
                 paths,
                 cfg_tx,
+                overlays: watch::channel(0).0,
             });
             let (srv, err) = match server::start(shared.clone(), port) {
                 Ok(handle) => (Some(handle), None),
@@ -101,6 +102,7 @@ fn main() {
                 pending_tab: Mutex::new(None),
             });
 
+            state::forward_overlay_count(app.handle().clone(), &shared);
             tray::build(app, shared)?;
             commands::updates::start_background_check(app.handle().clone());
 

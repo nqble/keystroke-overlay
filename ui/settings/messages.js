@@ -4,14 +4,18 @@
 import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './popups.js';
 import { flushPendingSave, push } from './preview.js';
+import { obsStatus, obsStatusDetail } from './obs-status.js';
 import { render } from './settings.js';
 import {
   TAB_NAMES,
+  overlays,
   paused,
+  settings,
   setInputActive,
   setInputError,
   setLayouts,
   setObsUrl,
+  setOverlays,
   setPaused,
   setSettings,
   setTab,
@@ -53,7 +57,23 @@ tauriEvent.listen('goto-tab', (e) => {
 
 export function paintPause() {
   $('#pausebar').hidden = !paused;
+  paintObsStatus();
 }
+
+/** The header's "Live in OBS / Paused / Not connected" pill. Debug mode adds the exact count as a tooltip. */
+export function paintObsStatus() {
+  const status = obsStatus(paused, overlays);
+  const pill = $('#obsStatus');
+  pill.textContent = status.text;
+  pill.className = 'obs-status ' + status.kind;
+  pill.title = settings?.general?.debugMode ? obsStatusDetail(paused, overlays) : '';
+}
+
+// an OBS overlay connected or disconnected (sent only on a change, never polled)
+tauriEvent.listen('overlays-changed', (e) => {
+  setOverlays(e.payload);
+  paintObsStatus();
+});
 
 $('#resumeBtn').onclick = async () => {
   await call('toggle_pause');
@@ -82,6 +102,7 @@ export async function resync() {
   }
   setSettings(state.settings);
   setPaused(state.paused);
+  setOverlays(state.overlays);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
   paintPause();

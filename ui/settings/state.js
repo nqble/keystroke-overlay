@@ -17,6 +17,7 @@ export let obsUrl = ''; // the OBS Browser Source address (it carries ?key=... w
 export let size = null; // the overlay's recommended size, reported by the live preview: { w, h }
 export let appVersion = ''; // the version of the running app
 export let paused = false; // true while the overlay is paused from the tray
+export let overlays = 0; // OBS overlay pages connected right now (the preview is not counted)
 export let lastUpdate = null; // the latest "is there an update?" answer
 export let updateProgress = null; // download progress while an update installs
 export let inputActive = 'hook'; // the keyboard input method in use: "hook" or "rawinput"
@@ -60,6 +61,9 @@ export function setAppVersion(value) {
 }
 export function setPaused(value) {
   paused = value;
+}
+export function setOverlays(value) {
+  overlays = value;
 }
 export function setLastUpdate(value) {
   lastUpdate = value;

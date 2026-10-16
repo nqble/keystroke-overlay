@@ -17,6 +17,7 @@ pub fn get_state(st: State<AppState>) -> Value {
         "serverError": *st.server_error.lock().unwrap(),
         "version": env!("CARGO_PKG_VERSION"),
         "paused": st.shared.bus.paused.load(Ordering::Relaxed),
+        "overlays": *st.shared.overlays.borrow(),
         "whatsNew": st.whats_new.load(Ordering::Relaxed),
         "inputError": st.shared.bus.error(),
         "inputActive": st.shared.bus.method().id(),

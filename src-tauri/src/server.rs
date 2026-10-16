@@ -8,7 +8,7 @@
 use crate::keyboard::{Bus, KeyEvent};
 use crate::settings::{public_settings, Paths};
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
-use axum::extract::{Path, Request, State};
+use axum::extract::{Path, RawQuery, Request, State};
 use axum::http::{header, HeaderValue, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
@@ -33,6 +33,9 @@ pub struct Shared {
     /// "cfg" = settings/pause changed (overlays get the new settings in the message itself);
     /// "assets" = fonts or layouts changed (overlays re-fetch them).
     pub cfg_tx: broadcast::Sender<&'static str>,
+    /// How many OBS overlay pages are connected right now (the settings window's own preview is not counted).
+    /// A watch channel, so the settings window's status hears about each change without anyone polling.
+    pub overlays: watch::Sender<usize>,
 }
 
 pub struct ServerHandle {
@@ -290,8 +293,34 @@ fn module_urls(kind: &str, paths: &Paths) -> Vec<String> {
     urls
 }
 
-async fn ws_upgrade(State(st): State<St>, ws: WebSocketUpgrade) -> Response {
-    ws.on_upgrade(move |s| client(s, st))
+async fn ws_upgrade(State(st): State<St>, RawQuery(query): RawQuery, ws: WebSocketUpgrade) -> Response {
+    let counted = !is_preview(query.as_deref());
+    ws.on_upgrade(move |s| client(s, st, counted))
+}
+
+/// The settings window's live preview adds `preview=1` to its address (ui/overlay/overlay.js). It is not OBS,
+/// so it must not make the status say "Live in OBS".
+fn is_preview(query: Option<&str>) -> bool {
+    query.is_some_and(|q| q.split('&').any(|kv| kv == "preview=1"))
+}
+
+/// Counts one OBS overlay for as long as it lives. Counting out happens in `drop`, so every way a
+/// connection can end (closed, crashed, app shutting down) is counted.
+struct OverlayCount {
+    overlays: watch::Sender<usize>,
+}
+impl OverlayCount {
+    fn start(overlays: &watch::Sender<usize>) -> Self {
+        overlays.send_modify(|count| *count += 1);
+        OverlayCount {
+            overlays: overlays.clone(),
+        }
+    }
+}
+impl Drop for OverlayCount {
+    fn drop(&mut self) {
+        self.overlays.send_modify(|count| *count = count.saturating_sub(1));
+    }
 }
 
 fn ev_msg(event: KeyEvent) -> Message {
@@ -327,7 +356,8 @@ fn snapshot(st: &St) -> Message {
 }
 
 /// One task per connected overlay. Sleeps until a key event/config change.
-async fn client(mut sock: WebSocket, st: St) {
+async fn client(mut sock: WebSocket, st: St, counted: bool) {
+    let _overlay_count = counted.then(|| OverlayCount::start(&st.shared.overlays));
     let mut keys = st.shared.bus.tx.subscribe();
     let mut cfg = st.shared.cfg_tx.subscribe();
     let mut shutdown = st.sd.clone();
@@ -370,6 +400,26 @@ mod tests {
         let _client = tokio::net::TcpSocket::new_v4().unwrap().connect(address).await.unwrap();
         let (connection, _) = listener.accept().await;
         assert!(connection.nodelay().unwrap());
+    }
+
+    #[test]
+    fn the_settings_preview_is_not_counted_as_obs() {
+        assert!(is_preview(Some("preview=1")));
+        assert!(is_preview(Some("key=abc&preview=1")));
+        assert!(!is_preview(None));
+        assert!(!is_preview(Some("key=abc")));
+        assert!(!is_preview(Some("preview=10")));
+    }
+    #[test]
+    fn overlay_count_goes_up_while_connected_and_back_down_when_closed() {
+        let (overlays, watcher) = watch::channel(0);
+        let first = OverlayCount::start(&overlays);
+        let second = OverlayCount::start(&overlays);
+        assert_eq!(*watcher.borrow(), 2);
+        drop(first);
+        assert_eq!(*watcher.borrow(), 1);
+        drop(second);
+        assert_eq!(*watcher.borrow(), 0);
     }
 
     fn cfg(on: bool, key: &str) -> Value {

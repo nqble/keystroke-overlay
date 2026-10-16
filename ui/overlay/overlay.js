@@ -250,7 +250,9 @@ async function refresh() {
 let ws,
   retry = 0;
 function connect() {
-  ws = new WebSocket(withKey(`ws://${location.host}/ws`));
+  // The settings window's preview says so, so the app's "Live in OBS" status counts only OBS (server.rs is_preview).
+  const address = PREVIEW ? `ws://${location.host}/ws?preview=1` : `ws://${location.host}/ws`;
+  ws = new WebSocket(withKey(address));
   ws.onopen = () => {
     retry = 0;
   };

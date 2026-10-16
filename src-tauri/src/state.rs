@@ -94,3 +94,15 @@ pub fn channel_of_settings(settings: &Value) -> String {
         .unwrap_or("stable")
         .to_string()
 }
+
+/// Tells the settings window each time an OBS overlay connects or disconnects, for its "Live in OBS" status.
+/// The task sleeps on the watch channel between changes, so it costs nothing while idle.
+pub fn forward_overlay_count(app: AppHandle, shared: &Arc<Shared>) {
+    let mut overlays = shared.overlays.subscribe();
+    tauri::async_runtime::spawn(async move {
+        while overlays.changed().await.is_ok() {
+            let count = *overlays.borrow_and_update();
+            let _ = app.emit("overlays-changed", count);
+        }
+    });
+}

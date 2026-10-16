@@ -24,9 +24,8 @@ import { debugTab } from './debug.js';
 import { hideMenu, showNotes, showUpdateResult } from './popups.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
 import {
-  settings,
-  TAB_NAMES,
   appVersion,
+  registry,
   setAppVersion,
   setBooted,
   setCustomFonts,
@@ -34,11 +33,13 @@ import {
   setInputError,
   setLayouts,
   setObsUrl,
+  setOverlays,
   setPaused,
   setSettings,
   setTab,
+  settings,
   tab,
-  registry,
+  TAB_NAMES,
 } from './state.js';
 // Loaded only for what it does when it starts: it wires up the minimize / maximize / close buttons.
 import './windowbar.js';
@@ -110,6 +111,7 @@ addEventListener('resize', () => {
   setObsUrl(state.url);
   setAppVersion(state.version);
   setPaused(state.paused);
+  setOverlays(state.overlays);
   setLayouts(layoutList);
   setCustomFonts(fonts);
   setInputActive(state.inputActive);

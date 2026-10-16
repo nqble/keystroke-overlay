@@ -363,6 +363,29 @@ button.danger:hover {
   border-radius: 6px;
 }
 
+/* Header OBS status (obs-status.js). Same colours as the v2.0 design: green live, amber paused, grey not connected. */
+.obs-status {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 13px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.obs-status.live {
+  background: #1f2a22;
+  color: #8fe3a8;
+}
+.obs-status.paused {
+  background: #3a2f12;
+  color: #ffd27a;
+}
+.obs-status.off {
+  background: var(--panel2);
+  color: var(--dim);
+}
+
 #pausebar {
   background: #3a3320;
   color: #ffe9a8;
