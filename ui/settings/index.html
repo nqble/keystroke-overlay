@@ -96,19 +96,19 @@
     </section>
     <main>
       <nav id="tabs" data-test="tab-bar" aria-label="Settings sections"></nav>
-      <div id="pane" data-test="pane"></div>
+      <div id="pane" class="scroll-fade" data-test="pane"></div>
     </main>
     <div id="modal" data-test="notes-popup" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
         <h3 id="mTitle" data-test="notes-title"></h3>
-        <div id="mBody" data-test="notes-body"></div>
+        <div id="mBody" class="scroll-fade" data-test="notes-body"></div>
         <div class="mfoot"><button id="mOk" data-test="notes-ok" class="primary">OK</button></div>
       </div>
     </div>
     <div id="updModal" data-test="update-popup" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="uTitle">
         <h3 id="uTitle" data-test="update-title"></h3>
-        <div id="uBody" data-test="update-body"></div>
+        <div id="uBody" class="scroll-fade" data-test="update-body"></div>
         <div class="bar" id="uBar" data-test="update-progress" hidden><div class="fill" id="uFill"></div></div>
         <div class="hint" id="uText" data-test="update-progress-text"></div>
         <div class="mfoot">
@@ -120,7 +120,7 @@
     <div id="dlg" data-test="dialog" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dTitle">
         <h3 id="dTitle" data-test="dialog-title"></h3>
-        <div id="dBody" data-test="dialog-body"></div>
+        <div id="dBody" class="scroll-fade" data-test="dialog-body"></div>
         <div class="mfoot" id="dFoot" data-test="dialog-footer"></div>
       </div>
     </div>

@@ -5,9 +5,10 @@
 //    * neither key does anything while the popup is locked (an update installing);
 //    * the size rule is in settings.css (.dialog): up to 560 px wide and 80% of the window, the middle scrolls.
 //  Each popup keeps its own markup and test hooks (index.html); dialogs.js, notes.js and update-popup.js build on it.
-//  Design: docs/design/v2-redesign.md, Popups.
+//  Design: docs/design/ui-design-v2.md, Popups.
 // =====================================================================================================================
 import { $, el } from './helpers.js';
+import { refreshFades } from './scroll-fade.js';
 
 // ---- Keyboard focus ---------------------------------------------------------------------------------------------------
 // The popups show and hide themselves by toggling `hidden`; this watches them all.
@@ -32,6 +33,7 @@ const popupWatcher = new MutationObserver((records) => {
       const opener = lastFocusOutsidePopups;
       openers.set(popup, { element: opener, hook: opener?.dataset?.test });
       focusablesIn(popup)[0]?.focus();
+      requestAnimationFrame(refreshFades); // the body's text is laid out by then
     } else {
       const opener = openers.get(popup);
       openers.delete(popup);

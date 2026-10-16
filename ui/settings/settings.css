@@ -52,7 +52,6 @@
   --color-dev-text: #c9a8ff;
   --color-paused-line: #7a6430; /* the pause button's border while paused */
   --color-paused-pressed: #2a220c; /* ...while paused and held */
-  --color-control-line: #5a6175; /* the border of a control sitting on the preview */
   --color-control-pressed: #181b23; /* a control while pressed and held */
 
   /* Keys in the Keys tab picture */
@@ -72,6 +71,7 @@
 
   /* Scrollbars */
   --color-scrollbar-thumb: #343a4c;
+  --color-mask-solid: #000; /* a mask's "fully shown" (only its opacity counts, not its colour) */
 
   /* The window's own buttons */
   --color-hover-soft: rgba(255, 255, 255, 0.09);
@@ -541,6 +541,31 @@ button:disabled:hover {
   display: none;
 }
 
+/* ---- Scroll fade (scroll-fade.js; docs/design/ui-design-v2.md, Scrolling). Every scrolling area fades softly at an
+   edge with more to scroll to. Two mask layers: the fade over the content, and a solid 10 px strip on the right (the
+   scrollbar's width above) so the scrollbar itself never fades. scroll-fade.js sets --fade-top and --fade-bottom
+   (0 to 28 px) from the scroll position; a mask costs nothing while nothing moves. */
+.scroll-fade {
+  --fade-top: 0px;
+  --fade-bottom: 0px;
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      var(--color-mask-solid) var(--fade-top),
+      var(--color-mask-solid) calc(100% - var(--fade-bottom)),
+      transparent 100%
+    ),
+    linear-gradient(var(--color-mask-solid), var(--color-mask-solid));
+  mask-size:
+    calc(100% - 10px) 100%,
+    10px 100%;
+  mask-position:
+    left top,
+    right top;
+  mask-repeat: no-repeat;
+}
+
 /* Header OBS status (obs-status.js). Same colours as the v2.0 design: green live, amber paused, grey not connected. */
 .obs-status {
   display: inline-flex;
@@ -569,7 +594,7 @@ button:disabled:hover {
   color: var(--color-error-text);
 }
 
-/* ---- Pause button on the live preview (pause-button.js; docs/design/v2-redesign.md, Live preview).
+/* ---- Pause button on the live preview (pause-button.js; docs/design/ui-design-v2.md, Live preview).
    At rest a 34 px circle. On hover or keyboard focus it grows to the left into a pill with the word. It is drawn from two
    round caps and a straight middle: the left cap slides while the middle stretches, so the round ends never squash.
    Only transform and opacity animate (CLAUDE.md). Mouse: opens 150 ms after arriving (a pass-over does nothing) and
@@ -672,7 +697,7 @@ button:disabled:hover {
   outline-offset: 2px;
   border-radius: calc(var(--pause-size) / 2);
 }
-/* Pressed and held: one step darker, nothing moves (v2-redesign.md, shared states). */
+/* Pressed and held: one step darker, nothing moves (ui-design-v2.md, States). */
 .pause-btn:active .pause-cap,
 .pause-btn:active .pause-mid {
   background: var(--color-control-pressed);
@@ -744,7 +769,7 @@ button:disabled:hover {
   justify-content: center;
   z-index: 20;
 }
-/* The shared popup's size (docs/design/v2-redesign.md, Popups): as wide as 560 px and only as tall as its text, up to
+/* The shared popup's size (docs/design/ui-design-v2.md, Popups): as wide as 560 px and only as tall as its text, up to
    80% of the window and never more than 640 px; longer text scrolls in the middle while the title and buttons stay.
    Measured against the window, so it follows window size and Windows' display scaling. */
 .dialog {

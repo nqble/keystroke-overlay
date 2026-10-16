@@ -21,6 +21,7 @@
 import { $, button, call, invoke } from './helpers.js';
 import { paintObsStatus, paintPause, showServerError, resync } from './messages.js';
 import { hideMenu } from './menu.js';
+import { refreshFades } from './scroll-fade.js';
 import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
 import './header.js';
 import { showNotes } from './notes.js';
@@ -92,6 +93,7 @@ export async function render() {
   const content = await (tab === 'debug' ? debugTab.render() : TABS[tab]());
   pane.replaceChildren(content);
   pane.scrollTop = scroll;
+  refreshFades();
   paintObsStatus(); // a tab may have changed the link (new port or key), which the header status shows
 }
 
