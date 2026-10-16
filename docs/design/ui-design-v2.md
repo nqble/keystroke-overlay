@@ -187,7 +187,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 
 ### First run setup (Add to OBS)
 
-Designed (Layout board, shown on first open; rules on the AddToObs board). **A screen over the Layout tab:** it covers
+Designed (First run setup board). **A screen over the Layout tab:** it covers
 the tab's content (the header, the tab list and the live preview stay, so the user sees what OBS will show) with three short steps: Copy OBS link, add a Browser source in OBS, paste it and use the size shown (the chosen
 layout's real size).
 
