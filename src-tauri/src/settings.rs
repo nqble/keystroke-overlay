@@ -412,10 +412,55 @@ fn read_json(path: &Path) -> Option<Value> {
 
 /// Loads settings. If settings.json is missing or corrupt, the last good copy (settings.json.bak) is used.
 pub fn load(path: &Path) -> Value {
-    read_json(path)
-        .or_else(|| read_json(&path.with_extension("json.bak")))
-        .map(migrate)
-        .unwrap_or_else(defaults)
+    let backup = path.with_extension("json.bak");
+    let Some((source, raw)) = [path.to_path_buf(), backup]
+        .into_iter()
+        .find_map(|candidate| read_json(&candidate).map(|value| (candidate, value)))
+    else {
+        return defaults();
+    };
+    keep_copy_of_newer_settings(&source, &raw);
+    let mut settings = migrate(raw);
+    if give_empty_secure_link_a_key(&mut settings) {
+        let _ = save(path, &settings);
+    }
+    settings
+}
+
+/// A settings file written by a NEWER version of the app (you went back to an older one) holds fields this version does not
+/// know. Loading it keeps only what this version understands, and saving would then lose the rest. So the untouched file
+/// is first copied to `settings.v<number>.json` next to it, once, and never overwritten: going forward again loses nothing.
+fn keep_copy_of_newer_settings(source: &Path, raw: &Value) {
+    let Some(version) = raw
+        .get("version")
+        .and_then(Value::as_u64)
+        .filter(|version| *version > CURRENT_VERSION)
+    else {
+        return;
+    };
+    let copy = source.with_file_name(format!("settings.v{version}.json"));
+    if !copy.exists() {
+        let _ = std::fs::copy(source, copy);
+    }
+}
+
+/// With the secure link on but no valid key (a hand-edited file, say), the overlay would stay locked and the settings window
+/// would have no link to show. Make a fresh key so there is a working link. (The server still refuses every request
+/// while there is no key, see `key_ok` in server.rs.) Returns true when it changed something.
+fn give_empty_secure_link_a_key(settings: &mut Value) -> bool {
+    let general = &mut settings["general"];
+    let wanted = general["secureLink"].as_bool() == Some(true);
+    let has_key = general["linkKey"].as_str().is_some_and(|key| !key.is_empty());
+    if !wanted || has_key {
+        return false;
+    }
+    match new_key() {
+        Ok(key) => {
+            general["linkKey"] = json!(key);
+            true
+        }
+        Err(_) => false,
+    }
 }
 
 pub fn save(path: &Path, settings: &Value) -> std::io::Result<()> {
@@ -639,6 +684,106 @@ mod tests {
         save(&file, &current).unwrap(); // second save: previous file becomes the backup
         std::fs::write(&file, "{ this is not json").unwrap(); // simulate corruption
         assert_eq!(load(&file)["general"]["autoCheckUpdates"], json!(true));
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    fn scratch_folder(name: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("ko-settings-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+    #[test]
+    fn settings_from_a_newer_version_are_copied_aside_once_and_never_lost() {
+        let dir = scratch_folder("newer");
+        let file = dir.join("settings.json");
+        let future = CURRENT_VERSION + 6;
+        std::fs::write(
+            &file,
+            format!(r#"{{ "version": {future}, "futureThing": "first", "style": {{ "radius": 7 }} }}"#),
+        )
+        .unwrap();
+        let loaded = load(&file);
+        assert_eq!(loaded["version"], json!(CURRENT_VERSION));
+        assert_eq!(loaded["style"]["radius"].as_f64(), Some(7.0));
+        let copy = dir.join(format!("settings.v{future}.json"));
+        let kept: Value = serde_json::from_str(&std::fs::read_to_string(&copy).unwrap()).unwrap();
+        assert_eq!(
+            kept["futureThing"],
+            json!("first"),
+            "the copy is the untouched original"
+        );
+        // saving the cleaned settings, then meeting another newer file, must not overwrite the first copy
+        save(&file, &loaded).unwrap();
+        std::fs::write(&file, format!(r#"{{ "version": {future}, "futureThing": "second" }}"#)).unwrap();
+        load(&file);
+        let still: Value = serde_json::from_str(&std::fs::read_to_string(&copy).unwrap()).unwrap();
+        assert_eq!(still["futureThing"], json!("first"));
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    #[test]
+    fn settings_of_the_current_or_an_older_version_get_no_copy() {
+        let dir = scratch_folder("same");
+        let file = dir.join("settings.json");
+        for version in [1, 2, CURRENT_VERSION] {
+            std::fs::write(&file, format!(r#"{{ "version": {version} }}"#)).unwrap();
+            load(&file);
+        }
+        let copies = std::fs::read_dir(&dir)
+            .unwrap()
+            .flatten()
+            .filter(|e| e.file_name().to_string_lossy().starts_with("settings.v"))
+            .count();
+        assert_eq!(copies, 0);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    #[test]
+    fn a_newer_backup_is_copied_aside_too() {
+        let dir = scratch_folder("newer-backup");
+        let file = dir.join("settings.json");
+        let future = CURRENT_VERSION + 2;
+        std::fs::write(&file, "{ this is not json").unwrap();
+        std::fs::write(
+            dir.join("settings.json.bak"),
+            format!(r#"{{ "version": {future}, "x": 1 }}"#),
+        )
+        .unwrap();
+        load(&file);
+        assert!(dir.join(format!("settings.v{future}.json")).exists());
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    #[test]
+    fn an_empty_secure_link_key_is_replaced_so_there_is_a_working_link() {
+        let mut broken = migrate(json!({ "version": 3, "general": { "secureLink": true, "linkKey": "not a key" } }));
+        assert_eq!(
+            broken["general"]["linkKey"],
+            json!(""),
+            "the sanitiser clears an invalid key"
+        );
+        assert!(give_empty_secure_link_a_key(&mut broken));
+        let key = broken["general"]["linkKey"].as_str().unwrap().to_string();
+        assert_eq!(key.len(), 32);
+        assert!(key.chars().all(|c| c.is_ascii_hexdigit()));
+        // a second call changes nothing, and neither does an existing good key or a link that is off
+        assert!(!give_empty_secure_link_a_key(&mut broken));
+        let mut off = defaults();
+        assert!(!give_empty_secure_link_a_key(&mut off));
+        assert_eq!(off["general"]["linkKey"], json!(""));
+    }
+    #[test]
+    fn load_saves_the_new_secure_link_key_so_the_link_stays_the_same() {
+        let dir = scratch_folder("key");
+        let file = dir.join("settings.json");
+        std::fs::write(
+            &file,
+            r#"{ "version": 3, "general": { "secureLink": true, "linkKey": "" } }"#,
+        )
+        .unwrap();
+        let first = load(&file)["general"]["linkKey"].as_str().unwrap().to_string();
+        assert_eq!(
+            load(&file)["general"]["linkKey"],
+            json!(first),
+            "the same key on the next start"
+        );
         std::fs::remove_dir_all(&dir).ok();
     }
     #[test]
