@@ -20,6 +20,7 @@
 //  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
+import { flatten, redactSettings, scrub } from './debug-report.js';
 import { addLayoutDialog, showNotes } from './popups.js';
 import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
@@ -102,30 +103,11 @@ function facts() {
   return box;
 }
 
-/** The settings without the private link key (for showing on screen or copying into a bug report). */
-function redactedSettings() {
-  const copy = JSON.parse(JSON.stringify(settings));
-  if (copy.general?.linkKey) copy.general.linkKey = '(hidden)';
-  return copy;
-}
-
-/** Remove personal details (your Windows user name) from text that is going to be pasted somewhere. */
-const scrub = (text) => String(text).replace(/([A-Za-z]:\\Users\\)[^\\\s"']+/gi, '$1<you>');
-
 const seconds = (s) => (s < 90 ? `${s} s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
 const clock = (ms) => {
   const pad = (n, width = 2) => String(n).padStart(width, '0');
   return `${pad(Math.floor(ms / 60000))}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`;
 };
-
-/** Flatten nested settings into { 'style.radius': 8, ... } so two copies can be compared. */
-function flatten(value, path = '', out = {}) {
-  if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length) {
-    for (const [childKey, childValue] of Object.entries(value))
-      flatten(childValue, path ? `${path}.${childKey}` : childKey, out);
-  } else out[path] = JSON.stringify(value);
-  return out;
-}
 
 // -------------------------------------------------------------------------------------------------------------------
 // Self-test: quick yes/no checks of everything that has to work for the overlay to work
@@ -177,7 +159,7 @@ async function buildReport() {
       ...tests.map((t) => `${t.ok ? 'PASS' : 'FAIL'}  ${t.name}${t.detail ? ' — ' + t.detail : ''}`),
       '',
       'SETTINGS',
-      JSON.stringify(redactedSettings()),
+      JSON.stringify(redactSettings(settings)),
       '',
       `EVENT LOG (last ${Math.min(60, log.length)} of ${log.length})`,
       ...log.slice(-60).map(([ms, text]) => `${clock(ms)}  ${text}`),
@@ -413,7 +395,7 @@ const SECTIONS = [
         className: 'dbg-json',
         test: 'debug-json',
         spellcheck: false,
-        value: JSON.stringify(redactedSettings(), null, 2),
+        value: JSON.stringify(redactSettings(settings), null, 2),
       });
       const result = el('div', { className: 'dbg-tests', test: 'debug-raw-result' });
       const apply = async () => {
@@ -435,7 +417,7 @@ const SECTIONS = [
           after = flatten(kept);
         const changes = Object.keys(after).filter((k) => before[k] !== after[k] && k !== 'general.linkKey');
         await resync();
-        box.value = JSON.stringify(redactedSettings(), null, 2);
+        box.value = JSON.stringify(redactSettings(settings), null, 2);
         result.replaceChildren(
           el(
             'div',
@@ -471,7 +453,7 @@ const SECTIONS = [
             'Reload from app',
             async () => {
               await resync();
-              box.value = JSON.stringify(redactedSettings(), null, 2);
+              box.value = JSON.stringify(redactSettings(settings), null, 2);
               result.replaceChildren();
             },
             '',
