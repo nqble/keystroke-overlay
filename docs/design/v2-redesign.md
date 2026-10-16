@@ -31,6 +31,10 @@ palette). Change how each tab is organised and how its controls work.
 The full audit of today's UI, including popups, the tray and the overlay's own messages, is in
 [ui-audit.md](ui-audit.md).
 
+**Popups** (approved; Popups board on the canvas): one shared popup for everything. It is as wide as 560 px and as tall
+as its text, up to 80% of the window and never more than 640 px; longer text scrolls in the middle while the title and
+buttons stay in view. Sizes are measured against the window, so they follow window size and Windows' display scaling.
+
 ## Per tab
 
 | Tab | v2.0 |

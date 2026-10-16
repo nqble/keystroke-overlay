@@ -81,10 +81,10 @@ for people and for other Claude sessions:
 
 | # | Finding | Change | |
 |---|---|---|---|
-| 7.1 | **Bug:** the user-name scrub only knows `C:\Users\<name>` with backslashes. A forward-slash path, `/home/<name>` (Linux) or `/Users/<name>` (macOS) keeps the real name in the bug report. | Scrub all three forms; add a unit test per form. | bug |
+| 7.1 | **Bug:** the user-name scrub only knows `C:\Users\<name>` with backslashes. A forward-slash path, `/home/<name>` (Linux) or `/Users/<name>` (macOS) keeps the real name in the bug report. | Scrub all three forms; add a unit test per form. | done |
 | 7.2 | JavaScript errors in the settings window go nowhere unless the inspector is open. | Catch `error` and `unhandledrejection` while Debug mode is on and add them to the event log (message and file:line only, never page content). | new |
-| 7.3 | The bug report pastes the **whole** settings file, so the one changed value is hard to spot. | Report only what differs from the defaults ("settings diff"), plus the full file folded underneath. | new |
-| 7.4 | The bug report is prose for a human. Claude sessions and scripts have to parse it. | Add **Copy for a developer / AI**: the same facts as one Markdown block with a fenced JSON part (`version`, `os`, `selfTest[]`, `settingsDiff`, `log[]`, `overlays`, `paused`), so a session can read it exactly. Same privacy rules. | new |
+| 7.3 | The bug report pastes the **whole** settings file, so the one changed value is hard to spot. | Report only what differs from the defaults ("settings diff"), plus the full file folded underneath. | done |
+| 7.4 | The bug report is prose for a human. Claude sessions and scripts have to parse it. | **Done for v1.4** (advisor/v1.4-fixes): the one "Copy bug report" button now copies a short summary plus a JSON block (`format`, `app`, `state`, `selfTest`, `settingsDiff`, `log`) that people and Claude sessions can both read. 7.1 and 7.3 are done there too. | done |
 | 7.5 | No view of the connection to OBS. | A **Connections** box: OBS overlays connected (the new `overlays` count), whether the preview is connected, the last time a message was sent. Event-driven, like the header status. | new |
 | 7.6 | Hard-to-reach states need code changes to see (paused with OBS closed, port in use, secure link locked, update installing, What's new). | Extend **Test helpers** into a **state switcher**: one button per state, so every screen can be checked and screenshotted on demand. | new |
 | 7.7 | People and Claude sessions without Windows can't open the settings window at all (this audit had to build a stand-in). | Ship that stand-in as `npm run ui-sandbox`: serves `ui/settings/` with a fake app (`window.__TAURI__`) and the preview tool, on 127.0.0.1 only, Node only. Every state in 7.6 is a URL (`?state=paused-no-obs`), so screenshot tests and Claude sessions on Linux can check UI changes before Windows. Needs Jordan's OK as a new tool (no new dependency). | new |
@@ -99,7 +99,7 @@ port, making a new secure key, or setting up a new scene. Yet today it takes the
 the time. That is what makes the header cramped at small window sizes (1.2), and the devbuild's extra "devbuild" label
 squeezes it further.
 
-**Recommendation: take the link out of the header, and show it where and when it is needed.**
+**Approved by Jordan; designed on the canvas (Header board).** **Recommendation: take the link out of the header, and show it where and when it is needed.**
 
 1. **Header:** logo, name (plus a small purple **DEV** badge on devbuilds), the OBS status pill, window buttons. Nothing
    else, so it fits at any window size.
