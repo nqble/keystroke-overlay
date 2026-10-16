@@ -1,59 +1,29 @@
 // =====================================================================================================================
-//  The words the user reads. Longer explanations live here so the code stays short and the wording is easy to find.
+//  The words the user reads, kept short (docs/design/v2-redesign.md, "Fewer words for users"). Some sentences are
+//  checked word for word by tests/e2e (secure link, keyboard input): change those together with their test.
 // =====================================================================================================================
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
-// find.
-// ---------------------------------------------------------------------------------------------------------------------
 export const TEXT = {
-  layoutLimitReached: (max) =>
-    `You can make up to ${max} layouts of your own. Right-click one you no longer need and choose ` +
-    `Delete layout to free a spot.`,
-  newLayoutHelp: 'It starts as the full-size keyboard. You then pick which keys to keep or hide on the Keys tab.',
-  resetBodyWhatChanges:
-    'Style, animation, key edits, keyboard input, secure link, start-with-Windows and the other ' +
-    'options go back to their defaults. Your own layouts, presets and fonts are kept, and so is your ' +
-    'port.',
-  resetBodyLinkNote:
-    'If the secure link was on, your OBS link goes back to the plain address, so paste it into OBS ' + 'again.',
-  manualInstallDialog:
-    'This update needs a manual install: download the new installer from GitHub, close this app, and ' +
-    'run it. Your settings are kept.',
-  layoutTabHelp:
-    'Pick a layout, or click + to make your own from the full-size keyboard. Right-click a layout you ' +
-    'made to delete it.',
-  keysTabHelp:
-    'Click a key to edit it and drag it to move it. To work with several keys at once, drag a box around them ' +
-    '(or Ctrl-click keys one by one), then drag any of them or use the arrows. Disabled keys are hidden in the ' +
-    'overlay. Changes are saved automatically for each layout.',
+  layoutLimitReached: (max) => `You have ${max} layouts, the most the app keeps. Delete one to make room.`,
+  newLayoutHelp: 'It starts as the full keyboard. Hide keys on the Keys tab.',
+  resetBodyWhatChanges: 'Every option goes back to its default. Your layouts, presets, fonts and port are kept.',
+  resetBodyLinkNote: 'If the secure link was on, copy the OBS link into OBS again.',
+  manualInstallDialog: 'Install this one by hand: get the installer from GitHub, close this app, run it.',
+  layoutTabHelp: 'Pick a keyboard, or make your own with +.',
+  keysTabHelp: 'Click a key to edit it. Drag to move. Drag a box to select several. Saved automatically.',
   nothingSelected: 'No keys selected',
   shortcutsHint:
     'Shortcuts: arrow keys nudge · Shift = a whole key · Delete hides · Ctrl+Z undo · Ctrl+Shift+Z redo · ' +
     'Ctrl+A select all · Esc clear',
   clickToDismiss: 'Click to dismiss',
   noKeysMoved: 'No keys moved from the layout file',
-  snapMenuHelp:
-    'How far a key jumps while you drag it or use the arrow buttons. Off lets you place a key anywhere. ' +
-    'Remembered next time.',
-  gridHelp: 'Show faint dots at every snap step. Remembered next time.',
-  groupEditorTip:
-    'Drag any selected key to move them all together, or use the arrow buttons above. Click an empty spot to ' +
-    'clear the selection.',
-  animationTabNote:
-    'Only transform and opacity are animated (GPU friendly). Click keys in the preview to try an ' + 'animation.',
-  fontsTabHelp:
-    'Add TTF, OTF or WOFF files. They are copied into the app’s fonts folder. After adding, pick it ' +
-    'in Style → Font family (under “Your fonts”), or click Use.',
-  keyEditorTip:
-    'Tip: use symbols like ⎵ or ↑, or words like "Jump". Drag a key on the keyboard to move it, or ' +
-    'select it and use the arrow buttons above or the arrow keys (Shift moves a whole key).',
-  keyPictureHelp:
-    'Drag a key to move it. Drag on the empty background to select several keys. Tab to a key and press ' +
-    'Enter to select it.',
-  serverNote:
-    'The server only listens on 127.0.0.1 (this PC). Keystrokes are never saved or sent anywhere. OBS ' +
-    'reconnects by itself after a restart.',
+  snapMenuHelp: 'How far a key jumps when moved. Off: anywhere.',
+  gridHelp: 'Faint dots at every snap step.',
+  groupEditorTip: 'Drag any selected key to move them all. Click an empty spot to clear.',
+  animationTabNote: 'Light on your PC. Press keys to try it.',
+  fontsTabHelp: 'Add TTF, OTF or WOFF files, then pick them in Style → Font family.',
+  keyEditorTip: 'Tip: symbols like ⎵ or ↑ work, or words like "Jump".',
+  keyPictureHelp: 'Drag a key to move it. Drag on the background to select several. Tab and Enter work too.',
+  serverNote: 'Only this PC can connect. Key presses are never saved or sent. OBS reconnects by itself.',
   secureLinkOff:
     '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this ' +
     'PC can read your key presses through it. Turn this on if you share the PC or want that closed.',
@@ -74,17 +44,8 @@ export const TEXT = {
   inputNote:
     'Both methods read keys the same way and never save or send them. If a game runs as ' +
     'administrator, start Keystroke Overlay as administrator too. Not sure? Leave it on Standard.',
-  debugModeHelp:
-    'Adds a Debug tab with tools for finding problems. Nothing is recorded while it is off, nothing ' +
-    'is saved to disk, and nothing leaves this PC.',
-  manualInstallNote:
-    'It can’t be installed from inside the app. Download the new installer from GitHub, close this ' +
-    'app, and run it; your settings are kept.',
-  updateChannelHelp:
-    'Stable: the main, well-tested releases (like 1.2.0 or 1.3.0) — recommended. Latest: every ' +
-    'release as soon as it is published, including the small fixes in between (like 1.2.1).',
-  updatesNote:
-    'Updates are never installed without your click. The app only contacts GitHub for the update ' +
-    'check (about once an hour while the app runs, and when this window opens) and for release notes, ' +
-    'and sends nothing except its version. Your keystrokes never leave this PC.',
+  debugModeHelp: 'Adds a Debug tab for finding problems. Nothing is saved or sent.',
+  manualInstallNote: 'Install this one by hand: get the installer from GitHub, close this app, run it.',
+  updateChannelHelp: 'Stable: the main releases (recommended). Latest: every release, small fixes too.',
+  updatesNote: 'Never installs without your click. Only checks GitHub for new versions; your key presses stay here.',
 };

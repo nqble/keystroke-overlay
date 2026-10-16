@@ -30,7 +30,7 @@ export function addLayoutDialog() {
       settings.layout.id = id;
       setSelectedKey(null);
       setTab('keys');
-      toast('Layout created. Click keys to hide the ones you don’t want.');
+      toast('Layout created.');
       render();
       return true;
     } catch (error) {

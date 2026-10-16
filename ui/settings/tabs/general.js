@@ -67,7 +67,7 @@ function serverSection() {
       setObsUrl(await invoke('set_port', { port: +port.value }));
       settings.general.port = +port.value;
       $('#banner').hidden = true;
-      toast('Port changed — update your OBS source URL');
+      toast('Port changed. Copy the OBS link into OBS.');
       frame.src = previewSrc();
       updateObs();
       render();
