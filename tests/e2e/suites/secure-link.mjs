@@ -44,6 +44,12 @@ check(
     /Off \(default\)/.test(await pageText()),
 );
 check(
+  'while off, the copy / new-key buttons are not on screen',
+  await p.q(
+    `document.querySelector('${byTest('secure-link-copy')}').offsetParent === null && document.querySelector('${byTest('secure-link-new-key')}').offsetParent === null`,
+  ),
+);
+check(
   'while off, data endpoints and the stream work without a key',
   (await status('/api/config')) === 200 && (await wsOpens(null)),
 );
