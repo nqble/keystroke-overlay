@@ -30,22 +30,28 @@ import {
 // ---------------------------------------------------------------------------------------------------------------------
 // 9. Messages from the app (tray actions, update results, download progress)
 // ---------------------------------------------------------------------------------------------------------------------
-const megabytes = (bytes) => (bytes / 1048576).toFixed(1) + ' MB';
+const BYTES_PER_MEGABYTE = 1024 * 1024;
+const megabytes = (bytes) => (bytes / BYTES_PER_MEGABYTE).toFixed(1) + ' MB';
+
+const TEXT = {
+  downloading: (done) => `Downloading… ${done}`,
+  downloadingOf: (done, total, percent) => `Downloading… ${done} of ${total} (${percent}%)`,
+  installing: 'Installing… the app will restart in a moment.',
+  statusTip: 'OBS link settings', // the OBS status's tooltip (it opens General)
+};
 
 tauriEvent.listen('update-progress', (e) => {
   const { done, total } = e.payload;
   const percent = total ? Math.min(100, Math.round((done / total) * 100)) : -1; // -1 = size unknown
   setUpdateProgress({
     pct: percent,
-    text: total
-      ? `Downloading… ${megabytes(done)} of ${megabytes(total)} (${percent}%)`
-      : `Downloading… ${megabytes(done)}`,
+    text: total ? TEXT.downloadingOf(megabytes(done), megabytes(total), percent) : TEXT.downloading(megabytes(done)),
   });
   paintProgress();
 });
 
 tauriEvent.listen('update-installing', () => {
-  setUpdateProgress({ pct: 100, text: 'Installing… the app will restart in a moment.' });
+  setUpdateProgress({ pct: 100, text: TEXT.installing });
   paintProgress();
 });
 
@@ -65,15 +71,14 @@ export function paintPause() {
   paintObsStatus();
 }
 
-/** The header's status pill and its "Copy OBS link" button. Debug mode adds the exact count as a tooltip. */
-const TEXT_STATUS_TIP = 'OBS link settings';
+/** The header's status pill. Debug mode adds the exact count as a tooltip. */
 export function paintObsStatus() {
   const facts = { paused, overlays, serverError, linkChanged };
   const status = obsStatus(facts);
   const pill = $('#obsStatus');
   pill.textContent = status.text;
   pill.className = 'obs-status ' + status.kind;
-  pill.title = settings?.general?.debugMode ? obsStatusDetail(paused, overlays) : TEXT_STATUS_TIP;
+  pill.title = settings?.general?.debugMode ? obsStatusDetail(paused, overlays) : TEXT.statusTip;
 }
 
 // an OBS overlay connected or disconnected (sent only on a change, never polled)
