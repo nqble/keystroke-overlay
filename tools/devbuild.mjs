@@ -129,20 +129,9 @@ rmSync(UI_TMP, { recursive: true, force: true });
 mkdirSync(WORK, { recursive: true });
 try {
   // 1. the devbuild logo, as a full icon set
-  console.log('> Drawing the devbuild logo');
-  const src = join(WORK, 'icon-devbuild-source.png'),
-    icons = join(WORK, 'icons');
-  run('powershell.exe', [
-    '-NoProfile',
-    '-ExecutionPolicy',
-    'Bypass',
-    '-File',
-    'tools/make-icon.ps1',
-    '-Devbuild',
-    '-Out',
-    `"${src}"`,
-  ]);
-  run('npx', ['tauri', 'icon', `"${src}"`, '-o', `"${icons}"`], { stdio: 'ignore' });
+  console.log('> Making the devbuild logo');
+  const icons = join(WORK, 'icons');
+  run('npx', ['tauri', 'icon', `"${join(ROOT, 'assets/logo/logo-dev.svg')}"`, '-o', `"${icons}"`], { stdio: 'ignore' });
 
   // 2. a copy of the settings page with the purple logo in its header (the real files are not touched)
   const ui = join(UI_TMP, 'ui-settings');
