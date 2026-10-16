@@ -44,6 +44,8 @@ When two principles conflict, the higher one wins.
 - **Settings:** a default in `settings.rs`, a line in `CONTROLS`, used in `overlay.js`. Renaming or restructuring needs a
   migration and a unit test.
 - **OS-specific code** goes in `platform.rs` or `keyboard/`, nowhere else.
+- **Mouse, controller, game detection, global hotkeys or an overlay window:** follow `docs/design/future-inputs.md` (names,
+  protocol, settings, privacy rules) before building any of them.
 
 ## 5. Tests
 
