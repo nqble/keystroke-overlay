@@ -393,6 +393,10 @@ button.danger:hover {
   margin: var(--space-8) 0;
   align-items: center;
 }
+/* display: flex above beats the hidden attribute, so say it again (e.g. the secure link's buttons while it is off). */
+.btns[hidden] {
+  display: none;
+}
 
 .cards {
   display: grid;
