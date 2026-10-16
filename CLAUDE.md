@@ -20,7 +20,10 @@ When two principles conflict, the higher one wins.
 3. **Lightweight and fast.** Readability wins over small optimizations, but these promises are never broken: about 0% CPU at
    idle (no timers or polling while idle), the settings window fully destroyed on close, and animations using only
    `transform` and `opacity`. Measure before and after any change that could cost speed or memory.
-4. **Simple to extend.** Layouts, themes and animations stay one plain file each. Don't add a step to that.
+4. **Simple to extend.** Adding, removing or changing anything (a layout, theme, animation, tab, setting, popup, status,
+   debug tool, text) touches one place, or as few as possible, and `docs/EXTENDING.md` says where. Layouts, themes and
+   animations stay one plain file each. Don't add a step to that; where more than one place is needed, a check or test
+   must catch a forgotten one.
 
 ## 2. Code shape
 
