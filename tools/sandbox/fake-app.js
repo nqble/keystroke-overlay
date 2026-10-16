@@ -5,6 +5,7 @@
 // Pick what to show with the address (several can be combined with &):
 //   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new | whats-new-long
 //   ?tab=layout | keys | style | animation | fonts | general | debug     (debug also turns Debug mode on)
+//   ?devbuild                                                            the DEV badge, as a devbuild shows it
 // Add a state: a line in STATES below, and a line in the list above.
 // Tests and Claude sessions can call window.__sandbox.emit('event-name', payload) to send an app message.
 (() => {
@@ -134,5 +135,14 @@
     event: { listen },
     window: { getCurrentWindow: () => fakeWindow },
   };
+  // A devbuild gets its badge from tools/devbuild-title.mjs at build time; the sandbox adds the same element here (it may
+  // only use Node's own modules on the server side, so it can't import that helper).
+  if (params.has('devbuild')) {
+    addEventListener('DOMContentLoaded', () => {
+      const badge = Object.assign(document.createElement('span'), { className: 'dev-badge', textContent: 'DEV' });
+      badge.dataset.test = 'dev-badge';
+      document.querySelector('[data-test="brand-title"]').append(' ', badge);
+    });
+  }
   window.__sandbox = { state: stateName, states: Object.keys(STATES), emit, copied: null };
 })();
