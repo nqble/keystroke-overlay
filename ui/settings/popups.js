@@ -181,9 +181,14 @@ export function resetDialog() {
 // ---- 6b. Our own right-click menu. The browser's menu never appears; only layout cards show this one.
 let menuEl = null;
 
+let menuOpener = /** @type {HTMLElement | null} */ (null); // what had focus when the menu opened
+
 export function hideMenu() {
   menuEl?.remove();
   menuEl = null;
+  // keyboard users get their place back (a mouse user's menu opener is usually not focused, so nothing visibly changes)
+  if (menuOpener && document.contains(menuOpener)) menuOpener.focus();
+  menuOpener = null;
 }
 
 /** Show a small menu at the mouse. items: [{ label, run?, danger?, disabled? }] */
@@ -191,6 +196,7 @@ export function showMenu(event, items) {
   event.preventDefault();
   event.stopPropagation();
   hideMenu();
+  menuOpener = /** @type {HTMLElement | null} */ (document.activeElement);
   menuEl = el(
     'div',
     { className: 'ctxmenu', test: 'context-menu' },
@@ -212,7 +218,20 @@ export function showMenu(event, items) {
   const box = menuEl.getBoundingClientRect(); // keep the menu fully inside the window
   menuEl.style.left = Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px';
   menuEl.style.top = Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px';
+  /** @type {HTMLElement | null} */ (menuEl.querySelector('button:not(:disabled)'))?.focus();
 }
+
+// Up and Down arrows move between the menu's items
+addEventListener('keydown', (keyEvent) => {
+  if (!menuEl || (keyEvent.key !== 'ArrowDown' && keyEvent.key !== 'ArrowUp')) return;
+  const items = /** @type {HTMLElement[]} */ ([...menuEl.querySelectorAll('button:not(:disabled)')]);
+  if (!items.length) return;
+  keyEvent.preventDefault();
+  const step = keyEvent.key === 'ArrowDown' ? 1 : -1;
+  items[
+    (items.indexOf(/** @type {HTMLElement} */ (document.activeElement)) + step + items.length) % items.length
+  ].focus();
+});
 
 // layout cards call showMenu first, which stops this
 addEventListener('contextmenu', (e) => e.preventDefault());

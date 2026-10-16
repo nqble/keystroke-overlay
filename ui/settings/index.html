@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <title>Keystroke Overlay</title>
+    <!-- no icon: stops the window asking for /favicon.ico -->
+    <link rel="icon" href="data:," />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
     <!-- Critical style inline: the very first paint is already dark (no white flash before settings.css loads). -->
@@ -32,7 +34,7 @@
       </div>
       <div class="obs" data-tauri-drag-region>
         <span class="lbl" data-tauri-drag-region>OBS Browser Source URL</span>
-        <input id="obsUrl" data-test="obs-url" readonly />
+        <input id="obsUrl" data-test="obs-url" aria-label="OBS Browser Source URL" readonly />
         <button id="copyUrl" data-test="obs-copy" class="primary">Copy OBS URL</button>
         <span id="obsSize" data-test="obs-size" class="hint" data-tauri-drag-region></span>
       </div>
@@ -64,7 +66,7 @@
     </header>
     <div id="banner" data-test="server-banner" hidden></div>
     <section class="preview" id="previewBox">
-      <iframe id="preview" data-test="preview-frame" title="Live preview"></iframe>
+      <iframe id="preview" data-test="preview-frame" title="Live preview" tabindex="-1"></iframe>
       <button
         id="pauseBtn"
         class="pause-btn"

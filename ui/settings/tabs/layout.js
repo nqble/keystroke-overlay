@@ -20,8 +20,15 @@ export function layoutTab() {
   const mine = layouts.filter((l) => l.user).length;
   cards.append(
     el(
-      'div',
-      { className: 'card add', title: 'Add a layout', onclick: addLayoutDialog, test: 'layout-add' },
+      'button',
+      {
+        type: 'button',
+        className: 'card add',
+        title: 'Add a layout',
+        ariaLabel: 'Add a layout',
+        onclick: addLayoutDialog,
+        test: 'layout-add',
+      },
       el('span', { className: 'plus', textContent: '+' }),
       el('small', { textContent: `${mine}/${MAX_LAYOUTS} layouts` }),
     ),
@@ -44,7 +51,10 @@ export function layoutTab() {
 }
 
 // ---- Layout tab pieces ----------------------------------------------------------------------------------------------
-/** One clickable card in the layout grid. Right-click a layout you made to delete it. */
+/**
+ * One card in the layout grid, a real button so it works with the keyboard too. Click it (or press Enter) to pick the layout.
+ * Right-click a layout you made, or press the Menu key (or Shift+F10) on its card, to delete it.
+ */
 function layoutCard(layout) {
   const deleteItem = layout.user
     ? {
@@ -56,10 +66,13 @@ function layoutCard(layout) {
         },
       }
     : { label: 'Built-in layouts can’t be deleted', disabled: true };
+  const picked = settings.layout.id === layout.id;
   const card = el(
-    'div',
+    'button',
     {
-      className: 'card' + (settings.layout.id === layout.id ? ' sel' : ''),
+      type: 'button',
+      className: 'card' + (picked ? ' sel' : ''),
+      ariaPressed: String(picked),
       onclick: () => {
         settings.layout.id = layout.id;
         setSelectedKey(null);
@@ -68,8 +81,13 @@ function layoutCard(layout) {
       oncontextmenu: (e) => showMenu(e, [deleteItem]),
       test: 'layout-card',
     },
-    el('b', { textContent: layout.name }),
-    el('span', { textContent: layout.keys.length + ' keys' + (isCustom(layout.id) ? ' · customized' : '') }),
+    // one inner block, so the text lays out exactly as it did when the card was a plain box
+    el(
+      'div',
+      {},
+      el('b', { textContent: layout.name }),
+      el('span', { textContent: layout.keys.length + ' keys' + (isCustom(layout.id) ? ' · customized' : '') }),
+    ),
   );
   card.dataset.layoutId = layout.id;
   return card;
