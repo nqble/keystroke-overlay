@@ -59,24 +59,31 @@ for (const f of walk('ui', ['.js', '.html'])) {
   scan(file, text, /\bfetch\(\s*['"`]https?:/, (n) => bad(file, n, 'fetch() to an absolute address'));
 }
 
-// ------------------------------------------------------------------ the preview tool (npm run preview)
-// tools/ is not scanned like the app, so this one file gets its own narrow rules: it may only listen, and only on
-// 127.0.0.1, and it may only use Node's own modules (no network client, no downloads, no packages).
-const previewFile = 'tools/preview.mjs';
-const previewText = strip(readFileSync(previewFile, 'utf8'));
+// ------------------------------------------------------------------ the local dev tools (npm run preview, npm run ui-sandbox)
+// tools/ is not scanned like the app, so these files get their own narrow rules: they may only listen, and only on
+// 127.0.0.1, and they may only use Node's own modules (no network client, no downloads, no packages).
+const LOCAL_TOOLS = ['tools/preview.mjs', 'tools/ui-sandbox.mjs'];
 const PREVIEW_NETWORK_CLIENT =
   /\b(fetch|XMLHttpRequest|node:https|node:net|node:dgram)\b|https?\.(get|request)\(|new WebSocket\(/;
 const PREVIEW_OUTSIDE_IMPORT = /^\s*import\b.*\bfrom\s+['"](?!node:)/;
-scan(previewFile, previewText, PREVIEW_NETWORK_CLIENT, (n) =>
-  bad(previewFile, n, 'the preview tool must not make network requests'),
+for (const toolFile of LOCAL_TOOLS) {
+  const toolText = strip(readFileSync(toolFile, 'utf8'));
+  scan(toolFile, toolText, PREVIEW_NETWORK_CLIENT, (n) =>
+    bad(toolFile, n, 'a local dev tool must not make network requests'),
+  );
+  scan(toolFile, toolText, PREVIEW_OUTSIDE_IMPORT, (n) =>
+    bad(toolFile, n, 'a local dev tool may only import Node built-in modules (node:...)'),
+  );
+  scan(toolFile, toolText, /\.listen\(/, (n, l) => {
+    if (!/HOST/.test(l)) bad(toolFile, n, 'a local dev tool must listen on HOST, which must be 127.0.0.1');
+  });
+  if (!/const HOST = '127\.0\.0\.1';/.test(toolText)) bad(toolFile, 1, "HOST must be exactly '127.0.0.1'");
+}
+// The sandbox's fake app runs in the browser: it may only ask its own sandbox server (relative addresses).
+const fakeAppFile = 'tools/sandbox/fake-app.js';
+scan(fakeAppFile, strip(readFileSync(fakeAppFile, 'utf8')), /\bfetch\(\s*['"`](?!\/__sandbox__\/)/, (n) =>
+  bad(fakeAppFile, n, 'the sandbox may only fetch its own /__sandbox__/ files'),
 );
-scan(previewFile, previewText, PREVIEW_OUTSIDE_IMPORT, (n) =>
-  bad(previewFile, n, 'the preview tool may only import Node built-in modules (node:...)'),
-);
-scan(previewFile, previewText, /\.listen\(/, (n, l) => {
-  if (!/HOST/.test(l)) bad(previewFile, n, 'the preview tool must listen on HOST, which must be 127.0.0.1');
-});
-if (!/const HOST = '127\.0\.0\.1';/.test(previewText)) bad(previewFile, 1, "HOST must be exactly '127.0.0.1'");
 
 if (problems.length) {
   console.error(
@@ -87,5 +94,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, and a preview tool that only listens on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
 );

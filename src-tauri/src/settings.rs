@@ -505,6 +505,16 @@ impl Paths {
 mod tests {
     use super::*;
     #[test]
+    fn the_ui_sandbox_has_the_same_defaults() {
+        // tools/ui-sandbox.mjs can't run Rust, so it reads a copy. Changed a default? Update the copy too.
+        let copy: Value = serde_json::from_str(include_str!("../../tools/sandbox/default-settings.json")).unwrap();
+        assert_eq!(
+            copy,
+            defaults(),
+            "update tools/sandbox/default-settings.json to match defaults()"
+        );
+    }
+    #[test]
     fn garbage_becomes_defaults() {
         assert_eq!(migrate(json!("nope")), defaults());
         assert_eq!(migrate(json!(null)), defaults());

@@ -73,3 +73,22 @@ Helpers you can use there: `el()`, `heading()`, `note()`, `button()`, `row()`, `
 - `npm test` runs the Rust unit tests and the privacy check (about a minute).
 - `npm run test:e2e -- --suite <name>` runs one end-to-end suite instead of everything (see `tests/README.md`).
 - `npm run check:privacy` fails if network code, logging or file writes appear where the privacy promises forbid them.
+
+## Without the app: the UI sandbox
+
+`npm run ui-sandbox` opens the real settings window in any browser, with `tools/sandbox/fake-app.js` standing in for the
+app (made-up answers, nothing saved). Every hard-to-reach screen has an address, so people, screenshot tests and Claude
+sessions can open it directly:
+
+| Address | Shows |
+|---|---|
+| `?state=live` (default) / `off` | OBS connected / not connected |
+| `?state=paused` / `paused-no-obs` | paused, with and without OBS |
+| `?state=port-in-use` | the server could not start |
+| `?state=update` / `whats-new` | the update button and popup / the What's new popup |
+| `?tab=debug` | Debug mode on, Debug tab open (any tab name works) |
+
+In the browser console, `__sandbox.emit('overlays-changed', 0)` sends an app message, and `__sandbox.copied` holds the
+last text a Copy button copied. A copy of the default settings lives in `tools/sandbox/default-settings.json`; a Rust
+test fails if it drifts from `defaults()` in `settings.rs`.
+

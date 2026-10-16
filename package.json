@@ -12,6 +12,7 @@
     "dev": "tauri dev",
     "dev:debug": "node tools/dev-debug.mjs",
     "preview": "node tools/preview.mjs",
+    "ui-sandbox": "node tools/ui-sandbox.mjs",
     "devbuild": "node tools/devbuild.mjs",
     "build": "tauri build",
     "release": "node tools/release.mjs",

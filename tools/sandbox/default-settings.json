@@ -1,0 +1,37 @@
+{
+  "version": 3,
+  "general": {
+    "port": 7878,
+    "autostart": false,
+    "minimizeToTray": true,
+    "openOnLaunch": true,
+    "debugMode": false,
+    "autoCheckUpdates": true,
+    "inputMethod": "hook",
+    "secureLink": false,
+    "linkKey": "",
+    "updateChannel": "stable",
+    "lastSeenVersion": ""
+  },
+  "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false } },
+  "style": {
+    "keyFill": "#1e222bd9",
+    "keyFillPressed": "#4f8cffff",
+    "borderColor": "#ffffff40",
+    "borderColorPressed": "#ffffffff",
+    "borderWidth": 2,
+    "radius": 8,
+    "fontFamily": "Segoe UI",
+    "fontSize": 18,
+    "fontWeight": 600,
+    "textColor": "#e6e9f0ff",
+    "textColorPressed": "#ffffffff",
+    "glowColor": "#4f8cffff",
+    "glowSize": 18,
+    "keySize": 52,
+    "gap": 6,
+    "scale": 1.0,
+    "opacity": 1.0
+  },
+  "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
+}

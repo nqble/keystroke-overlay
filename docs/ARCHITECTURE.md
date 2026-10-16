@@ -13,7 +13,8 @@ keystroke-overlay/
 ├── assets/             icon source image
 ├── tests/              end-to-end suites + runner (see tests/README.md); Rust unit tests live next to the code
 ├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes), check-privacy.mjs,
-│                       gen-layouts.mjs, make-icon.ps1
+│                       gen-layouts.mjs, make-icon.ps1, preview.mjs (overlay without the app), ui-sandbox.mjs +
+│                       sandbox/ (settings window without the app, docs/DEBUGGING.md)
 ├── src-tauri/          the Rust app
 │   ├── tauri.conf.json   app + updater configuration
 │   └── src/
