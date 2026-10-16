@@ -1,0 +1,13 @@
+# Always check text files out with Unix line endings (LF), on every computer, so formatting checks give the same answer
+# everywhere (the format check in CI runs on Windows, which would otherwise convert files to CRLF).
+* text=auto eol=lf
+
+# Files that are not text: never touch their bytes.
+*.png binary
+*.ico binary
+*.icns binary
+*.exe binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
