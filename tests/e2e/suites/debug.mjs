@@ -164,8 +164,11 @@ await click('debug-bug-report');
 await sleep(900);
 const report = execSync('powershell.exe -NoProfile -Command "Get-Clipboard -Raw"').toString();
 check(
-  'the bug report has version, self-test, settings and log sections',
-  /Keystroke Overlay v/.test(report) && /SELF-TEST/.test(report) && /SETTINGS/.test(report) && /EVENT LOG/.test(report),
+  'the bug report has version, self-test, settings and log sections (summary plus JSON, ui/settings/debug-report.js)',
+  /Keystroke Overlay v/.test(report) &&
+    /"selfTest"/.test(report) &&
+    /"settingsDiff"/.test(report) &&
+    /"log"/.test(report),
 );
 check(
   'the bug report contains no key presses, no private key and no Windows user name',
