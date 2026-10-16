@@ -1,5 +1,6 @@
 // Basic code-style check (runs in CI): no tab characters, no trailing spaces, and every file ends with a newline.
-// Also: the settings window's stylesheet may only write colours inside its :root block (the design tokens).
+// Also: the settings window's stylesheet may only write colours inside its :root block (the design tokens), and may not
+// use scrollbar-width / scrollbar-color (in WebView2 they swap the shared scrollbar for the system one, arrows included).
 // It checks only things every editor can get right, so it never fights with anyone's formatter.
 //   node tools/check-style.mjs
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -42,6 +43,9 @@ function checkTokens(file, text) {
   outside.split('\n').forEach((line, i) => {
     const colour = line.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/);
     if (colour) problems.push(`${file}:${i + 1}: raw colour ${colour[0]} outside :root (use a design token)`);
+    if (/\bscrollbar-(width|color)\s*:/.test(line)) {
+      problems.push(`${file}:${i + 1}: scrollbar-width/-color replace the shared scrollbar (see ::-webkit-scrollbar)`);
+    }
   });
 }
 

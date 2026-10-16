@@ -72,7 +72,6 @@
 
   /* Scrollbars */
   --color-scrollbar-thumb: #343a4c;
-  --color-scrollbar-thumb-soft: #3a4156;
 
   /* The window's own buttons */
   --color-hover-soft: rgba(255, 255, 255, 0.09);
@@ -522,12 +521,24 @@ button:disabled:hover {
   background: var(--color-error-bg);
   border-color: var(--color-danger);
 }
+/* One scrollbar for every scrolling area in the window: a slim rounded thumb, no track, no arrow buttons (they help
+   nobody: the wheel, the keyboard and dragging the thumb all scroll). Don't set scrollbar-width or scrollbar-color
+   anywhere: in WebView2 they replace these rules with the system scrollbar, arrows included. */
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-scrollbar-thumb);
   border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-button {
+  display: none;
 }
 
 /* Header OBS status (obs-status.js). Same colours as the v2.0 design: green live, amber paused, grey not connected. */
@@ -754,7 +765,7 @@ button:disabled:hover {
   overflow-wrap: anywhere;
   flex: none;
 }
-/* Scrolling body: text keeps 22px from both borders; when the notes are taller than the dialog a slim
+/* Scrolling body: text keeps 22px from both borders; when the notes are taller than the dialog the shared slim
    scrollbar appears inset from the edge (never touching the border), and the dialog never outgrows the window. */
 #mBody,
 #uBody,
@@ -767,8 +778,6 @@ button:disabled:hover {
   padding: var(--space-2) var(--space-16) var(--space-16) var(--space-22);
   margin-right: var(--space-6);
   overflow-wrap: anywhere;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-scrollbar-thumb-soft) transparent;
 }
 #mBody h4 {
   margin: var(--space-14) 0 var(--space-4);
