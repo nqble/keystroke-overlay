@@ -9,7 +9,7 @@ loads, and the settings window). No framework, no bundler.
 keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
 ├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
-├── docs/               you are here (ARCHITECTURE, PROTOCOL, FILE-FORMATS, EXTENDING, DEBUGGING, RELEASING, OPEN-SOURCE-GUIDE, CROSS-PLATFORM, MAC-PORT, NEXT-RELEASE; decisions/ explains why things are the way they are; proposals/ holds larger ideas that are not decided yet)
+├── docs/               you are here (ARCHITECTURE, PROTOCOL, FILE-FORMATS, EXTENDING, DEBUGGING, RELEASING, OPEN-SOURCE-GUIDE, CROSS-PLATFORM, LINUX-PORT, MAC-PORT, NEXT-RELEASE; decisions/ explains why things are the way they are; proposals/ holds larger ideas that are not decided yet)
 ├── assets/             icon source image
 ├── tests/              end-to-end suites + runner (see tests/README.md); Rust unit tests live next to the code
 ├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes), check-privacy.mjs,
@@ -131,4 +131,4 @@ key presses through both input methods, a signed update download); it cleans up 
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too, without keyboard capture: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). For a real port, see [MAC-PORT.md](MAC-PORT.md).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` ([LINUX-PORT.md](LINUX-PORT.md)); for macOS, see [MAC-PORT.md](MAC-PORT.md).
