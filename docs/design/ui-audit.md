@@ -6,7 +6,7 @@ size (1060 × 800) and the smallest one (820 × 600). Fonts and the window butto
 check anything about exact pixels on Windows.
 
 Each finding says **where** it was seen, **what** is wrong, and the **v2.0 answer**. "Covered" means
-[v2-redesign.md](v2-redesign.md) already answers it; "new" means this audit found it.
+[ui-design-v2.md](ui-design-v2.md) already answers it; "new" means this audit found it.
 
 ## 1. Whole window
 

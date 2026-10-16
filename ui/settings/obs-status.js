@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The header's OBS status: live, paused, not connected, link changed or port in use (docs/design/v2-redesign.md,
+//  The header's OBS status: live, paused, not connected, link changed or port in use (docs/design/ui-design-v2.md,
 //  Header).
 //  Plain logic, no page code, so tests/ui can run it with Node; messages.js paints it. The app sends the number of
 //  connected OBS overlays (server.rs, OverlayCount) only when it changes, so nothing here polls.

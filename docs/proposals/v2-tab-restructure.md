@@ -4,7 +4,7 @@ Status: Approved, not started. Builds on the master session's UI foundation step
 lifecycle, `docs/proposals/ui-foundation.md` and `loading-and-lifetime.md` §A). Starts after that lands on v1.4.0-dev
 and is merged into `advisor/v2.0`, so the two never edit the same files at once.
 
-Goal: the file layout the v2.0 design needs (`docs/design/v2-redesign.md`), with no behaviour change in the moving
+Goal: the file layout the v2.0 design needs (`docs/design/ui-design-v2.md`), with no behaviour change in the moving
 steps. Each step is its own commit, with `npm test`, clippy, `check:types`, `check:format`, `check:privacy`, the UI
 sandbox and (on Windows) the screenshot tests between steps. Stop and report on any failure.
 
@@ -39,11 +39,11 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 8. **feat: Style with Fonts merged in**, theme gallery, preset cards. The Fonts tab is removed (nothing opens it by
    name today, so no redirect is needed).
 9. **feat: Layout cards** with mini pictures and the "⋯" menu, drag to reorder, Hide for built-in layouts, and the
-   ready-made library in New layout (v2-redesign.md, "Layouts: order, hiding and ready-made layouts"). The new
+   ready-made library in New layout (ui-design-v2.md, Layouts). The new
    `layout.order` setting gets its default in `settings.rs`, a sanitizer rule (known ids only, no duplicates) and tests,
    and Reset restores it. The eight new layout files (96%, 75%, 65%, 60%, Arrows, Numpad, Full ISO, TKL ISO) come first,
    each with the existing layout tests.
-10. **feat: Animation gallery** (each card demos with the animation's own file; see v2-redesign.md, Adding more stays one
+10. **feat: Animation gallery** (each card demos with the animation's own file; see ui-design-v2.md, Adding more stays one
     file).
 11. **feat: the key editor makeover** (`docs/design/key-editor.md`).
 

@@ -67,6 +67,7 @@ when it takes more than one, a check or test catches a forgotten one.
 | A colour, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colours) | 1 |
 | A header status | one rule in `obsStatus()`, `ui/settings/obs-status.js`, plus its test | 1 |
 | A popup | `dialog()` in `ui/settings/popup.js` (focus, Esc, Enter and size come with it) | 1 |
+| A scrolling area | the class `scroll-fade` on it (the fade and the shared scrollbar come with it; docs/design/ui-design-v2.md, Scrolling) | 1 |
 | A Debug tool | one entry in `SECTIONS`, `ui/settings/debug.js` | 1 |
 | A UI sandbox state | one line in `STATES`, `tools/sandbox/fake-app.js` | 1 |
 | A release-note section | `NOTE_SECTIONS` in `ui/settings/release-notes.js`, a colour token, a row in RELEASING.md (the release check refuses unknown sections) | 3 |

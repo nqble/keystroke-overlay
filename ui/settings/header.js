@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The header's buttons (docs/design/v2-redesign.md, Header): the OBS status opens General, and the Update ready
+//  The header's buttons (docs/design/ui-design-v2.md, Header): the OBS status opens General, and the Update ready
 //  chip's arrow plays its download nudge. What the status says, and when "Copy OBS link" shows, is in obs-status.js
 //  (painted by messages.js); the window buttons are in windowbar.js; the chip's click is in update-popup.js.
 // =====================================================================================================================

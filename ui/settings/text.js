@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The words the user reads, kept short (docs/design/v2-redesign.md, "Fewer words for users"). Some sentences are
+//  The words the user reads, kept short (docs/design/ui-design-v2.md, "Words"). Some sentences are
 //  checked word for word by tests/e2e (secure link, keyboard input): change those together with their test.
 // =====================================================================================================================
 export const TEXT = {
