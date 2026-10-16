@@ -20,7 +20,6 @@
 // =====================================================================================================================
 import { $, button, call, invoke } from './helpers.js';
 import { paintPause, showServerError, resync } from './messages.js';
-import { debugTab } from './debug.js';
 import { hideMenu, showNotes, showUpdateResult } from './popups.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
 import {
@@ -73,10 +72,13 @@ function tabButton(id, name) {
   return tabItem;
 }
 
+// The Debug tab (ui/settings/debug.js) only exists in Debug mode, so its code is only loaded then (the first time it is needed).
+let debugTab = null;
+
 /** Redraw the tab bar and the active tab, keeping the scroll position. */
 export async function render() {
-  // the Debug tab (ui/settings/debug.js) only exists in Debug mode
   const debugOn = !!settings?.general?.debugMode;
+  if (debugOn && !debugTab) debugTab = (await import('./debug.js')).debugTab;
   if (tab === 'debug' && !debugOn) setTab('general');
   const names = debugOn ? { ...TAB_NAMES, debug: debugTab.name } : TAB_NAMES;
   $('#tabs').replaceChildren(...Object.entries(names).map(([id, name]) => tabButton(id, name)));

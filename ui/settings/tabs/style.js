@@ -5,7 +5,14 @@ import { renderControls, shareRow } from '../controls.js';
 import { button, call, el, heading, row, toast } from '../helpers.js';
 import { changed } from '../preview.js';
 import { render } from '../settings.js';
-import { settings, registry } from '../state.js';
+import { settings, registry, presets, setPresets } from '../state.js';
+
+/** Ask the app for the saved preset names and keep them. */
+async function loadPresets() {
+  const names = await call('list_presets');
+  setPresets(names);
+  return names;
+}
 
 // ---- Style: themes, presets, colours, shape, text, size -----------------------------------------------------------
 export async function styleTab() {
@@ -27,7 +34,8 @@ export async function styleTab() {
   };
   page.append(row('Built-in theme', themes));
 
-  const names = await call('list_presets');
+  // the preset names are fetched once and kept; saving or deleting a preset (below) makes them be fetched again
+  const names = presets ?? (await loadPresets());
   const saved = el(
     'select',
     { test: 'preset-select' },
@@ -58,6 +66,7 @@ export async function styleTab() {
         async () => {
           if (saved.value) {
             await call('delete_preset', { name: saved.value });
+            setPresets(null);
             render();
           }
         },
@@ -76,6 +85,7 @@ export async function styleTab() {
         'Save',
         async () => {
           await call('save_preset', { name: nameInput.value, data: currentLook() });
+          setPresets(null);
           toast('Preset saved');
           render();
         },
