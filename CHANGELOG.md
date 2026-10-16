@@ -1,6 +1,7 @@
 # Changelog
 
-All notable changes. Newest first.
+All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
+run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
 ## v1.3.0 — free key placement
 
@@ -22,6 +23,7 @@ All notable changes. Newest first.
 - The settings window's code is split into small files and formatted automatically, and there are many more tests.
 - Updated the Windows library the keyboard capture is built on, and the build tools used by the project's automatic checks.
 
+Your settings, presets and fonts are kept.
 
 ## v1.2.1 — the "preview keeps up" fix
 

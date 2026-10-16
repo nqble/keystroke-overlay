@@ -7,7 +7,8 @@ A Windows app that shows your keyboard presses live in OBS, for streams and reco
 
 Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaScript, with the help of [Claude Code](https://claude.com/claude-code).
 
-- **Lightweight:** about 3 MB of RAM and ~0% CPU while idle. The installer is about 2 MB.
+- **Lightweight:** about 3 MB of RAM and ~0% CPU while idle (measured for each release with `tests/bench/run.mjs`, see
+  the CHANGELOG). The installer is about 2.3 MB.
 - **Works in games:** a global keyboard reader sees your keys even when a game has focus, with a second
   "Compatibility" method for games that block the standard one.
 - **Fully customizable:** pick or build your own layouts, then change colors, fonts, animations and per-key labels.
@@ -100,7 +101,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
-**Debug mode (for developers).** **General → App → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is saved to disk or sent anywhere, and the log never contains key presses. Details in [docs/DEBUGGING.md](docs/DEBUGGING.md).
+**Debug mode (for developers).** **General → App → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one empty test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## Keyboard input method
 
@@ -109,7 +110,7 @@ Under **General → Keyboard input** you choose how the app reads your keys. You
 | | When to use it |
 |---|---|
 | **Standard** (recommended, the default) | Works with nearly every game. |
-| **Compatibility** (Windows Raw Input) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC: both methods use about 0% CPU when idle and only a percent or two of one core even under an unrealistically heavy flood of key presses. |
+| **Compatibility** (Windows Raw Input) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC: both methods use about 0% CPU when idle. |
 
 Both methods read keys the same way and never save or send them. If a game runs **as administrator**, start Keystroke Overlay
 as administrator too — Windows doesn't let normal programs see keys typed into an elevated window, whichever method you pick.
@@ -268,7 +269,7 @@ Maintaining the project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SO
 
 ## Requirements
 
-Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current versions of Windows.
+Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11.
 
 ## License
 
