@@ -3,6 +3,7 @@
 // =====================================================================================================================
 import { $, call, el, invoke, toast } from './helpers.js';
 import { frame, previewSrc, saveNow, updateObs } from './preview.js';
+import { headingOf, sectionOf } from './release-notes.js';
 import { render } from './settings.js';
 import {
   MAX_LAYOUTS,
@@ -253,10 +254,15 @@ addEventListener('keydown', (e) => {
 addEventListener('dragstart', (e) => e.preventDefault());
 
 // ---- 6c. Release notes ("What's new"), fetched from GitHub
-/** A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text. */
+/**
+ * A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text.
+ * Release-note sections (release-notes.js) get their colour: the heading and the list under it share a notes-<kind>
+ * class.
+ */
 export function md(source) {
   const fragment = document.createDocumentFragment();
   let list = null;
+  let sectionClass = ''; // e.g. "notes-section notes-fixed" while inside the Fixed section
   const inline = (parent, text) => {
     // turns **bold** and `code` into elements
     const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
@@ -280,14 +286,17 @@ export function md(source) {
       list = null;
       continue;
     }
-    if ((match = /^#{1,6}\s+(.*)$/.exec(line))) {
+    const headingText = headingOf(line);
+    if (headingText !== null) {
       list = null;
-      const heading = el('h4');
-      inline(heading, match[1]);
+      const section = sectionOf(headingText);
+      sectionClass = section ? `notes-section notes-${section.kind}` : '';
+      const heading = el('h4', { className: sectionClass });
+      inline(heading, headingText);
       fragment.append(heading);
     } else if ((match = /^\s*[-*+]\s+(.*)$/.exec(line))) {
       if (!list) {
-        list = el('ul');
+        list = el('ul', { className: sectionClass });
         fragment.append(list);
       }
       const li = el('li');

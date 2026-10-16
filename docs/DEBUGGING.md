@@ -18,7 +18,7 @@ Keystroke Overlay has a built-in **Debug mode** for anyone working on the code (
 | **Settings (raw)** | The settings as the app holds them. Edit and Apply to try odd values; it shows which ones the app corrected (a quick way to test the settings sanitizer). |
 | **Test helpers** | A fake update (button, orange tray dot and tray entry without a real release), the What's new popup, popups and toasts, restart server, reload window. |
 | **Developer tools** | How to open the full browser inspector (elements, console, network) on the settings window. |
-| **Bug report** | Copies one block of text for a GitHub issue: version, system, self-test, settings, recent log. |
+| **Bug report** | Copies one block of text for a GitHub issue, or to paste into a Claude session: a short summary, then the details as JSON (`format`, `app`, `state`, `selfTest`, `settingsDiff`, `log`). Only settings that differ from the defaults are listed. The format is in `ui/settings/debug-report.js`; raise `BUG_REPORT_FORMAT` when a field is renamed or removed. |
 
 ## The browser inspector
 
@@ -35,7 +35,8 @@ In the inspector's console, the object **`ko`** has shortcuts: `ko.info()`, `ko.
 - Everything is **off** until Debug mode is switched on. While it is off, the log does nothing.
 - The log is in memory only (never on disk, never sent anywhere) and records what the **app** did, never which keys were pressed. A test checks this.
 - The Key monitor is the only tool that shows key presses. It must be started by hand, stops after 60 seconds, and only talks to the settings window on this PC.
-- The bug report contains no key presses, no private link key, and your Windows user name is removed from paths.
+- The bug report contains no key presses and no private link key, and your user name is removed from paths (Windows,
+  Linux and macOS forms).
 
 ## Adding to it
 

@@ -20,11 +20,12 @@
 //  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
+import { bugReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
 import { addLayoutDialog, showNotes } from './popups.js';
 import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
 import { render } from './settings.js';
-import { settings, appVersion, layouts, setTab, size } from './state.js';
+import { settings, appVersion, layouts, paused, setTab, size } from './state.js';
 
 // -------------------------------------------------------------------------------------------------------------------
 // Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
@@ -57,9 +58,9 @@ const TEXT = {
     'Debug mode on. In the inspector’s console, the object “ko” has shortcuts: ko.info(), ko.log(), ' +
     "ko.settings(), ko.goto('style').",
   bugReportHelp:
-    'Copies one block of text for a GitHub issue: version, system, self-test results, your settings ' +
-    '(without the private link key) and the recent event log. It contains no key presses, and your ' +
-    'Windows user name is removed.',
+    'Copies one block of text for a GitHub issue, or to paste to an AI assistant such as Claude: a short summary, then ' +
+    'the details (version, system, self-test, the settings you changed and the recent event log). It contains no key ' +
+    'presses and no private link key, and your user name is removed.',
   debugToolsIntro:
     'Developer tools. Switch them off in General → App → Debug mode. Nothing here is saved to disk or ' +
     'sent anywhere.',
@@ -102,30 +103,11 @@ function facts() {
   return box;
 }
 
-/** The settings without the private link key (for showing on screen or copying into a bug report). */
-function redactedSettings() {
-  const copy = JSON.parse(JSON.stringify(settings));
-  if (copy.general?.linkKey) copy.general.linkKey = '(hidden)';
-  return copy;
-}
-
-/** Remove personal details (your Windows user name) from text that is going to be pasted somewhere. */
-const scrub = (text) => String(text).replace(/([A-Za-z]:\\Users\\)[^\\\s"']+/gi, '$1<you>');
-
 const seconds = (s) => (s < 90 ? `${s} s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
 const clock = (ms) => {
   const pad = (n, width = 2) => String(n).padStart(width, '0');
   return `${pad(Math.floor(ms / 60000))}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`;
 };
-
-/** Flatten nested settings into { 'style.radius': 8, ... } so two copies can be compared. */
-function flatten(value, path = '', out = {}) {
-  if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length) {
-    for (const [childKey, childValue] of Object.entries(value))
-      flatten(childValue, path ? `${path}.${childKey}` : childKey, out);
-  } else out[path] = JSON.stringify(value);
-  return out;
-}
 
 // -------------------------------------------------------------------------------------------------------------------
 // Self-test: quick yes/no checks of everything that has to work for the overlay to work
@@ -159,30 +141,42 @@ async function runSelfTest() {
   ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail }));
 }
 
-/** One report a developer can paste into a GitHub issue. Contains no key presses and no personal paths. */
+/** The facts for "Copy bug report" (debug-report.js formats them). No key presses, no personal paths. */
 async function buildReport() {
-  const info = await invoke('debug_info'),
-    tests = await runSelfTest(),
-    log = await invoke('debug_log');
-  return scrub(
-    [
-      `Keystroke Overlay v${info.version} (${info.build}) on ${info.os}`,
-      `Browser engine: ${navigator.userAgent}`,
-      `Screen: ${screen.width}x${screen.height} at ${devicePixelRatio}x, window ${innerWidth}x${innerHeight}`,
-      `Running for ${seconds(info.uptimeSecs)}; memory ${info.memoryMb} MB; ` +
-        `${info.handles} handles; port ${info.port}`,
-      `Keyboard: ${info.inputActive}${info.inputError ? ' (error: ' + info.inputError + ')' : ''}`,
-      '',
-      'SELF-TEST',
-      ...tests.map((t) => `${t.ok ? 'PASS' : 'FAIL'}  ${t.name}${t.detail ? ' — ' + t.detail : ''}`),
-      '',
-      'SETTINGS',
-      JSON.stringify(redactedSettings()),
-      '',
-      `EVENT LOG (last ${Math.min(60, log.length)} of ${log.length})`,
-      ...log.slice(-60).map(([ms, text]) => `${clock(ms)}  ${text}`),
-    ].join('\n'),
-  );
+  const [info, selfTest, log, defaults] = await Promise.all([
+    invoke('debug_info'),
+    runSelfTest(),
+    invoke('debug_log'),
+    invoke('debug_defaults'),
+  ]);
+  const engine = (navigator.userAgent.match(/Edg\/[\d.]+/) || [navigator.userAgent])[0];
+  const state = {
+    paused,
+    port: info.port,
+    serverError: info.serverError,
+    inputMethod: info.inputActive,
+    inputError: info.inputError,
+    secureLink: !!settings.general?.secureLink,
+    layout: settings.layout?.id,
+    settingsValid: info.settingsValid,
+    dataDir: info.dataDir,
+    dataWritable: info.dataWritable,
+    uptimeSecs: info.uptimeSecs,
+    memoryMb: info.memoryMb,
+    handles: info.handles,
+    window: `${innerWidth}x${innerHeight} at ${devicePixelRatio}x`,
+    overlaySize: size ? `${size.w}x${size.h}` : null,
+  };
+  return bugReport({
+    version: info.version,
+    build: info.build,
+    os: info.os,
+    engine,
+    state,
+    selfTest,
+    settingsDiff: settingsDiff(redactSettings(settings), defaults),
+    log: log.slice(-60),
+  });
 }
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -413,7 +407,7 @@ const SECTIONS = [
         className: 'dbg-json',
         test: 'debug-json',
         spellcheck: false,
-        value: JSON.stringify(redactedSettings(), null, 2),
+        value: JSON.stringify(redactSettings(settings), null, 2),
       });
       const result = el('div', { className: 'dbg-tests', test: 'debug-raw-result' });
       const apply = async () => {
@@ -435,7 +429,7 @@ const SECTIONS = [
           after = flatten(kept);
         const changes = Object.keys(after).filter((k) => before[k] !== after[k] && k !== 'general.linkKey');
         await resync();
-        box.value = JSON.stringify(redactedSettings(), null, 2);
+        box.value = JSON.stringify(redactSettings(settings), null, 2);
         result.replaceChildren(
           el(
             'div',
@@ -471,7 +465,7 @@ const SECTIONS = [
             'Reload from app',
             async () => {
               await resync();
-              box.value = JSON.stringify(redactedSettings(), null, 2);
+              box.value = JSON.stringify(redactSettings(settings), null, 2);
               result.replaceChildren();
             },
             '',
