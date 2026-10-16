@@ -3,7 +3,9 @@
 // =====================================================================================================================
 import { $, button, call, confirmTwice, el, heading, invoke, note, row, toast } from '../helpers.js';
 import { toggle } from '../controls.js';
-import { md, openUpdateDialog, paintProgress, resetDialog, setUpdate, showNotes } from '../popups.js';
+import { resetDialog } from '../dialogs.js';
+import { md, showNotes } from '../notes.js';
+import { openUpdateDialog, paintProgress, setUpdate } from '../update-popup.js';
 import { changed, copyUrl, frame, previewSrc, sizeText, updateObs } from '../preview.js';
 import { render } from '../settings.js';
 import {

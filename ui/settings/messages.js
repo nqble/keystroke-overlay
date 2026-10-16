@@ -2,7 +2,7 @@
 //  Messages from the app (tray actions, update results, download progress) and re-reading the app's state.
 // =====================================================================================================================
 import { $, call, tauriEvent, invoke } from './helpers.js';
-import { paintProgress, showUpdateResult } from './popups.js';
+import { paintProgress, showUpdateResult } from './update-popup.js';
 import { flushPendingSave, push } from './preview.js';
 import { obsStatus, obsStatusDetail } from './obs-status.js';
 import { paintPauseButton } from './pause-button.js';

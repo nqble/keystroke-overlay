@@ -50,7 +50,11 @@ keystroke-overlay/
         ├── controls.js    CONTROLS: the table that draws every slider, colour picker and dropdown
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
-        ├── popups.js      dialogs, right-click menu, release notes, update dialog
+        ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
+        ├── dialogs.js     New layout and Reset all settings, built on popup.js
+        ├── menu.js        the layout cards' small menu; no browser right-click menu, no dragging
+        ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup
+        ├── update-popup.js  the update button, its popup and the download progress
         ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)

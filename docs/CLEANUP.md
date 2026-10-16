@@ -38,7 +38,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 | File | Findings | Where it gets fixed |
 |---|---|---|
 | `debug.js` (618) | Over ~400 lines. Four `build` functions of 42–82 lines. 15 long inline strings. 17 unnamed numbers. | Split per Debug section (self-test, event log, key monitor, raw settings, helpers) in UI foundation step 4. Text into `TEXT`. Lazy-loaded (loading plan A3). |
-| `popups.js` (435) | Over ~400 lines. `addLayoutDialog` 43, `md` 48 (small markdown renderer), `typeIn` 50. | Step 4: move the markdown renderer to its own module, and split the dialogs. |
+| ~~`popups.js` (435)~~ | Done on advisor/v2.0: split into `popup.js`, `dialogs.js`, `menu.js`, `notes.js` and `update-popup.js`, each under 170 lines. | — |
 | `tabs/general.js` (318) | `updatesSection` 105, `secureLinkSection` 53, `inputSection` 43. 3 inline strings. | Step 4 (shared building blocks shorten these), text into `TEXT`. |
 | `tabs/style.js` (108) | `styleTab` 97 lines. Re-fetches presets on every open. | Step 4 and loading plan A2 (cached lists) and A4 (targeted updates). |
 | `tabs/fonts.js` (74) | `fontsTab` 58 lines. Re-fetches fonts on every open. | Step 4, loading plan A2. |

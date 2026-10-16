@@ -21,7 +21,10 @@
 import { $, button, call, invoke } from './helpers.js';
 import { paintObsStatus, paintPause, showServerError, resync } from './messages.js';
 import { debugTab } from './debug.js';
-import { hideMenu, showNotes, showUpdateResult } from './popups.js';
+import { hideMenu } from './menu.js';
+import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
+import { showNotes } from './notes.js';
+import { showUpdateResult } from './update-popup.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
 import {
   appVersion,

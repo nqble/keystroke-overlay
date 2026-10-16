@@ -21,7 +21,8 @@
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
 import { bugReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
-import { addLayoutDialog, showNotes } from './popups.js';
+import { addLayoutDialog } from './dialogs.js';
+import { showNotes } from './notes.js';
 import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
 import { render } from './settings.js';

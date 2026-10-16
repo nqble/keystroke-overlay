@@ -13,7 +13,7 @@ sandbox and (on Windows) the screenshot tests between steps. Stop and report on 
 | Today | v2.0 |
 |---|---|
 | `tabs/fonts.js` (its own tab) | Folded into `tabs/style.js` as the Text section; the Fonts tab goes. Font file handling moves to `style-fonts.js`. |
-| `popups.js` (three popups, menu, notes, update) | `popup.js`: the one shared popup (frame, focus, Esc/Enter, sizing). `notes.js`: the release-notes reader. `update-popup.js`: the update flow. `menu.js`: the "⋯" menu. |
+| `popups.js` (three popups, menu, notes, update) | Done (step 1): `popup.js` the shared popup (focus, `dialog()`), `dialogs.js` New layout and Reset, `notes.js` the release-notes reader, `update-popup.js` the update flow, `menu.js` the "⋯" menu. |
 | Header bits in `preview.js`, `messages.js`, `index.html` | `header.js`: logo, name, DEV badge, OBS status, Copy OBS link when needed, Update ready chip, window buttons (from `windowbar.js`). |
 | `controls.js` (rows, sliders, colours) | Kept, plus the building blocks from step 4: section card, switch, segmented choice, gallery card. |
 | `tabs/general.js` (317 lines, one column) | `tabs/general.js` with section cards; the OBS link card moves to `general-obs-link.js`. |
@@ -24,7 +24,7 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 
 ## Order
 
-1. **refactor: split `popups.js`** into `popup.js`, `notes.js`, `update-popup.js` and `menu.js`. No visible change.
+1. ~~**refactor: split `popups.js`**~~ Done.
 2. **feat: shared popup** (Popups board): every popup uses `popup.js`, with the approved sizing and button rules.
 3. **refactor: move the header into `header.js`**. No visible change.
 4. **feat: new header** (Header board): link out, DEV badge, Update ready chip, drawn window buttons.

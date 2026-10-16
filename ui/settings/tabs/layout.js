@@ -3,7 +3,8 @@
 // =====================================================================================================================
 import { shareRow } from '../controls.js';
 import { call, el, heading, invoke, note, plural, toast } from '../helpers.js';
-import { addLayoutDialog, showMenu } from '../popups.js';
+import { addLayoutDialog } from '../dialogs.js';
+import { showMenu } from '../menu.js';
 import { changed } from '../preview.js';
 import { isCustom } from '../profiles.js';
 import { render } from '../settings.js';
