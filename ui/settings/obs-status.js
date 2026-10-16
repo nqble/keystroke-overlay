@@ -1,8 +1,9 @@
 // =====================================================================================================================
-//  The header's OBS status: "Live in OBS", "Paused" or "Not connected to OBS" (docs/design/v2-redesign.md, Header).
+//  The header's OBS status: live, paused, not connected, link changed or port in use (docs/design/v2-redesign.md,
+//  Header).
 //  Plain logic, no page code, so tests/ui can run it with Node; messages.js paints it. The app sends the number of
 //  connected OBS overlays (server.rs, OverlayCount) only when it changes, so nothing here polls.
-//  A new status (e.g. a secure link that needs copying again) is one more rule in obsStatus().
+//  A new status is one more rule in obsStatus().
 // =====================================================================================================================
 
 const TEXT = {
@@ -10,17 +11,25 @@ const TEXT = {
   paused: '⏸ Paused',
   pausedNoObs: '⏸ Paused · OBS not connected',
   noObs: '○ Not connected to OBS',
+  linkChanged: 'OBS link changed: copy it again',
+  serverProblem: '⚠ Port in use',
   debug: (overlays, paused) =>
     `${overlays} overlay ${overlays === 1 ? 'client' : 'clients'} · paused: ${paused ? 'yes' : 'no'}`,
 };
 
 /**
- * What the status shows. `kind` picks the colour in settings.css (.obs-status.live / .paused / .off).
- * Paused wins over everything, because it is the one the streamer chose.
+ * What the status shows, from the facts the window knows: { paused, overlays, serverError, linkChanged }.
+ * `kind` picks the colour in settings.css (.obs-status.live / .paused / .off / .bad). The order matters:
+ *   1. a server that couldn't start: nothing works until it is fixed;
+ *   2. paused: the one the streamer chose;
+ *   3. a changed link: OBS still has the old one, so it can't connect until the new one is copied;
+ *   4. live or not connected.
  */
-export function obsStatus(paused, overlays) {
+export function obsStatus({ paused, overlays, serverError = null, linkChanged = false }) {
   const connected = overlays > 0;
+  if (serverError) return { kind: 'bad', text: TEXT.serverProblem };
   if (paused) return { kind: 'paused', text: connected ? TEXT.paused : TEXT.pausedNoObs };
+  if (linkChanged) return { kind: 'bad', text: TEXT.linkChanged };
   if (connected) return { kind: 'live', text: TEXT.live };
   return { kind: 'off', text: TEXT.noObs };
 }

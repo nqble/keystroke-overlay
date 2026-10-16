@@ -506,6 +506,11 @@ button.danger:hover {
   background: var(--color-panel-raised);
   color: var(--color-text-dim);
 }
+/* Something the streamer must fix (port in use, link changed): red like errors, not amber like pause. */
+.obs-status.bad {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+}
 
 /* ---- Pause button on the live preview (pause-button.js; docs/design/v2-redesign.md, Live preview).
    At rest a 34 px circle. On hover or keyboard focus it grows to the left into a pill with the word. It is drawn from two

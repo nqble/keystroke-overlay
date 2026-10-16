@@ -9,7 +9,9 @@ import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
 import {
   TAB_NAMES,
+  linkChanged,
   overlays,
+  serverError,
   paused,
   settings,
   setInputActive,
@@ -18,6 +20,7 @@ import {
   setObsUrl,
   setOverlays,
   setPaused,
+  setServerError,
   setSettings,
   setTab,
   setUpdateProgress,
@@ -63,7 +66,7 @@ export function paintPause() {
 
 /** The header's "Live in OBS / Paused / Not connected" pill. Debug mode adds the exact count as a tooltip. */
 export function paintObsStatus() {
-  const status = obsStatus(paused, overlays);
+  const status = obsStatus({ paused, overlays, serverError, linkChanged });
   const pill = $('#obsStatus');
   pill.textContent = status.text;
   pill.className = 'obs-status ' + status.kind;
@@ -83,6 +86,8 @@ $('#pauseBtn').onclick = async () => {
 };
 
 export function showServerError(message) {
+  setServerError(message || null);
+  paintObsStatus();
   const banner = $('#banner');
   banner.hidden = !message;
   if (message) banner.textContent = message + ' — pick another port in General → Port.';

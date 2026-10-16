@@ -19,7 +19,7 @@
 //  in src-tauri/src/settings.rs and, if the overlay uses it, read it in ui/overlay/overlay.js.
 // =====================================================================================================================
 import { $, button, call, invoke } from './helpers.js';
-import { paintPause, showServerError, resync } from './messages.js';
+import { paintObsStatus, paintPause, showServerError, resync } from './messages.js';
 import { debugTab } from './debug.js';
 import { hideMenu, showNotes, showUpdateResult } from './popups.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
@@ -86,6 +86,7 @@ export async function render() {
   const content = await (tab === 'debug' ? debugTab.render() : TABS[tab]());
   pane.replaceChildren(content);
   pane.scrollTop = scroll;
+  paintObsStatus(); // a tab may have changed the link (new port or key), which the header status shows
 }
 
 // When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to
