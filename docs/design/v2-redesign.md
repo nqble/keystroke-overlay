@@ -55,8 +55,9 @@ entry with an unknown heading or the wrong order.
 
 **Update ready chip, what a click does:** it opens the update popup (Popups board: "A new version is ready") right where
 the user is, on any tab. It does not switch to General; the user stays on their tab, and closing the popup leaves them
-there. General → Updates keeps its own "Check now" and update controls for people who go there on purpose. Suggested, not
-yet decided: the tray's "Update available" could do the same (open the window with the popup) instead of opening General.
+there. General → Updates keeps its own "Check now" and update controls for people who go there on purpose. The tray's
+"Update available" does the same (approved): it opens the settings window, on the tab it last showed, with the update
+popup open, instead of opening General.
 
 **Update ready chip** (header, replaces the floating round button): on hover or keyboard focus its ↓ drops out of the
 bottom of its own small box and comes back in from the top, once, like a download. The box clips it, so only the arrow
