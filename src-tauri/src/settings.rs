@@ -403,7 +403,7 @@ pub fn merge(dst: &mut Value, src: &Value) {
     }
 }
 
-fn read_json(path: &Path) -> Option<Value> {
+pub(crate) fn read_json(path: &Path) -> Option<Value> {
     std::fs::read_to_string(path)
         .ok()
         .and_then(|s| serde_json::from_str::<Value>(&s).ok())
@@ -419,29 +419,19 @@ pub fn load(path: &Path) -> Value {
     else {
         return defaults();
     };
-    keep_copy_of_newer_settings(&source, &raw);
+    crate::downgrade::keep_copy_of_newer_settings(&source, &raw);
+    let (raw, restored_copy) = crate::downgrade::with_copy_restored(path, raw);
     let mut settings = migrate(raw);
+    if let Some(copy) = restored_copy {
+        // the copy is only removed once its fields are safely back in settings.json
+        if save(path, &settings).is_ok() {
+            let _ = std::fs::remove_file(copy);
+        }
+    }
     if give_empty_secure_link_a_key(&mut settings) {
         let _ = save(path, &settings);
     }
     settings
-}
-
-/// A settings file written by a NEWER version of the app (you went back to an older one) holds fields this version does not
-/// know. Loading it keeps only what this version understands, and saving would then lose the rest. So the untouched file
-/// is first copied to `settings.v<number>.json` next to it, once, and never overwritten: going forward again loses nothing.
-fn keep_copy_of_newer_settings(source: &Path, raw: &Value) {
-    let Some(version) = raw
-        .get("version")
-        .and_then(Value::as_u64)
-        .filter(|version| *version > CURRENT_VERSION)
-    else {
-        return;
-    };
-    let copy = source.with_file_name(format!("settings.v{version}.json"));
-    if !copy.exists() {
-        let _ = std::fs::copy(source, copy);
-    }
 }
 
 /// With the secure link on but no valid key (a hand-edited file, say), the overlay would stay locked and the settings window
@@ -763,6 +753,43 @@ mod tests {
         load(&file);
         let still: Value = serde_json::from_str(&std::fs::read_to_string(&copy).unwrap()).unwrap();
         assert_eq!(still["futureThing"], json!("first"));
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    #[test]
+    fn going_forward_again_after_a_downgrade_brings_the_newer_fields_back() {
+        let dir = scratch_folder("forward");
+        let file = dir.join("settings.json");
+        let copy = dir.join(format!("settings.v{CURRENT_VERSION}.json"));
+        // the copy an older version kept of this version's file, with a field the older version can't read
+        std::fs::write(
+            &copy,
+            format!(r#"{{ "version": {CURRENT_VERSION}, "style": {{ "radius": 7, "keySize": 70 }}, "layout": {{ "editor": {{ "snap": 0.5 }} }} }}"#),
+        )
+        .unwrap();
+        // what the older version saved: it changed the radius, and has no editor settings
+        std::fs::write(&file, r#"{ "version": 2, "style": { "radius": 12 } }"#).unwrap();
+        let loaded = load(&file);
+        assert_eq!(
+            loaded["style"]["radius"].as_f64(),
+            Some(12.0),
+            "the change made on the older version wins"
+        );
+        assert_eq!(
+            loaded["style"]["keySize"].as_f64(),
+            Some(70.0),
+            "the rest comes back from the copy"
+        );
+        assert_eq!(
+            loaded["layout"]["editor"]["snap"].as_f64(),
+            Some(0.5),
+            "a field the older file lacks comes back"
+        );
+        assert!(
+            !copy.exists(),
+            "the copy is removed once settings.json has it, so the next downgrade makes a fresh one"
+        );
+        let saved: Value = serde_json::from_str(&std::fs::read_to_string(&file).unwrap()).unwrap();
+        assert_eq!(saved["layout"]["editor"]["snap"].as_f64(), Some(0.5));
         std::fs::remove_dir_all(&dir).ok();
     }
     #[test]

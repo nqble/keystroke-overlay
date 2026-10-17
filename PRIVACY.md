@@ -54,8 +54,9 @@ to disk and no step that uses the network.
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's normal cache in `%LOCALAPPDATA%`):
 
 - `settings.json` (+ `settings.json.bak`, the previous copy): your style, layout choices, hidden keys, custom labels, port, preferences
-- from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app, so going back
-  a version never loses them
+- from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app (you went back
+  a version). When you go forward to that version again, its settings are put back and the copy is deleted. This works
+  between versions from v1.4.0 on; going back to v1.3.0 or earlier still loses the newer settings
 - `presets/`, `fonts/`, `layouts/`: files you created or added
 - the app's installed files
 

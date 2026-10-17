@@ -6,6 +6,7 @@
 
 mod commands;
 mod debug;
+mod downgrade;
 mod grid;
 mod keyboard;
 mod platform;

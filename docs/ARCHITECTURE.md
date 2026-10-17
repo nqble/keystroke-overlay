@@ -34,6 +34,7 @@ keystroke-overlay/
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, validation, backup
+│       ├── downgrade.rs    going back a version and forward again without losing settings (settings.vN.json)
 │       ├── state.rs        shared app state + small helpers
 │       ├── window.rs       the settings window (created on demand, destroyed on close)
 │       ├── tray.rs         tray icon/menu + quick actions (pause, layout, restart server)
@@ -110,7 +111,8 @@ the app trims its working set.
 `settings.json` is versioned (`version`). On load it is migrated one step at a time (`MIGRATIONS` in `settings.rs`),
 merged over `defaults()`, then **sanitized** (wrong types → defaults, numbers clamped, ids/colors validated) so a hand-edited
 file or imported preset can never break the overlay. The previous good file is kept as `settings.json.bak` and used if the
-main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
+main file is corrupt. A file from a newer version is copied aside before it is cleaned, and put back when that version
+returns (`downgrade.rs`). Per-layout key edits live in `layout.profiles[layoutId]`.
 
 ## Extending it
 
