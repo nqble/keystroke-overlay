@@ -95,6 +95,7 @@ pub fn code_name(evdev_code: u32) -> Option<&'static str> {
         81 => "Numpad3",
         82 => "Numpad0",
         83 => "NumpadDecimal",
+        86 => "IntlBackslash", // KEY_102ND: the extra key next to left Shift on ISO keyboards
         87 => "F11",
         88 => "F12",
         96 => "NumpadEnter",
@@ -176,6 +177,14 @@ mod tests {
     #[test]
     fn release_without_press_is_ignored() {
         assert_eq!(run(&[(57, false)]), vec![]);
+    }
+
+    #[test]
+    fn the_iso_key_beside_left_shift_has_its_own_name() {
+        assert_eq!(
+            run(&[(86, true), (86, false)]),
+            vec![(true, "IntlBackslash"), (false, "IntlBackslash")]
+        );
     }
 
     #[test]

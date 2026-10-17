@@ -108,6 +108,7 @@ pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
         (0x52, true) => "Insert",
         (0x53, false) => "NumpadDecimal",
         (0x53, true) => "Delete",
+        (0x56, _) => "IntlBackslash", // the extra key next to left Shift on ISO keyboards (UK, German, ...)
         (0x57, _) => "F11",
         (0x58, _) => "F12",
         (0x5B, _) => "MetaLeft",
@@ -130,6 +131,11 @@ mod tests {
         assert_eq!(code_name(0xA3, 0x1D, true), Some("ControlRight"));
         assert_eq!(code_name(0x13, 0x45, false), Some("Pause"));
         assert_eq!(code_name(0x90, 0x45, true), Some("NumLock"));
+    }
+    #[test]
+    fn the_iso_key_beside_left_shift_has_its_own_name() {
+        assert_eq!(code_name(0xE2, 0x56, false), Some("IntlBackslash"));
+        assert_eq!(code_name(0xDC, 0x2B, false), Some("Backslash")); // the other \ key stays itself
     }
     #[test]
     fn unknown_keys_are_ignored() {
