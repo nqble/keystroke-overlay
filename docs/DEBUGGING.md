@@ -35,6 +35,10 @@ In the inspector's console, the object **`ko`** has shortcuts: `ko.info()`, `ko.
 - The Debug tools are **off** until Debug mode is switched on. The event log keeps only the last 100 important events
   while it is off (`debug::log()`); everyday steps (`debug::detail()`) are recorded only while it is on.
 - The log is in memory only (never on disk, never sent anywhere) and records what the **app** did, never which keys were pressed. A test checks this.
+- **Keyboard-hook watch:** Windows can remove the keyboard hook without telling the app (for example when the PC is
+  overloaded). While an overlay page is connected, the hook thread checks every 30 s; if the PC is in use but the hook
+  has heard nothing for over a minute, it installs the hook again and the event log says so. With no overlay connected,
+  nothing runs. It only compares times; it never records keys.
 - If the app crashes, `crash.rs` saves one line (version, place in the code, thread, minutes since start; never the
   message or a key) to `crash-note.txt` in the data folder. The next start puts it in the event log and the bug
   report's problems, then deletes it.
