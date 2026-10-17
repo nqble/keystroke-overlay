@@ -11,6 +11,7 @@ in Performance (RELEASING.md requires them). Do not copy this into CHANGELOG.md 
 
 ```
 ### 🛠 Improved
+- **Private by default.** New installs start with the secure link on, so other programs and other people signed in to the PC can't read your key presses. The key is already in the OBS link you copy. If you already use the app, nothing changes and your OBS link keeps working; "Reset all settings" now keeps your link too.
 - **Easier with the keyboard and screen readers.** Every setting's label is linked to its control, popups keep keyboard focus inside them and give it back when they close, layout cards can be picked with Enter and deleted with the Menu key (or Shift+F10), the tab bar says which tab is open, and slider outlines show when you reach them with the keyboard.
 - **Clearer to read.** White text on blue buttons is easier to read, fields, dropdowns, buttons and cards have visible borders, and buttons that cannot be used yet look dimmed.
 - **Copy bug report is more useful.** It now copies a short summary plus the details a developer needs (what you changed from the defaults, the self-test and the recent event log), and it removes your user name from file paths on every system.

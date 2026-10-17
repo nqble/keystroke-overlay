@@ -55,8 +55,8 @@ export const TEXT = {
     'The server only listens on 127.0.0.1 (this PC). Keystrokes are never saved or sent anywhere. OBS ' +
     'reconnects by itself after a restart.',
   secureLinkOff:
-    '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this ' +
-    'PC can read your key presses through it. Turn this on if you share the PC or want that closed.',
+    '**Off:** your OBS link is simple and needs no extra step. Any program running on this ' +
+    'PC can read your key presses through it. Turn this on to close that.',
   secureLinkOn:
     '**On:** your OBS link now contains a private key, and only a program that knows the full link ' +
     'can read your key presses. **Copy the new link into your OBS Browser Source once** — the old ' +
