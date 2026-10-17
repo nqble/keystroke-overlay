@@ -55,6 +55,10 @@ scrollbar and the window buttons. Spacing, radius, type size and weight are toke
 
 ## 4. Building blocks
 
+Built as Preact components in `ui/settings/blocks.js` (look in `blocks.css`): `Section`, `Switch`, `Segmented`,
+`GalleryCard` (with an optional "⋯" menu beside it) and `MenuButton`. Popups use `dialog()` in `popup.js`. See them all,
+in every state, in the UI sandbox at `/__sandbox__/blocks.html`. A screen uses these, never a one-off copy.
+
 - **Heading row** on every tab: a title and a one-line subtitle on the left, the tab's main switch or action on the right.
 - **Section cards** instead of one long form: a short title, then its controls.
 - **Segmented switch** for small choices (Keyboard shape | Even grid; Stable | Latest; Standard | Compatibility),

@@ -16,8 +16,11 @@ export function hideMenu() {
   menuOpener = null;
 }
 
-/** Show a small menu at the mouse. items: [{ label, run?, danger?, disabled? }] */
-export function showMenu(event, items) {
+/**
+ * Show a small menu at the mouse, or at `at` (a "⋯" button opens it just below itself, also for the keyboard, where a
+ * click has no mouse position). items: [{ label, run?, danger?, disabled? }]
+ */
+export function showMenu(event, items, at = { x: event.clientX, y: event.clientY }) {
   event.preventDefault();
   event.stopPropagation();
   hideMenu();
@@ -41,8 +44,8 @@ export function showMenu(event, items) {
   );
   document.body.append(menuEl);
   const box = menuEl.getBoundingClientRect(); // keep the menu fully inside the window
-  menuEl.style.left = Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px';
-  menuEl.style.top = Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px';
+  menuEl.style.left = Math.max(4, Math.min(at.x, innerWidth - box.width - 4)) + 'px';
+  menuEl.style.top = Math.max(4, Math.min(at.y, innerHeight - box.height - 4)) + 'px';
   /** @type {HTMLElement | null} */ (menuEl.querySelector('button:not(:disabled)'))?.focus();
 }
 

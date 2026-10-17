@@ -69,6 +69,7 @@ keystroke-overlay/
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
         ├── dialogs.js     New layout and Reset all settings, built on popup.js
         ├── menu.js        the layout cards' small menu; no browser right-click menu, no dragging
+        ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
         ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup
         ├── update-popup.js  the update button, its popup and the download progress
         ├── release-notes.js  the release notes' five sections, shared with the release check (tested)

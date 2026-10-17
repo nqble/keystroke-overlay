@@ -57,6 +57,7 @@
   --color-paused-line: #7a6430; /* the pause button's border while paused */
   --color-paused-pressed: #2a220c; /* ...while paused and held */
   --color-control-pressed: #181b23; /* a control while pressed and held */
+  --color-switch-off: #3a4052; /* a switch's track while off (blocks.css) */
 
   /* Keys in the Keys tab picture */
   --color-key-fill: #2a3042;

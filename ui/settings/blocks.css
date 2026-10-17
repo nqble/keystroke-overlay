@@ -1,0 +1,173 @@
+/* The shared building blocks (blocks.js; docs/design/ui-design-v2.md, "Building blocks" and "States"). Every control has
+   the same states: rest, hover (a step lighter), pressed and held (a step darker), keyboard focus (the focus ring).
+   Colour only: nothing shrinks or moves. Cards show selection on the border only. Tokens are in settings.css.
+   See every block in every state: npm run ui-sandbox, then /__sandbox__/blocks.html. */
+
+/* ---- Section card: one card of a tab, a short title and its controls */
+.section-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border-radius: var(--radius-2xl);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+}
+.section-title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+/* ---- Switch: the knob slides with transform only */
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-height: 32px;
+}
+.switch-label {
+  flex: 1;
+}
+.switch {
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--color-switch-off);
+  cursor: pointer;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-round);
+  background: var(--color-text);
+  transition: transform 120ms ease-out;
+}
+.switch:hover {
+  background: var(--color-line-hover);
+}
+.switch:active {
+  background: var(--color-control-pressed);
+}
+.switch[aria-checked='true'] {
+  background: var(--color-accent-strong);
+}
+.switch[aria-checked='true']:hover,
+.switch[aria-checked='true']:active {
+  background: var(--color-accent-pressed);
+}
+.switch[aria-checked='true']::after {
+  transform: translateX(16px);
+}
+
+/* ---- Segmented choice */
+.segmented {
+  display: inline-flex;
+  align-self: flex-start; /* only as wide as its choices, also inside a section card */
+  padding: var(--space-3);
+  border-radius: var(--radius-2xl);
+  background: var(--color-bg);
+  border: 1px solid var(--color-control-line);
+}
+.segmented button {
+  height: 28px;
+  padding: 0 var(--space-14);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-dim);
+  font-size: var(--text-md);
+  cursor: pointer;
+}
+.segmented button:hover {
+  background: var(--color-panel-raised);
+  color: var(--color-text);
+}
+.segmented button:active {
+  background: var(--color-control-pressed);
+}
+.segmented button[aria-checked='true'] {
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+}
+.segmented button[aria-checked='true']:hover,
+.segmented button[aria-checked='true']:active {
+  background: var(--color-accent-pressed);
+}
+
+/* ---- Gallery card: hover and selected only (no pressed state for cards); selected is the border alone */
+.gallery-item {
+  position: relative;
+}
+.gallery-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-12);
+  border-radius: var(--radius-2xl);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+.gallery-card:hover,
+.gallery-card:active {
+  background: var(--color-panel);
+  border-color: var(--color-line-hover);
+}
+.gallery-card.sel {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+.gallery-picture {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+.gallery-detail {
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+.gallery-item .menu-button {
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-8);
+}
+
+/* ---- "⋯" menu button */
+.menu-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-panel-raised);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.menu-button:hover {
+  background: var(--color-menu-hover);
+}
+.menu-button:active {
+  background: var(--color-control-pressed);
+}
+
+/* ---- Keyboard focus: the same ring on every block */
+.switch:focus-visible,
+.segmented button:focus-visible,
+.gallery-card:focus-visible,
+.menu-button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

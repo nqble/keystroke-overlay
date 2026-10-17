@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+  Every shared building block (ui/settings/blocks.js) in every state, for checking a change by eye and in screenshots.
+  Open with: npm run ui-sandbox, then http://127.0.0.1:7882/__sandbox__/blocks.html. Hover, press, Tab and the arrow
+  keys all work for real. Add a block: one more example below.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Building blocks</title>
+    <script>
+      window.__SANDBOX_OVERLAY_PORT__ = 7883;
+    </script>
+    <script src="/__sandbox__/fake-app.js"></script>
+    <link rel="stylesheet" href="/settings.css" />
+    <link rel="stylesheet" href="/tabs.css" />
+    <link rel="stylesheet" href="/blocks.css" />
+    <link rel="stylesheet" href="/popups.css" />
+    <style>
+      body {
+        overflow: auto;
+        padding: 24px;
+      }
+      .sandbox-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 360px));
+        gap: 16px;
+        align-items: start;
+      }
+      .sandbox-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="blocks"></div>
+    <script type="module" src="/__sandbox__/blocks-demo.js"></script>
+  </body>
+</html>

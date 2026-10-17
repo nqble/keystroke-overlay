@@ -93,3 +93,6 @@ In the browser console, `__sandbox.emit('overlays-changed', 0)` sends an app mes
 last text a Copy button copied. A copy of the default settings lives in `tools/sandbox/default-settings.json`; a Rust
 test fails if it drifts from `defaults()` in `settings.rs`.
 
+**The building blocks on their own:** `/__sandbox__/blocks.html` shows every shared block (`ui/settings/blocks.js`) with
+real state, so hover, press, keyboard focus, on and off and selected can all be checked by eye or in a screenshot.
+
