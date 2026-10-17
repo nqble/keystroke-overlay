@@ -83,6 +83,8 @@
     // A new port or key gives a new link, like the app does; the header then asks to copy it again.
     set_port: ({ port }) => `http://127.0.0.1:${port}/`,
     regenerate_link_key: () => `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/?key=sandbox${Date.now()}`,
+    set_secure_link: ({ enabled }) =>
+      `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/` + (enabled ? `?key=sandbox${Date.now()}` : ''),
     toggle_pause: () => {
       paused = !paused;
       return paused;

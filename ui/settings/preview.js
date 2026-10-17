@@ -69,7 +69,9 @@ addEventListener('beforeunload', flushPendingSave);
 export const sizeText = () => (size ? `Size in OBS: ${size.w} × ${size.h}` : '');
 
 /** Refresh the OBS link box and size in General, if it is showing (a secured link is hidden, but Copy copies it). */
+/** The OBS link (or its size) changed: show it everywhere it appears, including the header's "copy it again". */
 export function updateObs() {
+  paintHeader();
   const linkBox = /** @type {HTMLInputElement | null} */ ($('#obsUrl'));
   if (linkBox) {
     linkBox.value = obsUrl;
