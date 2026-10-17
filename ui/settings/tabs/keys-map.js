@@ -87,7 +87,7 @@ export function keyboardMap(layout, profile) {
   const clash = findClashes(placed.filter((item) => !hidden.has(item.key.code)));
   const picture = { grid, placed, nodes: new Map() };
 
-  const inner = el('div', { style: 'position:relative', test: 'keymap-canvas' });
+  const inner = el('div', { className: 'keymap-canvas', test: 'keymap-canvas' });
   for (const item of placed) {
     const node = drawKey(item, picture, { hidden, clash, profile });
     picture.nodes.set(item.key.code, node);

@@ -229,7 +229,7 @@ function keyEditor(key, profile) {
 
   const at = keyPos(key, profile);
   const num = (value, test) =>
-    el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), style: 'width:84px', test });
+    el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), className: 'num-field', test });
   const px = num(at.x, 'key-x'),
     py = num(at.y, 'key-y');
   const place = () => {

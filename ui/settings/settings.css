@@ -206,8 +206,12 @@ header {
 }
 .preview iframe {
   position: absolute;
-  left: 0;
-  top: 0;
+  /* the size and place come from fitPreview() in preview.js, through these variables */
+  width: var(--frame-w, 300px);
+  height: var(--frame-h, 150px);
+  left: var(--frame-x, 0);
+  top: var(--frame-y, 0);
+  transform: scale(var(--frame-scale, 1));
   border: 0;
   transform-origin: 0 0;
   background: transparent;
@@ -282,6 +286,29 @@ h2:first-child {
   gap: var(--space-10);
   min-width: 0;
   max-width: 460px;
+}
+.row .ctl.stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-6);
+}
+.short-field {
+  width: 100px;
+}
+.num-field {
+  width: 84px;
+}
+.pre-line {
+  white-space: pre-line;
+}
+.invisible {
+  visibility: hidden;
+}
+select option[data-font] {
+  font-family: var(--option-font);
+}
+.keymap-canvas {
+  position: relative;
 }
 .row .val {
   width: 54px;
@@ -539,7 +566,7 @@ button:disabled:hover {
 }
 .bar .fill {
   height: 100%;
-  width: 0;
+  width: var(--pct, 0%);
   background: var(--color-accent);
   border-radius: var(--radius-md);
   transition: width var(--duration-medium) linear;
@@ -892,6 +919,8 @@ input[type='range'] {
 }
 .ctxmenu {
   position: fixed;
+  left: var(--x);
+  top: var(--y);
   z-index: 100;
   min-width: 170px;
   background: var(--color-panel-raised);
