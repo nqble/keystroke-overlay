@@ -112,7 +112,13 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
     let headers = req.headers();
     let host = headers.get(header::HOST).map(|value| value.to_str().unwrap_or(""));
     let origin = headers.get(header::ORIGIN).map(|value| value.to_str().unwrap_or(""));
-    if !from_this_server(host, origin, st.port) {
+    // Two Host headers are an attempt to confuse the check (HTTP says to answer 400): only the first would be read below.
+    if headers.get_all(header::HOST).iter().count() > 1 {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    // A request line can carry its own address ("GET http://evil.example/ ..."); that address must also be this server.
+    let target = req.uri().authority().map(|authority| authority.as_str());
+    if !from_this_server(host, origin, st.port) || !target_is_this_server(target, st.port) {
         return StatusCode::FORBIDDEN.into_response();
     }
     // Optional secure link: the data endpoints and the key-press stream need the private key. The overlay's own page and
@@ -141,6 +147,12 @@ fn from_this_server(host: Option<&str>, origin: Option<&str>, port: u16) -> bool
         origin == format!("http://localhost:{port}") || origin == format!("http://127.0.0.1:{port}")
     });
     host_ok && origin_ok
+}
+
+/// True when the request line has no address of its own, or its address is this server.
+fn target_is_this_server(authority: Option<&str>, port: u16) -> bool {
+    authority
+        .is_none_or(|authority| authority == format!("localhost:{port}") || authority == format!("127.0.0.1:{port}"))
 }
 
 /// Paths that need the key when the secure link is on.
@@ -419,6 +431,21 @@ mod tests {
         ];
         for (host, origin) in refused {
             assert!(!from_this_server(host, origin, port), "{host:?} {origin:?}");
+        }
+    }
+    #[test]
+    fn a_request_line_with_its_own_address_must_name_this_server() {
+        let port = 7878;
+        for ok in [None, Some("localhost:7878"), Some("127.0.0.1:7878")] {
+            assert!(target_is_this_server(ok, port), "{ok:?}");
+        }
+        for bad in [
+            "evil.example:7878",
+            "localhost:7879",
+            "localhost",
+            "127.0.0.1:7878.evil.example",
+        ] {
+            assert!(!target_is_this_server(Some(bad), port), "{bad}");
         }
     }
     #[test]

@@ -8,14 +8,12 @@
 //
 //  PRIVACY: nothing here is saved to disk or sent anywhere. The event log is the app's own memory and records what the
 //  app did, never which keys you pressed. The Key monitor shows key presses, so it only runs when you press Start, and
-//  it
-//  stops by itself after 60 seconds or when you leave this tab.
+//  it stops by itself after 60 seconds or when you leave this tab.
 //
 //  HOW TO ADD A DEBUG TOOL (takes about ten lines):
 //    1. Add an object to SECTIONS below:   { id: 'my-tool', title: 'My tool', build() { return [ ...page elements... ]; } }
 //    2. Need data from the app?  Add a #[tauri::command] in src-tauri/src/debug.rs, list it in main.rs, then call it
-//    here
-//       with   await invoke('my_command', { arg })
+//       here with   await invoke('my_command', { arg })
 //    3. Need something to refresh by itself?   every(root, 2000, () => { ...update the page... })
 //  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md

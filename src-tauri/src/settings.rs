@@ -30,9 +30,8 @@ pub fn defaults() -> Value {
             // How keys are read: "hook" (standard, default) or "rawinput" (compatibility, for games that block hooks).
             "inputMethod": "hook",
             // Optional "secure link": when on, the overlay link carries a private key (?key=...) and the local server
-            // refuses
-            // requests without it. Off by default (plain link, no extra step). The key is never sent to the overlay
-            // itself.
+            // refuses requests without it. Off by default (plain link, no extra step). The key is never sent to the
+            // overlay itself.
             "secureLink": false,
             "linkKey": "",
             // "stable" = only releases that were promoted to the Stable channel; "latest" = every release.
