@@ -89,7 +89,7 @@ function typeIn(root) {
     const full = node.nodeValue,
       typed = document.createTextNode(''),
       rest = el('span', { textContent: full });
-    rest.style.visibility = 'hidden';
+    rest.classList.add('invisible');
     /** @type {ChildNode} */ (node).replaceWith(typed, rest);
     return { full, typed, rest, done: 0 };
   });

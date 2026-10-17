@@ -1,6 +1,7 @@
 import { registerAnimation } from '/overlay/registry.js';
 
 // Instant light-up, slow fade-out (nice for showing recent keys).
+// Copy this file to make your own animation (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerAnimation({
   id: 'fade',
   name: 'Fade',

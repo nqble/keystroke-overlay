@@ -120,13 +120,12 @@ as administrator too — Windows doesn't let normal programs see keys typed into
 
 ## Secure link (optional)
 
-Under **General → Secure link** you can choose how locked-down your OBS link is. Since v1.4.0-dev it is **on for new
-installs**: the key is part of the OBS link you copy, so there is still nothing extra to do. If you installed an earlier version,
-it stays as you had it (off unless you turned it on), so your OBS link keeps working after the update.
+Under **General → Secure link** you can choose how locked-down your OBS link is. It is **off by default**: the link is plain
+(`http://localhost:7878/`) and needs no extra step.
 
 | | What it means |
 |---|---|
-| **Off** | Simple link (`http://localhost:7878/`). Other programs running on your PC could read your key presses through it. |
+| **Off (default)** | Simple link, nothing extra to do. Other programs running on your PC could read your key presses through it. |
 | **On** | Your OBS link gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
 
 **Make a new key** creates a fresh key and cuts off every link made with the old one.
@@ -223,7 +222,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 - The local overlay server does **not** authenticate other *programs* on the same PC, including other Windows users logged in at the
   same time. A program already running as you could receive key events from it (though it could also install its own keyboard hook).
   You can close this gap with the optional **Secure link** (General → Secure link): your OBS link then carries a private key and
-  the app refuses everything without it. It is on for new installs since v1.4.0-dev (earlier installs keep their choice); turning it on later means pasting the new link into OBS once.
+  the app refuses everything without it. It is off by default, so the link stays simple, and turning it on means pasting the new link into OBS once.
 - Three components are outside our control: **Microsoft Edge WebView2** (draws the settings window; Microsoft's diagnostic-data
   settings apply to it), **OBS**, and **Windows** itself.
 

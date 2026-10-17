@@ -24,22 +24,26 @@ import {
 } from '../profiles.js';
 import { render } from '../settings.js';
 import { observe } from './keys-history.js';
-import { keyboardMap } from './keys-map.js';
 import { hideSelection, nudgeSelection, redoLastChange, selectionTools, undoLastChange } from './keys-toolbar.js';
 import { settings, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
 import { TEXT } from '../text.js';
 
 // ---- Keys: show / hide keys and rename them -----------------------------------------------------------------------
-export function keysTab() {
+export async function keysTab() {
   const page = el('div'),
     layout = curLayout();
   if (!layout) return page;
+  // The editor's code is loaded the first time this tab opens, and the editor then stays alive (zoom, pan and the key
+  // elements are kept when you leave the tab).
+  const { getEditor } = await import('../editor/editor.js');
   observe(layout.id, profileSnapshot(layout.id)); // undo / redo: notice what changed since the last draw
   const profile = viewProf();
+  const editor = getEditor();
+  editor.update(layout, profile);
   page.append(heading('Keys — ' + layout.name), note(TEXT.keysTabHelp));
   page.append(
     selectionTools(layout),
-    keyboardMap(layout, profile),
+    editor.element,
     el('p', { className: 'keyhint', textContent: TEXT.shortcutsHint, test: 'keys-shortcut-hint' }),
     statusLine(layout, profile),
     keyButtons(layout),
@@ -230,7 +234,7 @@ function keyEditor(key, profile) {
 
   const at = keyPos(key, profile);
   const num = (value, test) =>
-    el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), style: 'width:84px', test });
+    el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), className: 'num-field', test });
   const px = num(at.x, 'key-x'),
     py = num(at.y, 'key-y');
   const place = () => {

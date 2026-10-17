@@ -2,7 +2,7 @@
 //  The table that draws every Style / Animation slider, colour picker and dropdown.
 // =====================================================================================================================
 import { Segmented } from './blocks.js';
-import { html, render as drawPreact, useEffect, useRef } from './html.js';
+import { html, render as drawPreact, useLayoutEffect, useRef } from './html.js';
 import { el, get, heading, put, row } from './helpers.js';
 import { changed } from './preview.js';
 import { settings, customFonts, registry } from './state.js';
@@ -282,8 +282,12 @@ function fontCtl(control) {
   const current = get(settings, control.path);
   const mine = customFonts.map((file) => file.replace(/\.[^.]+$/, '')); // "My Font.ttf" -> "My Font"
   const known = new Set([...mine, ...WINDOWS_FONTS]);
-  const option = (font) =>
-    el('option', { value: font, textContent: font, style: `font-family:"${font}", "Segoe UI", sans-serif` });
+  const option = (font) => {
+    const item = el('option', { value: font, textContent: font });
+    item.dataset.font = font;
+    item.style.setProperty('--option-font', `"${font}", "Segoe UI", sans-serif`); // the list shows each name in its own font
+    return item;
+  };
   const select = el(
     'select',
     { test: testName('control', control.path) },
@@ -370,7 +374,7 @@ export const shareRow = (label, onImport, onExport, exportDisabled, tips, hookPr
  */
 export function ControlGroup({ tab, group }) {
   const box = useRef(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     box.current.replaceChildren();
     renderControls(tab, box.current, group);
   });

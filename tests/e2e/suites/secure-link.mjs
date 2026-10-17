@@ -26,21 +26,20 @@ const state = async () => (await p.invoke('get_state')).ok;
 const toggle = `document.querySelector('${byTest('secure-link-toggle')}')`;
 const pageText = () => p.q(`document.querySelector('${byTest('pane')}').innerText`);
 
-// ------------------------------------------------------------ saved off (as by v1.3): it stays off, the link stays plain
-// (a NEW install starts with it on: settings.rs apply_new_install_defaults, unit-tested; the harness writes settings.json first)
+// ------------------------------------------------------------ default: off, nothing changes for anyone
 await p.ev(`document.querySelector('${byTest('tab', '[data-tab="general"]')}').click()`);
 await sleep(500);
 let st = await state();
 check(
-  'settings saved without the secure link keep it OFF and the plain address',
+  'secure link is OFF by default and the link is the plain address',
   st.secureLink === false && st.url === `${base}/`,
   st.url,
 );
 check(
-  'General\'s Connection card has the secure-link switch, off, with the "Off" explanation',
+  'General\'s Connection card has the secure-link switch, off, with the "Off (default)" explanation',
   (await p.q(`!!document.querySelector('${byTest('general-connection')}')?.contains(${toggle})`)) &&
     (await p.q(`${toggle}.getAttribute('role') === 'switch' && ${toggle}.getAttribute('aria-checked') === 'false'`)) &&
-    /Off: your OBS link is simple/.test(await pageText()),
+    /Off \(default\): your OBS link is simple/.test(await pageText()),
 );
 check(
   'while off, the copy / new-key buttons are not on screen',

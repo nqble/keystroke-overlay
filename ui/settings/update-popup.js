@@ -94,7 +94,7 @@ export function paintProgress() {
   const dialogBar = $('#uBar');
   if (dialogBar) {
     dialogBar.hidden = !updateProgress;
-    $('#uFill').style.width = (updateProgress ? Math.max(0, updateProgress.pct) : 0) + '%';
+    $('#uFill').style.setProperty('--pct', (updateProgress ? Math.max(0, updateProgress.pct) : 0) + '%');
     // negative = size unknown, show a moving bar
     $('#uFill').classList.toggle('indet', !!updateProgress && updateProgress.pct < 0);
     if (updateProgress) $('#uText').textContent = updateProgress.text;
@@ -105,7 +105,7 @@ export function paintProgress() {
   if (!bar) return; // General is not showing
   bar.hidden = !updateProgress;
   if (updateProgress) {
-    fill.style.width = updateProgress.pct + '%';
+    fill.style.setProperty('--pct', updateProgress.pct + '%');
     fill.classList.toggle('indet', updateProgress.pct < 0);
     text.textContent = updateProgress.text;
   } else text.textContent = '';

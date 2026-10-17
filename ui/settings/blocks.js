@@ -9,7 +9,7 @@
 //  (data-test, tests/README.md). Plain logic lives outside, with tests (choice-keys.js).
 // =====================================================================================================================
 import { stepChoice } from './choice-keys.js';
-import { html, useEffect, useRef, useState } from './html.js';
+import { html, useEffect, useLayoutEffect, useRef, useState } from './html.js';
 import { showMenu } from './menu.js';
 import { md } from './notes.js';
 import { settings } from './state.js';
@@ -140,7 +140,7 @@ export function MenuButton({ label, items, test = '', text = '' }) {
 /** A short note under a control. **Bold** and `code` work (notes.js reads them; everything stays plain text). */
 export function Note({ text, test = '' }) {
   const box = useRef(null);
-  useEffect(() => box.current.replaceChildren(md(text)), [text]);
+  useLayoutEffect(() => box.current.replaceChildren(md(text)), [text]);
   return html`<div class="note" data-test=${test || null} ref=${box}></div>`;
 }
 

@@ -1,6 +1,7 @@
 import { registerAnimation } from '/overlay/registry.js';
 
 // Pressed colour plus a soft glow halo that fades in/out.
+// Copy this file to make your own animation (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerAnimation({
   id: 'glow',
   name: 'Glow',

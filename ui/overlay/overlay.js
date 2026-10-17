@@ -152,9 +152,8 @@ function build(nextSettings) {
   const prof = profileOf(nextSettings, layout);
   const off = new Set(prof.disabledKeys);
   // A key the user moved is drawn at its saved position; every other key stays where the layout file puts it. The
-  // overlay's
-  // size below comes from the keys actually drawn (their positions and widths), so a compact layout is a compact
-  // overlay in OBS.
+  // overlay's size below comes from the keys actually drawn (their positions and widths), so a compact layout is a
+  // compact overlay in OBS.
   const keys = layout.keys.filter((k) => !off.has(k.code)).map((layoutKey) => placedKey(layoutKey, layout, prof));
   if (!keys.length) {
     reportSize(0, 0);

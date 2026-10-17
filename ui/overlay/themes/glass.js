@@ -1,5 +1,7 @@
 import { registerTheme } from '/overlay/registry.js';
 
+// A frosted, see-through look.
+// Copy this file to make your own theme (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerTheme({
   id: 'glass',
   name: 'Frosted glass',

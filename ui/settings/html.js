@@ -8,7 +8,9 @@ import { h, render } from './vendor/preact.module.js';
 import htm from './vendor/htm.module.js';
 
 export { render };
-export { useEffect, useRef, useState } from './vendor/hooks.module.js';
+// useLayoutEffect runs before the browser draws: for a part filled in by plain page code (a note, a control group), so
+// the page never shows it empty and has its full height when a tab's scroll position is restored.
+export { useEffect, useLayoutEffect, useRef, useState } from './vendor/hooks.module.js';
 
 /** Markup as a tagged template, turned into Preact elements: html`<p>${text}</p>`. */
 export const html = htm.bind(h);

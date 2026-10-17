@@ -13,9 +13,27 @@ export const frame = $('#preview'); // the live preview: the real overlay page, 
 
 export let saveTimer = 0;
 
-/** Send the current settings to the live preview. */
+let previewHidden = false; // true while a tab hides the preview (the Keys tab); nothing is sent to it then
+let missedWhileHidden = false;
+
+/** Send the current settings to the live preview (kept for later while the preview is hidden). */
 export function push() {
+  if (previewHidden) {
+    missedWhileHidden = true;
+    return;
+  }
   frame.contentWindow?.postMessage({ type: 'cfg', settings: settings }, '*');
+}
+
+/** Hide or show the live preview. Showing it again sends the latest settings once and fits it to its box. */
+export function setPreviewHidden(hidden) {
+  if (previewHidden === hidden) return;
+  previewHidden = hidden;
+  document.body.classList.toggle('tab-keys', hidden);
+  if (hidden) return;
+  fitPreview();
+  if (missedWhileHidden) push();
+  missedWhileHidden = false;
 }
 
 /**
@@ -103,11 +121,11 @@ export function fitPreview() {
   if (!size) return;
   const box = $('#previewBox');
   const scale = Math.min(1, (box.clientWidth - 24) / size.w, (box.clientHeight - 24) / size.h);
-  frame.style.width = size.w + 'px';
-  frame.style.height = size.h + 'px';
-  frame.style.transform = `scale(${scale})`;
-  frame.style.left = Math.max(12, (box.clientWidth - size.w * scale) / 2) + 'px';
-  frame.style.top = Math.max(12, (box.clientHeight - size.h * scale) / 2) + 'px';
+  frame.style.setProperty('--frame-w', size.w + 'px');
+  frame.style.setProperty('--frame-h', size.h + 'px');
+  frame.style.setProperty('--frame-scale', String(scale));
+  frame.style.setProperty('--frame-x', Math.max(12, (box.clientWidth - size.w * scale) / 2) + 'px');
+  frame.style.setProperty('--frame-y', Math.max(12, (box.clientHeight - size.h * scale) / 2) + 'px');
 }
 
 // Messages from the live preview page (it tells us when it is ready, how big it is, and which themes/animations exist).

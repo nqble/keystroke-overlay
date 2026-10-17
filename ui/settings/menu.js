@@ -44,8 +44,8 @@ export function showMenu(event, items, at = { x: event.clientX, y: event.clientY
   );
   document.body.append(menuEl);
   const box = menuEl.getBoundingClientRect(); // keep the menu fully inside the window
-  menuEl.style.left = Math.max(4, Math.min(at.x, innerWidth - box.width - 4)) + 'px';
-  menuEl.style.top = Math.max(4, Math.min(at.y, innerHeight - box.height - 4)) + 'px';
+  menuEl.style.setProperty('--x', Math.max(4, Math.min(at.x, innerWidth - box.width - 4)) + 'px');
+  menuEl.style.setProperty('--y', Math.max(4, Math.min(at.y, innerHeight - box.height - 4)) + 'px');
   /** @type {HTMLElement | null} */ (menuEl.querySelector('button:not(:disabled)'))?.focus();
 }
 

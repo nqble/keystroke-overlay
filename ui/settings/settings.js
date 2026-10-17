@@ -17,7 +17,7 @@ import { refreshFades } from './scroll-fade.js';
 import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
 import { showNotes } from './notes.js';
 import { showUpdateResult } from './update-popup.js';
-import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
+import { fitPreview, frame, previewSrc, setPreviewHidden, updateObs } from './preview.js';
 import {
   appVersion,
   registry,
@@ -45,8 +45,9 @@ import { findTab, visibleTabs } from './tabs/index.js';
 /** The tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
 function TabBar({ tabs, current }) {
   const open = (id) => {
+    scrollOf.set(tab, $('#pane').scrollTop);
     setTab(id);
-    render();
+    render(scrollOf.get(id) ?? 0);
   };
   return tabs.map(
     ({ id, name }) =>
@@ -81,14 +82,21 @@ function showInPane(pane, content) {
   draw(content, pane);
 }
 
-/** Redraw the tab bar and the active tab, keeping the scroll position. */
-export async function render() {
+const scrollOf = new Map(); // where each tab was scrolled to when you left it, so coming back lands there again
+
+/**
+ * Redraw the tab bar and the active tab. Without `scroll` (a redraw after a change) the pane stays where it is
+ * scrolled; the tab bar passes the remembered place of the tab it opens.
+ */
+export async function render(scroll = null) {
   const debugMode = !!settings?.general?.debugMode;
   if (!findTab(tab, debugMode)) setTab('general'); // e.g. Debug mode was just switched off while on the Debug tab
   draw(html`<${TabBar} tabs=${visibleTabs(debugMode)} current=${tab} />`, $('#tabs'));
   const pane = $('#pane');
-  const scroll = pane.scrollTop;
-  const content = await findTab(tab, debugMode).render();
+  if (typeof scroll !== 'number') scroll = pane.scrollTop; // also when called with something else, e.g. an event
+  const entry = findTab(tab, debugMode);
+  setPreviewHidden(!!entry.hidesPreview);
+  const content = await entry.render();
   showInPane(pane, content);
   pane.scrollTop = scroll;
   refreshFades();

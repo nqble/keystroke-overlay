@@ -1,6 +1,6 @@
 // =====================================================================================================================
 //  The release notes' sections: the one list both the app and the release check use (docs/RELEASING.md, "Release
-//  notes format"). popups.js colours each section when it shows the notes; tools/changelog-section.mjs refuses a
+//  notes format"). notes.js colours each section when it shows the notes; tools/changelog-section.mjs refuses a
 //  CHANGELOG entry that uses another heading or the wrong order. Plain logic, so tests/ui can run it with Node.
 // =====================================================================================================================
 

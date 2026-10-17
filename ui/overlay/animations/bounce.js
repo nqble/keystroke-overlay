@@ -1,6 +1,7 @@
 import { registerAnimation } from '/overlay/registry.js';
 
 // Dips on press, springs back past the resting position on release.
+// Copy this file to make your own animation (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerAnimation({
   id: 'bounce',
   name: 'Bounce',

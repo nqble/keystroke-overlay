@@ -1,6 +1,7 @@
 import { registerAnimation } from '/overlay/registry.js';
 
 // Key sinks slightly when pressed.
+// Copy this file to make your own animation (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerAnimation({
   id: 'pressdown',
   name: 'Press down',

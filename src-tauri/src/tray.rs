@@ -13,6 +13,9 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt as _;
 
+/// When restarting the server on a new port fails (the old listener may not have let go yet), wait this long and try again.
+const TRAY_RETRY_DELAY: std::time::Duration = std::time::Duration::from_millis(100);
+
 // ---------------------------------------------------------------- quick actions
 pub fn toggle_pause_inner(app: &AppHandle) -> bool {
     let st = app.state::<AppState>();
@@ -167,7 +170,7 @@ pub fn restart_server_inner(app: &AppHandle) -> Result<(), String> {
             }
             Err(e) => {
                 last = e;
-                std::thread::sleep(std::time::Duration::from_millis(100));
+                std::thread::sleep(TRAY_RETRY_DELAY);
             }
         }
     }

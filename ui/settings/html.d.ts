@@ -5,4 +5,5 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]): any;
 export function render(element: any, parent: Element): void;
 export function useState<T>(initial: T | (() => T)): [T, (next: T | ((previous: T) => T)) => void];
 export function useEffect(effect: () => void | (() => void), dependencies?: unknown[]): void;
+export function useLayoutEffect(effect: () => void | (() => void), dependencies?: unknown[]): void;
 export function useRef<T>(initial: T): { current: T };

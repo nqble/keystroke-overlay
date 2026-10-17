@@ -1,6 +1,7 @@
 import { registerAnimation } from '/overlay/registry.js';
 
 // Key pops bigger while held.
+// Copy this file to make your own animation (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerAnimation({
   id: 'scale',
   name: 'Scale up',

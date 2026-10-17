@@ -1,5 +1,7 @@
 import { registerTheme } from '/overlay/registry.js';
 
+// The default look: dark rounded keys with a blue pressed colour.
+// Copy this file to make your own theme (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerTheme({
   id: 'default',
   name: 'Default (dark blue)',

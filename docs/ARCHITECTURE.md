@@ -56,7 +56,8 @@ keystroke-overlay/
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png
-        ├── settings.css   the shared look: design tokens (its :root), the page, scrollbar, scroll fade
+        ├── settings.css   the shared look: design tokens (its :root), the page, scrollbar, scroll fade; scripts only
+        │                  hand it CSS variables, never inline styles (tools/check-style.mjs enforces both)
         ├── tabs.css, header.css, pause-button.css, popups.css, debug.css, keys.css   one file per part of the window
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
@@ -87,11 +88,13 @@ keystroke-overlay/
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
         └── tabs/          one file per tab (layout, keys, style, animation, general; layout-card.js, style-*.js and general-*.js are
                            parts of those); index.js lists them in order
-            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
-            drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),
-            keys-arrange.js (the movement maths, plain functions with unit tests) and keys-history.js (undo and redo).
-            Built for the coming makeover ([design/key-editor.md](design/key-editor.md)), not used by the tab yet:
-            keys-board.js (board geometry), keys-view.js (zoom and pan) and keys-guides.js (snapping guides), with unit tests.
+            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-toolbar.js (selection, nudge,
+            align, history, snap and grid controls), keys-arrange.js (the movement maths, plain functions with unit tests)
+            and keys-history.js (undo and redo). The keyboard itself is the editor in editor/ ([design/key-editor.md](design/key-editor.md)):
+            editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
+            key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
+            places.js says where the keys are. The geometry is in keys-board.js (board size and limits), keys-view.js (zoom and
+            pan) and keys-guides.js (snapping guides, used from the next step), plain functions with unit tests.
 ```
 
 ## How a key press travels
@@ -109,7 +112,7 @@ key press → capture method on its own thread:
   live: `Bus::set_method` stops the old source, releases any held keys, starts the new one, and falls back to the old one if
   the new one can't start. The framework's own Raw Input registration is disabled at startup (`device_event_filter(Always)`)
   because registrations are per process and would compete with ours.
-- **Secure link (on for new installs since v1.4.0-dev, `settings::apply_new_install_defaults`; `defaults()` keeps it off so older files keep their plain link):** `general.secureLink` + a random 128-bit `general.linkKey`. When on, `server.rs` requires
+- **Secure link (optional, off by default):** `general.secureLink` + a random 128-bit `general.linkKey`. When on, `server.rs` requires
   `?key=` (constant-time compare) on `/api/*`, `/ws`, `/fonts/*` and `/user/*`; the page and `/overlay/*` stay open (public code). `obs_url()`
   appends the key, the overlay repeats it on every request and the WebSocket, and `public_settings()` strips the key from everything the
   overlay receives. Toggling or regenerating restarts the server so old connections drop.

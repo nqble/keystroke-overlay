@@ -20,6 +20,9 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
   and the e2e suite `keys-editor.mjs`),
   **user-facing text still inline** in a few UI files (about 33 long strings), and **unnamed numbers** (mostly sleeps and
   timings in Rust, and timings in the settings UI).
+- **Done 2026-10-17:** the headers on the 5 themes and 6 animations ("copy this file to make your own"); the loose timings in
+  Rust now have names (`REQUEST_TIMEOUT_SECS`, `TRIM_MEMORY_AFTER_MS`, `MONITOR_POLL`, `TRAY_RETRY_DELAY`; the 45 s start
+  delay already had one). The `overlay.js` rebuild question was measured and left alone (see the loading plan, section B).
 - **Update check (loading plan item C8): fine, no change needed.** `commands/updates.rs` `start_background_check` waits
   45 s after start-up, then loops with one `tokio::time::sleep(CHECK_EVERY_SECS)` (3600 s) per round, so the app wakes
   once an hour and does nothing in between. When automatic checks are off it still wakes hourly to read the setting, which

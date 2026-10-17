@@ -263,10 +263,11 @@ check(
   R.settings.style.radius === 8 &&
     R.settings.style.opacity === 1 &&
     R.settings.animation.speed === 120 &&
-    R.secureLink === false &&
-    R.url === 'http://localhost:7879/',
+    R.secureLink === true && // the suite switched it on above; a reset keeps it
+    R.url.startsWith('http://localhost:7879/?key='),
   JSON.stringify([R.settings.style.radius, R.secureLink, R.url]),
 );
+await p.invoke('set_secure_link', { enabled: false }); // the rest of the suite reads the plain address
 check('Reset keeps the layouts you made', (await api()).some((l) => l.id === keep) && R.settings.layout.id === 'tkl');
 await p.invoke('delete_layout', { id: keep });
 
