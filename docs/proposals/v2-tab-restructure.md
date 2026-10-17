@@ -36,7 +36,7 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
    `tabs/index.js` holds them in order. `TABS` in `settings.js` and `TAB_NAMES` in `state.js` go. Adding or removing a
    tab is then one file and one line, and a unit test checks every listed tab has an id, a name and a render. Removing
    the Fonts tab (step 8) becomes deleting one line.
-6. **refactor: split `debug.js` into `debug/`**. No visible change.
+6. ~~**refactor: split `debug.js` into `debug/`**.~~ Done: one file per tool, no visible change.
 7. **feat: General in section cards**, OBS link card, Advanced.
 8. **feat: Style with Fonts merged in**, theme gallery, preset cards. The Fonts tab is removed (nothing opens it by
    name today, so no redirect is needed).

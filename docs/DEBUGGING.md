@@ -49,10 +49,11 @@ crate::debug::log("what just happened");            // or  crate::debug::log(for
 ### A new debug tool
 
 1. If it needs data from the app, add a `#[tauri::command]` in `src-tauri/src/debug.rs` and list it in `generate_handler!` in `src-tauri/src/main.rs`.
-2. In `ui/settings/debug.js`, add one object to the `SECTIONS` list:
+2. Add a file in `ui/settings/debug/` (one per tool) that exports it, and add its name to `SECTIONS` in
+   `ui/settings/debug/index.js`:
 
 ```js
-{
+export const myTool = {
   id: 'my-tool', // a short name for tests (goes into data-card)
   title: 'My tool',
   build() {
@@ -60,12 +61,14 @@ crate::debug::log("what just happened");            // or  crate::debug::log(for
     every(out, 2000, async () => { out.textContent = JSON.stringify(await invoke('debug_info')); });   // refresh every 2 s
     return [note('What this shows.'), out];
   },
-},
+};
 ```
 
-debug.js is an ES module, so import what you use at the top of the file (`helpers.js` for the small tools, `state.js` for the settings and layouts, `dialogs.js`, `notes.js`, `messages.js`, `settings.js`).
+Each file is an ES module, so import what you use at the top: `../helpers.js` for the small tools, `../state.js` for
+the settings and layouts, `./shared.js` for `every()`, `facts()` and the tab's wording, `./checks.js` for the
+self-test; the other sections show the pattern.
 
-Helpers you can use there: `el()`, `heading()`, `note()`, `button()`, `row()`, `toast()`, `call()`, `invoke()`, the `settings`, `layouts`, `showNotes()`, `resync()`, `render()`. The file's header comment lists them.
+Helpers you can use there: `el()`, `heading()`, `note()`, `button()`, `row()`, `toast()`, `call()`, `invoke()`, the `settings`, `layouts`, `showNotes()`, `resync()`, `render()`. `ui/settings/debug/index.js`'s header comment has the steps.
 
 3. Add a check to `tests/e2e/suites/debug.mjs` and run `npm run test:e2e -- --suite debug`.
 

@@ -11,7 +11,7 @@ import { keysTab } from './keys.js';
 import { layoutTab } from './layout.js';
 import { styleTab } from './style.js';
 
-const loadDebugTab = async () => (await import('../debug.js')).debugTab.render();
+const loadDebugTab = async () => (await import('../debug/index.js')).debugTab.render();
 
 export const TABS = [
   { id: 'layout', name: 'Layout', render: layoutTab },

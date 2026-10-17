@@ -70,7 +70,7 @@ when it takes more than one, a check or test catches a forgotten one.
 | A new screen or part of one | a Preact component using `html` from `ui/settings/html.js` (docs/proposals/v2-preact.md); plain logic in its own tested function | 1 |
 | A popup | `dialog()` in `ui/settings/popup.js` (focus, Esc, Enter and size come with it) | 1 |
 | A scrolling area | the class `scroll-fade` on it (the fade and the shared scrollbar come with it; docs/design/ui-design-v2.md, Scrolling) | 1 |
-| A Debug tool | one entry in `SECTIONS`, `ui/settings/debug.js` | 1 |
+| A Debug tool | a file in `ui/settings/debug/` and its name in `SECTIONS` in `debug/index.js` | 2 |
 | A UI sandbox state | one line in `STATES`, `tools/sandbox/fake-app.js` | 1 |
 | A release-note section | `NOTE_SECTIONS` in `ui/settings/release-notes.js`, a colour token, a row in RELEASING.md (the release check refuses unknown sections) | 3 |
 | A setting | section 4 above (a Rust test catches a missing sandbox copy) | 3 |
