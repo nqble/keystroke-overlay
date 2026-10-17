@@ -36,7 +36,7 @@ pub async fn add_font(app: AppHandle, st: State<'_, AppState>) -> Result<Option<
 
 #[tauri::command]
 pub fn remove_font(st: State<AppState>, name: String) -> Result<(), String> {
-    if name.contains(['/', '\\']) {
+    if !crate::server::is_plain_file_name(&name) {
         return Err("bad name".into());
     }
     std::fs::remove_file(st.shared.paths.fonts().join(name)).map_err(|e| e.to_string())?;

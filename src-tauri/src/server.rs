@@ -180,7 +180,9 @@ fn mime(name: &str) -> &'static str {
 fn bytes_resp(name: &str, body: Vec<u8>) -> Response {
     ([(header::CONTENT_TYPE, mime(name))], body).into_response()
 }
-fn safe(name: &str) -> bool {
+/// A plain file name: no folder parts, no drive letter, no "..". Every name from outside (a web request, the settings
+/// window) passes this before it touches the disk (also used by commands/assets.rs).
+pub(crate) fn is_plain_file_name(name: &str) -> bool {
     !name.is_empty() && !name.contains(['/', '\\', ':']) && !name.contains("..")
 }
 
@@ -194,7 +196,7 @@ async fn serve_overlay(Path(file_path): Path<String>) -> Response {
     }
 }
 async fn serve_user(State(st): State<St>, Path((kind, file)): Path<(String, String)>) -> Response {
-    if !["layouts", "animations", "themes"].contains(&kind.as_str()) || !safe(&file) {
+    if !["layouts", "animations", "themes"].contains(&kind.as_str()) || !is_plain_file_name(&file) {
         return StatusCode::NOT_FOUND.into_response();
     }
     match std::fs::read(st.shared.paths.user(&kind).join(&file)) {
@@ -203,7 +205,7 @@ async fn serve_user(State(st): State<St>, Path((kind, file)): Path<(String, Stri
     }
 }
 async fn serve_font(State(st): State<St>, Path(file): Path<String>) -> Response {
-    if !safe(&file) {
+    if !is_plain_file_name(&file) {
         return StatusCode::NOT_FOUND.into_response();
     }
     match std::fs::read(st.shared.paths.fonts().join(&file)) {
@@ -383,6 +385,13 @@ mod tests {
 
     fn cfg(on: bool, key: &str) -> Value {
         json!({ "general": { "secureLink": on, "linkKey": key } })
+    }
+    #[test]
+    fn only_plain_file_names_are_accepted() {
+        assert!(is_plain_file_name("Pixel Operator.ttf"));
+        for bad in ["", "..", "../x.ttf", "a/b.ttf", "a\\b.ttf", "C:x.ttf", "x..ttf"] {
+            assert!(!is_plain_file_name(bad), "{bad}");
+        }
     }
     #[test]
     fn only_requests_from_this_server_get_through_the_guard() {
