@@ -46,6 +46,7 @@
     fetch('/__sandbox__/layouts.json').then((response) => response.json()),
   ]);
   let settings = null;
+  const presets = {};
   let paused = !!chosen.paused;
   const log = [[0, 'sandbox started: nothing here is real']];
 
@@ -73,7 +74,15 @@
     get_state: getState,
     list_layouts: async () => (await loaded)[1],
     list_fonts: () => [],
-    list_presets: () => [],
+    // presets live in memory for the visit, so saving, loading and deleting can be tried
+    list_presets: () => Object.keys(presets),
+    save_preset: ({ name, data }) => {
+      presets[name] = structuredClone(data);
+    },
+    load_preset: ({ name }) => structuredClone(presets[name]),
+    delete_preset: ({ name }) => {
+      delete presets[name];
+    },
     save_settings: ({ settings: saved }) => {
       settings = saved;
     },

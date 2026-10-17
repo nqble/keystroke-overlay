@@ -5,7 +5,6 @@
 //  `debugOnly` tabs show only in Debug mode, and their code loads only then.
 // =====================================================================================================================
 import { animationTab } from './animation.js';
-import { fontsTab } from './fonts.js';
 import { generalTab } from './general.js';
 import { keysTab } from './keys.js';
 import { layoutTab } from './layout.js';
@@ -18,7 +17,6 @@ export const TABS = [
   { id: 'keys', name: 'Keys', render: keysTab },
   { id: 'style', name: 'Style', render: styleTab },
   { id: 'animation', name: 'Animation', render: animationTab },
-  { id: 'fonts', name: 'Fonts', render: fontsTab },
   { id: 'general', name: 'General', render: generalTab },
   { id: 'debug', name: 'Debug', render: loadDebugTab, debugOnly: true },
 ];

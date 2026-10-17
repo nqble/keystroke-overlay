@@ -124,10 +124,12 @@ Rules:
 | `keys-shortcut-hint` | The one-line list of keyboard shortcuts under the picture |
 | `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the picture |
 | `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back` | The editor under the picture (one key or several) |
-| `style-theme`, `preset-select`, `preset-load`, `preset-delete`, `preset-name`, `preset-save` | Themes and presets in the Style tab |
+| `theme-card-<id>` (for example `theme-card-neon`), `style-themes` | Style's theme gallery: one card per theme file (`aria-pressed` on the one in use) |
+| `style-presets`, `preset-new`, `preset-card`, `preset-menu`, `preset-name`, `preset-save` | My presets: the "+ Save current look" card, each preset (click loads it) and its ⋯ menu; the name box and Save in the save popup |
+| `style-reset`, `style-colors`, `style-shape`, `style-text`, `style-size` | Style's Reset ▾ menu and its cards |
 | `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, colour picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
 | `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
-| `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
+| `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | Style → Text: your font files (there is no Fonts tab since v2.0) |
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | A tickbox made by `toggle()` (`ui/settings/controls.js`); in General, the same names are its switches (`role="switch"`, `aria-checked`) |
 | `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS link: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number shown in the About part of General |

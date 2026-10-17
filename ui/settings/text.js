@@ -20,7 +20,6 @@ export const TEXT = {
   gridHelp: 'Faint dots at every snap step.',
   groupEditorTip: 'Drag any selected key to move them all. Click an empty spot to clear.',
   animationTabNote: 'Light on your PC. Press keys to try it.',
-  fontsTabHelp: 'Add TTF, OTF or WOFF files, then pick them in Style → Font family.',
   keyEditorTip: 'Tip: symbols like ⎵ or ↑ work, or words like "Jump".',
   keyPictureHelp: 'Drag a key to move it. Drag on the background to select several. Tab and Enter work too.',
   secureLinkOff:

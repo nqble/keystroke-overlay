@@ -49,6 +49,13 @@
 .tab-heading .note {
   margin: var(--space-2) 0 0;
 }
+/* A heading row with the tab's main action on the right (Style's Reset ▾) */
+.tab-heading.with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
 .section-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -210,6 +217,51 @@
   right: var(--space-8);
 }
 
+/* ---- Galleries (Style's themes and presets, Animation's cards): a grid of gallery cards under a section title */
+.gallery-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-12);
+}
+.gallery-card.add {
+  justify-content: center;
+  align-items: center;
+  min-height: 60px;
+  border-style: dashed;
+  border-color: var(--color-line-dashed);
+  color: var(--color-text-dim);
+}
+.gallery-card.add:hover {
+  border-color: var(--color-line-dashed-hover);
+  color: var(--color-text);
+}
+/* A theme's two sample keys: the colours come from the theme file, through CSS variables (themes.js) */
+.theme-stage {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-12) 0;
+  border-radius: var(--radius-xl);
+  background: var(--color-well);
+}
+.theme-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: var(--key-border-width) solid var(--key-border);
+  border-radius: var(--key-radius);
+  background: var(--key-fill);
+  color: var(--key-text);
+  font: var(--weight-semibold) var(--text-md) var(--key-font);
+}
+
 /* ---- "⋯" menu button */
 .menu-button {
   width: 28px;
@@ -220,6 +272,12 @@
   background: var(--color-panel-raised);
   color: var(--color-text);
   cursor: pointer;
+}
+.menu-button.with-text {
+  width: auto;
+  height: 32px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--color-control-line);
 }
 .menu-button:hover {
   background: var(--color-menu-hover);

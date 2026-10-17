@@ -17,7 +17,9 @@ const tab = async (id) => {
 };
 // Every dropdown and slider on the Style and Animation tabs: the ones made from CONTROLS (their hooks start with
 // "control-") plus the theme and saved-preset dropdowns.
-const EVERY_SELECT = `select${byTestStart('control-')}, ${byTest('style-theme')}, ${byTest('preset-select')}`;
+// themes are cards since v2.0 (ui/settings/tabs/style-themes.js), so the sweep clicks every theme card as well
+const EVERY_SELECT = `select${byTestStart('control-')}`;
+const EVERY_THEME_CARD = byTestStart('theme-card-');
 const EVERY_SLIDER = `input[type=range]${byTestStart('control-')}`;
 
 const TAB_IDS = {
@@ -25,7 +27,6 @@ const TAB_IDS = {
   Keys: 'keys',
   Style: 'style',
   Animation: 'animation',
-  Fonts: 'fonts',
   General: 'general',
 };
 for (const [name, id] of Object.entries(TAB_IDS)) {
@@ -99,7 +100,7 @@ await p.ev(
 );
 await tab('animation');
 await tab('style');
-await tab('fonts');
+await tab('general');
 await tab('style');
 check(
   'revisiting the Style tab does not ask the app for the preset list again',
@@ -134,11 +135,9 @@ for (let presses = 0; presses < 120 && !reached; presses++) {
 }
 check('reaching a slider with the Tab key shows a focus outline', reached && (await outlineShown()));
 check(
-  'the Fonts tab no longer has presets',
-  await (async () => {
-    await tab('fonts');
-    return !(await p.q(`!!document.querySelector('.fpre')`));
-  })(),
+  'font files are added in Style -> Text, and there is no Fonts tab any more',
+  (await p.q(`!!document.querySelector('${byTest('fonts-add')}')`)) &&
+    !(await p.q(`!!document.querySelector('${byTest('tab', '[data-tab="fonts"]')}')`)),
 );
 await tab('style');
 const fontSelect = `document.querySelector('${byTest('control-style-font-family')}')`;
@@ -195,6 +194,10 @@ check(
   JSON.stringify(await errs()),
 );
 await tab('style');
+for (const index of await p.q(`[...document.querySelectorAll('${EVERY_THEME_CARD}')].map((c, i) => i)`)) {
+  await p.ev(`[...document.querySelectorAll('${EVERY_THEME_CARD}')][${index}].click()`);
+  await sleep(150);
+}
 for (const sel of await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')].map((s, i) => i)`)) {
   const opts = await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')][${sel}].options.length`);
   for (let o = 0; o < opts; o++) {

@@ -1,117 +1,71 @@
 // =====================================================================================================================
-//  The Style tab: themes, presets, colours, shape, text and size.
+//  The Style tab (docs/design/ui-design-v2.md, Tabs): the theme gallery and My presets (style-themes.js), then short
+//  section cards: Colors, Shape, Text (with your font files, style-fonts.js) and Size. The sliders and colour pickers
+//  come from the control table (CONTROLS in controls.js), one group per card. The Fonts tab is merged in here.
 // =====================================================================================================================
-import { renderControls, shareRow } from '../controls.js';
-import { button, call, el, heading, row, toast } from '../helpers.js';
-import { changed } from '../preview.js';
-import { render } from '../settings.js';
-import { settings, registry, presets, setPresets } from '../state.js';
+import { MenuButton, Section } from '../blocks.js';
+import { ControlGroup } from '../controls.js';
+import { call } from '../helpers.js';
+import { html } from '../html.js';
+import { presets, registry, setPresets } from '../state.js';
+import { YourFonts } from './style-fonts.js';
+import { PresetGallery, ThemeGallery, applyLook } from './style-themes.js';
 
-/** Ask the app for the saved preset names and keep them. */
-async function loadPresets() {
+const WORDS = {
+  title: 'Style',
+  subtitle: 'Pick a theme, then fine-tune.',
+  reset: 'Reset ▾',
+  resetLabel: 'Reset the look',
+  resetDefault: 'Back to the default look',
+  colors: 'Colors',
+  shape: 'Shape',
+  text: 'Text',
+  size: 'Size',
+};
+
+// The theme a reset goes back to (ui/overlay/themes/default.js).
+const DEFAULT_THEME = 'default';
+
+/** The saved preset names, asked from the app once and kept; saving or deleting one makes them be asked for again. */
+async function presetNames() {
+  if (presets) return presets;
   const names = await call('list_presets');
   setPresets(names);
   return names;
 }
 
-// ---- Style: themes, presets, colours, shape, text, size -----------------------------------------------------------
 export async function styleTab() {
-  const page = el('div');
-  page.append(heading('Themes & presets'));
+  return html`<${Style} presetNames=${await presetNames()} />`;
+}
 
-  const themes = el(
-    'select',
-    { test: 'style-theme' },
-    el('option', { value: '', textContent: 'Built-in themes…' }),
-    registry.themes.map((t) => el('option', { value: t.id, textContent: t.name })),
-  );
-  themes.onchange = () => {
-    const theme = registry.themes.find((t) => t.id === themes.value);
-    if (!theme) return;
-    Object.assign(settings.style, theme.style);
-    Object.assign(settings.animation, theme.animation);
-    changed(true);
+function Style({ presetNames: names }) {
+  const resetToDefault = () => {
+    const theme = registry.themes.find((candidate) => candidate.id === DEFAULT_THEME);
+    if (theme) applyLook(theme);
   };
-  page.append(row('Built-in theme', themes));
-
-  // the preset names are fetched once and kept; saving or deleting a preset (below) makes them be fetched again
-  const names = presets ?? (await loadPresets());
-  const saved = el(
-    'select',
-    { test: 'preset-select' },
-    el('option', { value: '', textContent: names.length ? 'My presets…' : 'No saved presets yet' }),
-    names.map((n) => el('option', { value: n, textContent: n })),
-  );
-  const apply = (data) => {
-    // used by Load and by Import
-    if (data.style) Object.assign(settings.style, data.style);
-    if (data.animation) Object.assign(settings.animation, data.animation);
-    changed(true);
-  };
-  const currentLook = () => ({ style: settings.style, animation: settings.animation });
-  page.append(
-    row(
-      'My presets',
-      saved,
-      button(
-        'Load',
-        async () => {
-          if (saved.value) apply(await call('load_preset', { name: saved.value }));
-        },
-        '',
-        'preset-load',
-      ),
-      button(
-        'Delete',
-        async () => {
-          if (saved.value) {
-            await call('delete_preset', { name: saved.value });
-            setPresets(null);
-            render();
-          }
-        },
-        'danger',
-        'preset-delete',
-      ),
-    ),
-  );
-
-  const nameInput = el('input', { type: 'text', placeholder: 'Preset name', test: 'preset-name' });
-  page.append(
-    row(
-      'Save current as',
-      nameInput,
-      button(
-        'Save',
-        async () => {
-          await call('save_preset', { name: nameInput.value, data: currentLook() });
-          setPresets(null);
-          toast('Preset saved');
-          render();
-        },
-        '',
-        'preset-save',
-      ),
-    ),
-  );
-  page.append(
-    shareRow(
-      'Share style',
-      async () => {
-        const data = await call('import_preset');
-        if (data) {
-          apply(data);
-          toast('Imported');
-        }
-      },
-      async () => {
-        if (await call('export_preset', { data: currentLook() })) toast('Exported');
-      },
-      false,
-      { imp: 'Load a style from a file someone shared', exp: 'Save the current style and animation to a file' },
-      'style',
-    ),
-  );
-  renderControls('style', page);
-  return page;
+  return html`<div class="tab-page">
+    <div class="tab-heading with-action">
+      <div>
+        <h2 data-test="section-heading">${WORDS.title}</h2>
+        <p class="note">${WORDS.subtitle}</p>
+      </div>
+      <${MenuButton}
+        text=${WORDS.reset}
+        label=${WORDS.resetLabel}
+        test="style-reset"
+        items=${[{ label: WORDS.resetDefault, run: resetToDefault }]}
+      />
+    </div>
+    <${ThemeGallery} />
+    <${PresetGallery} names=${names} />
+    <div class="section-grid">
+      <${Section} title=${WORDS.colors} test="style-colors"><${ControlGroup} tab="style" group="Key colors" /><//>
+      <${Section} title=${WORDS.shape} test="style-shape"><${ControlGroup} tab="style" group="Shape" /><//>
+      <${Section} title=${WORDS.text} test="style-text">
+        <${ControlGroup} tab="style" group="Text" />
+        <${YourFonts} />
+      <//>
+      <${Section} title=${WORDS.size} test="style-size"><${ControlGroup} tab="style" group="Size" /><//>
+    </div>
+  </div>`;
 }

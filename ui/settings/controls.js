@@ -1,6 +1,7 @@
 // =====================================================================================================================
 //  The table that draws every Style / Animation slider, colour picker and dropdown.
 // =====================================================================================================================
+import { html, useEffect, useRef } from './html.js';
 import { el, get, heading, put, row } from './helpers.js';
 import { changed } from './preview.js';
 import { settings, customFonts, registry } from './state.js';
@@ -290,11 +291,14 @@ function fontCtl(control) {
   return [select, typed];
 }
 
-/** Draw every control of one tab, grouped under headings. */
-export function renderControls(tabName, parent) {
+/**
+ * Draw every control of one tab, grouped under headings. With `onlyGroup`, only that group's controls and no heading
+ * (a v2.0 section card gives the title, see ControlGroup).
+ */
+export function renderControls(tabName, parent, onlyGroup = null) {
   let group = null;
-  for (const control of CONTROLS.filter((c) => c.tab === tabName)) {
-    if (control.group !== group) {
+  for (const control of CONTROLS.filter((c) => c.tab === tabName && (!onlyGroup || c.group === onlyGroup))) {
+    if (!onlyGroup && control.group !== group) {
       group = control.group;
       parent.append(heading(group));
     }
@@ -328,3 +332,16 @@ export const shareRow = (label, onImport, onExport, exportDisabled, tips, hookPr
       test: hookPrefix + '-export',
     }),
   );
+
+/**
+ * One group of the control table inside a Preact screen (a section card of Style or Animation). The controls are still
+ * built by renderControls, so a setting is still one line in CONTROLS.
+ */
+export function ControlGroup({ tab, group }) {
+  const box = useRef(null);
+  useEffect(() => {
+    box.current.replaceChildren();
+    renderControls(tab, box.current, group);
+  });
+  return html`<div class="control-group" ref=${box}></div>`;
+}

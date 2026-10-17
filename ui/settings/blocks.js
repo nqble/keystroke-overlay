@@ -116,21 +116,24 @@ export function GalleryCard({ title, detail = '', selected, onSelect, menu = nul
   </div>`;
 }
 
-/** The "⋯" button that opens a small menu (menu.js) just below itself. items: [{ label, run?, danger?, disabled? }] */
-export function MenuButton({ label, items, test = '' }) {
+/**
+ * The "⋯" button that opens a small menu (menu.js) just below itself. items: [{ label, run?, danger?, disabled? }]. With
+ * `text` it is a labelled button instead (a tab's "Reset ▾").
+ */
+export function MenuButton({ label, items, test = '', text = '' }) {
   const openMenu = (clickEvent) => {
     const box = clickEvent.currentTarget.getBoundingClientRect();
     showMenu(clickEvent, items, { x: box.left, y: box.bottom + MENU_GAP });
   };
   return html`<button
     type="button"
-    class="menu-button"
+    class=${text ? 'menu-button with-text' : 'menu-button'}
     aria-label=${label}
     aria-haspopup="menu"
     data-test=${test || null}
     onClick=${openMenu}
   >
-    ⋯
+    ${text || '⋯'}
   </button>`;
 }
 

@@ -38,7 +38,7 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
    the Fonts tab (step 8) becomes deleting one line.
 6. ~~**refactor: split `debug.js` into `debug/`**.~~ Done: one file per tool, no visible change.
 7. ~~**feat: General in section cards**, OBS link card, Advanced.~~ Done (Preact, `tabs/general*.js`).
-8. **feat: Style with Fonts merged in**, theme gallery, preset cards. The Fonts tab is removed (nothing opens it by
+8. ~~**feat: Style with Fonts merged in**, theme gallery, preset cards.~~ Done (Preact, `tabs/style*.js`). The Fonts tab is removed (nothing opens it by
    name today, so no redirect is needed).
 9. **feat: Layout cards** with mini pictures and the "⋯" menu, drag to reorder, Hide for built-in layouts, and the
    ready-made library in New layout (ui-design-v2.md, Layouts). The new

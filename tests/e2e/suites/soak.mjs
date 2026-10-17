@@ -10,7 +10,7 @@ const start = procStats(); // [threads, handles, workingSetMB, cpuMs]
 let sent = 0,
   errs = 0;
 await p.ev(`window.__errs = []; addEventListener('error', e => __errs.push(String(e.message)));`);
-const tabs = ['layout', 'keys', 'style', 'animation', 'fonts', 'general'];
+const tabs = ['layout', 'keys', 'style', 'animation', 'general'];
 const t0 = Date.now();
 for (let i = 0; Date.now() - t0 < 120000; i++) {
   await inject('flood', 25);
