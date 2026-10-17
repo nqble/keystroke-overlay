@@ -35,7 +35,7 @@ check('...even when the app does things (create / delete a layout)', quiet === 0
 
 // ---- switch it on through the real toggle
 await tab('general');
-check('General -> App has the "Debug mode (for developers)" switch', await p.q(`!!${debugToggle}`));
+check('General -> Advanced has the "Debug mode (for developers)" switch', await p.q(`!!${debugToggle}`));
 await p.ev(`${debugToggle}.click()`);
 await sleep(900);
 check(

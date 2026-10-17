@@ -1,6 +1,7 @@
 // =====================================================================================================================
 //  The shared building blocks every v2.0 screen is made of (docs/design/ui-design-v2.md, "Building blocks" and
-//  "States"): a section card, a switch, a segmented choice, a gallery card and the "⋯" menu button. Preact components
+//  "States"): a section card, a switch, a segmented choice, a gallery card, the "⋯" menu button, and notes (a short
+//  note, and the technical detail Debug mode adds). Preact components
 //  (docs/proposals/v2-preact.md); their look is in blocks.css, and every one of them can be seen in every state in the
 //  UI sandbox at /__sandbox__/blocks.html. Popups are not a component: screens call dialog() in popup.js.
 //
@@ -8,11 +9,16 @@
 //  (data-test, tests/README.md). Plain logic lives outside, with tests (choice-keys.js).
 // =====================================================================================================================
 import { stepChoice } from './choice-keys.js';
-import { html, useRef, useState } from './html.js';
+import { html, useEffect, useRef, useState } from './html.js';
 import { showMenu } from './menu.js';
+import { md } from './notes.js';
+import { settings } from './state.js';
 
 // How far below the "⋯" button its menu opens, in px.
 const MENU_GAP = 4;
+// How long a ConfirmButton waits for the second click, in ms (the same as confirmTwice in helpers.js).
+const CONFIRM_WINDOW_MS = 3500;
+const CONFIRM_TEXT = 'Click again to confirm';
 
 let lastId = 0;
 /** An id that stays the same for this component's life, to link a label to its control. */
@@ -125,5 +131,44 @@ export function MenuButton({ label, items, test = '' }) {
     onClick=${openMenu}
   >
     ⋯
+  </button>`;
+}
+
+/** A short note under a control. **Bold** and `code` work (notes.js reads them; everything stays plain text). */
+export function Note({ text, test = '' }) {
+  const box = useRef(null);
+  useEffect(() => box.current.replaceChildren(md(text)), [text]);
+  return html`<div class="note" data-test=${test || null} ref=${box}></div>`;
+}
+
+/**
+ * The technical detail beside a plain line, shown only while Debug mode is on (ui-design-v2.md, Words). Never put
+ * private data in it: no link key, no key presses.
+ */
+export function Detail({ text }) {
+  if (!settings?.general?.debugMode) return null;
+  return html`<div class="detail">${text}</div>`;
+}
+
+/**
+ * A red button for something that can't be undone (a new link key, say): the first click turns it into "Click again to
+ * confirm" for a few seconds, and only a second click within that time does it.
+ */
+export function ConfirmButton({ text, onConfirm, test = '' }) {
+  const [asking, setAsking] = useState(false);
+  const timer = useRef(0);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const click = () => {
+    clearTimeout(timer.current);
+    if (asking) {
+      setAsking(false);
+      onConfirm();
+      return;
+    }
+    setAsking(true);
+    timer.current = setTimeout(() => setAsking(false), CONFIRM_WINDOW_MS);
+  };
+  return html`<button type="button" class="danger" data-test=${test || null} onClick=${click}>
+    ${asking ? CONFIRM_TEXT : text}
   </button>`;
 }

@@ -328,18 +328,3 @@ export const shareRow = (label, onImport, onExport, exportDisabled, tips, hookPr
       test: hookPrefix + '-export',
     }),
   );
-
-// ---------------------------------------------------------------------------------------------------------------------
-// 6. Popups
-// ---------------------------------------------------------------------------------------------------------------------
-
-/** A checkbox row that saves instantly. `onchange` replaces the default save when a toggle needs extra work. */
-export function toggle(path, label, onchange) {
-  const box = el('input', { type: 'checkbox', checked: !!get(settings, path), test: testName('toggle', path) });
-  box.onchange = () => {
-    put(settings, path, box.checked);
-    if (onchange) onchange(box.checked);
-    else changed(false, true);
-  };
-  return row(label, box);
-}

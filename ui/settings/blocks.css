@@ -13,10 +13,75 @@
   background: var(--color-panel);
   border: 1px solid var(--color-line);
 }
+/* Notes and status lines inside a card: no paragraph margins (the card's gap spaces them), and an empty line takes no
+   room at all (a status that has nothing to say yet, the progress text while nothing downloads). */
+.section-card .note,
+.section-card .note p,
+.section-body .note p {
+  margin: 0;
+}
+.section-card > .hint:empty,
+.section-body > .hint:empty {
+  display: none;
+}
 .section-title {
   margin: 0;
   font-size: var(--text-md);
   font-weight: var(--weight-bold);
+}
+
+/* ---- A tab's page: its heading row, then section cards in a grid (two columns when there is room) */
+.tab-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 980px;
+}
+/* The tab's title: larger and in normal case, unlike the small section headings older tabs use (tabs.css, h2) */
+.tab-heading h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--color-text);
+}
+.tab-heading .note {
+  margin: var(--space-2) 0 0;
+}
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--space-14);
+  align-items: start;
+}
+/* A section that opens and closes (General → Advanced): its title is the button */
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+.section-toggle:hover,
+.section-toggle:active {
+  background: transparent;
+}
+.section-toggle:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.section-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+.section-body[hidden] {
+  display: none;
 }
 
 /* ---- Switch: the knob slides with transform only */
@@ -161,6 +226,12 @@
 }
 .menu-button:active {
   background: var(--color-control-pressed);
+}
+
+/* ---- Detail: the technical line Debug mode adds under a plain one */
+.detail {
+  font: var(--text-sm)/1.5 var(--font-mono);
+  color: var(--color-text-dim);
 }
 
 /* ---- Keyboard focus: the same ring on every block */

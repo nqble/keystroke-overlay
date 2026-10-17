@@ -23,7 +23,6 @@ export const TEXT = {
   fontsTabHelp: 'Add TTF, OTF or WOFF files, then pick them in Style → Font family.',
   keyEditorTip: 'Tip: symbols like ⎵ or ↑ work, or words like "Jump".',
   keyPictureHelp: 'Drag a key to move it. Drag on the background to select several. Tab and Enter work too.',
-  serverNote: 'Only this PC can connect. Key presses are never saved or sent. OBS reconnects by itself.',
   secureLinkOff:
     '**Off:** your OBS link is simple and needs no extra step. Any program running on this ' +
     'PC can read your key presses through it. Turn this on to close that.',
@@ -32,18 +31,6 @@ export const TEXT = {
     'can read your key presses. **Copy the new link into your OBS Browser Source once** — the old ' +
     'link stops working. Keep the link off your stream. “Make a new key” cuts off anyone who has the ' +
     'old one.',
-  inputStandard:
-    '**Standard** is what the app has always used: it listens to your keys through a Windows keyboard ' +
-    'hook. It works with nearly every game, so keep it unless keys stop lighting up in one particular ' +
-    'game.',
-  inputCompatibility:
-    '**Compatibility** reads your keys straight from the keyboard (Windows Raw Input) instead of ' +
-    'hooking into Windows. Some games and anti-cheat tools block the standard method but not this ' +
-    'one, so try it if keys don’t light up in a certain game. It uses the same tiny amount of CPU. If ' +
-    'anything looks off, switch back to Standard.',
-  inputNote:
-    'Both methods read keys the same way and never save or send them. If a game runs as ' +
-    'administrator, start Keystroke Overlay as administrator too. Not sure? Leave it on Standard.',
   debugModeHelp: 'Adds a Debug tab for finding problems. Nothing is saved or sent.',
   manualInstallNote: 'Install this one by hand: get the installer from GitHub, close this app, run it.',
   updateChannelHelp: 'Stable: the main releases (recommended). Latest: every release, small fixes too.',

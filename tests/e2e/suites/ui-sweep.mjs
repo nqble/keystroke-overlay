@@ -33,10 +33,9 @@ for (const [name, id] of Object.entries(TAB_IDS)) {
   check(`tab ${name} renders content`, await p.q(`document.querySelector('${byTest('pane')}').innerText.length > 40`));
 }
 check(
-  'General sections are in the tidy order',
-  JSON.stringify(
-    await p.q(`[...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent)`),
-  ) === JSON.stringify(['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates']),
+  'General cards are in the tidy order (ui-design-v2.md)',
+  JSON.stringify(await p.q(`[...document.querySelectorAll('#pane .section-title')].map(h => h.textContent)`)) ===
+    JSON.stringify(['Connection', 'Keyboard input', 'Startup', 'Updates', 'Advanced']),
 );
 
 // the overlay as OBS loads it (no ?preview) skips the theme files; the settings preview still loads them

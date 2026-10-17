@@ -37,11 +37,9 @@ check(
   st.url,
 );
 check(
-  'General has a "Secure link" section with the toggle off and the "Off" explanation',
-  (await p.q(`[...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent)`)).includes(
-    'Secure link',
-  ) &&
-    (await p.q(`!${toggle}.checked`)) &&
+  'General\'s Connection card has the secure-link switch, off, with the "Off" explanation',
+  (await p.q(`!!document.querySelector('${byTest('general-connection')}')?.contains(${toggle})`)) &&
+    (await p.q(`${toggle}.getAttribute('role') === 'switch' && ${toggle}.getAttribute('aria-checked') === 'false'`)) &&
     /Off: your OBS link is simple/.test(await pageText()),
 );
 check(
@@ -73,7 +71,11 @@ check(
     )),
 );
 check(
-  'the link in the header is hidden on screen (password field)',
+  'the switch says on (aria-checked) for screen readers',
+  (await p.q(`${toggle}.getAttribute('aria-checked')`)) === 'true',
+);
+check(
+  'the OBS link box is hidden on screen (password field)',
   (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'password',
 );
 
@@ -174,6 +176,10 @@ st = await state();
 const key2 = keyOf(st.url);
 check('"Make a new key" (two clicks) creates a different key', /^[0-9a-f]{32}$/.test(key2 || '') && key2 !== key);
 check(
+  'the header asks to copy the new link at once (it used to wait for some other redraw)',
+  /copy it again/.test(await p.q(`document.querySelector('${byTest('obs-status')}').textContent`)),
+);
+check(
   'the OLD key stops working immediately; the new one works',
   (await status(`/api/config?key=${key}`)) === 401 &&
     (await status(`/api/config?key=${key2}`)) === 200 &&
@@ -190,7 +196,7 @@ check(
   st.secureLink === false && st.url === `${base}/` && (await status('/api/config')) === 200 && (await wsOpens(null)),
 );
 check(
-  'the header link is visible text again',
+  'the OBS link box is visible text again',
   (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'text',
 );
 finish();

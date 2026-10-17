@@ -128,14 +128,15 @@ Rules:
 | `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, colour picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
 | `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
-| `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` (`ui/settings/controls.js`), used in the General tab |
+| `toggle-<path>` (for example `toggle-general-debug-mode`) | A tickbox made by `toggle()` (`ui/settings/controls.js`); in General, the same names are its switches (`role="switch"`, `aria-checked`) |
 | `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS link: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number shown in the About part of General |
-| `server-port`, `server-port-apply`, `server-restart` | The Server section |
-| `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | The Secure link section |
-| `input-method-select`, `input-method-info`, `input-method-error` | The Keyboard input section |
-| `general-open-folder`, `general-reset`, `general-quit` | The App section buttons |
-| `update-channel`, `update-check`, `update-install`, `update-status`, `update-details`, `update-release-notes`, `general-update-progress`, `general-update-progress-text` | The Program updates section |
+| `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page) |
+| `server-port`, `server-port-apply` | Connection: the port; `server-restart` is in Advanced |
+| `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | Connection: the secure-link switch (`aria-checked`), its note, and its buttons |
+| `input-method-select`, `input-method-info`, `input-method-error` | Keyboard input: the segmented choice (a radiogroup; the chosen button has `aria-checked="true"`), its note, its error |
+| `general-open-folder`, `general-reset`, `general-quit` | Advanced's buttons |
+| `update-channel`, `update-check`, `update-install`, `update-status`, `update-release-notes`, `general-update-progress`, `general-update-progress-text` | Updates (the channel is a segmented choice) |
 | `debug-card` + `data-card`, `debug-card-title` | One box of the Debug tab and its title |
 | `debug-facts`, `debug-open-folder` | "This app" |
 | `debug-self-test-run`, `debug-test` | Self-test button, one result row |
