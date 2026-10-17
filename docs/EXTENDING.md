@@ -55,7 +55,7 @@ Animate only `transform` and `opacity`, so the work stays on the graphics card a
    `CURRENT_VERSION` and add a migration ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
 
 ## Inside the settings window
-- **A tab:** its file in `ui/settings/tabs/`, a line in `TABS` in `settings.js` and its name in `TAB_NAMES` in `state.js`.
+- **A tab:** its file in `ui/settings/tabs/`, one line in the list in `ui/settings/tabs/index.js` (id, name, page). Nothing else.
 - **A popup:** `dialog()` in `ui/settings/popups.js` gives you the frame, focus handling and Esc.
 - **A Debug tool:** one entry in `SECTIONS` in `ui/settings/debug.js` ([DEBUGGING.md](DEBUGGING.md)).
 - **Words the user reads:** the `TEXT` block of the file that shows them; shared ones are in `ui/settings/text.js`.

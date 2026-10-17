@@ -12,7 +12,7 @@
 //    popups.js      dialogs, the right-click menu, release notes, the update dialog
 //    messages.js    messages from the app (tray, updates, progress) and re-reading its state
 //    windowbar.js   the window's own minimize / maximize / close buttons
-//    tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general (the Keys tab has several, keys-*.js)
+//    tabs/index.js  the ONE list of tabs (id, name, page); tabs/*.js one file per tab (the Keys tab has several, keys-*.js)
 //    debug.js       the optional Debug tab (see docs/DEBUGGING.md)
 //
 //  HOW TO ADD A SETTING: add a line to CONTROLS in controls.js; it is drawn automatically. Also add its default value
@@ -24,7 +24,6 @@ import { hideMenu, showNotes, showUpdateResult } from './popups.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
 import {
   settings,
-  TAB_NAMES,
   appVersion,
   setAppVersion,
   setBooted,
@@ -41,21 +40,7 @@ import {
 } from './state.js';
 // Loaded only for what it does when it starts: it wires up the minimize / maximize / close buttons.
 import './windowbar.js';
-import { animationTab } from './tabs/animation.js';
-import { fontsTab } from './tabs/fonts.js';
-import { generalTab } from './tabs/general.js';
-import { keysTab } from './tabs/keys.js';
-import { layoutTab } from './tabs/layout.js';
-import { styleTab } from './tabs/style.js';
-
-const TABS = {
-  layout: layoutTab,
-  keys: keysTab,
-  style: styleTab,
-  animation: animationTab,
-  fonts: fontsTab,
-  general: generalTab,
-};
+import { TABS, isTab } from './tabs/index.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 8. Drawing the window
@@ -80,11 +65,11 @@ export async function render() {
   const debugOn = !!settings?.general?.debugMode;
   if (debugOn && !debugTab) debugTab = (await import('./debug.js')).debugTab;
   if (tab === 'debug' && !debugOn) setTab('general');
-  const names = debugOn ? { ...TAB_NAMES, debug: debugTab.name } : TAB_NAMES;
-  $('#tabs').replaceChildren(...Object.entries(names).map(([id, name]) => tabButton(id, name)));
+  const tabs = debugOn ? [...TABS, { id: 'debug', ...debugTab }] : TABS;
+  $('#tabs').replaceChildren(...tabs.map(({ id, name }) => tabButton(id, name)));
   const pane = $('#pane'),
     scroll = pane.scrollTop;
-  const content = await (tab === 'debug' ? debugTab.render() : TABS[tab]());
+  const content = await tabs.find((t) => t.id === tab).render();
   pane.replaceChildren(content);
   pane.scrollTop = scroll;
 }
@@ -118,7 +103,7 @@ addEventListener('resize', () => {
   setInputActive(state.inputActive);
   setInputError(state.inputError);
   // e.g. the tray's "Update available" opens General
-  if (state.gotoTab && TAB_NAMES[state.gotoTab]) setTab(state.gotoTab);
+  if (state.gotoTab && isTab(state.gotoTab)) setTab(state.gotoTab);
   paintPause();
   updateObs();
   // the overlay can't load, but the port can still be fixed

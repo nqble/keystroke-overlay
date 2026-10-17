@@ -5,8 +5,8 @@ import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './popups.js';
 import { flushPendingSave, push } from './preview.js';
 import { render } from './settings.js';
+import { isTab } from './tabs/index.js';
 import {
-  TAB_NAMES,
   paused,
   setInputActive,
   setInputError,
@@ -46,7 +46,7 @@ tauriEvent.listen('update-result', (e) => showUpdateResult(e.payload));
 
 // e.g. the tray's "Update available"
 tauriEvent.listen('goto-tab', (e) => {
-  if (TAB_NAMES[e.payload]) {
+  if (isTab(e.payload)) {
     setTab(e.payload);
     render();
   }
