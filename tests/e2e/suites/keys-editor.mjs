@@ -75,7 +75,7 @@ const sizeBefore = await eventually(async () => {
 
 const drag = async (code, dxUnits, dyUnits) =>
   p.ev(`
-  const n = document.querySelector('${keyCell(code)}'); const unit = n.offsetWidth + 3, r = n.getBoundingClientRect();
+  const n = document.querySelector('${keyCell(code)}'), r = n.getBoundingClientRect(); const board = document.querySelector('${byTest('keymap-canvas')}'); const unit = board.getBoundingClientRect().width / Number(board.dataset.boardW); // screen pixels per key, whatever the zoom
   const x0 = r.left + 4, y0 = r.top + 4, ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 7 });
   n.dispatchEvent(ev('pointerdown', x0, y0));
   for (let i = 1; i <= 4; i++) n.dispatchEvent(ev('pointermove', x0 + (${dxUnits} * unit) * i / 4, y0 + (${dyUnits} * unit) * i / 4));
@@ -266,7 +266,7 @@ check(
 // a box drawn on the empty background selects exactly the keys it touches (checked against the real on-screen positions)
 const boxResult = await p.ev(`
   const map = document.querySelector('${byTest('keymap')}'), r = map.getBoundingClientRect();
-  const x0 = r.right - 6, y0 = r.bottom - 6, x1 = r.left + r.width * 0.55, y1 = r.top + r.height * 0.55;
+  const x0 = r.left + 6, y0 = r.bottom - 6, x1 = r.left + r.width * 0.55, y1 = r.top + r.height * 0.25; // from the empty bottom-left corner (the zoom buttons are bottom-right)
   const ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 9 });
   map.dispatchEvent(ev('pointerdown', x0, y0));
   for (let i = 1; i <= 4; i++) map.dispatchEvent(ev('pointermove', x0 + (x1 - x0) * i / 4, y0 + (y1 - y0) * i / 4));
@@ -285,7 +285,7 @@ check(
 );
 await p.ev(`
   const map = document.querySelector('${byTest('keymap')}'), r = map.getBoundingClientRect();
-  const ev = (t) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: r.right - 5, clientY: r.bottom - 5, button: 0, pointerId: 10 });
+  const ev = (t) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: r.left + 5, clientY: r.bottom - 5, button: 0, pointerId: 10 });
   map.dispatchEvent(ev('pointerdown')); map.dispatchEvent(ev('pointerup'));`);
 await sleep(400);
 check('clicking the empty background clears the selection', (await selectedCodes()).length === 0);
@@ -483,7 +483,7 @@ check('ticking Show grid is saved', (await editorChoices()).grid === true && (aw
 check(
   'the picture draws grid dots at the snap spacing',
   await p.q(
-    `(() => { const s = document.querySelector('${byTest('keymap-canvas')}').style; return s.backgroundImage.includes('radial-gradient') && parseFloat(s.backgroundSize) > 0; })()`,
+    `(() => { const s = getComputedStyle(document.querySelector('${byTest('keymap-canvas')}')); return s.backgroundImage.includes('radial-gradient') && parseFloat(s.backgroundSize) > 0; })()`,
   ),
 );
 await p.ev(`await __ko.resync()`);
@@ -496,7 +496,7 @@ check(
 
 // while a key is being dragged a small label shows its position; it goes away when the key is dropped
 const readoutDuring = await p.ev(`
-  const n = document.querySelector('${keyCell('KeyW')}'), r = n.getBoundingClientRect(), unit = n.offsetWidth + 3;
+  const n = document.querySelector('${keyCell('KeyW')}'), r = n.getBoundingClientRect(), board = document.querySelector('${byTest('keymap-canvas')}'), unit = board.getBoundingClientRect().width / Number(board.dataset.boardW);
   const ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 11 });
   n.dispatchEvent(ev('pointerdown', r.left + 4, r.top + 4));
   n.dispatchEvent(ev('pointermove', r.left + 4 + unit, r.top + 4));
@@ -691,6 +691,159 @@ check('the even-grid style draws every key one key wide in neat columns', gridLo
 await saveProfileEdits({ layoutStyle: 'nonsense' });
 check('an unknown layout style means the default shape', (await profile(id)).layoutStyle === undefined);
 await saveProfileEdits({});
+
+// ---- the editor board (M4.1): zoom, pan, view memory, board limits, hidden preview
+const boardInfo = () =>
+  p.ev(`
+    const box = document.querySelector('${byTest('keymap')}'), canvas = document.querySelector('${byTest('keymap-canvas')}');
+    const b = box.getBoundingClientRect(), c = canvas.getBoundingClientRect();
+    return { zoom: Number(canvas.style.getPropertyValue('--zoom')), panX: canvas.style.getPropertyValue('--pan-x'), panY: canvas.style.getPropertyValue('--pan-y'),
+      label: document.querySelector('${byTest('editor-zoom-reset')}').textContent,
+      boxW: b.width, boxH: b.height, left: c.left - b.left, top: c.top - b.top, right: b.right - c.right, bottom: b.bottom - c.bottom, boardW: Number(canvas.dataset.boardW), boardH: Number(canvas.dataset.boardH), w: c.width, h: c.height };`);
+const wheel = (x, y, deltaY) =>
+  p.ev(`
+    const box = document.querySelector('${byTest('keymap')}'), r = box.getBoundingClientRect();
+    const ev = new WheelEvent('wheel', { bubbles: true, cancelable: true, clientX: r.left + ${x}, clientY: r.top + ${y}, deltaY: ${deltaY} });
+    box.dispatchEvent(ev); return ev.defaultPrevented;`);
+await tab('keys');
+await sleep(400);
+await p.ev(`document.querySelector('${byTest('key-clear-selection')}')?.click()`);
+const board0 = await boardInfo();
+check(
+  'the board is drawn in key units, at least 24 x 12 keys, and fills the box (nothing outside it shows)',
+  board0.boardW >= 24 &&
+    board0.boardH >= 12 &&
+    board0.left <= 1 &&
+    board0.top <= 1 &&
+    board0.right <= 1 &&
+    board0.bottom <= 1,
+  JSON.stringify(board0),
+);
+const centreOfW = await p.ev(
+  `const r = document.querySelector('${keyCell('KeyW')}').getBoundingClientRect(), b = document.querySelector('${byTest('keymap')}').getBoundingClientRect(); return { x: r.left + r.width / 2 - b.left, y: r.top + r.height / 2 - b.top }`,
+);
+const prevented = await wheel(centreOfW.x, centreOfW.y, -300);
+await sleep(300);
+const zoomed = await boardInfo();
+check(
+  'the mouse wheel zooms in and the page does not scroll (the wheel event is cancelled)',
+  prevented && zoomed.zoom > board0.zoom,
+  JSON.stringify([board0.zoom, zoomed.zoom]),
+);
+for (let i = 0; i < 12; i++) await wheel(centreOfW.x, centreOfW.y, -400);
+await sleep(300);
+const maxZoom = await boardInfo();
+check(
+  'zoom stops at 200%',
+  maxZoom.zoom <= 2.0001 && maxZoom.label === '200%',
+  JSON.stringify([maxZoom.zoom, maxZoom.label]),
+);
+for (let i = 0; i < 20; i++) await wheel(centreOfW.x, centreOfW.y, 400);
+await sleep(300);
+const minZoom = await boardInfo();
+check(
+  'zooming out stops when the board just fills the box (nothing outside the board can show)',
+  minZoom.left <= 1 &&
+    minZoom.top <= 1 &&
+    minZoom.right <= 1 &&
+    minZoom.bottom <= 1 &&
+    (minZoom.w <= minZoom.boxW + 2 || minZoom.h <= minZoom.boxH + 2),
+  JSON.stringify(minZoom),
+);
+// zooming goes toward the cursor: the spot of the board under the pointer (as a share of the board) stays under it
+const centreShare = (info) => [(info.boxW / 2 - info.left) / info.w, (info.boxH / 2 - info.top) / info.h];
+const shareBefore = centreShare(minZoom);
+await wheel(minZoom.boxW / 2, minZoom.boxH / 2, -300);
+await sleep(300);
+const shareAfter = centreShare(await boardInfo());
+check(
+  'zooming goes toward the cursor: the spot under the pointer stays under it',
+  Math.abs(shareBefore[0] - shareAfter[0]) < 0.01 && Math.abs(shareBefore[1] - shareAfter[1]) < 0.01,
+  JSON.stringify([shareBefore, shareAfter]),
+);
+await p.ev(`document.querySelector('${byTest('editor-zoom-in')}').click()`);
+await sleep(300);
+const afterPlus = await boardInfo();
+check('the + button zooms in', afterPlus.zoom > minZoom.zoom, JSON.stringify([minZoom.zoom, afterPlus.zoom]));
+await p.ev(`document.querySelector('${byTest('editor-zoom-reset')}').click()`);
+await sleep(300);
+const hundred = await boardInfo();
+check(
+  'clicking the percentage goes to 100% (or the smallest zoom that fills the box)',
+  hundred.zoom >= 1 - 1e-6 && hundred.label === Math.round(hundred.zoom * 100) + '%',
+  JSON.stringify(hundred),
+);
+
+// middle-button drag pans, even when it starts on a key, and never selects or moves that key
+await p.ev(`document.querySelector('${byTest('editor-zoom-in')}').click()`);
+await sleep(300);
+const positionsBeforePan = JSON.stringify(shapeEdits(await profile(id)).positions ?? {});
+const pannedFrom = await boardInfo();
+await p.ev(`
+  const n = document.querySelector('${keyCell('KeyW')}'), r = n.getBoundingClientRect();
+  const ev = (t, x, y, b) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: b, buttons: b === 1 ? 4 : 0, pointerId: 21 });
+  n.dispatchEvent(ev('pointerdown', r.left + 4, r.top + 4, 1));
+  for (let i = 1; i <= 4; i++) n.dispatchEvent(ev('pointermove', r.left + 4 - 30 * i, r.top + 4 - 15 * i, 1));
+  n.dispatchEvent(ev('pointerup', r.left - 116, r.top - 56, 1));`);
+await sleep(400);
+const pannedTo = await boardInfo();
+check(
+  'middle-drag panned the board',
+  pannedTo.panX !== pannedFrom.panX || pannedTo.panY !== pannedFrom.panY,
+  JSON.stringify([pannedFrom.panX, pannedTo.panX]),
+);
+check(
+  'the middle-drag from on top of a key did not select or move it',
+  (await selectedCodes()).length === 0 &&
+    JSON.stringify(shapeEdits(await profile(id)).positions ?? {}) === positionsBeforePan,
+);
+check(
+  'after the pan the board still covers the box',
+  pannedTo.left <= 1 && pannedTo.top <= 1 && pannedTo.right <= 1 && pannedTo.bottom <= 1,
+  JSON.stringify(pannedTo),
+);
+
+// the view is kept when you leave the tab and come back; the preview is hidden here and never reloaded
+const hiddenHere = await p.q(`getComputedStyle(document.querySelector('.preview')).display === 'none'`);
+check('the live preview is hidden while the Keys tab is open', hiddenHere);
+await p.evIn(`localhost:${PORT}`, `window.__mark = 'kept'`);
+const viewBefore = await boardInfo();
+await tab('style');
+await sleep(400);
+check(
+  'the live preview is shown again on other tabs',
+  await p.q(`getComputedStyle(document.querySelector('.preview')).display !== 'none'`),
+);
+await tab('keys');
+await sleep(400);
+const viewAfter = await boardInfo();
+check(
+  'zoom and pan are kept when you leave the Keys tab and come back',
+  viewAfter.zoom === viewBefore.zoom && viewAfter.panX === viewBefore.panX && viewAfter.panY === viewBefore.panY,
+  JSON.stringify([viewBefore, viewAfter]),
+);
+check(
+  'switching Keys, Style and back did not reload the live preview',
+  (await p.evIn(`localhost:${PORT}`, `return window.__mark`)) === 'kept',
+);
+
+// a drag far past the board edge is stopped at the edge; other keys' elements are not made again
+await p.ev(`document.querySelector('${byTest('editor-zoom-reset')}').click()`);
+await sleep(300);
+await p.ev(`for (const n of document.querySelectorAll('${byTest('key-cell')}')) n.__same = true`);
+await drag('KeyD', 80, 60);
+await sleep(700);
+const edge = await boardInfo();
+const dPos = shapeEdits(await profile(id)).positions?.KeyD;
+check(
+  'a key can never be dragged off the board',
+  !!dPos && dPos.x <= edge.boardW - 1 + 1e-6 && dPos.y <= edge.boardH - 1 + 1e-6 && dPos.x >= 0 && dPos.y >= 0,
+  JSON.stringify([dPos, edge.boardW, edge.boardH]),
+);
+check(
+  "moving a key did not make the other keys' elements again",
+  await p.q(`[...document.querySelectorAll('${byTest('key-cell')}')].every(n => n.__same === true)`),
+);
 
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;

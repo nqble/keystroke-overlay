@@ -204,10 +204,18 @@ header {
   border-bottom: 1px solid var(--color-line);
   overflow: hidden;
 }
+/* The editor on the Keys tab shows the keyboard itself, so the live preview steps aside (it stays loaded, only hidden). */
+.tab-keys .preview {
+  display: none;
+}
 .preview iframe {
   position: absolute;
-  left: 0;
-  top: 0;
+  /* the size and place come from fitPreview() in preview.js, through these variables */
+  width: var(--frame-w, 300px);
+  height: var(--frame-h, 150px);
+  left: var(--frame-x, 0);
+  top: var(--frame-y, 0);
+  transform: scale(var(--frame-scale, 1));
   border: 0;
   transform-origin: 0 0;
   background: transparent;
@@ -282,6 +290,26 @@ h2:first-child {
   gap: var(--space-10);
   min-width: 0;
   max-width: 460px;
+}
+.row .ctl.stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-6);
+}
+.short-field {
+  width: 100px;
+}
+.num-field {
+  width: 84px;
+}
+.pre-line {
+  white-space: pre-line;
+}
+.invisible {
+  visibility: hidden;
+}
+select option[data-font] {
+  font-family: var(--option-font);
 }
 .row .val {
   width: 54px;
@@ -432,21 +460,59 @@ button:disabled:hover {
 
 .keymap {
   position: relative;
-  background: var(--color-panel);
+  height: clamp(300px, 55vh, 560px);
+  background: var(--color-well);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-2xl);
   margin: var(--space-8) 0 var(--space-14);
   overflow: hidden;
 }
+/* The board: a fixed area measured in keys (--board-w, --board-h). Zoom and pan are one transform on this layer. */
+.keymap-canvas {
+  --unit: 40px; /* pixels per key at 100% zoom (UNIT in editor/editor.js) */
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--board-w, 24) * var(--unit));
+  height: calc(var(--board-h, 12) * var(--unit));
+  background-color: var(--color-panel);
+  border-radius: var(--radius-lg);
+  transform-origin: 0 0;
+  transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)) scale(var(--zoom, 1));
+  transition: transform var(--duration-medium) ease-out;
+}
+.keymap.panning .keymap-canvas,
+.keymap.instant .keymap-canvas {
+  transition: none;
+}
+.keymap-canvas.dots {
+  background-image: radial-gradient(circle, var(--color-text-dim) 0.8px, transparent 1.4px);
+  background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
+}
+.zoom-controls {
+  position: absolute;
+  right: var(--space-10);
+  bottom: var(--space-10);
+  z-index: 6;
+  display: flex;
+  gap: var(--space-4);
+}
+.zoom-controls button {
+  padding: var(--space-2) var(--space-8);
+}
 .kmk {
   position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc(var(--y) * var(--unit));
+  width: calc(var(--w) * var(--unit) - 3px);
+  height: calc(var(--h, 1) * var(--unit) - 3px);
+  font-size: calc(var(--unit) * 0.28);
   border: 1px solid var(--color-key-line);
   border-radius: var(--radius-sm);
   background: var(--color-key-fill);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-xs);
   color: var(--color-text);
   cursor: pointer;
   overflow: hidden;
@@ -539,7 +605,7 @@ button:disabled:hover {
 }
 .bar .fill {
   height: 100%;
-  width: 0;
+  width: var(--pct, 0%);
   background: var(--color-accent);
   border-radius: var(--radius-md);
   transition: width var(--duration-medium) linear;
@@ -892,6 +958,8 @@ input[type='range'] {
 }
 .ctxmenu {
   position: fixed;
+  left: var(--x);
+  top: var(--y);
   z-index: 100;
   min-width: 170px;
   background: var(--color-panel-raised);
@@ -1152,6 +1220,10 @@ label.inline {
 }
 .marquee {
   position: absolute;
+  left: var(--left);
+  top: var(--top);
+  width: var(--width);
+  height: var(--height);
   z-index: 4;
   border: 1px solid var(--color-accent);
   background: var(--color-selection-fill);
@@ -1161,6 +1233,8 @@ label.inline {
 /* Keys tab: the label that follows a key while it is dragged, and the line under the picture. */
 .readout {
   position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc((var(--y) - 0.7) * var(--unit));
   z-index: 5;
   padding: var(--space-2) var(--space-7);
   border: 1px solid var(--color-line);

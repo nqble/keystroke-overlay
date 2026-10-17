@@ -3,6 +3,10 @@
 use crate::state::AppState;
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
+/// After the settings window closes, wait this long (so its web view has really been torn down) before asking Windows
+/// to take back the memory the window used.
+const TRIM_MEMORY_AFTER_MS: u64 = 1500;
+
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
         let _ = settings_window.unminimize();
@@ -54,7 +58,7 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
     }
     if let WindowEvent::Destroyed = ev {
         std::thread::spawn(|| {
-            std::thread::sleep(std::time::Duration::from_millis(1500));
+            std::thread::sleep(std::time::Duration::from_millis(TRIM_MEMORY_AFTER_MS));
             crate::platform::trim_memory();
         });
     }

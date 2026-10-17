@@ -1,6 +1,7 @@
 import { registerTheme } from '/overlay/registry.js';
 
 // Blocky, Minecraft-streamer look.
+// Copy this file to make your own theme (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerTheme({
   id: 'minecraft',
   name: 'Blocky (stone)',

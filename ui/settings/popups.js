@@ -216,8 +216,8 @@ export function showMenu(event, items) {
   );
   document.body.append(menuEl);
   const box = menuEl.getBoundingClientRect(); // keep the menu fully inside the window
-  menuEl.style.left = Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px';
-  menuEl.style.top = Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px';
+  menuEl.style.setProperty('--x', Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px');
+  menuEl.style.setProperty('--y', Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px');
   /** @type {HTMLElement | null} */ (menuEl.querySelector('button:not(:disabled)'))?.focus();
 }
 
@@ -338,7 +338,7 @@ function typeIn(root) {
     const full = node.nodeValue,
       typed = document.createTextNode(''),
       rest = el('span', { textContent: full });
-    rest.style.visibility = 'hidden';
+    rest.classList.add('invisible');
     /** @type {ChildNode} */ (node).replaceWith(typed, rest);
     return { full, typed, rest, done: 0 };
   });
@@ -501,7 +501,7 @@ export function paintProgress() {
   const dialogBar = $('#uBar');
   if (dialogBar) {
     dialogBar.hidden = !updateProgress;
-    $('#uFill').style.width = (updateProgress ? Math.max(0, updateProgress.pct) : 0) + '%';
+    $('#uFill').style.setProperty('--pct', (updateProgress ? Math.max(0, updateProgress.pct) : 0) + '%');
     // negative = size unknown, show a moving bar
     $('#uFill').classList.toggle('indet', !!updateProgress && updateProgress.pct < 0);
     if (updateProgress) $('#uText').textContent = updateProgress.text;
@@ -512,7 +512,7 @@ export function paintProgress() {
   if (!bar) return; // General is not showing
   bar.hidden = !updateProgress;
   if (updateProgress) {
-    fill.style.width = updateProgress.pct + '%';
+    fill.style.setProperty('--pct', updateProgress.pct + '%');
     fill.classList.toggle('indet', updateProgress.pct < 0);
     text.textContent = updateProgress.text;
   } else text.textContent = '';

@@ -1,5 +1,7 @@
 import { registerTheme } from '/overlay/registry.js';
 
+// Dark keys with a bright neon outline and glow.
+// Copy this file to make your own theme (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerTheme({
   id: 'neon',
   name: 'Neon glow',

@@ -26,6 +26,28 @@ function check(file) {
   });
   if (text.length && !text.endsWith('\n')) problems.push(`${file}: missing newline at end of file`);
   if (/^ui[\\/]settings[\\/][^\\/]+\.css$/.test(file)) checkTokens(file, text);
+  if (
+    /^ui[\\/]settings[\\/]((tabs|editor)[\\/])?[^\\/]+\.js$/.test(file) &&
+    !JS_STYLE_EXEMPT.has(file.replace(/\\/g, '/'))
+  )
+    checkJsStyles(file, text);
+}
+
+// Files still allowed to set inline styles from JavaScript: debug.js, the developer tab.
+const JS_STYLE_EXEMPT = new Set(['ui/settings/debug.js']);
+
+/** In the settings window's scripts, looks live in CSS. JavaScript may only hand CSS a variable: el.style.setProperty('--x', ...). */
+function checkJsStyles(file, text) {
+  text.split(/\r?\n/).forEach((line, i) => {
+    const direct = line.match(/(?<!settings|\bprofile)\.style\.(?!setProperty)\w+\s*=[^=]/);
+    const attribute = line.match(/\bstyle:\s*['"`]/);
+    const assigned = line.match(/Object\.assign\((?!settings\.|profile)[\w.]*\.style\b/);
+    const found = direct ?? attribute ?? assigned;
+    if (found)
+      problems.push(
+        `${file}:${i + 1}: inline style from JavaScript (${found[0].trim()}); use a CSS class or el.style.setProperty('--name', value)`,
+      );
+  });
 }
 
 /** In the settings stylesheet a colour (#hex, rgb(), rgba()) is allowed only inside the :root block of design tokens. */

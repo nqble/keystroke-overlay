@@ -22,6 +22,7 @@
     "check:types": "tsc -p jsconfig.json",
     "test:lock": "node tests/lib/lock.mjs",
     "test:e2e": "node tests/e2e/run.mjs",
+    "test:quiet-update": "node tests/install/quiet-update.mjs",
     "test:visual": "node tests/e2e/run.mjs --suite visual",
     "test:install": "node tests/install/run.mjs",
     "format": "prettier --write . && cargo fmt --manifest-path src-tauri/Cargo.toml",

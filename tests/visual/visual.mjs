@@ -49,6 +49,26 @@ const clickKey = (code, ctrl = false) =>
   );
 const clickTest = (name) => p.ev(`document.querySelector('${byTest(name)}').click()`);
 
+/** The overlay as the live preview shows it, for one built-in theme, with W and Space held (a fixed, repeatable look). */
+const PORT = 7879;
+const overlayWithTheme = (themeId) => async () => {
+  await openTab('layout'); // any tab shows the preview; this one is quiet
+  const state = (await p.invoke('get_state')).ok.settings;
+  const theme = JSON.parse(
+    await p.ev(`return JSON.stringify(window.__ko.registry().themes.find((t) => t.id === ${JSON.stringify(themeId)}))`),
+  );
+  Object.assign(state.style, theme.style);
+  Object.assign(state.animation, theme.animation);
+  await p.invoke('save_settings', { settings: state });
+  await p.ev(`await window.__ko.resync()`);
+  await sleep(1200); // the preview applies the theme
+  await p.evIn(
+    `localhost:${PORT}`,
+    `for (const code of ['KeyW', 'Space']) document.querySelector('.key[data-code="' + code + '"]')?.classList.add('down')`,
+  );
+  await sleep(1200); // any press animation has settled
+};
+
 /** Every screen: its file name, and how to get the window into that state. */
 const SCREENS = [
   ['layout-tab', () => openTab('layout')],
@@ -71,12 +91,23 @@ const SCREENS = [
       await clickTest('layout-add');
     },
   ],
+  // the overlay itself, one picture per built-in theme: the settings window's work must never change these
+  ...['default', 'glass', 'minecraft', 'minimal-light', 'neon'].map((id) => [
+    `overlay-${id}`,
+    overlayWithTheme(id),
+    '#previewBox',
+  ]),
 ];
 
-const takePicture = async () => {
+const takePicture = async (clipTo = null) => {
   await p.ev(`document.activeElement && document.activeElement.blur && document.activeElement.blur()`);
   await sleep(400);
-  const shot = await p.send('Page.captureScreenshot', { format: 'png' });
+  const clip = clipTo
+    ? await p.ev(
+        `const r = document.querySelector('${clipTo}').getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height, scale: 1 }`,
+      )
+    : undefined;
+  const shot = await p.send('Page.captureScreenshot', { format: 'png', clip });
   return PNG.sync.read(Buffer.from(shot.result.data, 'base64'));
 };
 
@@ -84,10 +115,10 @@ mkdirSync(BASELINES, { recursive: true });
 mkdirSync(DIFFS, { recursive: true });
 const changed = [];
 
-for (const [name, setUp] of SCREENS) {
+for (const [name, setUp, clipTo] of SCREENS) {
   await setUp();
   await sleep(500);
-  const picture = await takePicture();
+  const picture = await takePicture(clipTo);
   const file = join(BASELINES, `${name}.png`);
 
   if (UPDATE || !existsSync(file)) {

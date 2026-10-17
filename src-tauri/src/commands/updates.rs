@@ -82,6 +82,9 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
     Ok(result)
 }
 
+/// How long a request to GitHub may take before the app gives up (release notes, update checks go through the updater).
+const REQUEST_TIMEOUT_SECS: u64 = 8;
+
 /// How long after the app starts the first automatic check runs (PRIVACY.md says 45 seconds).
 const FIRST_CHECK_AFTER_SECS: u64 = 45;
 
@@ -211,7 +214,7 @@ pub async fn get_release_notes(version: Option<String>) -> Result<Value, String>
     }
     let client = reqwest::Client::builder()
         .user_agent(concat!("KeystrokeOverlay/", env!("CARGO_PKG_VERSION")))
-        .timeout(std::time::Duration::from_secs(8))
+        .timeout(std::time::Duration::from_secs(REQUEST_TIMEOUT_SECS))
         .build()
         .map_err(|e| e.to_string())?;
     let resp = client

@@ -34,6 +34,8 @@ use tauri::{AppHandle, Emitter, Manager, State};
 const LOG_CAPACITY: usize = 300;
 /// The key monitor stops by itself after this long.
 const MONITOR_MAX: Duration = Duration::from_secs(60);
+/// How long the key monitor waits for a key before it checks that the Debug tab is still open.
+const MONITOR_POLL: Duration = Duration::from_millis(400);
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 static STARTED: OnceLock<Instant> = OnceLock::new();
@@ -157,7 +159,7 @@ pub fn debug_key_monitor(app: AppHandle, st: State<AppState>, on: bool) {
             && app.get_webview_window("settings").is_some()
         {
             use tokio::sync::broadcast::error::RecvError;
-            match tokio::time::timeout(Duration::from_millis(400), rx.recv()).await {
+            match tokio::time::timeout(MONITOR_POLL, rx.recv()).await {
                 Ok(Ok(event)) => {
                     let _ = app.emit(
                         "debug-key",

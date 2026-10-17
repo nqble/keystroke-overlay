@@ -12,7 +12,7 @@
 //    popups.js      dialogs, the right-click menu, release notes, the update dialog
 //    messages.js    messages from the app (tray, updates, progress) and re-reading its state
 //    windowbar.js   the window's own minimize / maximize / close buttons
-//    tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general (the Keys tab has several, keys-*.js)
+//    tabs/index.js  the ONE list of tabs (id, name, page); tabs/*.js one file per tab (the Keys tab has several, keys-*.js)
 //    debug.js       the optional Debug tab (see docs/DEBUGGING.md)
 //
 //  HOW TO ADD A SETTING: add a line to CONTROLS in controls.js; it is drawn automatically. Also add its default value
@@ -21,10 +21,9 @@
 import { $, button, call, invoke } from './helpers.js';
 import { paintPause, showServerError, resync } from './messages.js';
 import { hideMenu, showNotes, showUpdateResult } from './popups.js';
-import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
+import { fitPreview, frame, previewSrc, setPreviewHidden, updateObs } from './preview.js';
 import {
   settings,
-  TAB_NAMES,
   appVersion,
   setAppVersion,
   setBooted,
@@ -41,31 +40,14 @@ import {
 } from './state.js';
 // Loaded only for what it does when it starts: it wires up the minimize / maximize / close buttons.
 import './windowbar.js';
-import { animationTab } from './tabs/animation.js';
-import { fontsTab } from './tabs/fonts.js';
-import { generalTab } from './tabs/general.js';
-import { keysTab } from './tabs/keys.js';
-import { layoutTab } from './tabs/layout.js';
-import { styleTab } from './tabs/style.js';
-
-const TABS = {
-  layout: layoutTab,
-  keys: keysTab,
-  style: styleTab,
-  animation: animationTab,
-  fonts: fontsTab,
-  general: generalTab,
-};
+import { TABS, isTab } from './tabs/index.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 8. Drawing the window
 // ---------------------------------------------------------------------------------------------------------------------
 /** One button in the tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
 function tabButton(id, name) {
-  const onclick = () => {
-    setTab(id);
-    render();
-  };
+  const onclick = () => switchTo(id);
   const tabItem = button(name, onclick, id === tab ? 'active' : '', 'tab');
   tabItem.dataset.tab = id;
   if (id === tab) tabItem.setAttribute('aria-current', 'page'); // tells screen readers which tab is open
@@ -75,18 +57,77 @@ function tabButton(id, name) {
 // The Debug tab (ui/settings/debug.js) only exists in Debug mode, so its code is only loaded then (the first time it is needed).
 let debugTab = null;
 
-/** Redraw the tab bar and the active tab, keeping the scroll position. */
-export async function render() {
+// Pages built earlier, by tab id, for the tabs marked `keep` in tabs/index.js. They are reused when you come back to a tab and
+// nothing has changed in between. Anything that changes the settings throws them away (render() and changed() do it).
+const keptPages = new Map();
+const scrollOf = new Map(); // where each tab was scrolled to when you left it
+let generation = 0; // goes up every time the kept pages are thrown away, so a page built meanwhile is not kept
+
+/** Throw away the kept pages, except the one named (the tab being used: it already shows the change). */
+export function forgetPages(except = null) {
+  generation += 1;
+  for (const id of [...keptPages.keys()]) if (id !== except) keptPages.delete(id);
+}
+
+/**
+ * Draw the tab bar and the active tab.
+ *   reuse  show the kept page if there is one, instead of building the tab again (used when only switching tabs)
+ * Without `reuse` this is a redraw after a change: the kept pages are dropped and the scroll position stays where it was.
+ */
+async function draw(reuse) {
   const debugOn = !!settings?.general?.debugMode;
   if (debugOn && !debugTab) debugTab = (await import('./debug.js')).debugTab;
   if (tab === 'debug' && !debugOn) setTab('general');
-  const names = debugOn ? { ...TAB_NAMES, debug: debugTab.name } : TAB_NAMES;
-  $('#tabs').replaceChildren(...Object.entries(names).map(([id, name]) => tabButton(id, name)));
-  const pane = $('#pane'),
-    scroll = pane.scrollTop;
-  const content = await (tab === 'debug' ? debugTab.render() : TABS[tab]());
+  const tabs = debugOn ? [...TABS, { id: 'debug', ...debugTab }] : TABS;
+  $('#tabs').replaceChildren(...tabs.map(({ id, name }) => tabButton(id, name)));
+  const pane = $('#pane');
+  const scroll = reuse ? (scrollOf.get(tab) ?? 0) : pane.scrollTop;
+  if (!reuse) forgetPages();
+  const entry = tabs.find((t) => t.id === tab);
+  setPreviewHidden(!!entry.hidesPreview);
+  let content = keptPages.get(tab);
+  if (!content) {
+    const builtAt = generation;
+    content = await entry.render();
+    if (entry.keep && builtAt === generation) keptPages.set(tab, content);
+  }
   pane.replaceChildren(content);
   pane.scrollTop = scroll;
+}
+
+/**
+ * Build the other tabs' pages while the window is idle, one at a time, so the first visit to each is instant too. A page
+ * built before a change is dropped (see `generation`), and nothing is built while a popup is open.
+ */
+function preloadTabs() {
+  const idle = window.requestIdleCallback ?? ((run) => setTimeout(run, 200));
+  const next = (queue) => {
+    const entry = queue.shift();
+    if (!entry) return;
+    idle(async () => {
+      const builtAt = generation;
+      if (!keptPages.has(entry.id) && entry.id !== tab && builtAt === generation) {
+        try {
+          const page = await entry.render();
+          if (builtAt === generation) keptPages.set(entry.id, page);
+        } catch {
+          /* it is built again when the tab is opened */
+        }
+      }
+      next(queue);
+    });
+  };
+  next(TABS.filter((entry) => entry.keep));
+}
+
+/** Redraw the active tab after something changed. */
+export const render = () => draw(false);
+
+/** Open another tab (reusing its page when nothing has changed since it was built). */
+function switchTo(id) {
+  scrollOf.set(tab, $('#pane').scrollTop);
+  setTab(id);
+  return draw(true);
 }
 
 // When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to
@@ -118,7 +159,7 @@ addEventListener('resize', () => {
   setInputActive(state.inputActive);
   setInputError(state.inputError);
   // e.g. the tray's "Update available" opens General
-  if (state.gotoTab && TAB_NAMES[state.gotoTab]) setTab(state.gotoTab);
+  if (state.gotoTab && isTab(state.gotoTab)) setTab(state.gotoTab);
   paintPause();
   updateObs();
   // the overlay can't load, but the port can still be fixed
@@ -128,6 +169,7 @@ addEventListener('resize', () => {
   }
   setBooted(true);
   await render();
+  preloadTabs();
   window.__uiReady = performance.timeOrigin + performance.now(); // read by the performance tests
   if (!state.serverError)
     requestAnimationFrame(() => {

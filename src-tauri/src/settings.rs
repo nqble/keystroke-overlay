@@ -30,9 +30,8 @@ pub fn defaults() -> Value {
             // How keys are read: "hook" (standard, default) or "rawinput" (compatibility, for games that block hooks).
             "inputMethod": "hook",
             // Optional "secure link": when on, the overlay link carries a private key (?key=...) and the local server
-            // refuses
-            // requests without it. Off by default (plain link, no extra step). The key is never sent to the overlay
-            // itself.
+            // refuses requests without it. Off by default (plain link, no extra step). The key is never sent to the
+            // overlay itself.
             "secureLink": false,
             "linkKey": "",
             // "stable" = only releases that were promoted to the Stable channel; "latest" = every release.
@@ -192,15 +191,6 @@ fn give_empty_secure_link_a_key(settings: &mut Value) -> bool {
         }
         Err(_) => false,
     }
-}
-
-/// A new install starts with the secure link on. On Windows every program on the PC, and every other signed-in user, can
-/// reach 127.0.0.1, so without a key any of them could read the key presses. The key is already in the OBS link the user
-/// copies, so this costs no extra step. `defaults()` keeps it off on purpose: a settings file saved without the field
-/// must not lose its plain link on an update (OBS would stop showing keys until the new link is pasted).
-pub fn apply_new_install_defaults(settings: &mut Value) {
-    settings["general"]["secureLink"] = json!(true);
-    give_empty_secure_link_a_key(settings);
 }
 
 /// What "Reset all settings" keeps: the port and the secure link with its key, so the OBS link stays exactly the same
@@ -416,16 +406,6 @@ mod tests {
         );
     }
     #[test]
-    fn a_new_install_gets_the_secure_link_with_a_key_but_old_files_keep_a_plain_link() {
-        let mut fresh = defaults();
-        apply_new_install_defaults(&mut fresh);
-        assert_eq!(fresh["general"]["secureLink"], json!(true));
-        let key = fresh["general"]["linkKey"].as_str().unwrap();
-        assert!(key.len() == 32 && key.chars().all(|c| c.is_ascii_hexdigit()), "{key}");
-        // a file saved before the secure link existed must not switch to it (its OBS link would stop working)
-        assert_eq!(migrate(json!({ "version": 1 }))["general"]["secureLink"], json!(false));
-    }
-    #[test]
     fn reset_keeps_the_port_and_the_secure_link_so_the_obs_link_stays_the_same() {
         let mut current = defaults();
         current["general"]["port"] = json!(7900);
@@ -467,14 +447,12 @@ mod tests {
     fn a_restored_backup_is_not_a_new_install() {
         let dir = scratch_folder("backup-only");
         let file = dir.join("settings.json");
-        let old = json!({ "version": CURRENT_VERSION, "general": { "secureLink": false, "lastSeenVersion": "1.0.0" } });
+        let old = json!({ "version": CURRENT_VERSION, "general": { "port": 9000, "lastSeenVersion": "1.0.0" } });
         std::fs::write(dir.join("settings.json.bak"), old.to_string()).unwrap();
-        let (cfg, whats_new) = load_at_startup(&file, "app", "9.9.9");
-        assert_eq!(
-            cfg["general"]["secureLink"],
-            json!(false),
-            "the backup's secure link setting is kept"
-        );
+        // a devbuild's first run would move the port: a restored backup keeps its own
+        let (cfg, whats_new) = load_at_startup(&file, "app.devbuild", "9.9.9");
+        assert_eq!(cfg["general"]["port"], json!(9000), "the backup's port is kept");
+        assert_eq!(cfg["general"]["lastSeenVersion"], json!("1.0.0"));
         assert!(whats_new, "an update over a restored backup still shows What's new");
         std::fs::remove_dir_all(&dir).ok();
     }
@@ -482,7 +460,11 @@ mod tests {
     fn an_empty_folder_is_a_new_install() {
         let dir = scratch_folder("empty-start");
         let (cfg, whats_new) = load_at_startup(&dir.join("settings.json"), "app", "9.9.9");
-        assert_eq!(cfg["general"]["secureLink"], json!(true));
+        assert_eq!(
+            cfg["general"]["secureLink"],
+            json!(false),
+            "the secure link stays an optional choice"
+        );
         assert_eq!(cfg["general"]["lastSeenVersion"], json!("9.9.9"));
         assert!(!whats_new);
         std::fs::remove_dir_all(&dir).ok();
@@ -937,20 +919,19 @@ mod robustness_tests {
 /// copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic update
 /// check off.
 /// True when this is a brand-new install: no settings file and no backup of one. A missing settings.json with a
-/// backup is not new: load() restores the backup, and new-install defaults must not overwrite it.
+/// backup is not new: load() restores the backup, and first-run changes must not overwrite it.
 pub fn is_first_run(path: &Path) -> bool {
     !path.exists() && !path.with_extension("json.bak").exists()
 }
 
 /// The settings the app starts with, and whether to show "What's new" (once after an update; a brand-new install has
-/// nothing to show). Only a brand-new install gets the new-install and devbuild defaults.
+/// nothing to show). Only a brand-new install gets the devbuild defaults and today's version as "last seen".
 pub fn load_at_startup(path: &Path, identifier: &str, current_version: &str) -> (Value, bool) {
     let first_run = is_first_run(path);
     let mut cfg = load(path);
     let whats_new = !first_run && cfg["general"]["lastSeenVersion"].as_str() != Some(current_version);
     if first_run {
         cfg["general"]["lastSeenVersion"] = json!(current_version);
-        apply_new_install_defaults(&mut cfg);
         apply_devbuild_defaults(identifier, &mut cfg);
     }
     (cfg, whats_new)

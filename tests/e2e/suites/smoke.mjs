@@ -128,10 +128,14 @@ check(
 
 // ---- the website guard (server.rs from_this_server): a web page or a DNS-rebinding trick gets 403, for data and stream
 /** Sends one raw HTTP request (so the Host and Origin headers are exactly ours) and returns the status code. */
-const statusOf = (path, headers) =>
+const statusOf = (path, headers, extraLines = []) =>
   new Promise((resolve) => {
     const socket = net.connect(PORT, '127.0.0.1');
-    const lines = [`GET ${path} HTTP/1.1`, ...Object.entries(headers).map(([name, value]) => `${name}: ${value}`)];
+    const lines = [
+      `GET ${path} HTTP/1.1`,
+      ...Object.entries(headers).map(([name, value]) => `${name}: ${value}`),
+      ...extraLines,
+    ];
     socket.on('connect', () => socket.write(lines.join('\r\n') + '\r\n\r\n'));
     socket.once('data', (data) => {
       resolve(Number(String(data).split(' ')[1]));
@@ -155,6 +159,16 @@ check(
 check(
   'guard: DNS rebinding (a foreign Host name for 127.0.0.1) is refused',
   (await statusOf('/ws', { Host: `evil.example:${PORT}`, ...WS_UPGRADE })) === 403,
+);
+
+check(
+  'guard: two Host headers are refused (400), so the first cannot hide the second',
+  (await statusOf('/api/config', { Host: THIS_HOST }, [`Host: evil.example:${PORT}`])) === 400,
+);
+check(
+  'guard: a request line addressed to another site is refused, a correctly addressed one is allowed',
+  (await statusOf(`http://evil.example:${PORT}/api/config`, { Host: THIS_HOST })) === 403 &&
+    (await statusOf(`http://${THIS_HOST}/api/config`, { Host: THIS_HOST })) === 200,
 );
 
 // ---- updates module

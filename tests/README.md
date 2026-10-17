@@ -59,7 +59,9 @@ suites run on your machine. CI runs the privacy check, syntax checks and the Rus
 ## Visual tests (`npm run test:visual`)
 
 A picture of every settings screen (each tab, the Keys tab with one key and with several keys selected, and the New layout
-popup), compared with the picture saved last time, so a look that changes by accident is caught.
+popup), plus the overlay itself in each built-in theme (default, glass, minecraft, minimal-light, neon) with W and Space held,
+compared with the picture saved last time, so a look that changes by accident is caught. The overlay pictures show what OBS
+shows: the settings window's work must never change them, and changing them needs Jordan's explicit OK with before and after.
 
 - `npm run test:visual` builds the test copy of the app (like the end-to-end tests), takes the pictures and compares them with
   `tests/visual/baselines/`. It prints which screens changed. For each changed screen it writes pictures to `tests/visual/diff/`
@@ -154,6 +156,22 @@ The live preview frame is a different page (the real overlay); the tests keep us
 creates user data, installs the current version over it (an upgrade) and checks that settings, layouts and key edits survived and the
 What's new popup appeared, uses the new features, and finally uninstalls (program and uninstall entry gone, your data folder kept).
 It needs ~4 GB temporarily in your TEMP folder and deletes everything when it finishes (`--keep` to keep it).
+
+## Tab switch speed
+
+`npm run test:e2e -- --suite tab-speed` (optional, not part of the normal run) opens every settings tab repeatedly and prints how long
+the switch takes, built from scratch and reused, to the swap and to the painted page. Reused pages must appear in under 50 ms.
+
+## Quiet in-app update test
+
+`npm run test:quiet-update` (`tests/install/quiet-update.mjs`) checks the real "Update now" path with real installers: it builds the
+current code as an installer and again as a copy numbered 9.9.9 signed with a throwaway key, installs the first under the
+test identity (`KOTest`, `com.keyoverlay.test`), serves the second from a tiny fake update server, and makes the app update itself.
+It checks that no installer window appears, that the app reopens by itself as a new process with the new program file in
+place, and that the settings survive. The first run builds two installers (about 10 minutes); add `--keep` to keep them and a
+re-run takes about two minutes. It opens and closes real windows, so do not use the PC while it runs. The app reports its
+version from `Cargo.toml`, which these test builds do not change, so the test tells the versions apart by the program file's own
+version number and by the new process id.
 
 ## Performance comparison
 

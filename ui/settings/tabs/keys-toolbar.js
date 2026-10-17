@@ -10,7 +10,7 @@ import { selectedKey, selectedKeys, setSelectedKey, settings } from '../state.js
 import { TEXT } from '../text.js';
 import { alignPositions, clampMove, distributePositions, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
-import { selectedBoxes } from './keys-map.js';
+import { selectedBoxes } from '../editor/places.js';
 
 let nudgeByWholeKey = false; // the "Whole key" tickbox next to the nudge buttons (kept while the tab redraws)
 const MAX_POSITION = 100; // a key's position is limited to 0–100 key units (keep in step with settings.rs)
