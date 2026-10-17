@@ -30,6 +30,10 @@ From v2.0, so key labels can follow your keyboard language, the app asks Windows
 you use** (for example French AZERTY) and which character each letter key prints on it. That is a fact about the
 keyboard, not about anything you type, and it stays in memory.
 
+From v2.0 you can also set a **pause shortcut** (General → Pause shortcut, off by default). The app then asks Windows
+to tell it about that one key combination only; it sees no other key that way, and registers nothing while the
+shortcut is off. The check in `tools/check-privacy.mjs` makes sure shortcuts are registered only in `hotkeys.rs`.
+
 Use **Pause overlay** (tray menu) whenever you are about to type something private on stream. While paused, the app
 forwards nothing at all.
 

@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  The General tab (docs/design/ui-design-v2.md, Tabs): section cards for Connection (general-connection.js), Keyboard
-//  input, Startup, Updates (general-updates.js) and a collapsed Advanced. Built with Preact and the shared blocks
-//  (blocks.js). Plain words by default; Debug mode adds the technical detail lines.
+//  input, Startup, Pause shortcut (general-hotkey.js), Updates (general-updates.js) and a collapsed Advanced. Built
+//  with Preact and the shared blocks (blocks.js). Plain words by default; Debug mode adds the technical detail lines.
 // =====================================================================================================================
 import { Detail, Note, Section, Segmented, Switch } from '../blocks.js';
 import { call, invoke, toast } from '../helpers.js';
@@ -11,6 +11,7 @@ import { inputActive, inputError, setInputActive, setInputError, settings } from
 import { resetDialog } from '../dialogs.js';
 import { TEXT } from '../text.js';
 import { Connection } from './general-connection.js';
+import { PauseShortcut } from './general-hotkey.js';
 import { Updates } from './general-updates.js';
 
 const WORDS = {
@@ -59,6 +60,7 @@ function General() {
       <${Connection} />
       <${KeyboardInput} />
       <${Startup} />
+      <${PauseShortcut} />
       <${Updates} />
     </div>
     <${Advanced} />

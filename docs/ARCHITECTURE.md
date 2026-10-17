@@ -41,6 +41,7 @@ keystroke-overlay/
 │       ├── tray.rs         tray icon/menu + quick actions (pause, layout, restart server)
 │       ├── debug.rs        the in-memory event log (important events always, details in Debug mode), health snapshot, test switches (docs/DEBUGGING.md)
 │       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
+│       ├── hotkeys.rs      the optional global pause shortcut (registers only the one the user set)
 │       ├── key_labels.rs   key labels that follow the user's keyboard language (style.keyLabels)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call

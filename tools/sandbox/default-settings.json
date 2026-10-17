@@ -42,6 +42,10 @@
     "opacity": 1.0,
     "keyLabels": "keyboard"
   },
+  "hotkeys": {
+    "enabled": false,
+    "pause": ""
+  },
   "animation": {
     "type": "none",
     "speed": 120,

@@ -109,6 +109,9 @@
     regenerate_link_key: () => `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/?key=sandbox${Date.now()}`,
     set_secure_link: ({ enabled }) =>
       `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/` + (enabled ? `?key=sandbox${Date.now()}` : ''),
+    set_pause_hotkey: ({ enabled, shortcut }) => {
+      settings.hotkeys = { enabled, pause: shortcut };
+    },
     toggle_pause: () => {
       paused = !paused;
       return paused;

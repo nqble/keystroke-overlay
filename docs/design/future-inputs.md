@@ -1,6 +1,6 @@
 # Future inputs and features: the plan to follow
 
-Status: **design only. Nothing here is built yet, and none of it is promised.** Jordan may add some of these later
+Status: **design only, except the pause shortcut** (built in v2.0: `hotkeys.pause`, src-tauri/src/hotkeys.rs; next/previous layout and open settings are not built). **None of the rest is promised.** Jordan may add some of these later
 (mouse clicks and controller input are candidates for v2.0). This page fixes the decisions that are hard to change later,
 so whoever builds one of these features, a person or a Claude session, builds it the same way. Read it before starting
 any of them, and update it if a decision changes.

@@ -51,6 +51,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
         ] {
             new["general"][k] = cur["general"][k].clone();
         }
+        new["hotkeys"] = cur["hotkeys"].clone(); // changed only through set_pause_hotkey, which registers it
     }
     crate::debug::set_enabled(new["general"]["debugMode"].as_bool().unwrap_or(false));
     let channel_changed =

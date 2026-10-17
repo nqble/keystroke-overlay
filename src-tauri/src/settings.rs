@@ -56,6 +56,8 @@ pub fn defaults() -> Value {
             // "keyboard": labels follow the user's keyboard language (key_labels.rs); "layout": the layout files' own
             "keyLabels": "keyboard"
         },
+        // The global pause shortcut (hotkeys.rs), e.g. "Ctrl+Shift+KeyP". Off and empty by default.
+        "hotkeys": { "enabled": false, "pause": "" },
         "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
     })
 }

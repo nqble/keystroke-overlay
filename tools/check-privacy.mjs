@@ -4,6 +4,7 @@
 //   * writes files from the keyboard hook or the overlay server
 //   * logs/prints anything (a log line is how keystrokes usually leak)
 //   * makes the UI call an external address
+//   * registers global shortcuts anywhere but hotkeys.rs (which registers only the one the user chose)
 // Run:  node tools/check-privacy.mjs      (also runs in CI)
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -42,6 +43,10 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
   });
   scan(file, text, WRITE, (n) => {
     if (/\/keyboard\/|\/server\.rs$/.test(file)) bad(file, n, 'keyboard/server code must never write files');
+  });
+  scan(file, text, /global_shortcut|GlobalShortcutExt/, (n) => {
+    const allowed = ['src-tauri/src/hotkeys.rs', 'src-tauri/src/main.rs']; // main.rs only loads the plugin
+    if (!allowed.includes(file)) bad(file, n, 'global shortcuts outside hotkeys.rs');
   });
   scan(file, text, LOG, (n) => bad(file, n, 'logging/printing is not allowed (keystrokes could leak)'));
 }
@@ -112,5 +117,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
 );

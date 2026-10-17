@@ -125,7 +125,7 @@ Under **General → Secure link** you can choose how locked-down your OBS link i
 
 Right-click the tray icon for quick actions without opening settings:
 
-- **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume.
+- **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume. You can also set a key combination for it that works from any app, even in a game: **General → Pause shortcut** (off until you set one).
 - **Layout** — switch between layouts.
 - **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
 - **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to General → Program updates.

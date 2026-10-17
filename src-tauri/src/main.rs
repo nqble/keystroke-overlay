@@ -9,6 +9,7 @@ mod crash;
 mod debug;
 mod downgrade;
 mod grid;
+mod hotkeys;
 mod key_labels;
 mod keyboard;
 mod layout_order;
@@ -50,6 +51,7 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--autostart"]),
@@ -115,7 +117,10 @@ fn main() {
             });
 
             state::forward_overlay_count(app.handle().clone(), &shared);
-            tray::build(app, shared)?;
+            tray::build(app, shared.clone())?;
+            if let Err(problem) = hotkeys::apply(app.handle(), &shared.settings.read().unwrap()) {
+                debug::log(format!("pause shortcut not registered: {problem}"));
+            }
             commands::updates::start_background_check(app.handle().clone());
 
             let autostarted = std::env::args().any(|a| a == "--autostart");
@@ -133,6 +138,7 @@ fn main() {
             commands::settings::save_settings,
             commands::settings::set_port,
             commands::settings::set_autostart,
+            hotkeys::set_pause_hotkey,
             commands::settings::list_layouts,
             commands::settings::copy_text,
             commands::settings::quit_app,
