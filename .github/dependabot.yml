@@ -1,9 +1,14 @@
-# Dependabot opens a pull request when a GitHub Action used by the workflows has a new version. The workflows pin every
-# action to an exact commit (supply-chain safety), so this is how those pins stay current. Each pull request is reviewed
-# and merged by Jordan like any other change; nothing updates by itself.
+# Dependabot opens a pull request when a library or a GitHub Action has a new version. Each one is reviewed and merged
+# by Jordan like any other change (CLAUDE.md: every crate runs next to a keyboard hook); nothing updates by itself. The
+# workflows pin every action to an exact commit for supply-chain safety, and the github-actions entry keeps those pins current.
 version: 2
 updates:
+  - package-ecosystem: cargo
+    directory: /src-tauri
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: monthly }
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: monthly
+    schedule: { interval: monthly }
