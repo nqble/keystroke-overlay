@@ -19,7 +19,8 @@ Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaS
 
 1. Go to the [**Releases**](../../releases/latest) page.
 2. Download `Keystroke-Overlay_x.y.z_x64-setup.exe` and run it.
-3. Windows may show a SmartScreen warning because the installer isn't code-signed. Click **More info → Run anyway**.
+3. If Windows shows a SmartScreen warning (releases before code signing, or a new release Windows hasn't seen much yet),
+   click **More info → Run anyway**. Signed releases name **SignPath Foundation** as the publisher (see Code signing policy).
 
 The app starts in your system tray (bottom-right of the taskbar). Click the tray icon to open settings.
 Prefer to build it yourself? See [Building from source](#building-from-source).
@@ -274,6 +275,17 @@ Maintaining the project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SO
 ## Requirements
 
 Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11.
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- **Committers and reviewers:** [Jordan Phoutthavone](https://github.com/nqble) and the contributors whose pull
+  requests Jordan reviews and merges.
+- **Approvers:** [Jordan Phoutthavone](https://github.com/nqble). Every signed release is approved by hand.
+- Only installers built by this repository's release workflow from the `main` branch are signed.
+- **Privacy:** see [PRIVACY.md](PRIVACY.md). The app's only internet contact is GitHub, for updates and release
+  notes; the automatic update check can be turned off. Keystrokes never leave your PC.
 
 ## License
 
