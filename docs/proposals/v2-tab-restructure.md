@@ -8,6 +8,8 @@ Goal: the file layout the v2.0 design needs (`docs/design/ui-design-v2.md`), wit
 steps. Each step is its own commit, with `npm test`, clippy, `check:types`, `check:format`, `check:privacy`, the UI
 sandbox and (on Windows) the screenshot tests between steps. Stop and report on any failure.
 
+The settings window moves to Preact with htm as these steps happen: see [v2-preact.md](v2-preact.md) (proposed).
+
 ## Where things go
 
 | Today | v2.0 |
