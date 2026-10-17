@@ -106,6 +106,8 @@ pub fn forward_overlay_count(app: AppHandle, shared: &Arc<Shared>) {
     tauri::async_runtime::spawn(async move {
         while overlays.changed().await.is_ok() {
             let count = *overlays.borrow_and_update();
+            // important for bug reports: "the overlay is blank" usually means OBS isn't connected
+            crate::debug::log(format!("OBS overlay pages connected: {count}"));
             let _ = app.emit("overlays-changed", count);
         }
     });

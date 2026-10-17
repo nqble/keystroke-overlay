@@ -2,9 +2,9 @@
 //  The self-test's checks and the facts for "Copy bug report" (debug-report.js formats them).
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { bugReport, redactSettings, scrub, settingsDiff } from '../debug-report.js';
+import { REPORT_LOG_LINES, bugReport, redactSettings, scrub, settingsDiff } from '../debug-report.js';
 import { invoke } from '../helpers.js';
-import { layouts, paused, settings, size } from '../state.js';
+import { lastUpdate, layouts, paused, settings, size } from '../state.js';
 import { facts } from './shared.js';
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -73,6 +73,13 @@ export async function buildReport() {
     state,
     selfTest,
     settingsDiff: settingsDiff(redactSettings(settings), defaults),
-    log: log.slice(-60),
+    lastUpdate: lastUpdate && {
+      available: !!lastUpdate.available,
+      version: lastUpdate.version,
+      channel: lastUpdate.channel,
+    },
+    detailSinceMs: info.detailSinceMs,
+    lastCrash: info.lastCrash,
+    log: log.slice(-REPORT_LOG_LINES),
   });
 }

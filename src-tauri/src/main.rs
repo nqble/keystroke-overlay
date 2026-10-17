@@ -5,6 +5,7 @@
 //! See docs/ARCHITECTURE.md for how the pieces fit together.
 
 mod commands;
+mod crash;
 mod debug;
 mod downgrade;
 mod grid;
@@ -77,6 +78,11 @@ fn main() {
             }
             debug::init(cfg["general"]["debugMode"].as_bool().unwrap_or(false));
             debug::log(format!("app started (v{current})"));
+            if let Some(note) = crash::take_last(&paths.root) {
+                debug::log(format!("the last run crashed: {note}"));
+                debug::set_last_crash(note);
+            }
+            crash::install(&paths.root);
 
             let (cfg_tx, _) = broadcast::channel(8);
             let shared = Arc::new(Shared {
@@ -86,6 +92,10 @@ fn main() {
                 cfg_tx,
                 overlays: watch::channel(0).0,
             });
+            match shared.bus.error() {
+                Some(e) => debug::log(format!("keyboard input ({}) could not start: {e}", method.id())),
+                None => debug::log(format!("keyboard input: {}", method.id())),
+            }
             let (srv, err) = match server::start(shared.clone(), port) {
                 Ok(handle) => (Some(handle), None),
                 Err(e) => (None, Some(e)),

@@ -72,6 +72,11 @@ only the graphics card's cheapest effects, so streams stay smooth.
 2. **Copy the OBS link.** The app opens on three short setup steps the first time.
 3. **In OBS:** Sources → **+** → **Browser**, paste the link and set the size the app shows. Done.
 
+**Is it safe?** Antivirus tools are wary of any program that reads the keyboard, and now and then one flags a new
+version by mistake. Keystroke Overlay is open source, official releases come only from the Releases page, and an
+automatic check on every change makes sure keystrokes are never saved or sent. If your antivirus warns about an official
+release, please [open an issue](https://github.com/nqble/keystroke-overlay/issues).
+
 More in the [user guide](docs/USER-GUIDE.md): the best OBS settings, two-PC setups, input methods, the secure link and
 troubleshooting.
 

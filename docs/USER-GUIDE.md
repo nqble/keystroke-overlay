@@ -187,7 +187,8 @@ Every step happens on your computer, in memory. The moment a key is released, th
 
 ### What is saved on your PC
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\`: your settings (style, layout, hidden keys, labels, port,
-preferences), presets, fonts, and layouts you added. **Nothing in there contains keystrokes.** Uninstall and delete that folder to
+preferences), presets, fonts, and layouts you added; if the app ever crashes, a one-line note of where (read and deleted
+at the next start). **Nothing in there contains keystrokes.** Uninstall and delete that folder to
 remove everything.
 
 ### What touches the internet
@@ -241,6 +242,10 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **OBS runs on a different PC from the game:** the overlay link only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Open an issue naming the game and its anti-cheat.
+- **Your antivirus flags the app:** check the file came from this project's
+  [Releases](https://github.com/nqble/keystroke-overlay/releases) page, then
+  [open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus. Each release is reported to
+  Microsoft as a false positive when needed (docs/RELEASING.md).
 - **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
 - **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.

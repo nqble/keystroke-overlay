@@ -60,8 +60,20 @@ function buildApp() {
   run('npx tauri build --no-bundle');
 }
 
+// The third-party notices (tools/notices.mjs) go into the installer when they have been made; the release workflow
+// always makes them, a build on your PC may skip them. Tauri reads the extra setting from a small file (passing JSON on
+// the command line is fragile in the Windows command prompt). Paths in it are relative to src-tauri/.
+const NOTICES = join('release', 'THIRD-PARTY-NOTICES.html');
+const NOTICES_CONFIG = join('release', 'notices.conf.json');
+
 function buildInstaller() {
-  run('npx tauri bundle --bundles nsis');
+  if (!existsSync(NOTICES)) {
+    run('npx tauri bundle --bundles nsis');
+    return;
+  }
+  const resources = { '../release/THIRD-PARTY-NOTICES.html': 'THIRD-PARTY-NOTICES.html' };
+  writeFileSync(NOTICES_CONFIG, JSON.stringify({ bundle: { resources } }));
+  run(`npx tauri bundle --bundles nsis --config ${NOTICES_CONFIG}`);
 }
 
 /** The update signature is made here, over the final installer (after any code signing changed the file). */

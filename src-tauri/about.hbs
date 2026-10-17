@@ -1,0 +1,54 @@
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <title>Keystroke Overlay: third-party notices</title>
+    <style>
+      body {
+        font:
+          15px/1.5 'Segoe UI',
+          system-ui,
+          sans-serif;
+        max-width: 860px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        color: #1b1f29;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin-top: 2.5rem;
+      }
+      ul {
+        padding-left: 1.2rem;
+      }
+      pre {
+        white-space: pre-wrap;
+        background: #f3f4f8;
+        padding: 1rem;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Keystroke Overlay: third-party notices</h1>
+    <p>Keystroke Overlay is MIT-licensed. It is built with the open-source libraries below, which keep their own
+      licences. Each licence is listed once, with the libraries that use it.</p>
+    <h2>Licences used</h2>
+    <ul>
+      {{#each overview}}<li><a href='#{{id}}'>{{name}}</a> ({{count}})</li>
+      {{/each}}</ul>
+    {{#each licenses}}
+      <h2 id='{{id}}'>{{name}}</h2>
+      <p>Used by:</p>
+      <ul>
+        {{#each used_by}}<li>{{crate.name}}
+            {{crate.version}}{{#if crate.repository}}
+              (<a href='{{crate.repository}}'>{{crate.repository}}</a>){{/if}}</li>
+        {{/each}}</ul>
+      <pre>{{text}}</pre>
+    {{/each}}
+  </body>
+</html>
