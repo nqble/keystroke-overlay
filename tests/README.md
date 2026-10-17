@@ -155,6 +155,17 @@ creates user data, installs the current version over it (an upgrade) and checks 
 What's new popup appeared, uses the new features, and finally uninstalls (program and uninstall entry gone, your data folder kept).
 It needs ~4 GB temporarily in your TEMP folder and deletes everything when it finishes (`--keep` to keep it).
 
+## Quiet in-app update test
+
+`npm run test:quiet-update` (`tests/install/quiet-update.mjs`) checks the real "Update now" path with real installers: it builds the
+current code as an installer and again as a copy numbered 9.9.9 signed with a throwaway key, installs the first under the
+test identity (`KOTest`, `com.keyoverlay.test`), serves the second from a tiny fake update server, and makes the app update itself.
+It checks that no installer window appears, that the app reopens by itself as a new process with the new program file in
+place, and that the settings survive. The first run builds two installers (about 10 minutes); add `--keep` to keep them and a
+re-run takes about two minutes. It opens and closes real windows, so do not use the PC while it runs. The app reports its
+version from `Cargo.toml`, which these test builds do not change, so the test tells the versions apart by the program file's own
+version number and by the new process id.
+
 ## Performance comparison
 
 `node tests/bench/run.mjs` builds v1.2.1, v1.3.0 and the current code as throwaway test copies and measures them side by side:
