@@ -120,19 +120,22 @@ Rules:
 | `first-run`, `first-run-close`, `first-run-copy`, `first-run-size`, `first-run-done`, `general-first-run` | First run setup: the screen, its ✕, Copy, the size, the "all set" line, and General's button |
 | `dialog-delete` | The Delete button of the "Delete …?" popup |
 | `layout-import`, `layout-export`, `style-import`, `style-export` | The Import / Export buttons of the Layout and Style tabs |
-| `keymap`, `keymap-canvas` | The keyboard picture and the area inside it that draws the grid |
-| `key-cell` + `data-code` | One key on the picture |
-| `key-toolbar`, `key-tool-group` | The toolbar and each of its groups |
-| `key-selection-summary`, `key-clear-selection` | "N keys selected" text and the Clear selection button |
-| `key-nudge` + `data-direction` (`left`, `up`, `down`, `right`), `key-nudge-whole` | The four arrow buttons and the "Whole key" tickbox |
-| `key-align-left`, `key-align-center`, `key-align-right`, `key-align-top`, `key-align-middle`, `key-align-bottom` | Align buttons |
-| `key-distribute-across`, `key-distribute-down` | Space evenly buttons |
+| `keymap`, `keymap-canvas` | The editor box, and the board inside it (`data-board-w` and `data-board-h` say its size in keys; `--zoom`, `--pan-x` and `--pan-y` are its view) |
+| `editor-zoom-out`, `editor-zoom-reset`, `editor-zoom-in` | The zoom buttons in the corner of the editor (the middle one shows the zoom) |
+| `key-cell` + `data-code` | One key on the board |
+| `key-handles`, `key-handle-left`, `key-handle-right` | The resize handles on a selected key |
+| `key-guide-x`, `key-guide-y` | The orange guide lines shown while a dragged key sticks to another key's edge |
+| `key-arrange-bar` | The bar that floats above two or more selected keys |
+| `key-align-left`, `key-align-center`, `key-align-right`, `key-align-top`, `key-align-middle`, `key-align-bottom` | Align buttons (in the arrange bar) |
+| `key-distribute-across`, `key-distribute-down` | Space evenly buttons (in the arrange bar) |
+| `key-toolbar`, `key-tool-group` | The toolbar above the editor and each of its groups |
 | `key-undo`, `key-redo` | History buttons |
-| `key-snap`, `key-grid` | The Snap menu and the Show grid tickbox |
-| `key-status`, `key-readout` | The line under the picture, the position label shown while dragging |
-| `keys-shortcut-hint` | The one-line list of keyboard shortcuts under the picture |
-| `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the picture |
-| `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back` | The editor under the picture (one key or several) |
+| `key-snap`, `key-grid` | The Snap and Grid switches (buttons with `aria-pressed`) |
+| `key-status`, `key-readout` | The moved / hidden / overlap line at the right of the toolbar, the label shown while dragging or resizing |
+| `keys-shortcut-hint` | The one-line hint and shortcut key caps under the editor |
+| `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the editor |
+| `key-inspector-empty` | The inspector while nothing is selected |
+| `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-width`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back`, `key-clear-selection` | The inspector to the right of the editor (one key or several) |
 | `theme-card-<id>` (for example `theme-card-neon`), `style-themes` | Style's theme gallery: one card per theme file (`aria-pressed` on the one in use) |
 | `style-presets`, `preset-new`, `preset-card`, `preset-menu`, `preset-name`, `preset-save` | My presets: the "+ Save current look" card, each preset (click loads it) and its ⋯ menu; the name box and Save in the save popup |
 | `style-reset`, `style-colors`, `style-shape`, `style-text`, `style-size` | Style's Reset ▾ menu and its cards |

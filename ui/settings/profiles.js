@@ -56,6 +56,9 @@ function editStyle() {
 /** The positions of moved keys in the layout style in use, for changing. */
 export const editPositions = () => (editStyle().positions ??= {});
 
+/** The widths of resized keys in the layout style in use, for changing. */
+export const editSizes = () => (editStyle().sizes ??= {});
+
 /** True when a profile differs from the default in any way. */
 function hasEdits(profile) {
   const styles = Object.values(profile.styles ?? {});
@@ -164,6 +167,15 @@ export function setKeyPos(key, x, y) {
   y = round2(y);
   if (Math.abs(x - base.x) < 1e-6 && Math.abs(y - base.y) < 1e-6) delete editPositions()[key.code];
   else editPositions()[key.code] = { x, y };
+  tidyProf();
+}
+
+/** Save a key's width (dropping the entry when it is back to the layout style's own width). */
+export function setKeyWidth(key, w) {
+  const style = styleOf(editProf());
+  w = round2(w);
+  if (Math.abs(w - baseWidth(key, style)) < 1e-6) delete editSizes()[key.code];
+  else editSizes()[key.code] = { w };
   tidyProf();
 }
 

@@ -24,6 +24,7 @@
 
   /* Text */
   --color-text: #e6e9f0;
+  --color-guide: #ff9f43; /* the smart-guide lines shown while a key is dragged */
   --color-text-dim: #8b93a7; /* secondary text, hints */
   --color-on-fill: #fff; /* text on a strong fill (active tab, primary button, close button) */
 

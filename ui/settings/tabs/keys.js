@@ -1,11 +1,15 @@
 // =====================================================================================================================
-//  The Keys tab: show / hide keys, rename them, and select and move them (one at a time or as a group).
+//  The Keys tab: the keyboard editor with its toolbar, and the inspector on its right (show or hide keys, label them, set an
+//  exact width and place). The keyboard itself is the editor in editor/editor.js; this file puts the tab together.
 // =====================================================================================================================
-import { button, confirmTwice, el, heading, note, plural, row, toast } from '../helpers.js';
+import { button, confirmTwice, el, heading, row, toast } from '../helpers.js';
 import { isPopupOpen } from '../popup.js';
 import { changed } from '../preview.js';
 import {
+  MAX_KEY_WIDTH,
+  MAX_POSITION,
   SNAP,
+  baseWidth,
   basePosition,
   curLayout,
   editPositions,
@@ -14,21 +18,25 @@ import {
   forgetStyleEdits,
   isCustom,
   keyPos,
+  keyWidth,
   nudgeStep,
   profileSnapshot,
   round2,
   setKeyPos,
+  setKeyWidth,
   tidyPositions,
   tidyProf,
   viewProf,
 } from '../profiles.js';
 import { render } from '../settings.js';
 import { observe } from './keys-history.js';
-import { hideSelection, nudgeSelection, redoLastChange, selectionTools, undoLastChange } from './keys-toolbar.js';
+import { overlappingCodes } from './keys-board.js';
+import { hideSelection, keysToolbar, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
+import { placeKeys } from '../editor/places.js';
 import { settings, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
 import { TEXT } from '../text.js';
 
-// ---- Keys: show / hide keys and rename them -----------------------------------------------------------------------
+// ---- The tab ------------------------------------------------------------------------------------------------------
 export async function keysTab() {
   const page = el('div'),
     layout = curLayout();
@@ -40,18 +48,48 @@ export async function keysTab() {
   const profile = viewProf();
   const editor = getEditor();
   editor.update(layout, profile);
-  page.append(heading('Keys — ' + layout.name), note(TEXT.keysTabHelp));
+  const hidden = new Set(profile.disabledKeys);
+  const overlapping = overlappingCodes(
+    placeKeys(layout, profile)
+      .filter((item) => !hidden.has(item.key.code))
+      .map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h })),
+  );
   page.append(
-    selectionTools(layout),
-    editor.element,
-    el('p', { className: 'keyhint', textContent: TEXT.shortcutsHint, test: 'keys-shortcut-hint' }),
-    statusLine(layout, profile),
+    heading('Keys — ' + layout.name),
+    keysToolbar(layout, profile, overlapping.size),
+    el(
+      'div',
+      { className: 'keys-row' },
+      el('div', { className: 'keys-main' }, editor.element, hintLine()),
+      inspector(layout, profile, overlapping),
+    ),
     keyButtons(layout),
   );
-  const selected = selectedKey && layout.keys.find((k) => k.code === selectedKey);
-  if (selected) page.append(keyEditor(selected, profile));
-  else if (selectedKeys.size > 1) page.append(groupEditor(layout, profile));
   return page;
+}
+
+/** One line under the editor: how to move keys, and the shortcuts as small key caps. */
+function hintLine() {
+  const chip = (text, tooltip) => el('kbd', { textContent: text, title: tooltip });
+  return el(
+    'p',
+    { className: 'keyhint', test: 'keys-shortcut-hint' },
+    el('span', { textContent: TEXT.dragHint }),
+    el(
+      'span',
+      { className: 'chips' },
+      chip('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key'),
+      ' nudge · ',
+      chip('Shift', 'Hold Shift with an arrow key to move a whole key'),
+      ' whole key · ',
+      chip('Del', 'Delete or Backspace hides the selected keys'),
+      ' hide · ',
+      chip('Scroll', 'Scroll the mouse wheel over the keyboard to zoom'),
+      ' zoom · ',
+      chip('Middle-drag', 'Drag with the middle mouse button to move the view'),
+      ' pan',
+    ),
+  );
 }
 
 /** True while a popup is open or the cursor is in a field you type into (shortcuts must not steal those keys). */
@@ -93,21 +131,6 @@ addEventListener('keydown', (keyEvent) => {
   } else return;
   keyEvent.preventDefault();
 });
-
-/** One line under the picture: where the selected key is (when exactly one is selected), and how many keys are moved. */
-function statusLine(layout, profile) {
-  const parts = [];
-  const selected = selectedKey && layout.keys.find((key) => key.code === selectedKey);
-  if (selected) {
-    const at = keyPos(selected, profile);
-    parts.push(`${selected.code} at x ${round2(at.x)}, y ${round2(at.y)}`);
-  }
-  const movedCount = Object.keys(profile.positions).length;
-  parts.push(movedCount === 0 ? TEXT.noKeysMoved : `${plural(movedCount, 'key')} moved from the layout file`);
-  const status = el('p', { className: 'keystatus', textContent: parts.join(' · '), test: 'key-status' });
-  status.setAttribute('aria-live', 'polite'); // read out after a change
-  return status;
-}
 
 /** Enable all / Disable all / Reset all labels / Tidy up / Reset positions / Revert to Default. */
 function keyButtons(layout) {
@@ -196,10 +219,28 @@ function keyButtons(layout) {
   );
 }
 
-/**
- * The small editor under the keyboard for the selected key: show/hide it, give it a label, and set its exact position.
- */
-function keyEditor(key, profile) {
+// ---- The inspector --------------------------------------------------------------------------------------------------
+/** The panel to the right of the editor: what is selected, and the controls for it. */
+function inspector(layout, profile, overlapping) {
+  const panel = el('aside', { className: 'inspector' });
+  panel.setAttribute('aria-label', 'Selected keys');
+  const selected = selectedKey && layout.keys.find((key) => key.code === selectedKey);
+  if (selected) panel.append(keyInspector(selected, profile, overlapping.has(selected.code)));
+  else if (selectedKeys.size > 1) panel.append(groupInspector(profile));
+  else
+    panel.append(
+      el(
+        'div',
+        { className: 'editor', test: 'key-inspector-empty' },
+        el('b', { textContent: TEXT.noKeySelected }),
+        el('p', { className: 'note', textContent: TEXT.inspectorTip }),
+      ),
+    );
+  return panel;
+}
+
+/** The inspector for one key: show or hide it, give it a label, set its width and exact place. */
+function keyInspector(key, profile, overlaps) {
   const show = el('input', { type: 'checkbox', checked: !profile.disabledKeys.includes(key.code), test: 'key-show' });
   show.onchange = () => {
     const edited = editProf(),
@@ -221,7 +262,7 @@ function keyEditor(key, profile) {
     editProf().labels[key.code] = label.value;
     changed();
   };
-  const reset = button(
+  const resetLabel = button(
     'Reset',
     () => {
       delete editProf().labels[key.code];
@@ -233,23 +274,34 @@ function keyEditor(key, profile) {
   );
 
   const at = keyPos(key, profile);
-  const num = (value, test) =>
-    el('input', { type: 'number', min: 0, max: 100, step: SNAP, value: round2(value), className: 'num-field', test });
+  const num = (value, test, min = 0, max = MAX_POSITION) =>
+    el('input', { type: 'number', min, max, step: SNAP, value: round2(value), className: 'num-field', test });
   const px = num(at.x, 'key-x'),
     py = num(at.y, 'key-y');
   const place = () => {
     const x = parseFloat(px.value),
       y = parseFloat(py.value);
     if (Number.isFinite(x) && Number.isFinite(y)) {
-      setKeyPos(key, Math.min(100, Math.max(0, x)), Math.min(100, Math.max(0, y)));
+      setKeyPos(key, Math.min(MAX_POSITION, Math.max(0, x)), Math.min(MAX_POSITION, Math.max(0, y)));
       changed();
     }
   };
   px.oninput = py.oninput = place;
-  // redraw the keyboard once typing settles
+  // draw the keyboard again once typing settles
   px.onchange = py.onchange = () => render();
+
+  const minWidth = Math.min(1, baseWidth(key, profile.layoutStyle));
+  const width = num(keyWidth(key, profile), 'key-width', minWidth, MAX_KEY_WIDTH);
+  width.oninput = () => {
+    const value = parseFloat(width.value);
+    if (!Number.isFinite(value)) return;
+    setKeyWidth(key, Math.min(MAX_KEY_WIDTH, Math.max(minWidth, value)));
+    changed();
+  };
+  width.onchange = () => render();
+
   const back = button(
-    'Reset',
+    'Put back where it was',
     () => {
       forgetKeyEdits([key.code]);
       changed(true);
@@ -259,19 +311,26 @@ function keyEditor(key, profile) {
   );
   back.disabled = !profile.positions[key.code] && !profile.sizes[key.code];
 
-  return el(
+  const editor = el(
     'div',
     { className: 'editor', test: 'key-editor' },
-    el('b', { textContent: key.code, test: 'key-editor-title' }),
-    row('Show this key', show),
-    row('Custom label', label, reset),
-    row('Position', el('span', { textContent: 'X' }), px, el('span', { textContent: 'Y' }), py, back),
-    note(TEXT.keyEditorTip),
+    el(
+      'div',
+      { className: 'inspector-title' },
+      el('b', { textContent: `Key: ${key.code}`, test: 'key-editor-title' }),
+      el('label', { className: 'inline' }, show, ' Show'),
+    ),
+    row('Label', label, resetLabel),
+    row('Width in keys', width),
+    row('Position', el('span', { textContent: 'X' }), px, el('span', { textContent: 'Y' }), py),
   );
+  if (overlaps) editor.append(el('p', { className: 'danger-note', textContent: TEXT.overlapNote }));
+  editor.append(back);
+  return editor;
 }
 
-/** The panel under the picture while several keys are selected: show / hide them together, or put them back. */
-function groupEditor(layout, profile) {
+/** The inspector while several keys are selected: show or hide them together, or put them back. */
+function groupInspector(profile) {
   const codes = [...selectedKeys];
   const hiddenCount = codes.filter((code) => profile.disabledKeys.includes(code)).length;
   const show = el('input', { type: 'checkbox', checked: hiddenCount === 0, test: 'key-show' });
@@ -289,7 +348,7 @@ function groupEditor(layout, profile) {
   };
   const movedCodes = codes.filter((code) => profile.positions[code] || profile.sizes[code]);
   const putBack = button(
-    'Put back',
+    'Put these back',
     () => {
       forgetKeyEdits(codes);
       changed(true);
@@ -299,12 +358,25 @@ function groupEditor(layout, profile) {
   );
   putBack.disabled = movedCodes.length === 0;
   putBack.title = 'Put the selected keys back where the layout has them';
+  const clear = button(
+    'Clear selection',
+    () => {
+      setSelectedKey(null);
+      render();
+    },
+    '',
+    'key-clear-selection',
+  );
   return el(
     'div',
     { className: 'editor', test: 'key-editor' },
-    el('b', { textContent: `${codes.length} keys selected`, test: 'key-editor-title' }),
-    row('Show these keys', show),
-    row('Positions', putBack),
-    note(TEXT.groupEditorTip),
+    el(
+      'div',
+      { className: 'inspector-title' },
+      el('b', { textContent: `${codes.length} keys selected`, test: 'key-editor-title' }),
+      el('label', { className: 'inline' }, show, ' Show'),
+    ),
+    el('p', { className: 'note', textContent: TEXT.groupInspectorTip }),
+    el('div', { className: 'btns' }, putBack, clear),
   );
 }

@@ -8,18 +8,15 @@ export const TEXT = {
   resetBodyWhatChanges: 'Every option goes back to its default. Your layouts, presets, fonts and port are kept.',
   resetBodyLinkNote: 'If the secure link was on, copy the OBS link into OBS again.',
   manualInstallDialog: 'Install this one by hand: get the installer from GitHub, close this app, run it.',
-  keysTabHelp: 'Click a key to edit it. Drag to move. Drag a box to select several. Saved automatically.',
-  nothingSelected: 'No keys selected',
-  shortcutsHint:
-    'Shortcuts: arrow keys nudge · Shift = a whole key · Delete hides · Ctrl+Z undo · Ctrl+Shift+Z redo · ' +
-    'Ctrl+A select all · Esc clear',
+  dragHint: 'Drag a key to move it. Ctrl-click to add.',
+  noKeySelected: 'No key selected',
+  inspectorTip: 'Click a key to label or hide it. Dragged keys line up with their neighbours. Saved for each layout.',
+  overlapNote: 'This key overlaps another. Drag it to a free spot, or press Tidy up.',
+  groupInspectorTip: 'Drag any of them to move them together. The bar above them lines them up or spaces them.',
+  snapHelp: 'Keys jump a quarter key when moved and stick to other keys’ edges. Off: anywhere.',
   clickToDismiss: 'Click to dismiss',
-  noKeysMoved: 'No keys moved from the layout file',
-  snapMenuHelp: 'How far a key jumps when moved. Off: anywhere.',
   gridHelp: 'Faint dots at every snap step.',
-  groupEditorTip: 'Drag any selected key to move them all. Click an empty spot to clear.',
   animationTabNote: 'Light on your PC. Press keys to try it.',
-  keyEditorTip: 'Tip: symbols like ⎵ or ↑ work, or words like "Jump".',
   keyPictureHelp: 'Drag a key to move it. Drag on the background to select several. Tab and Enter work too.',
   secureLinkOff:
     '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this ' +

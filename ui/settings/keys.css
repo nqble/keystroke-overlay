@@ -108,6 +108,91 @@ label.inline {
     0 0 0 4px var(--color-panel),
     0 0 0 6px var(--color-text);
 }
+.keys-row {
+  display: flex;
+  gap: var(--space-14);
+  align-items: flex-start;
+}
+.keys-main {
+  flex: 1;
+  min-width: 0;
+}
+.inspector {
+  flex: none;
+  width: 260px;
+  margin-top: var(--space-8);
+}
+.inspector .editor {
+  max-width: none;
+  margin: 0;
+}
+/* in the narrow inspector each row is a label above its controls */
+.inspector .row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  padding: var(--space-6) 0;
+}
+.inspector .row > label {
+  width: auto;
+}
+.inspector .row .ctl {
+  max-width: none;
+}
+.inspector input[type='text'] {
+  flex: 1;
+  min-width: 0;
+}
+.inspector .num-field {
+  width: 72px;
+}
+.inspector-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-8);
+}
+.danger-note {
+  margin: var(--space-8) 0;
+  padding: var(--space-6) var(--space-8);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+.danger-text {
+  color: var(--color-danger);
+}
+.keytools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-14);
+  margin-bottom: var(--space-8);
+}
+.keytools .keystatus {
+  margin: 0 0 0 auto;
+}
+.toggle.on {
+  background: var(--color-selection-fill);
+  border-color: var(--color-accent);
+}
+.keytools .toolgroup {
+  flex-direction: row;
+  gap: var(--space-6);
+}
+.keyhint {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-14);
+}
+.keyhint kbd {
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--color-text);
+}
 .keyhint {
   margin: -8px 0 var(--space-6);
   color: var(--color-text-dim);
