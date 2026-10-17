@@ -15,6 +15,45 @@ Releases are signed so the in-app updater can verify them. The signing key never
    release tagged `channel-stable`, tick *pre-release* (so it never becomes "latest"), title "Stable channel". It only ever
    holds `stable.json`.
 
+## Code signing (Windows, free from SignPath Foundation)
+
+Two different signatures, both needed:
+- **Update signature** (above): lets the app check an update came from us. Users never see it.
+- **Code signing** (Authenticode): Windows shows it as the publisher. Without it, SmartScreen warns on every download
+  and antivirus tools are quicker to flag a program that watches the keyboard. SignPath Foundation signs open-source
+  projects for free; the certificate is in **their** name ("SignPath Foundation"), linked to this repository.
+
+The release workflow is ready for it: until `SIGNPATH_ORGANIZATION_ID` is set it builds unsigned, as before. To turn
+it on (Jordan, once):
+1. **Apply** at signpath.org with this repository. They check it is open source (MIT), public, built on GitHub
+   Actions, and has the "Code signing policy" section in README.md. Approval can take a few weeks.
+2. Turn on **two-factor login** on GitHub and SignPath for everyone who can change the repository (they require it).
+3. In SignPath, once the project exists:
+   - an **artifact configuration** that signs every `.exe` in the uploaded zip (both uploads are one file each):
+     ```xml
+     <?xml version="1.0" encoding="utf-8"?>
+     <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+       <zip-file>
+         <pe-file path="*.exe">
+           <authenticode-sign/>
+         </pe-file>
+       </zip-file>
+     </artifact-configuration>
+     ```
+   - the **release-signing** policy, with GitHub as its trusted build system and Jordan as approver (every signing
+     request then waits for Jordan to approve it in SignPath, like the "release" environment on GitHub);
+   - an **API token** for a CI user that may submit signing requests.
+4. On GitHub → Settings → Secrets and variables → Actions:
+   - secret `SIGNPATH_API_TOKEN`;
+   - variables `SIGNPATH_ORGANIZATION_ID`, `SIGNPATH_PROJECT_SLUG`, `SIGNPATH_SIGNING_POLICY_SLUG` and
+     `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` (the names SignPath shows).
+
+What a release then does (`.github/workflows/release.yml`): build the app's `.exe` → SignPath signs it → pack it into
+the installer → SignPath signs the installer → check both signatures → make the update signature over the signed
+installer → publish. Each SignPath step waits up to an hour for approval. `tools/release.mjs --stage app | installer |
+finish` runs one part each; on your PC it runs all three, unsigned. The uninstaller inside the installer stays
+unsigned (SignPath can't reach inside an NSIS installer); Windows only shows it when someone uninstalls.
+
 ## Versioning rule (decides the channel)
 
 `x.y.z` — **the middle number is Stable, the last number is Latest.**

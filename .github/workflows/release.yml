@@ -10,6 +10,10 @@ name: Release
 # updates for review); this job uses no shared build cache, so nothing another workflow wrote can end up in a signed
 # installer; and the "release" environment asks Jordan to approve before the signing key is used.
 #
+# Windows code signing (free, from SignPath Foundation; docs/RELEASING.md, Code signing): once the repository variable
+# SIGNPATH_ORGANIZATION_ID is set, the app's .exe and then the installer are sent to SignPath to be signed, and each
+# signing request waits for Jordan's approval there. Until it is set, the release is built unsigned, as before.
+#
 # x.y.0 versions are also promoted to the Stable channel automatically; x.y.z patch releases are Latest-only unless you tick
 # "Also make this the Stable version" (for an important fix that Stable users must get).
 
@@ -37,6 +41,10 @@ jobs:
     environment: release # Settings -> Environments -> release -> Required reviewers: Jordan must approve each run
     env:
       GH_TOKEN: ${{ github.token }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target # a known place, so the signing steps can find the files
+      CODE_SIGNING: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+    # The update signing key is given only to the two steps below that use it, never to the job: other steps run
+    # third-party actions (upload, SignPath), which must not see it.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -71,14 +79,76 @@ jobs:
       - name: Tests and privacy check
         run: npm test
 
-      - name: Build, sign, and write the update manifests
-        shell: bash
+      - name: Build the app
+        run: node tools/release.mjs --stage app
+
+      # ---- Code signing, step 1: the app itself (it is packed into the installer next, so it is signed first)
+      - name: Hand the app to SignPath
+        if: env.CODE_SIGNING == 'true'
+        id: app-upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app-unsigned
+          path: target/release/keyoverlay.exe
+          if-no-files-found: error
+      - name: Sign the app (waits for Jordan's approval in SignPath)
+        if: env.CODE_SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.app-upload.outputs.artifact-id }}
+          wait-for-completion-timeout-in-seconds: 3600 # time to approve it
+          output-artifact-directory: target/release # the signed .exe replaces the unsigned one
+
+      - name: Pack the installer
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }} # empty until the key has a password
+        run: node tools/release.mjs --stage installer
+
+      # ---- Code signing, step 2: the installer
+      - name: Hand the installer to SignPath
+        if: env.CODE_SIGNING == 'true'
+        id: installer-upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: installer-unsigned
+          path: target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+      - name: Sign the installer (waits for Jordan's approval in SignPath)
+        if: env.CODE_SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.installer-upload.outputs.artifact-id }}
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: target/release/bundle/nsis
+      - name: Check both signatures are valid
+        if: env.CODE_SIGNING == 'true'
+        shell: pwsh
+        run: |
+          foreach ($file in @('target/release/keyoverlay.exe') + (Get-ChildItem target/release/bundle/nsis/*-setup.exe).FullName) {
+            $signature = Get-AuthenticodeSignature $file
+            if ($signature.Status -ne 'Valid') { Write-Error "$file is not validly signed: $($signature.Status). Nothing was released."; exit 1 }
+            Write-Host "$file signed by $($signature.SignerCertificate.Subject)"
+          }
+
+      - name: Sign the installer for the updater and write the update manifests
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           FLAG=""; [ "${{ steps.v.outputs.stable }}" = "true" ] && FLAG="--stable"
-          node tools/release.mjs $FLAG "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}' --title)"
+          node tools/release.mjs --stage finish $FLAG "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}' --title)"
 
       - name: Publish the GitHub release
         shell: bash
