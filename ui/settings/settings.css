@@ -544,6 +544,27 @@ button:disabled:hover {
 .handle.right {
   right: -6px;
 }
+.arrange-bar {
+  position: absolute;
+  left: var(--bar-x, 0);
+  top: var(--bar-y, 0);
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-menu);
+}
+.arrange-bar[hidden] {
+  display: none;
+}
+.arrange-bar button {
+  padding: var(--space-2) var(--space-8);
+  font-size: var(--text-sm);
+}
 .zoom-controls {
   position: absolute;
   right: var(--space-10);

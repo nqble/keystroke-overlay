@@ -1,6 +1,6 @@
 // =====================================================================================================================
-//  The toolbar above the keyboard picture in the Keys tab: what is selected, Clear selection, the nudge pad, and the
-//  Align and Space evenly buttons. keys.js puts it on the page. The maths is in keys-arrange.js.
+//  The toolbar above the keyboard picture in the Keys tab: what is selected, Clear selection, the nudge pad, undo and
+//  redo, and snap and grid. (Align and Space evenly are the bar that floats above the selection, in editor/editor.js.) keys.js puts it on the page. The maths is in keys-arrange.js.
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
 import { changed } from '../preview.js';
@@ -8,7 +8,7 @@ import { SNAP_CHOICES, editProf, gridShown, nudgeStep, restoreProfile, setKeyPos
 import { render } from '../settings.js';
 import { selectedKey, selectedKeys, setSelectedKey, settings } from '../state.js';
 import { TEXT } from '../text.js';
-import { alignPositions, clampMove, distributePositions, movedPositions } from './keys-arrange.js';
+import { clampMove, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
 import { selectedBoxes } from '../editor/places.js';
 
@@ -81,54 +81,6 @@ function nudgePad(layout) {
   );
   wholeLabel.append(' Whole key');
   return [...buttons, wholeLabel];
-}
-
-const ALIGN_BUTTONS = [
-  ['left', 'Left', 'Line the keys up along their left edge'],
-  ['center', 'Centre', 'Line the keys up along their vertical middle'],
-  ['right', 'Right', 'Line the keys up along their right edge'],
-  ['top', 'Top', 'Line the keys up along their top edge'],
-  ['middle', 'Middle', 'Line the keys up along their horizontal middle'],
-  ['bottom', 'Bottom', 'Line the keys up along their bottom edge'],
-];
-const DISTRIBUTE_BUTTONS = [
-  ['across', 'Across', 'Make the gaps between the keys equal, left to right'],
-  ['down', 'Down', 'Make the gaps between the keys equal, top to bottom'],
-];
-const MIN_KEYS_TO_ALIGN = 2;
-const MIN_KEYS_TO_DISTRIBUTE = 3;
-
-/** A button that needs at least `needed` selected keys; when it cannot be used, its tooltip says why. */
-function arrangeButton(label, tooltip, needed, onclick, test) {
-  const arrangeButton = button(label, onclick, '', test);
-  const enough = selectedKeys.size >= needed;
-  arrangeButton.disabled = !enough;
-  arrangeButton.title = enough ? tooltip : `Select at least ${needed} keys first`;
-  return arrangeButton;
-}
-
-function alignButtons(layout) {
-  return ALIGN_BUTTONS.map(([alignment, label, tooltip]) =>
-    arrangeButton(
-      label,
-      tooltip,
-      MIN_KEYS_TO_ALIGN,
-      () => applyPositions(layout, alignPositions(selectedBoxes(layout), alignment)),
-      'key-align-' + alignment,
-    ),
-  );
-}
-
-function distributeButtons(layout) {
-  return DISTRIBUTE_BUTTONS.map(([direction, label, tooltip]) =>
-    arrangeButton(
-      label,
-      tooltip,
-      MIN_KEYS_TO_DISTRIBUTE,
-      () => applyPositions(layout, distributePositions(selectedBoxes(layout), direction)),
-      'key-distribute-' + direction,
-    ),
-  );
 }
 
 /** Save one of the Keys tab's remembered choices (settings.layout.editor) and redraw. */
@@ -209,8 +161,6 @@ export function selectionTools(layout) {
       clear,
     ),
     toolGroup('Move selection', ...nudgePad(layout)),
-    toolGroup('Align', ...alignButtons(layout)),
-    toolGroup('Space evenly', ...distributeButtons(layout)),
     toolGroup('History', ...historyButtons(layout)),
     toolGroup('View', ...viewControls()),
   );

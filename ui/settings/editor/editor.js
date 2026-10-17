@@ -16,7 +16,7 @@ import { baseWidth, gridShown, round2, setKeyPos, setKeyWidth, snap, snapStep } 
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
 import { TEXT } from '../text.js';
-import { boundsOf, clampMove, movedPositions } from '../tabs/keys-arrange.js';
+import { alignPositions, boundsOf, clampMove, distributePositions, movedPositions } from '../tabs/keys-arrange.js';
 import { boardArea, boardSize, evenGridBoxes, overlappingCodes, resizeBox } from '../tabs/keys-board.js';
 import { snapToGuides } from '../tabs/keys-guides.js';
 import {
@@ -27,16 +27,30 @@ import {
   coverZoom,
   stretchPan,
   toBoard,
+  toScreen,
   wheelFactor,
   zoomAt,
 } from '../tabs/keys-view.js';
-import { placeKeys } from './places.js';
+import { placeKeys, selectedBoxes } from './places.js';
 
 const UNIT = 40; // pixels per key at 100% zoom (keep in step with --unit in settings.css)
 const KEY_GAP = 3; // pixels between neighbouring keys at 100% zoom (keep in step with the .kmk size in settings.css)
 const DRAG_START_DISTANCE = 3; // pixels the pointer must move before a press counts as a drag, not a click
 const MIN_DOT_SPACING = 6; // pixels: grid dots closer together than this are thinned out so the grid stays readable
 const MIDDLE_BUTTON = 1;
+const ARRANGE_GAP = 10; // pixels between the arrange bar and the selected keys
+
+// The arrange bar: [hook name, label, tooltip, kind, how many keys it needs]. It floats above two or more selected keys.
+const ARRANGE_BUTTONS = [
+  ['key-align-left', 'Left', 'Line the keys up along their left edge', 'align', 'left', 2],
+  ['key-align-center', 'Centre', 'Line the keys up along their vertical middle', 'align', 'center', 2],
+  ['key-align-right', 'Right', 'Line the keys up along their right edge', 'align', 'right', 2],
+  ['key-align-top', 'Top', 'Line the keys up along their top edge', 'align', 'top', 2],
+  ['key-align-middle', 'Middle', 'Line the keys up along their horizontal middle', 'align', 'middle', 2],
+  ['key-align-bottom', 'Bottom', 'Line the keys up along their bottom edge', 'align', 'bottom', 2],
+  ['key-distribute-across', 'Across', 'Make the gaps between the keys equal, left to right', 'distribute', 'across', 3],
+  ['key-distribute-down', 'Down', 'Make the gaps between the keys equal, top to bottom', 'distribute', 'down', 3],
+];
 
 /** True when Ctrl, Shift or Cmd is held: clicking then adds a key to the selection or removes it. */
 const isAdditive = (pointerEvent) => pointerEvent.ctrlKey || pointerEvent.shiftKey || pointerEvent.metaKey;
@@ -76,7 +90,24 @@ function createEditor() {
   const zoomIn = button('+', zoomBy(BUTTON_ZOOM), 'zoom-step', 'editor-zoom-in');
   zoomIn.title = 'Zoom in';
   const zoomControls = el('div', { className: 'zoom-controls' }, zoomOut, zoomLabel, zoomIn);
-  const box = el('div', { className: 'keymap', title: TEXT.keyPictureHelp, test: 'keymap' }, canvas, zoomControls);
+  // The bar of align and space-evenly buttons that floats above two or more selected keys (it does not scale with the zoom).
+  const arrangeBar = el('div', { className: 'arrange-bar', test: 'key-arrange-bar' });
+  arrangeBar.hidden = true;
+  arrangeBar.setAttribute('role', 'toolbar');
+  arrangeBar.setAttribute('aria-label', 'Arrange the selected keys');
+  for (const [hook, label, tooltip, kind, how, needed] of ARRANGE_BUTTONS) {
+    const arrangeButton = button(String(label), () => arrange(String(kind), String(how)), 'arrange', String(hook));
+    arrangeButton.dataset.needed = String(needed);
+    arrangeButton.dataset.tooltip = String(tooltip);
+    arrangeBar.append(arrangeButton);
+  }
+  const box = el(
+    'div',
+    { className: 'keymap', title: TEXT.keyPictureHelp, test: 'keymap' },
+    canvas,
+    arrangeBar,
+    zoomControls,
+  );
   box.setAttribute('role', 'group');
 
   const content = () => ({ w: board.w * UNIT, h: board.h * UNIT });
@@ -89,6 +120,7 @@ function createEditor() {
     canvas.style.setProperty('--pan-x', view.panX + 'px');
     canvas.style.setProperty('--pan-y', view.panY + 'px');
     zoomLabel.textContent = Math.round(view.zoom * 100) + '%';
+    placeArrangeBar();
     // dots at every snap step, thinned out (every 2nd, 4th, ...) when they would be closer than MIN_DOT_SPACING on screen
     let spacing = snapStep() * UNIT * view.zoom;
     let every = 1;
@@ -186,7 +218,7 @@ function createEditor() {
 
   // A press on the empty board (a key stops its own presses) starts drawing a selection box.
   box.onpointerdown = (pointerEvent) => {
-    if (pointerEvent.target.closest?.('.zoom-controls')) return;
+    if (pointerEvent.target.closest?.('.zoom-controls, .arrange-bar')) return;
     startMarquee(pointerEvent);
   };
 
@@ -301,6 +333,7 @@ function createEditor() {
       }
     canvas.classList.toggle('dots', gridShown() && snapStep() > 0);
     updateHandles(hidden);
+    placeArrangeBar();
     if (box.clientWidth && box.clientHeight) {
       boxSize = { w: box.clientWidth, h: box.clientHeight };
       if (needsFirstView) firstView();
@@ -348,6 +381,7 @@ function createEditor() {
         if (!selectedKeys.has(pressedKey.code)) setSelectedKeys([pressedKey.code]);
         box.classList.add('panning'); // no sliding while a key is dragged
         canvas.classList.add('holding'); // the other keys fade while one is held
+        arrangeBar.hidden = true;
         for (const boxOf of boxes) nodes.get(boxOf.code)?.classList.add('drag');
         readout = el('div', { className: 'readout', test: 'key-readout' });
         canvas.append(readout);
@@ -419,6 +453,45 @@ function createEditor() {
     }
   }
 
+  // ---- The arrange bar ----------------------------------------------------------------------------------------------
+  /** Save new positions ({ code: { x, y } }) for keys of this layout, then draw again. */
+  function applyPositions(positions) {
+    for (const item of placed) {
+      const position = positions[item.key.code];
+      if (position) setKeyPos(item.key, position.x, position.y);
+    }
+    changed(true);
+  }
+
+  /** Line the selected keys up, or space them evenly. */
+  function arrange(kind, how) {
+    const boxes = selectedBoxes(layout);
+    applyPositions(kind === 'align' ? alignPositions(boxes, how) : distributePositions(boxes, how));
+  }
+
+  /** Show the bar above the selected keys (below them when there is no room above), or hide it. */
+  function placeArrangeBar() {
+    const count = selectedKeys.size;
+    arrangeBar.hidden = count < 2 || !layout || box.classList.contains('selecting');
+    if (arrangeBar.hidden) return;
+    for (const arrangeButton of /** @type {NodeListOf<HTMLButtonElement>} */ (arrangeBar.querySelectorAll('button'))) {
+      const enough = count >= Number(arrangeButton.dataset.needed);
+      arrangeButton.disabled = !enough;
+      arrangeButton.title = enough
+        ? arrangeButton.dataset.tooltip
+        : `Select at least ${arrangeButton.dataset.needed} keys first`;
+    }
+    const boxes = selectedBoxes(layout);
+    if (!boxes.length) return;
+    const bounds = boundsOf(boxes);
+    const topLeft = toScreen({ x: bounds.minX * UNIT, y: bounds.minY * UNIT }, view);
+    const bottomRight = toScreen({ x: bounds.maxX * UNIT, y: bounds.maxY * UNIT }, view);
+    const height = arrangeBar.offsetHeight || 32;
+    const above = topLeft.y - ARRANGE_GAP - height;
+    arrangeBar.style.setProperty('--bar-x', (topLeft.x + bottomRight.x) / 2 + 'px');
+    arrangeBar.style.setProperty('--bar-y', (above >= 0 ? above : bottomRight.y + ARRANGE_GAP) + 'px');
+  }
+
   // ---- Resizing the selected key ------------------------------------------------------------------------------------
   /** Show the resize handles on the left and right edge of the selected key (only when one shown key is selected). */
   function updateHandles(hidden) {
@@ -466,6 +539,7 @@ function createEditor() {
     canvas.classList.add('holding');
     node?.classList.add('drag');
     box.classList.add('panning');
+    arrangeBar.hidden = true;
     try {
       handle.setPointerCapture(pointerEvent.pointerId);
     } catch {
@@ -539,6 +613,7 @@ function createEditor() {
         return;
       if (!drawing) {
         drawing = true;
+        arrangeBar.hidden = true;
         canvas.append(rubberBand);
       }
       const rectangle = {

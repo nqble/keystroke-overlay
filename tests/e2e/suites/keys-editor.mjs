@@ -313,15 +313,30 @@ const arrangeButton = (hook) => `document.querySelector('${byTest(hook)}')`;
 await clickKey('KeyA');
 await sleep(300);
 check(
-  'align and space-evenly buttons are disabled until enough keys are selected',
-  await p.q(`${arrangeButton('key-align-left')}.disabled && ${arrangeButton('key-distribute-across')}.disabled`),
+  'the arrange bar is not shown while only one key is selected',
+  await p.q(`document.querySelector('${byTest('key-arrange-bar')}').hidden`),
+);
+await clickKey('KeyS', true);
+await sleep(300);
+check(
+  'with two keys selected the arrange bar floats above them; Space evenly needs three',
+  (await p.q(`!document.querySelector('${byTest('key-arrange-bar')}').hidden`)) &&
+    (await p.q(`!${arrangeButton('key-align-left')}.disabled && ${arrangeButton('key-distribute-across')}.disabled`)),
 );
 check(
   '...and the tooltip says why',
-  (await p.q(`${arrangeButton('key-align-left')}.title`)) === 'Select at least 2 keys first' &&
-    (await p.q(`${arrangeButton('key-distribute-across')}.title`)) === 'Select at least 3 keys first',
+  (await p.q(`${arrangeButton('key-distribute-across')}.title`)) === 'Select at least 3 keys first',
 );
-await clickKey('KeyS', true);
+const barAbove = await p.ev(`
+  const bar = document.querySelector('${byTest('key-arrange-bar')}').getBoundingClientRect();
+  const a = document.querySelector('${keyCell('KeyA')}').getBoundingClientRect(), s = document.querySelector('${keyCell('KeyS')}').getBoundingClientRect();
+  const top = Math.min(a.top, s.top), bottom = Math.max(a.bottom, s.bottom);
+  return { bar: [bar.top, bar.bottom], keys: [top, bottom] };`);
+check(
+  'the bar sits just above the selection (or just below it when there is no room above)',
+  barAbove.bar[1] <= barAbove.keys[0] + 1 || barAbove.bar[0] >= barAbove.keys[1] - 1,
+  JSON.stringify(barAbove),
+);
 await clickKey('KeyD', true);
 await sleep(300);
 check(
@@ -569,7 +584,7 @@ check(
   'the toolbar groups are named for assistive technology',
   (await p.q(
     `[...document.querySelectorAll('${byTest('key-tool-group')}')].map(g => g.getAttribute('aria-label')).join('|')`,
-  )) === 'Selection|Move selection|Align|Space evenly|History|View',
+  )) === 'Selection|Move selection|History|View',
 );
 check(
   'the status line is announced politely when it changes',
