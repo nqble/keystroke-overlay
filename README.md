@@ -22,6 +22,11 @@ Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaS
 3. If Windows shows a SmartScreen warning (releases before code signing, or a new release Windows hasn't seen much yet),
    click **More info → Run anyway**. Signed releases name **SignPath Foundation** as the publisher (see Code signing policy).
 
+**Is it safe?** Antivirus tools are wary of any program that reads the keyboard, and now and then one flags a new
+version by mistake. Keystroke Overlay is open source, official releases come only from this project's Releases page,
+and an automatic check on every change makes sure keystrokes are never saved or sent ([Privacy](#privacy)). If your antivirus warns about an official release,
+please [open an issue](../../issues) so it can be reported as a false positive.
+
 The app starts in your system tray (bottom-right of the taskbar). Click the tray icon to open settings.
 Prefer to build it yourself? See [Building from source](#building-from-source).
 
@@ -246,6 +251,9 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **OBS runs on a different PC from the game:** the overlay link only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Open an issue naming the game and its anti-cheat.
+- **Your antivirus flags the app:** check the file came from this project's [Releases](../../releases) page, then
+  [open an issue](../../issues) naming the antivirus. Each release is reported to Microsoft as a false positive when
+  needed (docs/RELEASING.md).
 - **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
 - **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
