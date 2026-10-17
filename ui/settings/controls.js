@@ -83,6 +83,18 @@ const CONTROLS = [
   {
     tab: 'style',
     group: 'Text',
+    path: 'style.keyLabels',
+    type: 'segmented',
+    // letters follow the user's keyboard (AZERTY, QWERTZ, ...); src-tauri/src/key_labels.rs
+    options: () => [
+      ['keyboard', 'My keyboard'],
+      ['layout', 'Layout file'],
+    ],
+    label: 'Key labels',
+  },
+  {
+    tab: 'style',
+    group: 'Text',
     path: 'style.fontSize',
     type: 'range',
     min: 0,

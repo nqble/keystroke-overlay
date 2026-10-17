@@ -26,6 +26,10 @@ What it records about each event is only *which physical key* and *down or up* (
 build up the text you type, and it keeps no history: it remembers only which keys are held **right now** so a key can
 never look stuck.
 
+From v2.0, so key labels can follow your keyboard language, the app asks Windows once at start-up **which keyboard
+you use** (for example French AZERTY) and which character each letter key prints on it. That is a fact about the
+keyboard, not about anything you type, and it stays in memory.
+
 Use **Pause overlay** (tray menu) whenever you are about to type something private on stream. While paused, the app
 forwards nothing at all.
 

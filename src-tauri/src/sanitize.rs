@@ -224,6 +224,7 @@ const TEXT_RULES: &[(&str, TextRule)] = &[
     ("layout.id", is_id),
     ("general.updateChannel", |text| text == "stable" || text == "latest"),
     ("general.inputMethod", |text| text == "hook" || text == "rawinput"),
+    ("style.keyLabels", |text| text == "keyboard" || text == "layout"),
     ("general.linkKey", is_link_key),
 ];
 

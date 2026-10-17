@@ -9,6 +9,7 @@ mod crash;
 mod debug;
 mod downgrade;
 mod grid;
+mod key_labels;
 mod keyboard;
 mod layout_order;
 mod platform;
@@ -83,6 +84,7 @@ fn main() {
                 debug::set_last_crash(note);
             }
             crash::install(&paths.root);
+            key_labels::init(); // what the user's keyboard prints, asked once
 
             let (cfg_tx, _) = broadcast::channel(8);
             let shared = Arc::new(Shared {

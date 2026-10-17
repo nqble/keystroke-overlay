@@ -118,9 +118,54 @@ pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
     })
 }
 
+/// The keys that type a letter or a punctuation mark, with their scancodes: the ones whose label can follow the user's
+/// keyboard language (platform::keyboard_labels, key_labels.rs). The digit row keeps its digits on purpose: on a French
+/// keyboard, for example, the unshifted digit keys type "&", "é" and so on. Same scancodes as code_name above; a test
+/// keeps the two in step.
+pub const TYPING_KEYS: &[(&str, u32)] = &[
+    ("KeyQ", 0x10),
+    ("KeyW", 0x11),
+    ("KeyE", 0x12),
+    ("KeyR", 0x13),
+    ("KeyT", 0x14),
+    ("KeyY", 0x15),
+    ("KeyU", 0x16),
+    ("KeyI", 0x17),
+    ("KeyO", 0x18),
+    ("KeyP", 0x19),
+    ("BracketLeft", 0x1A),
+    ("BracketRight", 0x1B),
+    ("KeyA", 0x1E),
+    ("KeyS", 0x1F),
+    ("KeyD", 0x20),
+    ("KeyF", 0x21),
+    ("KeyG", 0x22),
+    ("KeyH", 0x23),
+    ("KeyJ", 0x24),
+    ("KeyK", 0x25),
+    ("KeyL", 0x26),
+    ("Semicolon", 0x27),
+    ("Quote", 0x28),
+    ("Backquote", 0x29),
+    ("Backslash", 0x2B),
+    ("KeyZ", 0x2C),
+    ("KeyX", 0x2D),
+    ("KeyC", 0x2E),
+    ("KeyV", 0x2F),
+    ("KeyB", 0x30),
+    ("KeyN", 0x31),
+    ("KeyM", 0x32),
+    ("Comma", 0x33),
+    ("Period", 0x34),
+    ("Slash", 0x35),
+    ("Minus", 0x0C),
+    ("Equal", 0x0D),
+    ("IntlBackslash", 0x56),
+];
+
 #[cfg(test)]
 mod tests {
-    use super::code_name;
+    use super::{code_name, TYPING_KEYS};
     #[test]
     fn maps_plain_and_extended_keys() {
         assert_eq!(code_name(0x57, 0x11, false), Some("KeyW"));
@@ -140,5 +185,12 @@ mod tests {
     #[test]
     fn unknown_keys_are_ignored() {
         assert_eq!(code_name(0xFF, 0x7F, false), None);
+    }
+
+    #[test]
+    fn every_typing_key_has_the_scancode_code_name_gives_it() {
+        for &(code, scancode) in TYPING_KEYS {
+            assert_eq!(code_name(0, scancode, false), Some(code), "{code}");
+        }
     }
 }

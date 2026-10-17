@@ -39,6 +39,56 @@ pub fn process_stats() -> (f64, u32) {
     (0.0, 0)
 }
 
+/// What each typing key (keyboard/keymap.rs, TYPING_KEYS) prints on the user's own keyboard, as labels for the
+/// overlay: {"KeyQ": "A", "Semicolon": "M", ...} on a French AZERTY keyboard. Empty for the US English keyboard (the
+/// layout files already say what it prints), on other systems, and if Windows can't tell. Reads the default keyboard
+/// in Windows' language settings once; it never looks at what is typed.
+#[cfg(windows)]
+pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{MapVirtualKeyExW, ToUnicodeEx, HKL, MAPVK_VSC_TO_VK_EX};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        SystemParametersInfoW, SPI_GETDEFAULTINPUTLANG, SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS,
+    };
+    /// The US English keyboard: language 0x0409 with layout 0x0409.
+    const US_ENGLISH: usize = 0x0409_0409;
+    /// ToUnicodeEx flag: don't change the keyboard state while asking (Windows 10 1607 and later).
+    const KEEP_KEYBOARD_STATE: u32 = 0x4;
+    let mut labels = std::collections::HashMap::new();
+    unsafe {
+        let mut keyboard = HKL(std::ptr::null_mut());
+        let found = SystemParametersInfoW(
+            SPI_GETDEFAULTINPUTLANG,
+            0,
+            Some(&mut keyboard as *mut HKL as *mut core::ffi::c_void),
+            SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS(0),
+        );
+        if found.is_err() || keyboard.0 as usize & 0xFFFF_FFFF == US_ENGLISH {
+            return labels;
+        }
+        let no_keys_held = [0u8; 256];
+        for &(code, scancode) in crate::keyboard::keymap::TYPING_KEYS {
+            let virtual_key = MapVirtualKeyExW(scancode, MAPVK_VSC_TO_VK_EX, Some(keyboard));
+            let mut typed = [0u16; 4];
+            let count = ToUnicodeEx(
+                virtual_key,
+                scancode,
+                &no_keys_held,
+                &mut typed,
+                KEEP_KEYBOARD_STATE,
+                Some(keyboard),
+            );
+            if let Some(label) = (count == 1).then(|| crate::key_labels::label_for(typed[0])).flatten() {
+                labels.insert(code, label);
+            }
+        }
+    }
+    labels
+}
+#[cfg(not(windows))]
+pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
+    std::collections::HashMap::new()
+}
+
 fn opener() -> &'static str {
     if cfg!(windows) {
         "explorer"

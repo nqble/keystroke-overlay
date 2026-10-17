@@ -52,7 +52,9 @@ pub fn defaults() -> Value {
             "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
             "textColor": "#e6e9f0ff", "textColorPressed": "#ffffffff",
             "glowColor": "#4f8cffff", "glowSize": 18,
-            "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0
+            "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0,
+            // "keyboard": labels follow the user's keyboard language (key_labels.rs); "layout": the layout files' own
+            "keyLabels": "keyboard"
         },
         "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
     })

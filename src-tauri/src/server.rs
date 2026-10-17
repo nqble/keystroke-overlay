@@ -235,7 +235,11 @@ async fn api_config(State(st): State<St>) -> Json<Value> {
     )
 }
 async fn api_layouts(State(st): State<St>) -> Json<Value> {
-    Json(json!(layouts(&st.shared.paths)))
+    // with the user's keyboard's own labels, unless they chose the layout files' (key_labels.rs)
+    Json(json!(crate::key_labels::layouts_to_show(
+        &st.shared.paths,
+        &st.shared.settings.read().unwrap()
+    )))
 }
 async fn api_fonts(State(st): State<St>) -> Json<Value> {
     Json(json!(font_files(&st.shared.paths)))

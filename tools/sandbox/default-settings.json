@@ -16,7 +16,10 @@
   "layout": {
     "id": "tkl",
     "profiles": {},
-    "editor": { "snap": 0.25, "grid": false },
+    "editor": {
+      "snap": 0.25,
+      "grid": false
+    },
     "order": ["full", "tkl", "gameplay", "wasd"]
   },
   "style": {
@@ -36,7 +39,13 @@
     "keySize": 52,
     "gap": 6,
     "scale": 1.0,
-    "opacity": 1.0
+    "opacity": 1.0,
+    "keyLabels": "keyboard"
   },
-  "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
+  "animation": {
+    "type": "none",
+    "speed": 120,
+    "easing": "default",
+    "intensity": 1.0
+  }
 }

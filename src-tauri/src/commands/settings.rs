@@ -5,7 +5,7 @@ use crate::settings;
 use crate::state::{obs_url, sync_tray, AppState};
 use serde_json::{json, Value};
 use std::sync::atomic::Ordering;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_autostart::ManagerExt as _;
 use tauri_plugin_clipboard_manager::ClipboardExt as _;
 
@@ -56,6 +56,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
     let channel_changed =
         st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
     let order_changed = st.shared.settings.read().unwrap()["layout"]["order"] != new["layout"]["order"];
+    let labels_changed = st.shared.settings.read().unwrap()["style"]["keyLabels"] != new["style"]["keyLabels"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| {
         crate::debug::log(format!("settings could not be saved: {e}"));
         e.to_string()
@@ -65,6 +66,10 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
         *st.update_cache.lock().unwrap() = None;
     } // a different channel needs a fresh check
     let _ = st.shared.cfg_tx.send("cfg");
+    if labels_changed {
+        let _ = st.shared.cfg_tx.send("assets"); // the overlay re-fetches the layouts, now with the other labels
+        let _ = app.emit("settings-changed", ()); // and so does the settings window
+    }
     st.auto_check_changed.notify_one(); // "Check for updates automatically" may have changed
     if order_changed {
         crate::tray::refresh_tray_layouts(&app); // the tray's Layout menu follows the Layout tab's order
@@ -113,7 +118,7 @@ pub fn set_autostart(app: AppHandle, st: State<AppState>, enabled: bool) -> Resu
 
 #[tauri::command]
 pub fn list_layouts(st: State<AppState>) -> Vec<Value> {
-    server::layouts(&st.shared.paths)
+    crate::key_labels::layouts_to_show(&st.shared.paths, &st.shared.settings.read().unwrap())
 }
 
 #[tauri::command]
