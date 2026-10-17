@@ -17,10 +17,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt as _;
 pub fn toggle_pause_inner(app: &AppHandle) -> bool {
     let st = app.state::<AppState>();
     let now = !st.shared.bus.paused.load(Ordering::Relaxed);
-    st.shared.bus.paused.store(now, Ordering::Relaxed);
-    if now {
-        st.shared.bus.held.lock().unwrap().clear();
-    }
+    st.shared.bus.set_paused(now);
     announce(app);
     sync_tray(app);
     crate::debug::log(format!("overlay {}", if now { "paused" } else { "resumed" }));
