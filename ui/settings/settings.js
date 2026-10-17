@@ -124,7 +124,7 @@ addEventListener('resize', () => {
   setInputActive(state.inputActive);
   setInputError(state.inputError);
   // e.g. the tray's "Update available" opens General
-  if (state.gotoTab && findTab(state.gotoTab)) setTab(state.gotoTab);
+  if (state.gotoTab && findTab(state.gotoTab, !!state.settings.general?.debugMode)) setTab(state.gotoTab);
   paintPause();
   updateObs();
   // the overlay can't load, but the port can still be fixed

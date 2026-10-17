@@ -42,3 +42,14 @@ test('the list is the only list: no second table of tab names anywhere', () => {
     assert.doesNotMatch(source, /TAB_NAMES|const TABS = \{/, file);
   }
 });
+
+test('a request to open a Debug-only tab works while Debug mode is on (start-up, tray, the sandbox ?tab=debug)', () => {
+  // the bug: start-up looked the tab up without Debug mode, so ?tab=debug always opened Layout
+  for (const file of ['../settings.js', '../messages.js']) {
+    const source = readFileSync(new URL(file, TABS_DIR), 'utf8');
+    for (const [call] of source.matchAll(/findTab\([^)]*\)/g)) {
+      if (call.includes('tab, debugMode')) continue; // render() already passes it
+      assert.match(call, /debugMode/, `${file}: ${call} ignores Debug mode`);
+    }
+  }
+});
