@@ -1,5 +1,7 @@
 import { registerTheme } from '/overlay/registry.js';
 
+// A light, flat look for bright scenes.
+// Copy this file to make your own theme (see docs/EXTENDING.md); the overlay loads every file in this folder.
 registerTheme({
   id: 'minimal-light',
   name: 'Minimal light',
