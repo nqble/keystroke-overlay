@@ -32,7 +32,7 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 3. ~~**refactor: move the header into `header.js`**~~ and
 4. ~~**feat: new header**~~ Done together: `header.js` has the status and chip buttons, `windowbar.js` keeps the window
    buttons (now drawn icons), and the link box lives only in General.
-5. **refactor: one list of tabs.** Each tab file exports `{ id, name, render }` (and the lifecycle), and one list in
+5. ~~**refactor: one list of tabs.**~~ Done (with the Preact tab bar, docs/proposals/v2-preact.md step 4). Each tab file exports `{ id, name, render }` (and the lifecycle), and one list in
    `tabs/index.js` holds them in order. `TABS` in `settings.js` and `TAB_NAMES` in `state.js` go. Adding or removing a
    tab is then one file and one line, and a unit test checks every listed tab has an id, a name and a render. Removing
    the Fonts tab (step 8) becomes deleting one line.

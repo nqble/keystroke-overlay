@@ -1,25 +1,15 @@
 // =====================================================================================================================
 //  Keystroke Overlay: the settings window.
-//  Plain JavaScript in small ES modules, no bundler, no build step. This file is the entry point (index.html loads it):
-//  it picks the tab, draws the window and starts everything. Every other file does one job:
-//
-//    state.js       what the window remembers while it is open (the settings, layouts, current tab, ...)
-//    text.js        the longer explanations the user reads
-//    helpers.js     small tools: talk to the app, build page elements, toasts
-//    preview.js     saving a change, the live preview, the OBS address bar
-//    profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"
-//    controls.js    the table that draws every slider, colour picker and dropdown
-//    popups.js      dialogs, the right-click menu, release notes, the update dialog
-//    messages.js    messages from the app (tray, updates, progress) and re-reading its state
-//    windowbar.js   the window's own minimize / maximize / close buttons
-//    tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general (the Keys tab has several, keys-*.js)
-//    debug.js       the optional Debug tab (see docs/DEBUGGING.md)
+//  Plain JavaScript in small ES modules, no bundler, no build step; new screens are Preact components (html.js). This
+//  file is the entry point (index.html loads it): it draws the tab bar and the open tab, and starts everything. Every
+//  other file does one job; docs/ARCHITECTURE.md has the map. The tabs, in order, are listed in tabs/index.js.
 //
 //  HOW TO ADD A SETTING: add a line to CONTROLS in controls.js; it is drawn automatically. Also add its default value
 //  in src-tauri/src/settings.rs and, if the overlay uses it, read it in ui/overlay/overlay.js.
 // =====================================================================================================================
-import { $, button, call, invoke } from './helpers.js';
+import { $, call, invoke } from './helpers.js';
 import { paintHeader } from './header.js';
+import { html, render as draw } from './html.js';
 import { paintPause, showServerError, resync } from './messages.js';
 import { hideMenu } from './menu.js';
 import { refreshFades } from './scroll-fade.js';
@@ -43,55 +33,62 @@ import {
   setTab,
   settings,
   tab,
-  TAB_NAMES,
 } from './state.js';
 // Loaded only for what it does when it starts: it wires up the minimize / maximize / close buttons.
 import './windowbar.js';
-import { animationTab } from './tabs/animation.js';
-import { fontsTab } from './tabs/fonts.js';
-import { generalTab } from './tabs/general.js';
-import { keysTab } from './tabs/keys.js';
-import { layoutTab } from './tabs/layout.js';
-import { styleTab } from './tabs/style.js';
-
-const TABS = {
-  layout: layoutTab,
-  keys: keysTab,
-  style: styleTab,
-  animation: animationTab,
-  fonts: fontsTab,
-  general: generalTab,
-};
+import { findTab, visibleTabs } from './tabs/index.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 8. Drawing the window
 // ---------------------------------------------------------------------------------------------------------------------
-/** One button in the tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
-function tabButton(id, name) {
-  const onclick = () => {
+/** The tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
+function TabBar({ tabs, current }) {
+  const open = (id) => {
     setTab(id);
     render();
   };
-  const tabItem = button(name, onclick, id === tab ? 'active' : '', 'tab');
-  tabItem.dataset.tab = id;
-  if (id === tab) tabItem.setAttribute('aria-current', 'page'); // tells screen readers which tab is open
-  return tabItem;
+  return tabs.map(
+    ({ id, name }) =>
+      html`<button
+        type="button"
+        class=${id === current ? 'active' : null}
+        data-test="tab"
+        data-tab=${id}
+        aria-current=${id === current ? 'page' : null}
+        onClick=${() => open(id)}
+      >
+        ${name}
+      </button>`,
+  );
 }
 
-// The Debug tab (ui/settings/debug.js) only exists in Debug mode, so its code is only loaded then (the first time it is needed).
-let debugTab = null;
+/**
+ * Show a tab's content in the pane. A converted tab gives a Preact element, one not converted yet gives page elements;
+ * switching between the two first clears what the other kind left there.
+ */
+let paneHoldsPreact = false; // what the pane shows now: a Preact tab, or page elements from a tab not converted yet
+
+function showInPane(pane, content) {
+  if (content instanceof Node) {
+    if (paneHoldsPreact) draw(null, pane);
+    paneHoldsPreact = false;
+    pane.replaceChildren(content);
+    return;
+  }
+  if (!paneHoldsPreact) pane.replaceChildren();
+  paneHoldsPreact = true;
+  draw(content, pane);
+}
 
 /** Redraw the tab bar and the active tab, keeping the scroll position. */
 export async function render() {
-  const debugOn = !!settings?.general?.debugMode;
-  if (debugOn && !debugTab) debugTab = (await import('./debug.js')).debugTab;
-  if (tab === 'debug' && !debugOn) setTab('general');
-  const names = debugOn ? { ...TAB_NAMES, debug: debugTab.name } : TAB_NAMES;
-  $('#tabs').replaceChildren(...Object.entries(names).map(([id, name]) => tabButton(id, name)));
-  const pane = $('#pane'),
-    scroll = pane.scrollTop;
-  const content = await (tab === 'debug' ? debugTab.render() : TABS[tab]());
-  pane.replaceChildren(content);
+  const debugMode = !!settings?.general?.debugMode;
+  if (!findTab(tab, debugMode)) setTab('general'); // e.g. Debug mode was just switched off while on the Debug tab
+  draw(html`<${TabBar} tabs=${visibleTabs(debugMode)} current=${tab} />`, $('#tabs'));
+  const pane = $('#pane');
+  const scroll = pane.scrollTop;
+  const content = await findTab(tab, debugMode).render();
+  showInPane(pane, content);
   pane.scrollTop = scroll;
   refreshFades();
   paintHeader(); // a tab may have changed the link (new port or key), which the header status shows
@@ -127,7 +124,7 @@ addEventListener('resize', () => {
   setInputActive(state.inputActive);
   setInputError(state.inputError);
   // e.g. the tray's "Update available" opens General
-  if (state.gotoTab && TAB_NAMES[state.gotoTab]) setTab(state.gotoTab);
+  if (state.gotoTab && findTab(state.gotoTab)) setTab(state.gotoTab);
   paintPause();
   updateObs();
   // the overlay can't load, but the port can still be fixed

@@ -82,7 +82,7 @@ keystroke-overlay/
         ├── text.js        the longer explanations the user reads
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
-        └── tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
+        └── tabs/          one file per tab (layout, keys, style, animation, fonts, general); index.js lists them in order
             The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
             drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),
             keys-arrange.js (the movement maths, plain functions with unit tests) and keys-history.js (undo and redo).

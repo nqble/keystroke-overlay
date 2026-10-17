@@ -74,7 +74,7 @@ when it takes more than one, a check or test catches a forgotten one.
 | A UI sandbox state | one line in `STATES`, `tools/sandbox/fake-app.js` | 1 |
 | A release-note section | `NOTE_SECTIONS` in `ui/settings/release-notes.js`, a colour token, a row in RELEASING.md (the release check refuses unknown sections) | 3 |
 | A setting | section 4 above (a Rust test catches a missing sandbox copy) | 3 |
-| A tab | today: its file in `ui/settings/tabs/`, `TABS` in `settings.js` and `TAB_NAMES` in `state.js`. v2.0 makes this one file plus one line (docs/proposals/v2-tab-restructure.md) | 3 → 2 |
+| A tab | its file in `ui/settings/tabs/` plus one line in `ui/settings/tabs/index.js` (order, name, Debug-only); `tests/ui/tabs.test.mjs` checks the line | 2 |
 
 ## Before you open a pull request
 `npm test` (Rust and UI unit tests, privacy check), `npm run check:format`, `npm run check:types`, `npm run check:style` and

@@ -93,11 +93,3 @@ export function setInputError(value) {
 }
 
 export const MAX_LAYOUTS = 20; // how many layouts of their own a user may have (must match the Rust side)
-export const TAB_NAMES = {
-  layout: 'Layout',
-  keys: 'Keys',
-  style: 'Style',
-  animation: 'Animation',
-  fonts: 'Fonts',
-  general: 'General',
-};

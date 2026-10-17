@@ -5,10 +5,10 @@ import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './update-popup.js';
 import { flushPendingSave, push } from './preview.js';
 import { paintHeader } from './header.js';
+import { findTab } from './tabs/index.js';
 import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
 import {
-  TAB_NAMES,
   overlays,
   serverError,
   paused,
@@ -58,7 +58,7 @@ tauriEvent.listen('update-result', (e) => showUpdateResult(e.payload));
 
 // e.g. the tray's "Update available"
 tauriEvent.listen('goto-tab', (e) => {
-  if (TAB_NAMES[e.payload]) {
+  if (findTab(e.payload, !!settings?.general?.debugMode)) {
     setTab(e.payload);
     render();
   }
