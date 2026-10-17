@@ -914,10 +914,6 @@ mod robustness_tests {
     }
 }
 
-/// Devbuilds (tools/devbuild.mjs) have their own app identity ("com.keyoverlay.devbuild") so they can run beside an
-/// installed
-/// copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic update
-/// check off.
 /// True when this is a brand-new install: no settings file and no backup of one. A missing settings.json with a
 /// backup is not new: load() restores the backup, and first-run changes must not overwrite it.
 pub fn is_first_run(path: &Path) -> bool {
@@ -937,6 +933,9 @@ pub fn load_at_startup(path: &Path, identifier: &str, current_version: &str) -> 
     (cfg, whats_new)
 }
 
+/// Devbuilds (tools/devbuild.mjs) have their own app identity ("com.keyoverlay.devbuild") so they can run beside an
+/// installed copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic
+/// update check off.
 pub fn apply_devbuild_defaults(identifier: &str, cfg: &mut Value) {
     if identifier.ends_with(".devbuild") {
         cfg["general"]["port"] = json!(7881);
