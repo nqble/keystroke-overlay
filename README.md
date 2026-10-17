@@ -22,8 +22,9 @@
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
-<!-- DEMO: the short feature video goes here (drag the .mp4 into GitHub's editor and keep the link it makes).
-     A matching still for places that don't play video: docs/media/hero.png -->
+<!-- DEMO: the gameplay video goes here: about 20 s of the overlay in a real game, recorded in OBS (10 s of play, then
+     10 s in a practice range). Drag the .mp4 into GitHub's editor and keep the link it makes. The feature clips go in
+     their own sections below. -->
 
 ## Why Keystroke Overlay
 
