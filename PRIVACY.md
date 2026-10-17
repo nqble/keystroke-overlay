@@ -62,7 +62,12 @@ Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's no
 
 Nothing in there contains keystrokes. To remove everything: uninstall, then delete that folder.
 
-**Debug mode** (off by default; General → App) adds a developer tab. While it is on, the app keeps a short event log **in memory only** (what the app did, never which keys were pressed), nothing is written to disk (apart from the self-test's empty test file, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
+**The event log.** The app keeps a short event log **in memory only**, so a bug report can say what happened: what the
+app did (the server started, keyboard input failed, an update check ran), never which keys were pressed. At all times it
+holds the last 100 important events; it is never written to disk, never sent anywhere, and gone when the app closes.
+
+**Debug mode** (off by default; General → App) adds a developer tab, and the event log then also records everyday steps
+(the last 300 lines; turning Debug mode off forgets them). Nothing is written to disk (apart from the self-test's empty test file, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## When the app talks to the internet
 

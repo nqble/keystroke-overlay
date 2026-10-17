@@ -28,7 +28,7 @@ pub fn toggle_pause_inner(app: &AppHandle) -> bool {
 }
 
 pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
-    crate::debug::log(format!("layout set to {id}"));
+    crate::debug::detail(format!("layout set to {id}"));
     let st = app.state::<AppState>();
     if !server::layouts(&st.shared.paths).iter().any(|l| l["id"] == id) {
         return Err(format!("Unknown layout: {id}"));
@@ -96,7 +96,7 @@ pub fn set_update_badge(app: &AppHandle, available: bool) {
             },
         )
     };
-    crate::debug::log(format!(
+    crate::debug::detail(format!(
         "tray update indicator {}",
         if available { "shown" } else { "hidden" }
     ));

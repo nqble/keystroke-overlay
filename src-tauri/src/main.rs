@@ -83,6 +83,10 @@ fn main() {
                 paths,
                 cfg_tx,
             });
+            match shared.bus.error() {
+                Some(e) => debug::log(format!("keyboard input ({}) could not start: {e}", method.id())),
+                None => debug::log(format!("keyboard input: {}", method.id())),
+            }
             let (srv, err) = match server::start(shared.clone(), port) {
                 Ok(handle) => (Some(handle), None),
                 Err(e) => (None, Some(e)),

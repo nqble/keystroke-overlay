@@ -27,11 +27,23 @@ check(
   'while Debug mode is off the Debug tab code is not even loaded',
   await p.q(`!performance.getEntriesByType('resource').some((entry) => /debug\.js/.test(entry.name))`),
 );
-check('while it is off nothing is recorded', (await p.invoke('debug_log')).ok.length === 0);
+// With Debug mode off the log keeps only the important events (docs/DEBUGGING.md): the app starting, yes; the
+// settings window opening (a Debug-mode detail), no.
+const offLog = (await p.invoke('debug_log')).ok.map((line) => line[1]);
+check(
+  'while it is off only important events are kept: "app started" is there, "settings window opened" is not',
+  offLog.some((text) => /^app started/.test(text)) && !offLog.some((text) => /settings window opened/.test(text)),
+  JSON.stringify(offLog),
+);
 await p.invoke('create_layout', { name: 'Quiet' });
-const quiet = (await p.invoke('debug_log')).ok.length;
 await p.invoke('delete_layout', { id: 'quiet' });
-check('...even when the app does things (create / delete a layout)', quiet === 0);
+const quiet = (await p.invoke('debug_log')).ok.map((line) => line[1]);
+check(
+  '...creating and deleting a layout is recorded as important, and no line ever names a key',
+  quiet.some((text) => /layout created/.test(text)) &&
+    !quiet.some((text) => /\bKey[A-Z]\b|Digit\d|Control(Left|Right)/.test(text)),
+  JSON.stringify(quiet.slice(-5)),
+);
 
 // ---- switch it on through the real toggle
 await tab('general');
@@ -190,9 +202,9 @@ await tab('general');
 await p.ev(`${debugToggle}.click()`);
 await sleep(900);
 check(
-  'switching it off removes the tab and forgets the log',
+  'switching it off removes the tab and forgets the details (only important lines stay)',
   !(await navNames()).includes('debug') &&
-    (await p.invoke('debug_log')).ok.length === 0 &&
+    !(await p.invoke('debug_log')).ok.some((line) => /settings window opened|layout set to/.test(line[1])) &&
     (await state()).settings.general.debugMode === false,
 );
 finish();

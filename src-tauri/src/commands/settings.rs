@@ -47,7 +47,10 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
     crate::debug::set_enabled(new["general"]["debugMode"].as_bool().unwrap_or(false));
     let channel_changed =
         st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
-    settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
+    settings::save(&st.shared.paths.settings(), &new).map_err(|e| {
+        crate::debug::log(format!("settings could not be saved: {e}"));
+        e.to_string()
+    })?;
     *st.shared.settings.write().unwrap() = new;
     if channel_changed {
         *st.update_cache.lock().unwrap() = None;
@@ -111,7 +114,13 @@ pub fn copy_text(app: AppHandle, text: String) -> Result<(), String> {
 #[tauri::command]
 pub fn set_input_method(st: State<AppState>, method: String) -> Result<(), String> {
     let input_method = crate::keyboard::Method::parse(&method).ok_or("Unknown input method")?;
-    st.shared.bus.set_method(input_method)?;
+    st.shared.bus.set_method(input_method).map_err(|e| {
+        crate::debug::log(format!(
+            "keyboard input ({}) could not start, kept the old one: {e}",
+            input_method.id()
+        ));
+        e
+    })?;
     crate::debug::log(format!("keyboard input method is now {}", input_method.id()));
     let mut current_settings = st.shared.settings.write().unwrap();
     current_settings["general"]["inputMethod"] = json!(input_method.id());
