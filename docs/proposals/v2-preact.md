@@ -1,6 +1,6 @@
 # Plan: Preact + htm for the settings window (v2.0)
 
-Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: Debug, General, Style, Layout and Animation done, the key editor next**, on `advisor/v2.0`. It is
+Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: Debug, General, Style, Layout and Animation done; the key editor is being rebuilt in v1.4 (M4.1 merged) and converted once it is finished**, on `advisor/v2.0`. It is
 v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor/` because the window only serves
 `ui/settings/`.
 
@@ -78,7 +78,9 @@ library."
    converted keep working inside it through a small wrapper that runs their old `render()`.
 5. **Each tab as it is redesigned** (steps 6–11 of the tab plan): Debug, General, Style with Fonts, Layout, Animation, then
    the key editor. A tab is written once, in the new style.
-6. **Tidy up** when the last tab is converted: remove the wrapper and any helper nothing uses any more.
+6. **Tidy up** when the last tab is converted: remove the wrapper and any helper nothing uses any more. Helpers and
+   styles nothing uses are gone (2026-10-17); the wrapper stays until the Keys tab is converted after the key editor's
+   last part (M4.3).
 
 ## Step 2 results (the header trial)
 

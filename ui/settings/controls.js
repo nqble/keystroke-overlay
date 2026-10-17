@@ -3,7 +3,7 @@
 // =====================================================================================================================
 import { Segmented } from './blocks.js';
 import { html, render as drawPreact, useLayoutEffect, useRef } from './html.js';
-import { el, get, heading, put, row } from './helpers.js';
+import { el, get, put, row } from './helpers.js';
 import { changed } from './preview.js';
 import { settings, customFonts, registry } from './state.js';
 
@@ -323,60 +323,24 @@ function fontCtl(control) {
   return [select, typed];
 }
 
-/**
- * Draw every control of one tab, grouped under headings. With `onlyGroup`, only that group's controls and no heading
- * (a v2.0 section card gives the title, see ControlGroup).
- */
-export function renderControls(tabName, parent, onlyGroup = null) {
-  let group = null;
-  for (const control of CONTROLS.filter((c) => c.tab === tabName && (!onlyGroup || c.group === onlyGroup))) {
+/** Draw the controls of one group of one tab (a section card gives the title, see ControlGroup). */
+function renderGroup(tabName, groupName, parent) {
+  const builders = { color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl, segmented: segmentedCtl };
+  for (const control of CONTROLS.filter((c) => c.tab === tabName && c.group === groupName)) {
     if (control.type === 'gallery' || (control.shownIf && !control.shownIf())) continue;
-    if (!onlyGroup && control.group !== group) {
-      group = control.group;
-      parent.append(heading(group));
-    }
-    parent.append(
-      row(
-        control.label,
-        ...{ color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl, segmented: segmentedCtl }[
-          control.type
-        ](control),
-      ),
-    );
+    parent.append(row(control.label, ...builders[control.type](control)));
   }
 }
 
 /**
- * The "Import from file… / Export to file…" pair, identical in the Layout and Style tabs. `hookPrefix` names the test
- * hooks: 'layout' gives layout-import and layout-export.
- */
-export const shareRow = (label, onImport, onExport, exportDisabled, tips, hookPrefix) =>
-  row(
-    label,
-    el('button', {
-      textContent: 'Import from file…',
-      title: tips.imp || '',
-      onclick: onImport,
-      test: hookPrefix + '-import',
-    }),
-    el('button', {
-      textContent: 'Export to file…',
-      title: tips.exp || '',
-      disabled: exportDisabled,
-      onclick: onExport,
-      test: hookPrefix + '-export',
-    }),
-  );
-
-/**
  * One group of the control table inside a Preact screen (a section card of Style or Animation). The controls are still
- * built by renderControls, so a setting is still one line in CONTROLS.
+ * built by renderGroup, so a setting is still one line in CONTROLS.
  */
 export function ControlGroup({ tab, group }) {
   const box = useRef(null);
   useLayoutEffect(() => {
     box.current.replaceChildren();
-    renderControls(tab, box.current, group);
+    renderGroup(tab, group, box.current);
   });
   return html`<div class="control-group" ref=${box}></div>`;
 }

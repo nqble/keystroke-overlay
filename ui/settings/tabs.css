@@ -107,19 +107,8 @@ h2:first-child {
   min-width: 0;
   max-width: 460px;
 }
-.row .ctl.stacked {
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-6);
-}
-.short-field {
-  width: 100px;
-}
 .num-field {
   width: 84px;
-}
-.pre-line {
-  white-space: pre-line;
 }
 .invisible {
   visibility: hidden;
