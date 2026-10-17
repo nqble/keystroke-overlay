@@ -20,6 +20,7 @@
 
   /* Text */
   --color-text: #e6e9f0;
+  --color-guide: #ff9f43; /* the smart-guide lines shown while a key is dragged */
   --color-text-dim: #8b93a7; /* secondary text, hints */
   --color-on-fill: #fff; /* text on a strong fill (active tab, primary button, close button) */
 
@@ -488,6 +489,60 @@ button:disabled:hover {
 .keymap-canvas.dots {
   background-image: radial-gradient(circle, var(--color-text-dim) 0.8px, transparent 1.4px);
   background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
+}
+.keymap-canvas.holding .kmk:not(.drag) {
+  opacity: 0.35;
+}
+.kmk {
+  transition: opacity 160ms ease-out;
+}
+.guide {
+  position: absolute;
+  z-index: 4;
+  background: var(--color-guide);
+  pointer-events: none;
+}
+.guide.vertical {
+  top: 0;
+  bottom: 0;
+  left: calc(var(--at) * var(--unit));
+  width: 1px;
+}
+.guide.horizontal {
+  left: 0;
+  right: 0;
+  top: calc(var(--at) * var(--unit));
+  height: 1px;
+}
+/* The resize handles sit on the selected key; the container only positions them. */
+.handles {
+  position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc(var(--y) * var(--unit));
+  width: calc(var(--w) * var(--unit) - 3px);
+  height: calc(var(--h, 1) * var(--unit) - 3px);
+  z-index: 4;
+  pointer-events: none;
+}
+.handle {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 60%;
+  transform: translateY(-50%);
+  background: var(--color-accent);
+  border: 2px solid var(--color-panel);
+  border-radius: var(--radius-md);
+  box-sizing: content-box;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: ew-resize;
+}
+.handle.left {
+  left: -6px;
+}
+.handle.right {
+  right: -6px;
 }
 .zoom-controls {
   position: absolute;

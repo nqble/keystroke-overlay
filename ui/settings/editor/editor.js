@@ -12,12 +12,13 @@
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
 import { changed, push } from '../preview.js';
-import { gridShown, round2, setKeyPos, snap, snapStep } from '../profiles.js';
+import { baseWidth, gridShown, round2, setKeyPos, setKeyWidth, snap, snapStep } from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
 import { TEXT } from '../text.js';
 import { boundsOf, clampMove, movedPositions } from '../tabs/keys-arrange.js';
-import { boardArea, boardSize, evenGridBoxes, overlappingCodes } from '../tabs/keys-board.js';
+import { boardArea, boardSize, evenGridBoxes, overlappingCodes, resizeBox } from '../tabs/keys-board.js';
+import { snapToGuides } from '../tabs/keys-guides.js';
 import {
   BUTTON_ZOOM,
   ZOOM_MAX,
@@ -58,6 +59,7 @@ function createEditor() {
   let profile = null;
   let layout = null;
   let justDragged = false; // true right after a drag, so the click that follows does not also change the selection
+  let handles = null; // the two resize handles of the selected key, when there are any
 
   const canvas = el('div', { className: 'keymap-canvas', test: 'keymap-canvas' });
   const zoomLabel = button(
@@ -274,6 +276,7 @@ function createEditor() {
     if (key !== shownFor) {
       shownFor = key;
       nodes.clear();
+      handles = null;
       canvas.replaceChildren();
       layoutBounds = boundsOf(layoutBoxes);
       needsFirstView = true;
@@ -297,6 +300,7 @@ function createEditor() {
         nodes.delete(code);
       }
     canvas.classList.toggle('dots', gridShown() && snapStep() > 0);
+    updateHandles(hidden);
     if (box.clientWidth && box.clientHeight) {
       boxSize = { w: box.clientWidth, h: box.clientHeight };
       if (needsFirstView) firstView();
@@ -317,6 +321,13 @@ function createEditor() {
       .map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
     const pressed = boxes.find((boxOf) => boxOf.code === pressedKey.code);
     const area = boardArea(board);
+    // Smart guides (shape style, Snap on): the key edges stick to the edges of the keys that stay where they are.
+    const hiddenCodes = new Set(profile.disabledKeys);
+    const others = placed
+      .filter((item) => !movingCodes.includes(item.key.code) && !hiddenCodes.has(item.key.code))
+      .map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
+    const useGuides = snapStep() > 0 && profile.layoutStyle === 'shape';
+    const guideLines = { x: null, y: null };
     const keysByCode = new Map(placed.map((item) => [item.key.code, item.key]));
     const start = { x: pointerEvent.clientX, y: pointerEvent.clientY };
     let moving = false;
@@ -336,14 +347,18 @@ function createEditor() {
         moving = true;
         if (!selectedKeys.has(pressedKey.code)) setSelectedKeys([pressedKey.code]);
         box.classList.add('panning'); // no sliding while a key is dragged
+        canvas.classList.add('holding'); // the other keys fade while one is held
         for (const boxOf of boxes) nodes.get(boxOf.code)?.classList.add('drag');
         readout = el('div', { className: 'readout', test: 'key-readout' });
         canvas.append(readout);
       }
       const keysPerPixel = 1 / (UNIT * view.zoom);
-      // the pressed key snaps to the grid; the rest of the group moves by the same amount
-      const wishedX = snap(pressed.x + pixelsX * keysPerPixel) - pressed.x;
-      const wishedY = snap(pressed.y + pixelsY * keysPerPixel) - pressed.y;
+      // the pressed key snaps to a guide or to the grid; the rest of the group moves by the same amount
+      const rawX = pressed.x + pixelsX * keysPerPixel;
+      const rawY = pressed.y + pixelsY * keysPerPixel;
+      const stuck = useGuides ? snapToGuides(pressed, rawX, rawY, others) : null;
+      const wishedX = (stuck?.guideX != null ? stuck.x : snap(rawX)) - pressed.x;
+      const wishedY = (stuck?.guideY != null ? stuck.y : snap(rawY)) - pressed.y;
       const allowed = clampMove(boxes, wishedX, wishedY, area);
       if (lastMove && lastMove.dx === allowed.dx && lastMove.dy === allowed.dy) return;
       lastMove = allowed;
@@ -354,6 +369,7 @@ function createEditor() {
         dragged?.style.setProperty('--y', String(position.y));
         setKeyPos(keysByCode.get(code), position.x, position.y);
       }
+      showGuides(guideLines, stuck?.guideX ?? null, stuck?.guideY ?? null);
       const at = positions[pressed.code];
       readout.textContent = `x ${round2(at.x)}   y ${round2(at.y)}`;
       readout.style.setProperty('--x', String(at.x));
@@ -362,10 +378,12 @@ function createEditor() {
     };
     const done = () => {
       readout?.remove();
+      showGuides(guideLines, null, null);
       node.removeEventListener('pointermove', move);
       node.removeEventListener('pointerup', done);
       node.removeEventListener('pointercancel', done);
       box.classList.remove('panning');
+      canvas.classList.remove('holding');
       for (const boxOf of boxes) nodes.get(boxOf.code)?.classList.remove('drag');
       if (!moving) return;
       justDragged = true;
@@ -377,6 +395,109 @@ function createEditor() {
     node.addEventListener('pointermove', move);
     node.addEventListener('pointerup', done);
     node.addEventListener('pointercancel', done);
+  }
+
+  /** Draw (or remove) the orange guide lines at the edge x / y (in keys) that a dragged key has stuck to. */
+  function showGuides(lines, x, y) {
+    for (const [axis, at] of [
+      ['x', x],
+      ['y', y],
+    ]) {
+      if (at === null) {
+        lines[axis]?.remove();
+        lines[axis] = null;
+        continue;
+      }
+      if (!lines[axis]) {
+        lines[axis] = el('div', {
+          className: 'guide ' + (axis === 'x' ? 'vertical' : 'horizontal'),
+          test: 'key-guide-' + axis,
+        });
+        canvas.append(lines[axis]);
+      }
+      lines[axis].style.setProperty('--at', String(at));
+    }
+  }
+
+  // ---- Resizing the selected key ------------------------------------------------------------------------------------
+  /** Show the resize handles on the left and right edge of the selected key (only when one shown key is selected). */
+  function updateHandles(hidden) {
+    const code = selectedKeys.size === 1 ? [...selectedKeys][0] : null;
+    const item = code && !hidden.has(code) ? placed.find((candidate) => candidate.key.code === code) : null;
+    if (!item) {
+      handles?.remove();
+      handles = null;
+      return;
+    }
+    if (!handles) {
+      handles = el('div', { className: 'handles', test: 'key-handles' });
+      for (const side of ['left', 'right']) {
+        const handle = el('div', { className: 'handle ' + side, test: 'key-handle-' + side });
+        handle.onpointerdown = (pointerEvent) => {
+          if (pointerEvent.button !== 0) return;
+          pointerEvent.stopPropagation(); // not a selection box, not a key drag
+          resizeKey(pointerEvent, handle, side);
+        };
+        handles.append(handle);
+      }
+      canvas.append(handles);
+    }
+    handles.dataset.code = item.key.code;
+    handles.style.setProperty('--x', String(item.x));
+    handles.style.setProperty('--y', String(item.y));
+    handles.style.setProperty('--w', String(item.w));
+    handles.style.setProperty('--h', String(item.h));
+  }
+
+  /**
+   * Drag a handle to resize the key: the opposite edge stays put, the width snaps to the snap step, and it stays between
+   * the layout own width (or one key) and the board edge. Saved once, when the handle is let go.
+   */
+  function resizeKey(pointerEvent, handle, side) {
+    const item = placed.find((candidate) => candidate.key.code === handles.dataset.code);
+    if (!item) return;
+    const { key } = item;
+    const start = { x: pointerEvent.clientX };
+    const startBox = { code: key.code, x: item.x, y: item.y, w: item.w, h: item.h };
+    const layoutWidth = baseWidth(key, profile.layoutStyle);
+    const node = nodes.get(key.code);
+    const readout = el('div', { className: 'readout', test: 'key-readout' });
+    canvas.append(readout);
+    canvas.classList.add('holding');
+    node?.classList.add('drag');
+    box.classList.add('panning');
+    try {
+      handle.setPointerCapture(pointerEvent.pointerId);
+    } catch {
+      /* not a real pointer (tests) */
+    }
+    const move = (moveEvent) => {
+      const delta = (moveEvent.clientX - start.x) / (UNIT * view.zoom);
+      const resized = resizeBox(startBox, side, delta, board, snapStep(), layoutWidth);
+      for (const target of [node, handles]) {
+        target?.style.setProperty('--x', String(resized.x));
+        target?.style.setProperty('--w', String(resized.w));
+      }
+      if (side === 'left') setKeyPos(key, resized.x, startBox.y);
+      setKeyWidth(key, resized.w);
+      readout.textContent = `width ${round2(resized.w)}`;
+      readout.style.setProperty('--x', String(resized.x));
+      readout.style.setProperty('--y', String(startBox.y));
+      push();
+    };
+    const done = () => {
+      readout.remove();
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', done);
+      handle.removeEventListener('pointercancel', done);
+      box.classList.remove('panning');
+      canvas.classList.remove('holding');
+      node?.classList.remove('drag');
+      changed(true);
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', done);
+    handle.addEventListener('pointercancel', done);
   }
 
   // ---- Selecting with a box -----------------------------------------------------------------------------------------

@@ -845,6 +845,127 @@ check(
   await p.q(`[...document.querySelectorAll('${byTest('key-cell')}')].every(n => n.__same === true)`),
 );
 
+// ---- resize handles, smart guides and the held-key fade (M4.2)
+const hiddenAllButKept = full.keys.map((k) => k.code).filter((c) => !keep.includes(c));
+const setShapeEdits = async (edits) => {
+  const current = (await state()).settings;
+  await p.invoke('save_settings', {
+    settings: {
+      ...current,
+      layout: {
+        ...current.layout,
+        profiles: {
+          ...current.layout.profiles,
+          [id]: { disabledKeys: hiddenAllButKept, labels: {}, styles: { shape: edits } },
+        },
+      },
+    },
+  });
+  await p.ev(`await __ko.resync()`);
+  await sleep(600);
+};
+const dragHandle = (side, dxUnits) =>
+  p.ev(`
+    const h = document.querySelector('${byTest('key-handle-' + side)}'), r = h.getBoundingClientRect();
+    const board = document.querySelector('${byTest('keymap-canvas')}'), unit = board.getBoundingClientRect().width / Number(board.dataset.boardW);
+    const ev = (t, x) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: r.top + r.height / 2, button: 0, pointerId: 31 });
+    const x0 = r.left + r.width / 2;
+    h.dispatchEvent(ev('pointerdown', x0));
+    for (let i = 1; i <= 4; i++) h.dispatchEvent(ev('pointermove', x0 + (${dxUnits} * unit) * i / 4));
+    h.dispatchEvent(ev('pointerup', x0 + ${dxUnits} * unit));`);
+const widthOf = async (code) => shapeEdits(await profile(id)).sizes?.[code]?.w ?? 1;
+const posOf = async (code) => shapeEdits(await profile(id)).positions?.[code] ?? { x: orig[code].x, y: orig[code].y };
+
+await setShapeEdits({});
+await clickKey('KeyW');
+await sleep(400);
+check(
+  'one selected shown key gets two resize handles',
+  (await p.q(`document.querySelectorAll('${byTest('key-handle-left')}, ${byTest('key-handle-right')}').length`)) === 2,
+);
+await dragHandle('right', 1);
+await sleep(500);
+check(
+  'dragging the right handle by one key widens the key by one key',
+  Math.abs((await widthOf('KeyW')) - 2) < 0.01,
+  String(await widthOf('KeyW')),
+);
+const beforeLeft = { ...(await posOf('KeyW')), w: await widthOf('KeyW') };
+await dragHandle('left', -1);
+await sleep(500);
+const afterLeft = { ...(await posOf('KeyW')), w: await widthOf('KeyW') };
+check(
+  'dragging the left handle outwards widens the key and the right edge stays where it was',
+  Math.abs(afterLeft.w - (beforeLeft.w + 1)) < 0.01 &&
+    Math.abs(afterLeft.x + afterLeft.w - (beforeLeft.x + beforeLeft.w)) < 0.01,
+  JSON.stringify([beforeLeft, afterLeft]),
+);
+await dragHandle('left', 20);
+await sleep(500);
+check(
+  'a key cannot be made narrower than one key',
+  Math.abs((await widthOf('KeyW')) - 1) < 0.01,
+  String(await widthOf('KeyW')),
+);
+await dragHandle('right', 400);
+await sleep(500);
+const widest = { ...(await posOf('KeyW')), w: await widthOf('KeyW') };
+const boardNow = await boardInfo();
+check(
+  'a key cannot be made wider than the board',
+  widest.x + widest.w <= boardNow.boardW + 0.01 && widest.w > 5,
+  JSON.stringify([widest, boardNow.boardW]),
+);
+check(
+  'the resized key is drawn at its new width in the live preview',
+  await eventually(async () => {
+    const k = await previewKey('KeyW');
+    return { ok: !!k };
+  }).then((r) => r.ok),
+);
+await clickKey('KeyA', true);
+await sleep(400);
+check(
+  'there are no resize handles while several keys are selected',
+  (await p.q(`document.querySelectorAll('${byTest('key-handles')}').length`)) === 0,
+);
+
+// the key being dragged sticks to the edge of another key (smart guide) and the other keys fade while it is held
+await setShapeEdits({ positions: { KeyS: { x: 6.1, y: 3 } } });
+await p.ev(`document.querySelector('${byTest('key-clear-selection')}')?.click()`);
+await sleep(300);
+const wFrom = orig.KeyW;
+const guideState = await p.ev(`
+  const n = document.querySelector('${keyCell('KeyW')}'), r = n.getBoundingClientRect();
+  const board = document.querySelector('${byTest('keymap-canvas')}'), unit = board.getBoundingClientRect().width / Number(board.dataset.boardW);
+  const ev = (t, x, y) => new PointerEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, pointerId: 32 });
+  const dx = (6.0 - ${wFrom.x}) * unit;
+  n.dispatchEvent(ev('pointerdown', r.left + 4, r.top + 4));
+  for (let i = 1; i <= 4; i++) n.dispatchEvent(ev('pointermove', r.left + 4 + dx * i / 4, r.top + 4));
+  const out = { guide: !!document.querySelector('${byTest('key-guide-x')}'), holding: board.classList.contains('holding'),
+    faded: getComputedStyle(document.querySelector('${keyCell('KeyA')}')).opacity };
+  n.dispatchEvent(ev('pointerup', r.left + 4 + dx, r.top + 4));
+  return out;`);
+await sleep(500);
+check(
+  'an orange guide line shows while the key is close to another key edge',
+  guideState.guide,
+  JSON.stringify(guideState),
+);
+check('the other keys fade while a key is held, and the held key is lifted', guideState.holding === true);
+const stuckAt = await posOf('KeyW');
+check(
+  'the dragged key stuck to the other key edge (6.1) instead of the grid step (6)',
+  Math.abs(stuckAt.x - 6.1) < 0.005,
+  JSON.stringify(stuckAt),
+);
+check(
+  'the guide line and the fade are gone after the key is dropped',
+  (await p.q(`document.querySelectorAll('${byTest('key-guide-x')}').length`)) === 0 &&
+    (await p.q(`!document.querySelector('${byTest('keymap-canvas')}').classList.contains('holding')`)),
+);
+await setShapeEdits({});
+
 // ---- hostile positions are cleaned by the app
 const S1 = (await state()).settings;
 await p.invoke('save_settings', {
