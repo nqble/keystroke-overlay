@@ -99,7 +99,8 @@ server refuses every data request and the key-press stream without it, so other 
 It is on for new installs since v1.4.0-dev, and installs from before keep their choice (off unless you turned it on), so an
 update never breaks your OBS link; turning it on later means pasting the new link into OBS once, and "Make a new key"
 cuts off old links. The overlay's own public page and scripts stay open because they contain nothing private, and the key itself is
-never sent to the overlay.
+never sent to the overlay. The key is part of the link, so it is stored wherever the link is: in OBS's scene files, and
+anywhere you paste it. Treat the link like a password, keep it off your stream, and use "Make a new key" if it got out.
 
 ## Things outside this app's control
 
