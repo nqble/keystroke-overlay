@@ -117,6 +117,7 @@ General), and a button appears in the settings window; the user must click it an
 
 - `npm run check:privacy` passes
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
+- The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
 - Dependency licenses still compatible with MIT (`cargo metadata` → no GPL/AGPL; MPL-2.0 is fine)
 - Consider generating a third-party notices file (for example with `cargo about`) and attaching it to the release
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`
