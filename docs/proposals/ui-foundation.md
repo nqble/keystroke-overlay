@@ -1,9 +1,10 @@
 # Plan: UI foundation (in progress, from the Advisory Session)
 
-Status: **In progress** on `v1.4.0-dev` (checked 2026-10-16). Done: step 1 (a2f37de), step 2 (7f9c432), step 3 (cec036f,
-6d81596, 65e188e), step 7's CLAUDE.md and tests/README.md parts (5f6a40d). Step 4 has started: keyboard and screen-reader basics in
-the shared controls (e3683c5) and layout cards as buttons (5e83596). Not started: the rest of step 4, steps 5 and 6, and step 7's
-ARCHITECTURE.md part.
+Status: **Done on `v1.4.0-dev`** (2026-10-17), apart from one deliberate leftover. Steps 1 to 7 are in: test hooks, screenshot
+baselines (now also the overlay in every built-in theme), design tokens, shared building blocks, looks moved to CSS (a style check
+now keeps inline styles out of the scripts), and the UI rules in CLAUDE.md. The leftover: `tabs/keys-map.js` still sets key
+positions as inline styles; it is replaced by the new editor (M4.1), which sets only CSS variables, so it is exempt in
+`tools/check-style.mjs` until then.
 
 This plan **replaces the `ui/settings/` part (area 2)** of the queued cleanup phase: the cleanup audit
 (`docs/CLEANUP.md`) lists these items for `ui/settings` instead of a separate pass. The key editor **redesign** comes after this
