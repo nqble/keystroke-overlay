@@ -233,8 +233,9 @@ use updates you can block the app in your firewall and everything else keeps wor
   `npm test`; nothing may crash, escape its folder or get past the limits.
 - **Strict page policy.** The settings window runs under a content-security policy: it can only run its own scripts, talk to the app itself
   and embed the local preview. A test confirms injected scripts and other websites are blocked.
-- **Manual security scans.** On GitHub, **Actions → Security scan → Run workflow** checks the libraries the app is built from against public
-  lists of known vulnerabilities, and **Actions → CodeQL → Run workflow** has GitHub's code scanner read our own code. Neither runs by itself.
+- **Security scans.** Every Monday (and on demand: **Actions → Security scan → Run workflow**) GitHub checks the libraries the
+  app is built from against public lists of known vulnerabilities. **Actions → CodeQL → Run workflow** has GitHub's code
+  scanner read our own code (on demand only).
   More in [SECURITY.md](SECURITY.md).
 
 ## Troubleshooting

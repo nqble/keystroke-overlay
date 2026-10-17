@@ -43,10 +43,13 @@ The private key is kept offline by the maintainer and is never stored in this re
   cleaning code on every test run (`cargo test`). Nothing may crash, escape its folder, or get past the limits. The secure-link
   key check is tested the same way.
 - **Read-only tests.** The automatic GitHub tests (`ci.yml`) have read-only access to the repository.
-- **Manual scans.** Two checks never run by themselves. Start either one on GitHub with **Actions → pick the workflow → Run workflow**:
-  - **Security scan** (about 3 minutes): looks up the libraries the app is built from in the public lists of known
+- **Scans.** Start either one on GitHub with **Actions → pick the workflow → Run workflow**:
+  - **Security scan** (about 3 minutes; also runs by itself every Monday): looks up the libraries the app is built from in the public lists of known
     vulnerabilities (npm and RustSec). Red means something needs updating; open the log for the name.
   - **CodeQL** (about 5–10 minutes): GitHub's code scanner reads our own code for known bug patterns. Results appear
     under the repository's **Security → Code scanning** tab.
 - **Privacy guard.** `npm run check:privacy` fails the build if network code, file writes in the keyboard code, or logging
-  appears where it shouldn't (see [PRIVACY.md](PRIVACY.md)).
+  appears where it shouldn't (see [PRIVACY.md](PRIVACY.md)). It is a tripwire that reads the code line by line, not a proof.
+- **Release pipeline.** Only a commit on `main` can be released, after the owner approves the run; every GitHub Action is
+  pinned to an exact commit (Dependabot proposes updates for review), and the signing job uses no shared build cache
+  (see [docs/RELEASING.md](docs/RELEASING.md)).

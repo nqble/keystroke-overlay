@@ -53,6 +53,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
         *st.update_cache.lock().unwrap() = None;
     } // a different channel needs a fresh check
     let _ = st.shared.cfg_tx.send("cfg");
+    st.auto_check_changed.notify_one(); // "Check for updates automatically" may have changed
     sync_tray(&app);
     Ok(())
 }
@@ -173,6 +174,7 @@ pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
         settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
         *st.shared.settings.write().unwrap() = new;
         *st.update_cache.lock().unwrap() = None;
+        st.auto_check_changed.notify_one(); // the default turns automatic checks back on
     }
     let app_handle = app.clone();
     tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&app_handle))

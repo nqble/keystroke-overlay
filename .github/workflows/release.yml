@@ -6,6 +6,10 @@ name: Release
 #   Option B:            push a tag named v<version> (e.g. v1.2.0)
 #
 # The version comes from src-tauri/tauri.conf.json and must have an entry in CHANGELOG.md (that text becomes the release notes).
+# Safety: only a commit that is on main can be released; every action is pinned to an exact commit (Dependabot proposes
+# updates for review); this job uses no shared build cache, so nothing another workflow wrote can end up in a signed
+# installer; and the "release" environment asks Jordan to approve before the signing key is used.
+#
 # x.y.0 versions are also promoted to the Stable channel automatically; x.y.z patch releases are Latest-only unless you tick
 # "Also make this the Stable version" (for an important fix that Stable users must get).
 
@@ -30,19 +34,23 @@ concurrency: release
 jobs:
   release:
     runs-on: windows-latest
-    environment: release # optional protection: Settings -> Environments -> release -> "Required reviewers" = you
+    environment: release # Settings -> Environments -> release -> Required reviewers: Jordan must approve each run
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0 # the whole history, to check the commit is on main
+      - name: Only release a commit that is on main
+        shell: bash
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_SHA is not on main. Merge it into main first. Nothing was released."; exit 1; fi
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
-          cache: npm
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
       - run: npm ci
 
       - name: Work out the version and make sure it is safe to release
@@ -67,6 +75,7 @@ jobs:
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }} # empty until the key has a password
         run: |
           FLAG=""; [ "${{ steps.v.outputs.stable }}" = "true" ] && FLAG="--stable"
           node tools/release.mjs $FLAG "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}' --title)"

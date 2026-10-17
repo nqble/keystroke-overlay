@@ -6,9 +6,11 @@
 
 mod commands;
 mod debug;
+mod downgrade;
 mod grid;
 mod keyboard;
 mod platform;
+mod sanitize;
 mod server;
 mod settings;
 mod state;
@@ -100,6 +102,7 @@ fn main() {
                 update_cache: Mutex::new(None),
                 whats_new: AtomicBool::new(pending),
                 pending_tab: Mutex::new(None),
+                auto_check_changed: tokio::sync::Notify::new(),
             });
 
             tray::build(app, shared)?;

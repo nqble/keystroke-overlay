@@ -54,8 +54,9 @@ to disk and no step that uses the network.
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's normal cache in `%LOCALAPPDATA%`):
 
 - `settings.json` (+ `settings.json.bak`, the previous copy): your style, layout choices, hidden keys, custom labels, port, preferences
-- from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app, so going back
-  a version never loses them
+- from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app (you went back
+  a version). When you go forward to that version again, its settings are put back and the copy is deleted. This works
+  between versions from v1.4.0 on; going back to v1.3.0 or earlier still loses the newer settings
 - `presets/`, `fonts/`, `layouts/`: files you created or added
 - the app's installed files
 
@@ -97,7 +98,8 @@ If that matters to you: use *Pause overlay*, use the app only on a PC you alone 
 server refuses every data request and the key-press stream without it, so other programs and other Windows users can't listen in.
 It is off by default (the link stays simple); turning it on means pasting the new link into OBS once, and "Make a new key"
 cuts off old links. The overlay's own public page and scripts stay open because they contain nothing private, and the key itself is
-never sent to the overlay.
+never sent to the overlay. The key is part of the link, so it is stored wherever the link is: in OBS's scene files, and
+anywhere you paste it. Treat the link like a password, keep it off your stream, and use "Make a new key" if it got out.
 
 ## Things outside this app's control
 

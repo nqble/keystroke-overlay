@@ -1,7 +1,8 @@
 name: Security scan
 
-# Manual only. Nothing here runs by itself and nothing here can block a release.
-# GitHub -> Actions -> "Security scan" -> Run workflow. It takes about 2-4 minutes and ends green (nothing found) or red (read the log).
+# Runs every Monday by itself, and on demand: GitHub -> Actions -> "Security scan" -> Run workflow. It takes about 2-4
+# minutes and ends green (nothing found) or red (read the log; GitHub emails the repository owner when a run fails).
+# It does not block a release by itself; docs/RELEASING.md asks for a green run before releasing.
 #
 # It checks the libraries the app is built from against the public lists of known vulnerabilities:
 #   - JavaScript libraries: npm audit (only the ones that ship in the app, high severity and above)
@@ -9,6 +10,8 @@ name: Security scan
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1' # Mondays 06:17 UTC
 
 permissions:
   contents: read
@@ -18,14 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
       - name: JavaScript libraries (npm audit)
         run: npm audit --omit=dev --audit-level=high
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: taiki-e/install-action@v2
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2
         with:
           tool: cargo-audit
       - name: Rust libraries (cargo audit)

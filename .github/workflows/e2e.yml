@@ -1,0 +1,39 @@
+name: E2E (Windows)
+
+# Manual only, for now: GitHub -> Actions -> "E2E (Windows)" -> Run workflow. It runs the full end-to-end suite
+# (npm run test:e2e) on one of GitHub's Windows machines: it builds a throwaway test copy of the app and drives it for
+# real (see tests/e2e/run.mjs). About 15-25 minutes. It does not block anything yet. Once a few runs pass reliably, it can
+# become a required step of the Release workflow (docs/RELEASING.md). If a run fails, open the log: a real bug and a
+# limitation of GitHub's machines (no real desktop, no injected key presses) look different there.
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'One suite only (for example smoke or secure-link), or "all"'
+        default: all
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - name: End-to-end tests
+        shell: bash
+        env:
+          SUITE: ${{ inputs.suite }} # through the environment, never pasted into the script
+        run: |
+          if [ "$SUITE" = "all" ]; then npm run test:e2e; else npm run test:e2e -- --suite "$SUITE"; fi
