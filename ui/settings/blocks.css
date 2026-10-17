@@ -417,3 +417,70 @@
 .segmented-box {
   display: contents;
 }
+
+/* ---- First run setup (first-run.js): a card over the Layout tab's content, three numbered steps */
+.first-run {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 560px;
+  padding: var(--space-20);
+  border-radius: var(--radius-2xl);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+}
+.first-run-close {
+  position: absolute;
+  top: var(--space-12);
+  right: var(--space-12);
+}
+.first-run-steps {
+  --step-size: 24px; /* the numbered circle */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  margin: var(--space-8) 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.first-run-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+  padding-left: calc(var(--step-size) + var(--space-12));
+  counter-increment: step;
+}
+.first-run-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--step-size);
+  height: var(--step-size);
+  border-radius: 50%;
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--step-size);
+  text-align: center;
+}
+.first-run-size {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.first-run-waiting,
+.first-run-done {
+  margin: 0;
+  color: var(--color-text-dim);
+}
+.first-run-done {
+  color: var(--color-live-text);
+}
+.first-run-steps .note {
+  margin: 0;
+}

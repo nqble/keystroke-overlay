@@ -1,10 +1,11 @@
 // =====================================================================================================================
 //  General → Connection (docs/design/ui-design-v2.md, Tabs): the OBS link (the only link box in the window), the port
-//  and the secure link. Part of the General tab (general.js). preview.js keeps #obsUrl and #sizeNote up to date.
+//  the secure link, and First run setup (first-run.js). Part of the General tab (general.js). preview.js keeps #obsUrl and #sizeNote up to date.
 // =====================================================================================================================
 import { ConfirmButton, Detail, Note, Section, Switch } from '../blocks.js';
 import { $, invoke, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
+import { openFirstRun } from '../first-run.js';
 import { copyUrl, frame, previewSrc, sizeText, updateObs } from '../preview.js';
 import { render } from '../settings.js';
 import { obsUrl, setObsUrl, settings } from '../state.js';
@@ -23,6 +24,7 @@ const WORDS = {
   secureOn: 'Secure link on: copy the new link into OBS.',
   secureOff: 'Secure link off.',
   newKeyMade: 'New key made: copy the new link into OBS.',
+  firstRun: 'First run setup',
   serverDetail: (port) => `Local server on 127.0.0.1:${port}`,
   keyDetail: '128-bit key, checked in constant time on /api, /ws, /fonts and /user.',
 };
@@ -34,11 +36,19 @@ function useLink(url) {
   frame.src = previewSrc();
 }
 
+function showFirstRun() {
+  openFirstRun();
+  render();
+}
+
 export function Connection() {
   return html`<${Section} title=${WORDS.title} test="general-connection">
     <${ObsLink} />
     <${Port} />
     <${SecureLink} />
+    <div class="btns">
+      <button type="button" data-test="general-first-run" onClick=${showFirstRun}>${WORDS.firstRun}</button>
+    </div>
     <${Detail} text=${WORDS.serverDetail(settings.general.port)} />
   <//>`;
 }

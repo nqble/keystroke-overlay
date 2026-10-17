@@ -153,6 +153,12 @@ pub(crate) fn read_json(path: &Path) -> Option<Value> {
         .filter(|v| v.is_object())
 }
 
+/// True when this is a brand-new install: no settings file and no backup of one. Then the settings window opens on
+/// the first run setup screen (docs/design/ui-design-v2.md, First run setup). After an update the file is there.
+pub fn is_first_run(path: &Path) -> bool {
+    !path.exists() && !path.with_extension("json.bak").exists()
+}
+
 /// Loads settings. If settings.json is missing or corrupt, the last good copy (settings.json.bak) is used.
 pub fn load(path: &Path) -> Value {
     let backup = path.with_extension("json.bak");
@@ -560,6 +566,17 @@ mod tests {
             .filter(|e| e.file_name().to_string_lossy().starts_with("settings.v"))
             .count();
         assert_eq!(copies, 0);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    #[test]
+    fn only_a_folder_without_settings_or_their_backup_is_a_first_run() {
+        let dir = scratch_folder("first-run");
+        let file = dir.join("settings.json");
+        assert!(is_first_run(&file));
+        std::fs::write(dir.join("settings.json.bak"), "{}").unwrap();
+        assert!(!is_first_run(&file), "a backup means the app ran before");
+        std::fs::write(&file, "{}").unwrap();
+        assert!(!is_first_run(&file));
         std::fs::remove_dir_all(&dir).ok();
     }
     #[test]

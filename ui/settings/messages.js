@@ -4,6 +4,7 @@
 import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './update-popup.js';
 import { flushPendingSave, push } from './preview.js';
+import { noticeObs } from './first-run.js';
 import { paintHeader } from './header.js';
 import { findTab } from './tabs/index.js';
 import { paintPauseButton } from './pause-button.js';
@@ -73,6 +74,7 @@ export function paintPause() {
 tauriEvent.listen('overlays-changed', (e) => {
   setOverlays(e.payload);
   paintHeader();
+  noticeObs();
 });
 
 // The same switch as the tray's "Pause overlay". The app answers with the new state; the tray hears it too.

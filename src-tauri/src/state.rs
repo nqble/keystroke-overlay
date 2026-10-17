@@ -35,6 +35,8 @@ pub struct AppState {
     pub update_cache: Mutex<Option<(std::time::Instant, String, Value)>>,
     /// True until the user has been shown the "What's new" window for this version.
     pub whats_new: AtomicBool,
+    /// True on a brand-new install until the first run setup screen has been closed (settings::is_first_run).
+    pub first_run: AtomicBool,
     /// A settings tab to open as soon as a freshly created settings window is ready (set by the tray's "Update
     /// available").
     pub pending_tab: Mutex<Option<String>>,

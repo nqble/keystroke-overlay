@@ -66,9 +66,10 @@ addEventListener('beforeunload', flushPendingSave);
 // ---------------------------------------------------------------------------------------------------------------------
 // 10. OBS link and preview
 // ---------------------------------------------------------------------------------------------------------------------
-export const sizeText = () => (size ? `Size in OBS: ${size.w} × ${size.h}` : '');
+/** The overlay's size for OBS, "1085 × 403" ("…" until the live preview has measured it). */
+export const obsSize = () => (size ? `${size.w} × ${size.h}` : '…');
+export const sizeText = () => (size ? `Size in OBS: ${obsSize()}` : '');
 
-/** Refresh the OBS link box and size in General, if it is showing (a secured link is hidden, but Copy copies it). */
 /** The OBS link (or its size) changed: show it everywhere it appears, including the header's "copy it again". */
 export function updateObs() {
   paintHeader();
@@ -79,6 +80,8 @@ export function updateObs() {
   }
   const sizeNote = $('#sizeNote');
   if (sizeNote) sizeNote.textContent = sizeText();
+  const firstRunSize = $('#firstRunSize');
+  if (firstRunSize) firstRunSize.textContent = obsSize();
 }
 
 export async function copyUrl() {

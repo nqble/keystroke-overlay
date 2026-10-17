@@ -19,12 +19,19 @@ pub fn get_state(st: State<AppState>) -> Value {
         "paused": st.shared.bus.paused.load(Ordering::Relaxed),
         "overlays": *st.shared.overlays.borrow(),
         "whatsNew": st.whats_new.load(Ordering::Relaxed),
+        "firstRun": st.first_run.load(Ordering::Relaxed),
         "inputError": st.shared.bus.error(),
         "inputActive": st.shared.bus.method().id(),
         "secureLink": st.shared.settings.read().unwrap()["general"]["secureLink"],
         "gotoTab": st.pending_tab.lock().unwrap().take(),
         "updateBadge": st.tray.lock().unwrap().as_ref().is_some_and(|t| t.update_shown),
     })
+}
+
+/// The first run setup screen was closed: don't show it again by itself (General can still open it).
+#[tauri::command]
+pub fn ack_first_run(st: State<AppState>) {
+    st.first_run.store(false, Ordering::Relaxed);
 }
 
 /// Persist settings from the UI. Port, autostart and lastSeenVersion have their own paths

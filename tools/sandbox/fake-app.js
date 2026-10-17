@@ -3,7 +3,7 @@
 // browser: no Windows, no build, no keyboard hook. Nothing is saved; reloading starts fresh.
 //
 // Pick what to show with the address (several can be combined with &):
-//   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new | whats-new-long
+//   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new | whats-new-long | first-run
 //   ?tab=layout | keys | style | animation | fonts | general | debug     (debug also turns Debug mode on)
 //   ?devbuild                                                            the DEV badge, as a devbuild shows it
 // Add a state: a line in STATES below, and a line in the list above.
@@ -23,6 +23,8 @@
     update: { overlays: 1, update: true },
     'whats-new': { overlays: 1, whatsNew: true },
     'whats-new-long': { overlays: 1, whatsNew: true, longNotes: true },
+    // a brand-new install, before OBS is set up: emit('overlays-changed', 1) to play OBS connecting
+    'first-run': { overlays: 0, firstRun: true },
   };
   const chosen = STATES[stateName] ?? STATES.live;
 
@@ -49,6 +51,7 @@
   const presets = {};
   let ownLayouts = [];
   let paused = !!chosen.paused;
+  let firstRun = !!chosen.firstRun;
   const log = [[0, 'sandbox started: nothing here is real']];
 
   async function getState() {
@@ -63,6 +66,7 @@
       paused,
       overlays: chosen.overlays,
       whatsNew: !!chosen.whatsNew,
+      firstRun,
       inputError: null,
       inputActive: 'hook',
       secureLink: false,
@@ -108,6 +112,9 @@
     toggle_pause: () => {
       paused = !paused;
       return paused;
+    },
+    ack_first_run: () => {
+      firstRun = false;
     },
     get_release_notes: () => ({ body: SHOWN_NOTES }),
     auto_check_update: () => (chosen.update ? UPDATE : NO_UPDATE),

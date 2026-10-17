@@ -5,6 +5,7 @@
 //  "Other layouts" library: dialogs.js.
 // =====================================================================================================================
 import { addLayoutDialog } from '../dialogs.js';
+import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js';
 import { call, el, invoke, plural, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
 import { dropGap, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
@@ -36,6 +37,7 @@ const WORDS = {
 };
 
 export function layoutTab() {
+  if (isFirstRunOpen()) return html`<${FirstRun} />`;
   return html`<${Layout} />`;
 }
 
@@ -108,6 +110,7 @@ function Layout() {
       </div>
       <span class="note" data-test="layout-count">${WORDS.count(mine)}</span>
     </div>
+    ${isAllSet() ? html`<${AllSetLine} />` : null}
     <div
       class="gallery layout-gallery"
       data-test="layout-cards"

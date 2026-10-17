@@ -58,6 +58,7 @@ fn main() {
             };
             paths.ensure();
             let existed = paths.settings().exists();
+            let first_run = settings::is_first_run(&paths.settings());
             let mut cfg = settings::load(&paths.settings());
             // "What's new" is shown once after an update. A fresh install has nothing to show.
             let current = env!("CARGO_PKG_VERSION");
@@ -104,6 +105,7 @@ fn main() {
                 tray: Mutex::new(None),
                 update_cache: Mutex::new(None),
                 whats_new: AtomicBool::new(pending),
+                first_run: AtomicBool::new(first_run),
                 pending_tab: Mutex::new(None),
                 auto_check_changed: tokio::sync::Notify::new(),
             });
@@ -162,6 +164,7 @@ fn main() {
             debug::debug_key_monitor,
             commands::updates::open_release_page,
             commands::updates::ack_whats_new,
+            commands::settings::ack_first_run,
             commands::updates::get_release_notes,
         ])
         .build(tauri::generate_context!())

@@ -8,6 +8,7 @@
 //  in src-tauri/src/settings.rs and, if the overlay uses it, read it in ui/overlay/overlay.js.
 // =====================================================================================================================
 import { $, call, invoke } from './helpers.js';
+import { openFirstRun } from './first-run.js';
 import { paintHeader } from './header.js';
 import { html, render as draw } from './html.js';
 import { paintPause, showServerError, resync } from './messages.js';
@@ -131,7 +132,7 @@ addEventListener('resize', () => {
   if (state.serverError) {
     showServerError(state.serverError);
     setTab('general');
-  }
+  } else if (state.firstRun) openFirstRun(); // a brand-new install: the three steps to add it to OBS
   setBooted(true);
   await render();
   window.__uiReady = performance.timeOrigin + performance.now(); // read by the performance tests
