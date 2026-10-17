@@ -69,6 +69,7 @@ function createEditor() {
   let shownFor = ''; // layout id and style the key elements were made for
   let layoutBounds = { minX: 0, minY: 0, maxX: 1, maxY: 1 }; // the layout file's own area, for the first view
   let needsFirstView = true;
+  let viewTouched = false; // true once the user zoomed or panned: the view is theirs from then on
   let placed = []; // [{ key, x, y, w, h }] as of the last update
   let profile = null;
   let layout = null;
@@ -78,13 +79,18 @@ function createEditor() {
   const canvas = el('div', { className: 'keymap-canvas', test: 'keymap-canvas' });
   const zoomLabel = button(
     '100%',
-    () => setView(centredView(boxSize, content(), 1)),
+    () => {
+      viewTouched = true;
+      setView(centredView(boxSize, content(), 1));
+    },
     'zoom-percent',
     'editor-zoom-reset',
   );
   zoomLabel.title = 'Zoom to 100% and centre the board';
-  const zoomBy = (factor) => () =>
+  const zoomBy = (factor) => () => {
+    viewTouched = true;
     setView(zoomAt(view, factor, { x: boxSize.w / 2, y: boxSize.h / 2 }, boxSize, content()));
+  };
   const zoomOut = button('−', zoomBy(1 / BUTTON_ZOOM), 'zoom-step', 'editor-zoom-out');
   zoomOut.title = 'Zoom out';
   const zoomIn = button('+', zoomBy(BUTTON_ZOOM), 'zoom-step', 'editor-zoom-in');
@@ -155,7 +161,8 @@ function createEditor() {
       height = box.clientHeight;
     if (!width || !height) return; // off the page: keep the view as it was
     boxSize = { w: width, h: height };
-    if (needsFirstView && layout) firstView();
+    // until the user zooms or pans, the first view follows the box (it may still be settling into the page layout)
+    if ((needsFirstView || !viewTouched) && layout) firstView();
     else refit();
   }).observe(box);
 
@@ -163,6 +170,7 @@ function createEditor() {
     'wheel',
     (wheelEvent) => {
       wheelEvent.preventDefault(); // zoom the board, not the window (this listener is not passive on purpose)
+      viewTouched = true;
       setView(zoomAt(view, wheelFactor(wheelEvent.deltaY), insideBox(wheelEvent), boxSize, content()));
     },
     { passive: false },
@@ -176,6 +184,7 @@ function createEditor() {
       if (pointerEvent.button !== MIDDLE_BUTTON) return;
       pointerEvent.preventDefault(); // no browser autoscroll
       pointerEvent.stopPropagation(); // never selects or moves the key under the pointer
+      viewTouched = true;
       const start = { x: pointerEvent.clientX, y: pointerEvent.clientY, panX: view.panX, panY: view.panY };
       box.classList.add('panning');
       try {
@@ -300,6 +309,8 @@ function createEditor() {
     board = boardSize(layoutBoxes, placedBoxes);
     canvas.style.setProperty('--board-w', String(board.w));
     canvas.style.setProperty('--board-h', String(board.h));
+    box.style.setProperty('--board-w', String(board.w));
+    box.style.setProperty('--board-h', String(board.h));
     canvas.dataset.boardW = String(board.w);
     canvas.dataset.boardH = String(board.h);
     box.setAttribute('aria-label', `Keyboard layout ${layout.name}`);
@@ -312,6 +323,7 @@ function createEditor() {
       canvas.replaceChildren();
       layoutBounds = boundsOf(layoutBoxes);
       needsFirstView = true;
+      viewTouched = false;
     }
     const hidden = new Set(profile.disabledKeys);
     const clash = overlappingCodes(placedBoxes.filter((boxOf) => !hidden.has(boxOf.code)));
@@ -336,7 +348,7 @@ function createEditor() {
     placeArrangeBar();
     if (box.clientWidth && box.clientHeight) {
       boxSize = { w: box.clientWidth, h: box.clientHeight };
-      if (needsFirstView) firstView();
+      if (needsFirstView || !viewTouched) firstView();
       else refit();
     } else setView(view); // keep the dots in step with the snap choice while off the page
   }
@@ -488,7 +500,10 @@ function createEditor() {
     const bottomRight = toScreen({ x: bounds.maxX * UNIT, y: bounds.maxY * UNIT }, view);
     const height = arrangeBar.offsetHeight || 32;
     const above = topLeft.y - ARRANGE_GAP - height;
-    arrangeBar.style.setProperty('--bar-x', (topLeft.x + bottomRight.x) / 2 + 'px');
+    // centred over the selection, but kept inside the box
+    const half = (arrangeBar.offsetWidth || 0) / 2 + ARRANGE_GAP / 2;
+    const centre = Math.min(Math.max((topLeft.x + bottomRight.x) / 2, half), Math.max(half, boxSize.w - half));
+    arrangeBar.style.setProperty('--bar-x', centre + 'px');
     arrangeBar.style.setProperty('--bar-y', (above >= 0 ? above : bottomRight.y + ARRANGE_GAP) + 'px');
   }
 
