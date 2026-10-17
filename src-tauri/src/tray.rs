@@ -17,10 +17,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt as _;
 pub fn toggle_pause_inner(app: &AppHandle) -> bool {
     let st = app.state::<AppState>();
     let now = !st.shared.bus.paused.load(Ordering::Relaxed);
-    st.shared.bus.paused.store(now, Ordering::Relaxed);
-    if now {
-        st.shared.bus.held.lock().unwrap().clear();
-    }
+    st.shared.bus.set_paused(now);
     announce(app);
     sync_tray(app);
     crate::debug::log(format!("overlay {}", if now { "paused" } else { "resumed" }));
@@ -147,7 +144,8 @@ pub fn refresh_tray_layouts(app: &AppHandle) {
 }
 
 /// Stops the overlay server and starts it again on the same port. The old listener needs a moment to
-/// release the port, so binding is retried briefly.
+/// release the port, so binding is retried briefly (up to 4 s). That wait blocks the calling thread, so every caller
+/// runs this on its own thread or in `spawn_blocking`, never on the main thread or an async task.
 pub fn restart_server_inner(app: &AppHandle) -> Result<(), String> {
     let st = app.state::<AppState>();
     let port = port_of(&st.shared);

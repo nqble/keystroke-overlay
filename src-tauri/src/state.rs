@@ -38,6 +38,8 @@ pub struct AppState {
     /// A settings tab to open as soon as a freshly created settings window is ready (set by the tray's "Update
     /// available").
     pub pending_tab: Mutex<Option<String>>,
+    /// Wakes the background update check after a settings change, so it can wait without a timer while it is off.
+    pub auto_check_changed: tokio::sync::Notify,
 }
 
 pub fn port_of(shared: &Shared) -> u16 {

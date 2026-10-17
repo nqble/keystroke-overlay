@@ -135,6 +135,31 @@ pub struct Bus {
 }
 
 impl Bus {
+    /// Pass one key event on to the overlays, or drop it while paused. The pause check, the held-keys update and the
+    /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
+    /// Pause is pressed can never slip through or leave a stuck key behind.
+    fn forward(&self, event: KeyEvent) {
+        let mut held = self.held.lock().unwrap();
+        if self.paused.load(Ordering::Relaxed) {
+            return;
+        }
+        if event.down {
+            held.insert(event.code);
+        } else {
+            held.remove(event.code);
+        }
+        let _ = self.tx.send(event); // Err = no listeners; fine.
+    }
+
+    /// Pause or resume (tray "Pause overlay" and the pause button). Pausing forgets every held key.
+    pub fn set_paused(&self, paused: bool) {
+        let mut held = self.held.lock().unwrap();
+        self.paused.store(paused, Ordering::Relaxed);
+        if paused {
+            held.clear();
+        }
+    }
+
     pub fn method(&self) -> Method {
         self.capture.lock().unwrap().method
     }
@@ -202,21 +227,69 @@ pub fn start(method: Method) -> Arc<Bus> {
     std::thread::Builder::new()
         .name("key-dispatch".into())
         .spawn(move || {
-            while let Ok(ev) = rx.recv() {
-                if dispatch_bus.paused.load(Ordering::Relaxed) {
-                    continue;
-                } // paused: forward nothing
-                {
-                    let mut held = dispatch_bus.held.lock().unwrap();
-                    if ev.down {
-                        held.insert(ev.code);
-                    } else {
-                        held.remove(ev.code);
-                    }
-                }
-                let _ = dispatch_bus.tx.send(ev); // Err = no listeners; fine.
+            while let Ok(event) = rx.recv() {
+                dispatch_bus.forward(event);
             }
         })
         .unwrap();
     bus
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_bus() -> Bus {
+        let (ev_tx, _) = channel::<KeyEvent>();
+        Bus {
+            tx: broadcast::channel(256).0,
+            held: Mutex::new(HashSet::new()),
+            paused: AtomicBool::new(false),
+            ev_tx,
+            capture: Mutex::new(Capture {
+                method: Method::Hook,
+                source: None,
+                error: None,
+            }),
+        }
+    }
+
+    #[test]
+    fn nothing_gets_through_while_paused() {
+        let bus = test_bus();
+        let mut overlay = bus.tx.subscribe();
+        bus.set_paused(true);
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyW",
+        });
+        assert!(overlay.try_recv().is_err());
+        assert!(bus.held.lock().unwrap().is_empty());
+    }
+
+    /// The outside review's race: a key event in flight while Pause is pressed used to be able to land in `held` after
+    /// pausing cleared it, so the overlay showed a stuck key after resuming. Pause while another thread forwards keys,
+    /// many times over; after the forwarding thread stops, nothing may be held.
+    #[test]
+    fn pausing_while_keys_arrive_never_leaves_a_stuck_key() {
+        const ROUNDS: usize = 2000;
+        let bus = Arc::new(test_bus());
+        for _ in 0..ROUNDS {
+            bus.set_paused(false);
+            let typing = {
+                let bus = bus.clone();
+                std::thread::spawn(move || {
+                    for _ in 0..50 {
+                        bus.forward(KeyEvent {
+                            down: true,
+                            code: "KeyA",
+                        });
+                    }
+                })
+            };
+            bus.set_paused(true);
+            typing.join().unwrap();
+            assert!(bus.held.lock().unwrap().is_empty(), "a key stayed held after pausing");
+        }
+    }
 }

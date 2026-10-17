@@ -32,7 +32,14 @@ Releases are signed so the in-app updater can verify them. The signing key never
 The repository has a **Release** workflow (`.github/workflows/release.yml`) that does everything below by itself.
 
 One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): add the repository secret `TAURI_SIGNING_PRIVATE_KEY`
-(the text of your `updater.key`), and optionally an environment named `release` with yourself as a required reviewer.
+(the text of your `updater.key`), and an environment named `release` with yourself as a **required reviewer** (every
+release then waits for your approval before the signing key is used). Once the key has a password (see "Signing key
+password" below), add it as the secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+
+**Safety rules the workflow enforces:** it only releases a commit that is already on `main` (merge first); every GitHub
+Action it uses is pinned to an exact commit, and Dependabot (`.github/dependabot.yml`) opens a pull request each month when
+one has a new version, for you to review; and it uses no shared build cache, so nothing another workflow left behind can end
+up inside a signed installer.
 
 Each release (or just tell Claude "release v1.2.0": it can start the workflow for you with the GitHub command-line tool, and you only
 have to approve it — from the website or the GitHub phone app):
@@ -44,6 +51,20 @@ have to approve it — from the website or the GitHub phone app):
 
 The signing key is read from the encrypted secret and never appears in logs; pull requests from forks cannot access it.
 The manual steps below are the fallback (and what the workflow runs internally).
+
+## Signing key password
+
+Today the key may have no password, which means anyone who gets a copy of the file can sign updates. Adding a password to
+the **same** key keeps the public key, so every installed copy keeps updating. Never generate a new key for this: a new
+key would cut off every existing install from updates.
+
+1. Back up `~/.keystroke-overlay-keys/updater.key` somewhere private and offline first.
+2. Add the password to that key with the signing tool on your PC (`npx tauri signer --help` lists what this Tauri
+   version can do; the key is a base64-encoded minisign key, so `minisign -C` on the decoded file also works). Ask
+   Claude to walk you through it on your PC. The key never leaves your PC.
+3. Check it before relying on it: sign a test file with the new password (`npx tauri signer sign`), then confirm the public
+   key printed for it still matches `plugins.updater.pubkey` in `src-tauri/tauri.conf.json`.
+4. Update the GitHub secret `TAURI_SIGNING_PRIVATE_KEY` if the file's text changed, and add `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
 
 ## Release notes format
 
@@ -95,6 +116,8 @@ General), and a button appears in the settings window; the user must click it an
 ## Checks before publishing a public release
 
 - `npm run check:privacy` passes
+- The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
+- The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
 - Dependency licenses still compatible with MIT (`cargo metadata` → no GPL/AGPL; MPL-2.0 is fine)
 - Consider generating a third-party notices file (for example with `cargo about`) and attaching it to the release
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`

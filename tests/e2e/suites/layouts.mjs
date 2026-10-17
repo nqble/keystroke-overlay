@@ -179,7 +179,7 @@ await p.ev(`document.querySelector('${byTest('dialog-reset-confirm')}').click()`
 await sleep(2500);
 const R = (await p.invoke('get_state')).ok;
 check(
-  'Reset restores defaults (style, animation, secure link off, plain link)',
+  'Reset restores defaults (style, animation) and keeps the secure link and port as they were',
   R.settings.style.radius === 8 &&
     R.settings.style.opacity === 1 &&
     R.settings.animation.speed === 120 &&

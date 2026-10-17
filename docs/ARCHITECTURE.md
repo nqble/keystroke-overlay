@@ -33,7 +33,9 @@ keystroke-overlay/
 │       │   └── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
-│       ├── settings.rs     settings file: defaults, versioned migrations, validation, backup
+│       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
+│       ├── sanitize.rs     cleaning settings from outside: types, ranges and rules, one table line per setting
+│       ├── downgrade.rs    going back a version and forward again without losing settings (settings.vN.json)
 │       ├── state.rs        shared app state + small helpers
 │       ├── window.rs       the settings window (created on demand, destroyed on close)
 │       ├── tray.rs         tray icon/menu + quick actions (pause, layout, restart server)
@@ -100,7 +102,7 @@ key press → capture method on its own thread:
   live: `Bus::set_method` stops the old source, releases any held keys, starts the new one, and falls back to the old one if
   the new one can't start. The framework's own Raw Input registration is disabled at startup (`device_event_filter(Always)`)
   because registrations are per process and would compete with ours.
-- **Secure link (optional, off by default):** `general.secureLink` + a random 128-bit `general.linkKey`. When on, `server.rs` requires
+- **Secure link (on for new installs since v1.4.0-dev, `settings::apply_new_install_defaults`; `defaults()` keeps it off so older files keep their plain link):** `general.secureLink` + a random 128-bit `general.linkKey`. When on, `server.rs` requires
   `?key=` (constant-time compare) on `/api/*`, `/ws`, `/fonts/*` and `/user/*`; the page and `/overlay/*` stay open (public code). `obs_url()`
   appends the key, the overlay repeats it on every request and the WebSocket, and `public_settings()` strips the key from everything the
   overlay receives. Toggling or regenerating restarts the server so old connections drop.
@@ -120,7 +122,8 @@ the app trims its working set.
 `settings.json` is versioned (`version`). On load it is migrated one step at a time (`MIGRATIONS` in `settings.rs`),
 merged over `defaults()`, then **sanitized** (wrong types → defaults, numbers clamped, ids/colors validated) so a hand-edited
 file or imported preset can never break the overlay. The previous good file is kept as `settings.json.bak` and used if the
-main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
+main file is corrupt. A file from a newer version is copied aside before it is cleaned, and put back when that version
+returns (`downgrade.rs`). Per-layout key edits live in `layout.profiles[layoutId]`.
 
 ## Extending it
 
@@ -135,7 +138,7 @@ main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
       press: { ms: ms * 0.5, ease: 'ease-out' }, release: { ms: ms * 2, ease: 'cubic-bezier(.34,1.9,.64,1)' }, glow: 0 }) });
   ```
   Use only `transform`/`opacity`. It shows up in the Animation tab automatically. Themes work the same with `registerTheme`.
-- **Setting:** (1) default in `settings.rs` (sanitizer range/rule if needed), (2) a descriptor in `CONTROLS` in
+- **Setting:** (1) default in `settings.rs` (a range or rule line in `sanitize.rs` if needed), (2) a descriptor in `CONTROLS` in
   `ui/settings/controls.js`, (3) use it in `ui/overlay/overlay.js`. Renaming or restructuring needs a migration + test.
 - **Command for the settings window:** a `#[tauri::command]` in the matching `commands/*.rs`, registered in
   `main.rs` (`generate_handler!`).
@@ -149,6 +152,7 @@ rule (`x.Y.0` = Stable, `x.y.Z` = Latest) and the one-click GitHub release workf
 
 `npm run check:privacy` (also in CI) fails the build if network code appears outside `commands/updates.rs`, a server binds
 anything but `127.0.0.1`, the keyboard/server code writes files, anything logs or prints, or the UI calls an external address.
+Its patterns live in `tools/privacy-patterns.mjs` with their own tests; it is a line-by-line tripwire, not a proof.
 `npm test` runs it together with the Rust unit tests and the JS unit tests in `tests/ui/` (settings migration/validation, key naming and tracking, Raw Input decoding,
 update URLs, release notes). `npm run test:e2e` builds a throwaway copy of the app and drives it for real (settings window, injected
 key presses through both input methods, a signed update download); it cleans up after itself — see [tests/README.md](../tests/README.md).

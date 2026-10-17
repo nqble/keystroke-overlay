@@ -25,8 +25,8 @@ export const TEXT = {
   keyPictureHelp: 'Drag a key to move it. Drag on the background to select several. Tab and Enter work too.',
   serverNote: 'Only this PC can connect. Key presses are never saved or sent. OBS reconnects by itself.',
   secureLinkOff:
-    '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this ' +
-    'PC can read your key presses through it. Turn this on if you share the PC or want that closed.',
+    '**Off:** your OBS link is simple and needs no extra step. Any program running on this ' +
+    'PC can read your key presses through it. Turn this on to close that.',
   secureLinkOn:
     '**On:** your OBS link now contains a private key, and only a program that knows the full link ' +
     'can read your key presses. **Copy the new link into your OBS Browser Source once** — the old ' +

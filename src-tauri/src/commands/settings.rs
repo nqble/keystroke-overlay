@@ -54,6 +54,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
         *st.update_cache.lock().unwrap() = None;
     } // a different channel needs a fresh check
     let _ = st.shared.cfg_tx.send("cfg");
+    st.auto_check_changed.notify_one(); // "Check for updates automatically" may have changed
     sync_tray(&app);
     Ok(())
 }
@@ -161,25 +162,20 @@ pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
 }
 
 /// Put every setting back to its default. The user's own layouts, presets and fonts are files and are kept.
-/// Turns off start-with-Windows, the secure link and the Compatibility input method, then restarts the server. The port
-/// is kept so the OBS link doesn't move.
+/// Turns off start-with-Windows and the Compatibility input method, then restarts the server. The port and the secure
+/// link are kept so the OBS link doesn't change (see `settings::reset_keeping_link`).
 #[tauri::command]
 pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
     let _ = app.autolaunch().disable();
     crate::debug::log("all settings reset to defaults");
     {
         let st = app.state::<AppState>();
-        let mut new = settings::defaults();
-        {
-            let cur = st.shared.settings.read().unwrap();
-            for k in ["lastSeenVersion", "port"] {
-                new["general"][k] = cur["general"][k].clone();
-            }
-        }
+        let new = settings::reset_keeping_link(&st.shared.settings.read().unwrap());
         let _ = st.shared.bus.set_method(crate::keyboard::Method::Hook);
         settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
         *st.shared.settings.write().unwrap() = new;
         *st.update_cache.lock().unwrap() = None;
+        st.auto_check_changed.notify_one(); // the default turns automatic checks back on
     }
     let app_handle = app.clone();
     tauri::async_runtime::spawn_blocking(move || crate::tray::restart_server_inner(&app_handle))

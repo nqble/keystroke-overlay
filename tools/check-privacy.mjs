@@ -7,6 +7,7 @@
 // Run:  node tools/check-privacy.mjs      (also runs in CI)
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { LOG, NET, WRITE, joinSplitPaths, withoutTestModules } from './privacy-patterns.mjs';
 
 const walk = (dir, exts, out = []) => {
   for (const f of readdirSync(dir)) {
@@ -26,13 +27,11 @@ const scan = (file, text, re, test) =>
   });
 
 // ------------------------------------------------------------------ Rust
-const NET = /\b(reqwest|TcpStream|UdpSocket|updater_builder|hyper::client|ureq|isahc|surf)\b|\.updater\(\)/;
-const WRITE = /\b(fs::write|fs::copy|fs::rename|File::create|OpenOptions)\b/;
-const LOG = /\b(println!|eprintln!|print!|eprint!|dbg!|log::|tracing::|env_logger)/;
+// The patterns (NET, WRITE, LOG) are in tools/privacy-patterns.mjs, with tests. This is a tripwire, not a proof.
 for (const f of walk('src-tauri/src', ['.rs'])) {
   // test modules may use the disk
   const file = rel(f),
-    text = strip(readFileSync(f, 'utf8').split('#[cfg(test)]')[0]);
+    text = joinSplitPaths(strip(withoutTestModules(readFileSync(f, 'utf8'))));
   scan(file, text, NET, (n) => {
     if (file !== 'src-tauri/src/commands/updates.rs') bad(file, n, 'network code outside commands/updates.rs');
   });
