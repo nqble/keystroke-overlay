@@ -9,6 +9,7 @@ mod debug;
 mod downgrade;
 mod grid;
 mod keyboard;
+mod layout_order;
 mod platform;
 mod sanitize;
 mod server;

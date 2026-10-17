@@ -33,7 +33,7 @@ pub(crate) fn is_ident(ident: &str) -> bool {
     !ident.is_empty() && ident.len() <= 40 && ident.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 /// Layout ids may also contain dots and spaces (they come from user-made files).
-pub(crate) fn is_id(id: &str) -> bool {
+pub fn is_id(id: &str) -> bool {
     !id.is_empty() && id.len() <= 40 && id.chars().all(|c| c.is_ascii_alphanumeric() || "-_. ".contains(c))
 }
 pub(crate) fn is_version(version: &str) -> bool {
@@ -206,6 +206,9 @@ type TextRule = fn(&str) -> bool;
 /// Settings whose keys are free-form (not listed in the defaults), each cleaned by its own function.
 const FREE_FORM: &[(&str, CleanFreeForm)] = &[("layout.profiles", clean_profiles)];
 
+/// Lists with a rule of their own; any other list is a list of short texts (`clean_strings`).
+const LIST_RULES: &[(&str, CleanFreeForm)] = &[("layout.order", crate::layout_order::clean_order)];
+
 /// Numbers that must be one of a fixed set of choices; anything else goes back to the default.
 const NUMBER_CHOICES: &[(&str, &[f64])] = &[("layout.editor.snap", &SNAP_CHOICES)];
 
@@ -245,7 +248,12 @@ fn clean_value(value: &mut Value, def: &Value, path: &str) {
                 *value = def.clone();
             }
         }
-        Value::Array(_) => *value = clean_strings(Some(value)),
+        Value::Array(_) => {
+            *value = match rule_for(LIST_RULES, path) {
+                Some(clean_list) => clean_list(value),
+                None => clean_strings(Some(value)),
+            }
+        }
         Value::Null => {}
     }
 }

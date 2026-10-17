@@ -48,6 +48,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
     crate::debug::set_enabled(new["general"]["debugMode"].as_bool().unwrap_or(false));
     let channel_changed =
         st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
+    let order_changed = st.shared.settings.read().unwrap()["layout"]["order"] != new["layout"]["order"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| e.to_string())?;
     *st.shared.settings.write().unwrap() = new;
     if channel_changed {
@@ -55,6 +56,9 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
     } // a different channel needs a fresh check
     let _ = st.shared.cfg_tx.send("cfg");
     st.auto_check_changed.notify_one(); // "Check for updates automatically" may have changed
+    if order_changed {
+        crate::tray::refresh_tray_layouts(&app); // the tray's Layout menu follows the Layout tab's order
+    }
     sync_tray(&app);
     Ok(())
 }
@@ -182,6 +186,7 @@ pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
         .await
         .map_err(|e| e.to_string())??;
     crate::state::announce(&app);
+    crate::tray::refresh_tray_layouts(&app); // the default order is back
     sync_tray(&app);
     Ok(obs_url(&app.state::<AppState>().shared))
 }

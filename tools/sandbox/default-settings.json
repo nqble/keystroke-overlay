@@ -13,7 +13,12 @@
     "updateChannel": "stable",
     "lastSeenVersion": ""
   },
-  "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false } },
+  "layout": {
+    "id": "tkl",
+    "profiles": {},
+    "editor": { "snap": 0.25, "grid": false },
+    "order": ["full", "tkl", "gameplay", "wasd"]
+  },
   "style": {
     "keyFill": "#1e222bd9",
     "keyFillPressed": "#4f8cffff",

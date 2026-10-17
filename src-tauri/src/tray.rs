@@ -126,7 +126,10 @@ pub fn refresh_tray_layouts(app: &AppHandle) {
         let _ = submenu.remove(old_item);
     }
     let mut fresh = Vec::new();
-    for layout in server::layouts(&st.shared.paths) {
+    let all = server::layouts(&st.shared.paths);
+    let order = st.shared.settings.read().unwrap()["layout"]["order"].clone();
+    // the same layouts, in the same order, as the Layout tab (layout_order.rs)
+    for layout in crate::layout_order::shown_in_order(&all, &order) {
         let id = layout["id"].as_str().unwrap_or("").to_string();
         let name = layout["name"].as_str().unwrap_or(&id).to_string();
         if let Ok(item) = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name)

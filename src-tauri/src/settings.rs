@@ -44,7 +44,9 @@ pub fn defaults() -> Value {
         //   styles: { shape: { positions: { code: { x, y } }, sizes: { code: { w } } }, grid: { ... } } }
         // (one per layout, saved automatically; disabledKeys and labels are shared by both layout styles).
         // editor = the Keys tab's snap step (0 = off, else 0.25, 0.5 or 1 key) and whether it shows the grid.
-        "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false } },
+        // order = the layouts the Layout tab and the tray show, in order (layout_order.rs): a built-in layout shows only
+        //   while it is listed (the others wait in "Other layouts"); the user's own always show.
+        "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false }, "order": crate::layout_order::DEFAULT_ORDER },
         "style": {
             "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff",
             "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff", "borderWidth": 2, "radius": 8,
