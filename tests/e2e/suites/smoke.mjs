@@ -126,6 +126,37 @@ check(
     })()),
 );
 
+// ---- the website guard (server.rs from_this_server): a web page or a DNS-rebinding trick gets 403, for data and stream
+/** Sends one raw HTTP request (so the Host and Origin headers are exactly ours) and returns the status code. */
+const statusOf = (path, headers) =>
+  new Promise((resolve) => {
+    const socket = net.connect(PORT, '127.0.0.1');
+    const lines = [`GET ${path} HTTP/1.1`, ...Object.entries(headers).map(([name, value]) => `${name}: ${value}`)];
+    socket.on('connect', () => socket.write(lines.join('\r\n') + '\r\n\r\n'));
+    socket.once('data', (data) => {
+      resolve(Number(String(data).split(' ')[1]));
+      socket.destroy();
+    });
+    socket.on('error', () => resolve(0));
+  });
+const WS_UPGRADE = {
+  Upgrade: 'websocket',
+  Connection: 'Upgrade',
+  'Sec-WebSocket-Version': '13',
+  'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
+};
+const THIS_HOST = `localhost:${PORT}`;
+check('guard: OBS-style request (no Origin) is allowed', (await statusOf('/api/config', { Host: THIS_HOST })) === 200);
+check(
+  'guard: a website (foreign Origin) is refused, for data and for the key stream',
+  (await statusOf('/api/config', { Host: THIS_HOST, Origin: 'http://evil.example' })) === 403 &&
+    (await statusOf('/ws', { Host: THIS_HOST, Origin: 'http://evil.example', ...WS_UPGRADE })) === 403,
+);
+check(
+  'guard: DNS rebinding (a foreign Host name for 127.0.0.1) is refused',
+  (await statusOf('/ws', { Host: `evil.example:${PORT}`, ...WS_UPGRADE })) === 403,
+);
+
 // ---- updates module
 const cu = (await inv('check_update')).ok;
 check(

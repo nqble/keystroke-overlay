@@ -61,6 +61,7 @@ fn main() {
             let pending = existed && cfg["general"]["lastSeenVersion"].as_str() != Some(current);
             if !existed {
                 cfg["general"]["lastSeenVersion"] = json!(current);
+                settings::apply_new_install_defaults(&mut cfg);
                 settings::apply_devbuild_defaults(&app.config().identifier, &mut cfg);
             }
             // A layout that no longer exists (for example the retired TSB layout) falls back to Tenkeyless.

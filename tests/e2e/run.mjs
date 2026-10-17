@@ -106,7 +106,7 @@ async function main() {
           pubkey: readFileSync(key + '.pub', 'utf8').trim(),
           endpoints: ['http://localhost:7999/latest.json'],
           dangerousInsecureTransportProtocol: true,
-          windows: { installMode: 'passive' },
+          windows: { installMode: 'quiet' }, // the same as the real app (tauri.conf.json)
         },
       },
     }),

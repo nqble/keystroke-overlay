@@ -463,6 +463,28 @@ fn give_empty_secure_link_a_key(settings: &mut Value) -> bool {
     }
 }
 
+/// A new install starts with the secure link on. On Windows every program on the PC, and every other signed-in user, can
+/// reach 127.0.0.1, so without a key any of them could read the key presses. The key is already in the OBS link the user
+/// copies, so this costs no extra step. `defaults()` keeps it off on purpose: a settings file saved without the field
+/// must not lose its plain link on an update (OBS would stop showing keys until the new link is pasted).
+pub fn apply_new_install_defaults(settings: &mut Value) {
+    settings["general"]["secureLink"] = json!(true);
+    give_empty_secure_link_a_key(settings);
+}
+
+/// What "Reset all settings" keeps: the port and the secure link with its key, so the OBS link stays exactly the same
+/// (and a reset never turns the protection off), and the version the "What's new" popup last showed.
+const KEPT_ON_RESET: [&str; 4] = ["lastSeenVersion", "port", "secureLink", "linkKey"];
+
+/// Every setting back to its default, except the ones in `KEPT_ON_RESET`, taken from `current`.
+pub fn reset_keeping_link(current: &Value) -> Value {
+    let mut reset = defaults();
+    for name in KEPT_ON_RESET {
+        reset["general"][name] = current["general"][name].clone();
+    }
+    reset
+}
+
 pub fn save(path: &Path, settings: &Value) -> std::io::Result<()> {
     if let Some(folder) = path.parent() {
         std::fs::create_dir_all(folder)?;
@@ -660,6 +682,29 @@ mod tests {
             migrate(json!({ "version": 2, "general": { "secureLink": "yes" } }))["general"]["secureLink"],
             json!(false)
         );
+    }
+    #[test]
+    fn a_new_install_gets_the_secure_link_with_a_key_but_old_files_keep_a_plain_link() {
+        let mut fresh = defaults();
+        apply_new_install_defaults(&mut fresh);
+        assert_eq!(fresh["general"]["secureLink"], json!(true));
+        let key = fresh["general"]["linkKey"].as_str().unwrap();
+        assert!(key.len() == 32 && key.chars().all(|c| c.is_ascii_hexdigit()), "{key}");
+        // a file saved before the secure link existed must not switch to it (its OBS link would stop working)
+        assert_eq!(migrate(json!({ "version": 1 }))["general"]["secureLink"], json!(false));
+    }
+    #[test]
+    fn reset_keeps_the_port_and_the_secure_link_so_the_obs_link_stays_the_same() {
+        let mut current = defaults();
+        current["general"]["port"] = json!(7900);
+        current["general"]["secureLink"] = json!(true);
+        current["general"]["linkKey"] = json!("0123456789abcdef0123456789abcdef");
+        current["style"]["radius"] = json!(33);
+        let reset = reset_keeping_link(&current);
+        assert_eq!(reset["style"]["radius"], defaults()["style"]["radius"]);
+        for name in ["port", "secureLink", "linkKey"] {
+            assert_eq!(reset["general"][name], current["general"][name], "{name}");
+        }
     }
     #[test]
     fn new_keys_are_random_hex_and_never_shown_to_the_overlay() {

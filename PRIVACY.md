@@ -68,8 +68,9 @@ Nothing in there contains keystrokes. To remove everything: uninstall, then dele
 Exactly three things, all with `github.com` / `api.github.com`, and all visible in the settings window:
 
 1. **Update check** — fetches a small manifest file (`latest.json` or `stable.json`) from this project's GitHub releases.
-   Runs when you click *Check for updates*, and — if you leave *Check for updates automatically* on — about once an hour
-   while the app is running (and when the settings window opens). Turn the setting off and the app **never** checks by itself.
+   Runs when you click *Check for updates*, and — if you leave *Check for updates automatically* on — 45 seconds after the app
+   starts, then about once an hour while it runs (and when the settings window opens). The setting is on by default;
+   turn it off and the app **never** checks by itself.
 2. **Update download** — only after you click *Update now*. The download is verified against a signing key built into
    the app; a file that does not match is rejected and never run.
 3. **Release notes** — the "What's new" window / *View release notes* fetches the notes for one version from
@@ -94,7 +95,8 @@ authenticate** other *programs* on the same computer. So:
 
 If that matters to you: use *Pause overlay*, use the app only on a PC you alone use, or turn on the optional **Secure link** (General → Secure link). With it on, your OBS link carries a private key and the
 server refuses every data request and the key-press stream without it, so other programs and other Windows users can't listen in.
-It is off by default (the link stays simple); turning it on means pasting the new link into OBS once, and "Make a new key"
+It is on for new installs since v1.4.0-dev, and installs from before keep their choice (off unless you turned it on), so an
+update never breaks your OBS link; turning it on later means pasting the new link into OBS once, and "Make a new key"
 cuts off old links. The overlay's own public page and scripts stay open because they contain nothing private, and the key itself is
 never sent to the overlay.
 
@@ -117,7 +119,8 @@ You do not have to take our word for any of this.
      (never the keyboard or server code)
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on
-   `127.0.0.1` and nothing else (the process id is in Task Manager). Nothing connects outward until you check for updates.
+   `127.0.0.1` and nothing else (the process id is in Task Manager). The only outward connections are the update check and download
+   above: with *Check for updates automatically* on (the default), the first one comes about 45 seconds after start.
 3. **Block it.** Add a firewall rule blocking the app's outbound traffic: the overlay keeps working, only updates stop.
 4. **Watch the disk.** Process Monitor (Microsoft Sysinternals) filtered to the app shows writes only inside its data folder.
 5. **Build it yourself.** See [CONTRIBUTING.md](CONTRIBUTING.md) — compile from source and compare behaviour.
