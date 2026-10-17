@@ -36,6 +36,10 @@
   </head>
   <body>
     <div id="blocks"></div>
+    <!-- the shared popup code (popup.js and notes.js, which blocks.js reaches for md) looks these up as it loads -->
+    <div id="dlg" hidden></div>
+    <div id="modal" hidden><button id="mOk" type="button"></button></div>
+    <div id="updModal" hidden></div>
     <script type="module" src="/__sandbox__/blocks-demo.js"></script>
   </body>
 </html>
