@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  Plain geometry for groups of keys in the Keys tab: how far a group may move, and where each key ends up.
 //  No page code in here (it only imports round2 from profiles.js, which is plain too), so tests/ui can run it with Node.
-//  Used by keys-map.js (dragging) and keys.js (the nudge pad). All numbers are in key units (1 = one normal key).
+//  Used by editor/editor.js (dragging) and keys.js (the nudge pad). All numbers are in key units (1 = one normal key).
 //
 //  A "box" is { code, x, y, w, h }: a key's top-left corner and its size.
 // =====================================================================================================================

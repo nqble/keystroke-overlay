@@ -26,13 +26,15 @@ function check(file) {
   });
   if (text.length && !text.endsWith('\n')) problems.push(`${file}: missing newline at end of file`);
   if (/^ui[\\/]settings[\\/][^\\/]+\.css$/.test(file)) checkTokens(file, text);
-  if (/^ui[\\/]settings[\\/](tabs[\\/])?[^\\/]+\.js$/.test(file) && !JS_STYLE_EXEMPT.has(file.replace(/\\/g, '/')))
+  if (
+    /^ui[\\/]settings[\\/]((tabs|editor)[\\/])?[^\\/]+\.js$/.test(file) &&
+    !JS_STYLE_EXEMPT.has(file.replace(/\\/g, '/'))
+  )
     checkJsStyles(file, text);
 }
 
-// Files still allowed to set inline styles from JavaScript. keys-map.js draws the old key picture and is replaced by the new
-// editor (v1.4, M4.1), which only sets CSS variables. debug.js is the developer tab.
-const JS_STYLE_EXEMPT = new Set(['ui/settings/tabs/keys-map.js', 'ui/settings/debug.js']);
+// Files still allowed to set inline styles from JavaScript: debug.js, the developer tab.
+const JS_STYLE_EXEMPT = new Set(['ui/settings/debug.js']);
 
 /** In the settings window's scripts, looks live in CSS. JavaScript may only hand CSS a variable: el.style.setProperty('--x', ...). */
 function checkJsStyles(file, text) {

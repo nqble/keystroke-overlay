@@ -18,11 +18,12 @@ import { styleTab } from './style.js';
  * `keep: true` means the built page is kept while nothing changes, so coming back to the tab is instant. Any change to the
  * settings throws the kept pages away (see forgetPages in settings.js). Leave it off for a tab whose page changes by itself
  * (General shows update progress; the Keys tab is sized to the window).
- * @type {{ id: string, name: string, render: () => Node | Promise<Node>, keep?: boolean }[]}
+ * `hidesPreview: true` hides the live preview above the tabs while the tab is open (the tab shows the keyboard itself).
+ * @type {{ id: string, name: string, render: () => Node | Promise<Node>, keep?: boolean, hidesPreview?: boolean }[]}
  */
 export const TABS = [
   { id: 'layout', name: 'Layout', render: layoutTab, keep: true },
-  { id: 'keys', name: 'Keys', render: keysTab },
+  { id: 'keys', name: 'Keys', render: keysTab, hidesPreview: true },
   { id: 'style', name: 'Style', render: styleTab, keep: true },
   { id: 'animation', name: 'Animation', render: animationTab, keep: true },
   { id: 'fonts', name: 'Fonts', render: fontsTab, keep: true },

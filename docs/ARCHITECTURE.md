@@ -71,11 +71,13 @@ keystroke-overlay/
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
         └── tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
-            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
-            drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),
-            keys-arrange.js (the movement maths, plain functions with unit tests) and keys-history.js (undo and redo).
-            Built for the coming makeover ([design/key-editor.md](design/key-editor.md)), not used by the tab yet:
-            keys-board.js (board geometry), keys-view.js (zoom and pan) and keys-guides.js (snapping guides), with unit tests.
+            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-toolbar.js (selection, nudge,
+            align, history, snap and grid controls), keys-arrange.js (the movement maths, plain functions with unit tests)
+            and keys-history.js (undo and redo). The keyboard itself is the editor in editor/ ([design/key-editor.md](design/key-editor.md)):
+            editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
+            key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
+            places.js says where the keys are. The geometry is in keys-board.js (board size and limits), keys-view.js (zoom and
+            pan) and keys-guides.js (snapping guides, used from the next step), plain functions with unit tests.
 ```
 
 ## How a key press travels

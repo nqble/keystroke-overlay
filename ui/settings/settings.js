@@ -21,7 +21,7 @@
 import { $, button, call, invoke } from './helpers.js';
 import { paintPause, showServerError, resync } from './messages.js';
 import { hideMenu, showNotes, showUpdateResult } from './popups.js';
-import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
+import { fitPreview, frame, previewSrc, setPreviewHidden, updateObs } from './preview.js';
 import {
   settings,
   appVersion,
@@ -84,6 +84,7 @@ async function draw(reuse) {
   const scroll = reuse ? (scrollOf.get(tab) ?? 0) : pane.scrollTop;
   if (!reuse) forgetPages();
   const entry = tabs.find((t) => t.id === tab);
+  setPreviewHidden(!!entry.hidesPreview);
   let content = keptPages.get(tab);
   if (!content) {
     const builtAt = generation;

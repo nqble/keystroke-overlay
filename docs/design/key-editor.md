@@ -1,8 +1,10 @@
 # Key editor: design spec (makeover planned for v1.4, reference for the v2.0 redesign)
 
-Status: approved by Jordan, designed in the Advisory Session. **Not built yet** (checked 2026-10-16): the Keys tab is still the
-v1.3.0 editor. Built so far: the geometry it needs, with unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and
-`layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
+Status: approved by Jordan, designed in the Advisory Session. **Being built in three parts** (M4.1 to M4.3). Part 1 (M4.1) is in
+on `v1.4.0-dev` (2026-10-17): the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use,
+the board with zoom and pan, the preview hidden on the Keys tab, and everything the 1.3 editor did. Still to come: the inspector,
+arrange bar, resize handles, smart guides and the new toolbar (M4.2), then the layout style switch, the Reset menu and the polish
+(M4.3). The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
 https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE. Where this file and the prototype disagree, this file wins.
 
 Build it AFTER UI foundation steps 1–5 (1–3 are done) (test hooks, visual baselines, tokens, shared building blocks, look/logic split), using

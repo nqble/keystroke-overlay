@@ -12,9 +12,27 @@ export const frame = $('#preview'); // the live preview: the real overlay page, 
 
 export let saveTimer = 0;
 
-/** Send the current settings to the live preview. */
+let previewHidden = false; // true while a tab hides the preview (the Keys tab); nothing is sent to it then
+let missedWhileHidden = false;
+
+/** Send the current settings to the live preview (kept for later while the preview is hidden). */
 export function push() {
+  if (previewHidden) {
+    missedWhileHidden = true;
+    return;
+  }
   frame.contentWindow?.postMessage({ type: 'cfg', settings: settings }, '*');
+}
+
+/** Hide or show the live preview. Showing it again sends the latest settings once and fits it to its box. */
+export function setPreviewHidden(hidden) {
+  if (previewHidden === hidden) return;
+  previewHidden = hidden;
+  document.body.classList.toggle('tab-keys', hidden);
+  if (hidden) return;
+  fitPreview();
+  if (missedWhileHidden) push();
+  missedWhileHidden = false;
 }
 
 /**
