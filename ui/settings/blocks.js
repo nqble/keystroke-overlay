@@ -54,7 +54,7 @@ export function Switch({ label, checked, onChange, test = '' }) {
 }
 
 /**
- * A small choice of two to five options (Stable | Latest), instead of a dropdown. It is one Tab stop: the arrow keys,
+ * A small choice of two to six options (Stable | Latest), instead of a dropdown. It is one Tab stop: the arrow keys,
  * Home and End move the choice, like any radio group. choices: [{ value, text }]
  */
 export function Segmented({ label, choices, value, onChange, test = '' }) {

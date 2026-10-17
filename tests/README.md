@@ -113,6 +113,8 @@ Rules:
 | `layout-cards`, `layout-count` | The Layout tab's card grid, and its "Your layouts: N / 20" counter |
 | `layout-menu` | A layout card's "⋯" button |
 | `other-layouts-toggle`, `other-layouts`, `other-layout-add` | New layout popup: the "Other layouts" toggle, its list, one card's Add |
+| `animation-cards`, `animation-card-<id>` | The Animation tab's card gallery, and one animation's card |
+| `animation-fine-tune` | Its Fine-tune card (Speed, Strength, Easing) |
 | `dialog-delete` | The Delete button of the "Delete …?" popup |
 | `layout-import`, `layout-export`, `style-import`, `style-export` | The Import / Export buttons of the Layout and Style tabs |
 | `keymap`, `keymap-canvas` | The keyboard picture and the area inside it that draws the grid |
@@ -131,7 +133,7 @@ Rules:
 | `theme-card-<id>` (for example `theme-card-neon`), `style-themes` | Style's theme gallery: one card per theme file (`aria-pressed` on the one in use) |
 | `style-presets`, `preset-new`, `preset-card`, `preset-menu`, `preset-name`, `preset-save` | My presets: the "+ Save current look" card, each preset (click loads it) and its ⋯ menu; the name box and Save in the save popup |
 | `style-reset`, `style-colors`, `style-shape`, `style-text`, `style-size` | Style's Reset ▾ menu and its cards |
-| `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, colour picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
+| `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-easing`) | Every slider, colour picker, dropdown and row of choices made from `CONTROLS`; the name is the settings path in kebab-case |
 | `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | Style → Text: your font files (there is no Fonts tab since v2.0) |
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | A tickbox made by `toggle()` (`ui/settings/controls.js`); in General, the same names are its switches (`role="switch"`, `aria-checked`) |

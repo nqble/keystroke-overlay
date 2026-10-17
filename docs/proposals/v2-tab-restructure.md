@@ -1,6 +1,6 @@
 # Plan: v2.0 tab restructure (approved by Jordan, from the Advisory Session)
 
-Status: Approved; steps 1–9 done, 10 next. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
+Status: Approved; steps 1–10 done, 11 next. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
 lifecycle, `docs/proposals/ui-foundation.md` and `loading-and-lifetime.md` §A). Starts after that lands on v1.4.0-dev
 and is merged into `advisor/v2.0`, so the two never edit the same files at once.
 
@@ -45,8 +45,8 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
    `layout.order` setting gets its default in `settings.rs`, a sanitizer rule (known ids only, no duplicates) and tests,
    and Reset restores it. The eight new layout files (96%, 75%, 65%, 60%, Arrows, Numpad, Full ISO, TKL ISO) come first,
    each with the existing layout tests.
-10. **feat: Animation gallery** (each card demos with the animation's own file; see ui-design-v2.md, Adding more stays one
-    file).
+10. ~~**feat: Animation gallery** (each card demos with the animation's own file; see ui-design-v2.md, Adding more stays one
+    file).~~ Done (Preact, `tabs/animation.js`).
 11. **feat: the key editor makeover** (`docs/design/key-editor.md`).
 
 Steps 1–4 can run on `advisor/v2.0` before the lifecycle lands, because they don't touch the tabs. Steps 5–11 wait for it.

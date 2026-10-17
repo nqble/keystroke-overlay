@@ -4,5 +4,6 @@ import { registerAnimation } from '/overlay/registry.js';
 registerAnimation({
   id: 'none',
   name: 'None',
+  description: 'Changes at once.',
   apply: () => ({ press: { ms: 0, ease: 'linear' }, release: { ms: 0, ease: 'linear' } }),
 });

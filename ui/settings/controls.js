@@ -1,7 +1,8 @@
 // =====================================================================================================================
 //  The table that draws every Style / Animation slider, colour picker and dropdown.
 // =====================================================================================================================
-import { html, useEffect, useRef } from './html.js';
+import { Segmented } from './blocks.js';
+import { html, render as drawPreact, useEffect, useRef } from './html.js';
 import { el, get, heading, put, row } from './helpers.js';
 import { changed } from './preview.js';
 import { settings, customFonts, registry } from './state.js';
@@ -35,7 +36,9 @@ const WINDOWS_FONTS = [
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 5. Style / Animation controls
-//    One line per control. `type` picks how it is drawn: color, range (slider), select (dropdown) or font.
+//    One line per control. `type` picks how it is drawn: color, range (slider), select (dropdown), font, segmented (a
+//    few choices side by side, blocks.js), or gallery (cards the tab draws itself, e.g. the Animation tab's; skipped
+//    here). `shownIf` (optional) hides a control while it returns false.
 // ---------------------------------------------------------------------------------------------------------------------
 const CONTROLS = [
   { tab: 'style', group: 'Key colors', path: 'style.keyFill', type: 'color', label: 'Fill (idle)' },
@@ -139,41 +142,44 @@ const CONTROLS = [
     tab: 'animation',
     group: 'Animation',
     path: 'animation.type',
-    type: 'select',
-    options: () => registry.animations.map((a) => [a.id, a.name]),
-    label: 'Type',
+    type: 'gallery', // the animation cards, tabs/animation.js
+    label: 'Animation',
   },
   {
     tab: 'animation',
-    group: 'Animation',
+    group: 'Fine-tune',
     path: 'animation.speed',
     type: 'range',
     min: 0,
     max: 600,
     step: 10,
     unit: 'ms',
-    label: 'Speed (duration)',
+    label: 'Speed',
   },
   {
     tab: 'animation',
-    group: 'Animation',
-    path: 'animation.easing',
-    type: 'select',
-    options: () => [['default', 'Animation default'], ...registry.easings.map((e) => [e.id, e.name])],
-    label: 'Easing',
-  },
-  {
-    tab: 'animation',
-    group: 'Animation',
+    group: 'Fine-tune',
     path: 'animation.intensity',
     type: 'range',
     min: 0,
     max: 2.5,
     step: 0.1,
     unit: '×',
-    label: 'Intensity',
+    label: 'Strength',
+    shownIf: () => !!currentAnimation()?.usesIntensity,
+  },
+  {
+    tab: 'animation',
+    group: 'Fine-tune',
+    path: 'animation.easing',
+    type: 'segmented',
+    options: () => [['default', 'Default'], ...registry.easings.map((e) => [e.id, e.name])],
+    label: 'Easing',
   },
 ];
+
+/** The animation in use, as the live preview described it (registry.animations), if it has reported yet. */
+export const currentAnimation = () => registry.animations.find((animation) => animation.id === settings.animation.type);
 
 /**
  * The test hook for a setting, made from its path:  testName('control', 'style.keyFill')  ->  'control-style-key-fill'.
@@ -247,6 +253,28 @@ function selectCtl(control) {
   return [select];
 }
 
+/** A few choices side by side (the Segmented block from blocks.js, drawn into the row by Preact). */
+function segmentedCtl(control) {
+  const box = el('span', { className: 'segmented-box' });
+  const draw = () =>
+    drawPreact(
+      html`<${Segmented}
+        label=${control.label}
+        choices=${control.options().map(([value, text]) => ({ value, text }))}
+        value=${get(settings, control.path)}
+        test=${testName('control', control.path)}
+        onChange=${(value) => {
+          put(settings, control.path, value);
+          changed();
+          draw();
+        }}
+      />`,
+      box,
+    );
+  draw();
+  return [box];
+}
+
 /**
  * The font picker: the user's own fonts, the Windows fonts (each shown in its own font), or "Other" to type any name.
  */
@@ -298,6 +326,7 @@ function fontCtl(control) {
 export function renderControls(tabName, parent, onlyGroup = null) {
   let group = null;
   for (const control of CONTROLS.filter((c) => c.tab === tabName && (!onlyGroup || c.group === onlyGroup))) {
+    if (control.type === 'gallery' || (control.shownIf && !control.shownIf())) continue;
     if (!onlyGroup && control.group !== group) {
       group = control.group;
       parent.append(heading(group));
@@ -305,7 +334,9 @@ export function renderControls(tabName, parent, onlyGroup = null) {
     parent.append(
       row(
         control.label,
-        ...{ color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl }[control.type](control),
+        ...{ color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl, segmented: segmentedCtl }[
+          control.type
+        ](control),
       ),
     );
   }

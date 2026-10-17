@@ -143,6 +143,7 @@
 /* ---- Segmented choice */
 .segmented {
   display: inline-flex;
+  flex-wrap: wrap; /* a narrow window wraps the choices instead of squeezing their words */
   align-self: flex-start; /* only as wide as its choices, also inside a section card */
   padding: var(--space-3);
   border-radius: var(--radius-2xl);
@@ -151,6 +152,7 @@
 }
 .segmented button {
   height: 28px;
+  white-space: nowrap;
   padding: 0 var(--space-14);
   border: 0;
   border-radius: var(--radius-md);
@@ -369,4 +371,49 @@
 .other-layout .gallery-title {
   flex: 1;
   min-width: 0;
+}
+
+/* ---- Animation cards (tabs/animation.js): one demo key, moved only by the animation file's own variables (the same
+   names and rules as ui/overlay/overlay.css: --t-idle / --t-down transforms, --ms-* / --ease-* timing, --glow-down) */
+.anim-key {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  transform: var(--t-idle, none);
+  transition: transform var(--ms-up) var(--ease-up);
+}
+.anim-key.down {
+  transform: var(--t-down, none);
+  transition: transform var(--ms-down) var(--ease-down);
+}
+.anim-face,
+.anim-glow {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--ms-up) var(--ease-up);
+}
+.anim-face.on,
+.anim-glow {
+  opacity: 0;
+}
+.anim-glow {
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 10px 3px var(--glow-color);
+}
+.anim-key.down .anim-face,
+.anim-key.down .anim-glow {
+  transition-duration: var(--ms-down);
+  transition-timing-function: var(--ease-down);
+}
+.anim-key.down .anim-face.on {
+  opacity: 1;
+}
+.anim-key.down .anim-face.idle {
+  opacity: 0;
+}
+.anim-key.down .anim-glow {
+  opacity: var(--glow-down, 0);
+}
+.segmented-box {
+  display: contents;
 }

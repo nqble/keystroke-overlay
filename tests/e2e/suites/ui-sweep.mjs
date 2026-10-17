@@ -21,6 +21,8 @@ const tab = async (id) => {
 const EVERY_SELECT = `select${byTestStart('control-')}`;
 const EVERY_THEME_CARD = byTestStart('theme-card-');
 const EVERY_SLIDER = `input[type=range]${byTestStart('control-')}`;
+const EVERY_ANIMATION_CARD = byTestStart('animation-card-');
+const EVERY_EASING = `${byTest('control-animation-easing')} [role=radio]`;
 
 const TAB_IDS = {
   Layout: 'layout',
@@ -176,22 +178,22 @@ await p.invoke('set_layout', { id: 'tkl' });
 // every theme / animation via the saved settings (what presets and the selects do)
 const st = (await p.invoke('get_state')).ok;
 await tab('animation');
-const anims = await p.q(
-  `[...document.querySelectorAll('${EVERY_SELECT}')].flatMap(s => [...s.options].map(o => o.value))`,
-);
-for (const sel of await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')].map((s, i) => i)`)) {
-  const opts = await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')][${sel}].options.length`);
-  for (let o = 0; o < opts; o++) {
-    await p.ev(
-      `const s = [...document.querySelectorAll('${EVERY_SELECT}')][${sel}]; s.selectedIndex = ${o}; s.dispatchEvent(new Event('change', { bubbles: true }))`,
-    );
-    await sleep(120);
-  }
+// animations are cards and easing is a row of choices since v2.0 (ui/settings/tabs/animation.js): click them all
+const animationCards = await p.q(`document.querySelectorAll('${EVERY_ANIMATION_CARD}').length`);
+for (let index = 0; index < animationCards; index++) {
+  await p.ev(`document.querySelectorAll('${EVERY_ANIMATION_CARD}')[${index}].click()`);
+  await sleep(120);
 }
+const easingChoices = await p.q(`document.querySelectorAll('${EVERY_EASING}').length`);
+for (let index = 0; index < easingChoices; index++) {
+  await p.ev(`document.querySelectorAll('${EVERY_EASING}')[${index}].click()`);
+  await sleep(120);
+}
+const animationFiles = await p.q(`window.__ko.registry().animations.length`);
 check(
-  'every animation / easing option applies without errors',
-  (await errs()).length === 0,
-  JSON.stringify(await errs()),
+  'every animation card and easing choice applies without errors',
+  animationCards >= 6 && animationCards === animationFiles && easingChoices >= 6 && (await errs()).length === 0,
+  JSON.stringify([animationCards, easingChoices, await errs()]),
 );
 await tab('style');
 for (const index of await p.q(`[...document.querySelectorAll('${EVERY_THEME_CARD}')].map((c, i) => i)`)) {

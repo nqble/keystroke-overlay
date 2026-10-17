@@ -86,20 +86,33 @@ function applyVars(nextSettings) {
   set('--glow-color', st.glowColor);
   set('--glow-size', st.glowSize + 'px');
   set('--opacity', st.opacity);
+  for (const [name, value] of Object.entries(animationVars(an, st))) set(name, value);
+}
 
+/**
+ * What an animation file asks for, as the CSS variables overlay.css animates with. The settings window's animation
+ * cards use the same variables (sent with the registry), so each card shows the file's own animation.
+ */
+function animationVars(an, st) {
   const anim = animations.get(an.type) || animations.get('none');
   const spec = anim?.apply({ ms: an.speed, intensity: an.intensity, style: st }) ?? {};
   const user = an.easing !== 'default' ? easings.get(an.easing)?.css : null;
-  const pressSpec = spec.press ?? {},
-    releaseSpec = spec.release ?? {};
-  set('--t-idle', spec.idle ?? 'none');
-  set('--t-down', spec.down ?? 'none');
-  set('--glow-down', spec.glow ?? 0);
-  set('--ms-down', (pressSpec.ms ?? an.speed * 0.6) + 'ms');
-  set('--ease-down', user ?? pressSpec.ease ?? 'ease-out');
-  set('--ms-up', (releaseSpec.ms ?? an.speed) + 'ms');
-  set('--ease-up', user ?? releaseSpec.ease ?? 'ease-out');
+  const pressSpec = spec.press ?? {};
+  const releaseSpec = spec.release ?? {};
+  return {
+    '--t-idle': spec.idle ?? 'none',
+    '--t-down': spec.down ?? 'none',
+    '--glow-down': spec.glow ?? 0,
+    '--ms-down': (pressSpec.ms ?? an.speed * 0.6) + 'ms',
+    '--ease-down': user ?? pressSpec.ease ?? 'ease-out',
+    '--ms-up': (releaseSpec.ms ?? an.speed) + 'ms',
+    '--ease-up': user ?? releaseSpec.ease ?? 'ease-out',
+  };
 }
+
+// How the animation cards in the settings window demo each animation: the default speed and strength, so the cards
+// compare like for like (the live preview shows the user's own speed). Default values: settings.rs.
+const DEMO_ANIMATION = { speed: 120, intensity: 1, easing: 'default' };
 
 // Each layout keeps its own disabled keys, custom labels, and moved and resized keys
 // (settings.layout.profiles[layoutId]). Positions and sizes belong to a layout style: "shape" (the layout file's own
@@ -303,7 +316,13 @@ if (PREVIEW) {
       parent.postMessage(
         {
           type: 'registry',
-          animations: [...animations.values()].map((a) => ({ id: a.id, name: a.name })),
+          animations: [...animations.values()].map((a) => ({
+            id: a.id,
+            name: a.name,
+            description: a.description ?? '',
+            usesIntensity: !!a.usesIntensity,
+            demo: animationVars({ ...DEMO_ANIMATION, type: a.id }, settings?.style ?? {}),
+          })),
           themes: [...themes.values()].map((t) => ({ id: t.id, name: t.name, style: t.style, animation: t.animation })),
           easings: [...easings.values()].map((x) => ({ id: x.id, name: x.name })),
           layouts: layouts.map((l) => ({ id: l.id, name: l.name })),

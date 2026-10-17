@@ -1,7 +1,9 @@
 // Plugin registries. Modules in animations/ and themes/ import these helpers
 // and register themselves; the overlay auto-loads every file in those folders.
 //
-//   registerAnimation({ id, name, apply(opts) -> AnimationSpec })
+//   registerAnimation({ id, name, apply(opts) -> AnimationSpec, description?, usesIntensity? })
+//     description     one short line for its card in the Animation tab (none: the card shows only the name)
+//     usesIntensity   true if apply() uses `intensity`, so the Animation tab shows the Strength slider
 //   registerTheme({ id, name, style: {...}, animation: {...} })
 //   registerEasing({ id, name, css })
 //

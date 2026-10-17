@@ -143,7 +143,8 @@ returns (`downgrade.rs`). Per-layout key edits live in `layout.profiles[layoutId
     apply: ({ ms, intensity }) => ({ down: `rotate(${3 * intensity}deg)`,
       press: { ms: ms * 0.5, ease: 'ease-out' }, release: { ms: ms * 2, ease: 'cubic-bezier(.34,1.9,.64,1)' }, glow: 0 }) });
   ```
-  Use only `transform`/`opacity`. It shows up in the Animation tab automatically. Themes work the same with `registerTheme`.
+  Use only `transform`/`opacity`. It shows up as a card in the Animation tab automatically (optional `description`
+  and `usesIntensity`: docs/EXTENDING.md). Themes work the same with `registerTheme`.
 - **Setting:** (1) default in `settings.rs` (a range or rule line in `sanitize.rs` if needed), (2) a descriptor in `CONTROLS` in
   `ui/settings/controls.js`, (3) use it in `ui/overlay/overlay.js`. Renaming or restructuring needs a migration + test.
 - **Command for the settings window:** a `#[tauri::command]` in the matching `commands/*.rs`, registered in

@@ -38,6 +38,8 @@ import { registerAnimation } from '/overlay/registry.js';
 // Squashes on press, returns smoothly on release.
 registerAnimation({
   id: 'squash', name: 'Squash',
+  description: 'Squashes flat, then springs back.', // its card's one line (optional)
+  usesIntensity: true, // apply() uses intensity, so the Strength slider shows (optional)
   apply: ({ ms, intensity }) => ({
     down: `scaleY(${(1 - 0.15 * intensity).toFixed(3)})`,
     press: { ms: ms * 0.5, ease: 'cubic-bezier(.2,.9,.1,1)' },
