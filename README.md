@@ -226,7 +226,9 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **Watch it.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on `127.0.0.1` and nothing else.
 - **Block it.** Deny the app internet access in your firewall: the overlay keeps working, only updates stop.
 - **Let the computer check.** `npm run check:privacy` (it also runs on every change on GitHub) fails the build if network access,
-  file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. An automated test
+  file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. It is a tripwire
+  that reads the code line by line, not a proof (it can't see inside dependencies), so changes to that code also get a
+  careful review. An automated test
   (`npm run test:e2e`) also confirms every socket the running app holds is loopback-only.
 - **Hostile-input tests.** Thousands of randomly corrupted settings files and imported layout files are thrown at the cleaning code on every
   `npm test`; nothing may crash, escape its folder or get past the limits.
