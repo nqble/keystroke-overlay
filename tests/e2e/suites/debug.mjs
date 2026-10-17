@@ -1,5 +1,5 @@
 // Suite: Debug mode (General -> App -> Debug mode): the Debug tab appears and disappears, every tool works,
-// and the privacy rules hold (nothing recorded while off, no key presses in the log or the bug report).
+// and the privacy rules hold (only important events while off, no key presses in the log or the bug report).
 import { execSync } from 'node:child_process';
 import { connect, byTest, inject, check, finish, sleep } from '../lib/cdp.mjs';
 
@@ -180,8 +180,11 @@ await click('debug-bug-report');
 await sleep(900);
 const report = execSync('powershell.exe -NoProfile -Command "Get-Clipboard -Raw"').toString();
 check(
-  'the bug report has version, self-test, settings and log sections (summary plus JSON, ui/settings/debug-report.js)',
-  /Keystroke Overlay v/.test(report) &&
+  'the bug report has its summary sections and the JSON (ui/settings/debug-report.js)',
+  /## Keystroke Overlay bug report/.test(report) &&
+    /### Problems found/.test(report) &&
+    /### Recent events/.test(report) &&
+    /"format":2/.test(report) &&
     /"selfTest"/.test(report) &&
     /"settingsDiff"/.test(report) &&
     /"log"/.test(report),

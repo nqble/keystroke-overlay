@@ -18,12 +18,12 @@
 //  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
-import { bugReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
+import { REPORT_LOG_LINES, bugReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
 import { addLayoutDialog, showNotes } from './popups.js';
 import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
 import { render } from './settings.js';
-import { settings, appVersion, layouts, paused, setTab, size } from './state.js';
+import { settings, appVersion, lastUpdate, layouts, paused, setTab, size } from './state.js';
 
 // -------------------------------------------------------------------------------------------------------------------
 // Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
@@ -173,7 +173,13 @@ async function buildReport() {
     state,
     selfTest,
     settingsDiff: settingsDiff(redactSettings(settings), defaults),
-    log: log.slice(-60),
+    lastUpdate: lastUpdate && {
+      available: !!lastUpdate.available,
+      version: lastUpdate.version,
+      channel: lastUpdate.channel,
+    },
+    detailSinceMs: info.detailSinceMs,
+    log: log.slice(-REPORT_LOG_LINES),
   });
 }
 

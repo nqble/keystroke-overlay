@@ -18,7 +18,7 @@ Keystroke Overlay has a built-in **Debug mode** for anyone working on the code (
 | **Settings (raw)** | The settings as the app holds them. Edit and Apply to try odd values; it shows which ones the app corrected (a quick way to test the settings sanitizer). |
 | **Test helpers** | A fake update (button, orange tray dot and tray entry without a real release), the What's new popup, popups and toasts, restart server, reload window. |
 | **Developer tools** | How to open the full browser inspector (elements, console, network) on the settings window. |
-| **Bug report** | (This format from v1.4.0; v1.3.0 copies plain text sections.) Copies one block of text for a GitHub issue, or to paste into a Claude session: a short summary, then the details as JSON (`format`, `app`, `state`, `selfTest`, `settingsDiff`, `log`). Only settings that differ from the defaults are listed. The format is in `ui/settings/debug-report.js`; raise `BUG_REPORT_FORMAT` when a field is renamed or removed. |
+| **Bug report** | Copies one block of Markdown for a GitHub issue, or to paste into a Claude session (format 2, from v1.4.0). Top to bottom: a line for what happened, the problems the self-test found, the app's state as a table, the settings that differ from the defaults, the recent events as a timeline, then the same facts as one compact JSON block (`format`, `app`, `state`, `lastUpdate`, `selfTest`, `settingsDiff`, `logDetailSinceMs`, `log`), folded away on GitHub. The format is in `ui/settings/debug-report.js`; raise `BUG_REPORT_FORMAT` when a field is renamed or removed. |
 
 ## The browser inspector
 

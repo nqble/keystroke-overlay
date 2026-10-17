@@ -5,7 +5,9 @@
 // =====================================================================================================================
 
 /** The report's format version. Raise it when a field is renamed or removed, so readers can tell the formats apart. */
-export const BUG_REPORT_FORMAT = 1;
+export const BUG_REPORT_FORMAT = 2;
+/** How many of the newest event-log lines go into a report. */
+export const REPORT_LOG_LINES = 60;
 
 // A user's home folder on every system: C:\Users\name or C:/Users/name (Windows), /home/name (Linux),
 // /Users/name (macOS). The name is everything up to the next slash, space or quote. Slashes may be doubled, because
@@ -57,32 +59,103 @@ export function settingsDiff(settings, defaults) {
   return diff;
 }
 
+/** Seconds since start: "12.8s"; `since` lines them up for the log ("+   12.8s"). */
+const seconds = (ms) => `${(ms / 1000).toFixed(1)}s`;
+const since = (ms) => `+${seconds(ms).padStart(8)}`;
+
+/** "14 min", "2 h 5 min": how long the app has been running. */
+function runningFor(secs) {
+  const minutes = Math.floor(secs / 60);
+  if (minutes < 60) return `${minutes} min`;
+  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+}
+
+/** The table of the app's state: only the rows a reader needs to understand most problems. */
+function stateRows({ state, lastUpdate }) {
+  const update = !lastUpdate
+    ? 'not checked yet'
+    : lastUpdate.available
+      ? `v${lastUpdate.version} available (${lastUpdate.channel})`
+      : `up to date (${lastUpdate.channel})`;
+  return [
+    ['Overlay server', state.serverError ? `not running: ${state.serverError}` : `running, port ${state.port}`],
+    ['Keyboard input', `${state.inputMethod}${state.inputError ? `, error: ${state.inputError}` : ''}`],
+    ['Paused', state.paused ? 'yes' : 'no'],
+    ['Secure link', state.secureLink ? 'on' : 'off'],
+    ['Layout', `${state.layout}${state.overlaySize ? ` · overlay ${state.overlaySize}` : ''}`],
+    ['Window', state.window],
+    ['Memory', `${state.memoryMb} MB · ${state.handles} handles`],
+    ['Updates', update],
+  ];
+}
+
+/** "style.radius: 12 (default 8)", one per line, or a single "none". */
+function settingsLines(diff) {
+  const lines = Object.entries(diff).map(
+    ([path, { now, default: before }]) =>
+      `${path}: ${JSON.stringify(now)} (default ${before === undefined ? 'none' : JSON.stringify(before)})`,
+  );
+  return lines.length ? lines : ['none'];
+}
+
+/** What the event log holds: only the important events, or everyday details too (Debug mode, since when). */
+const logLevel = (detailSinceMs) =>
+  detailSinceMs === null || detailSinceMs === undefined
+    ? 'important events only'
+    : `everything since Debug mode was turned on (+${seconds(detailSinceMs)})`;
+
 /**
- * "Copy bug report": one Markdown block with a short summary a person can read, and a fenced JSON part a
- * script or another Claude session can read exactly. `facts` comes from debug.js (see buildDevReport there).
+ * "Copy bug report": Markdown that reads top to bottom for a person (what happened, the problems, the state, the
+ * recent events) and ends with the same facts as one compact JSON block for a script or another Claude session,
+ * folded away on GitHub. `facts` comes from the Debug tab (buildReport). Never keys, never personal paths.
  */
 export function bugReport(facts) {
   const failed = facts.selfTest.filter((check) => !check.ok);
-  const data = {
-    format: BUG_REPORT_FORMAT,
-    app: { version: facts.version, build: facts.build, os: facts.os, engine: facts.engine },
-    state: facts.state,
-    selfTest: facts.selfTest,
-    settingsDiff: facts.settingsDiff,
-    log: facts.log,
-  };
-  const summary = [
-    `## Keystroke Overlay v${facts.version} (${facts.build}) on ${facts.os}`,
+  const lines = [
+    '## Keystroke Overlay bug report',
+    `v${facts.version} (${facts.build}) · ${facts.os} · ${facts.engine} · up ${runningFor(facts.state.uptimeSecs ?? 0)} · format ${BUG_REPORT_FORMAT}`,
     '',
-    failed.length
-      ? `Self-test: ${failed.length} failed (${failed.map((c) => c.name).join('; ')})`
-      : 'Self-test: all passed',
-    `Settings changed from defaults: ${Object.keys(facts.settingsDiff).length}`,
-    `Event log lines: ${facts.log.length}`,
+    '### What happened',
+    '<!-- what you did, what you expected, and what you saw instead -->',
+    '',
+    '### Problems found',
+    ...(failed.length
+      ? failed.map((check) => `- ✗ ${check.name}${check.detail ? `: ${check.detail}` : ''}`)
+      : ['- none']),
+    '',
+    '### State',
+    '| | |',
+    '|---|---|',
+    ...stateRows(facts).map(([name, value]) => `| ${name} | ${value} |`),
+    '',
+    `### Self-test: ${facts.selfTest.length - failed.length} passed, ${failed.length} failed`,
+    '',
+    `### Settings changed from defaults (${Object.keys(facts.settingsDiff).length})`,
+    ...settingsLines(facts.settingsDiff),
+    '',
+    `### Recent events (last ${facts.log.length}; ${logLevel(facts.detailSinceMs)})`,
+    '```text',
+    ...facts.log.map(([ms, text]) => `${since(ms)}  ${text}`),
+    '```',
+    '',
+    '<details><summary>Machine-readable (JSON)</summary>',
     '',
     '```json',
-    JSON.stringify(data, null, 2),
+    JSON.stringify(reportData(facts)),
     '```',
+    '</details>',
   ];
-  return scrub(summary.join('\n'));
+  return scrub(lines.join('\n'));
 }
+
+/** The report's JSON part: every fact, exactly, under stable names (raise BUG_REPORT_FORMAT when one changes). */
+const reportData = (facts) => ({
+  format: BUG_REPORT_FORMAT,
+  app: { version: facts.version, build: facts.build, os: facts.os, engine: facts.engine },
+  state: facts.state,
+  lastUpdate: facts.lastUpdate ?? null,
+  selfTest: facts.selfTest,
+  settingsDiff: facts.settingsDiff,
+  logDetailSinceMs: facts.detailSinceMs ?? null,
+  log: facts.log,
+});
