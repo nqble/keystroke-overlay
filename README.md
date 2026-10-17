@@ -191,7 +191,8 @@ Every step happens on your computer, in memory. The moment a key is released, th
 
 ### What is saved on your PC
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\`: your settings (style, layout, hidden keys, labels, port,
-preferences), presets, fonts, and layouts you added. **Nothing in there contains keystrokes.** Uninstall and delete that folder to
+preferences), presets, fonts, and layouts you added; if the app ever crashes, a one-line note of where (read and deleted
+at the next start). **Nothing in there contains keystrokes.** Uninstall and delete that folder to
 remove everything.
 
 ### What touches the internet

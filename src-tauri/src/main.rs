@@ -5,6 +5,7 @@
 //! See docs/ARCHITECTURE.md for how the pieces fit together.
 
 mod commands;
+mod crash;
 mod debug;
 mod downgrade;
 mod grid;
@@ -75,6 +76,11 @@ fn main() {
             }
             debug::init(cfg["general"]["debugMode"].as_bool().unwrap_or(false));
             debug::log(format!("app started (v{current})"));
+            if let Some(note) = crash::take_last(&paths.root) {
+                debug::log(format!("the last run crashed: {note}"));
+                debug::set_last_crash(note);
+            }
+            crash::install(&paths.root);
 
             let (cfg_tx, _) = broadcast::channel(8);
             let shared = Arc::new(Shared {

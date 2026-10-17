@@ -58,6 +58,9 @@ Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's no
   a version). When you go forward to that version again, its settings are put back and the copy is deleted. This works
   between versions from v1.4.0 on; going back to v1.3.0 or earlier still loses the newer settings
 - `presets/`, `fonts/`, `layouts/`: files you created or added
+- from v1.4.0, only if the app crashes: `crash-note.txt`, one line saying which version crashed, where in the app's code
+  and how long after starting (never the crash message, never a key). The next start reads it into the event log and
+  deletes it
 - the app's installed files
 
 Nothing in there contains keystrokes. To remove everything: uninstall, then delete that folder.

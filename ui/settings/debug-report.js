@@ -111,6 +111,8 @@ const logLevel = (detailSinceMs) =>
  */
 export function bugReport(facts) {
   const failed = facts.selfTest.filter((check) => !check.ok);
+  const problems = failed.map((check) => `- ✗ ${check.name}${check.detail ? `: ${check.detail}` : ''}`);
+  if (facts.lastCrash) problems.unshift(`- ✗ The last run crashed: ${facts.lastCrash}`);
   const lines = [
     '## Keystroke Overlay bug report',
     `v${facts.version} (${facts.build}) · ${facts.os} · ${facts.engine} · up ${runningFor(facts.state.uptimeSecs ?? 0)} · format ${BUG_REPORT_FORMAT}`,
@@ -119,9 +121,7 @@ export function bugReport(facts) {
     '<!-- what you did, what you expected, and what you saw instead -->',
     '',
     '### Problems found',
-    ...(failed.length
-      ? failed.map((check) => `- ✗ ${check.name}${check.detail ? `: ${check.detail}` : ''}`)
-      : ['- none']),
+    ...(problems.length ? problems : ['- none']),
     '',
     '### State',
     '| | |',
@@ -154,6 +154,7 @@ const reportData = (facts) => ({
   app: { version: facts.version, build: facts.build, os: facts.os, engine: facts.engine },
   state: facts.state,
   lastUpdate: facts.lastUpdate ?? null,
+  lastCrash: facts.lastCrash ?? null,
   selfTest: facts.selfTest,
   settingsDiff: facts.settingsDiff,
   logDetailSinceMs: facts.detailSinceMs ?? null,

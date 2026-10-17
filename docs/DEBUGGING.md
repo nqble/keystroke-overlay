@@ -35,6 +35,9 @@ In the inspector's console, the object **`ko`** has shortcuts: `ko.info()`, `ko.
 - The Debug tools are **off** until Debug mode is switched on. The event log keeps only the last 100 important events
   while it is off (`debug::log()`); everyday steps (`debug::detail()`) are recorded only while it is on.
 - The log is in memory only (never on disk, never sent anywhere) and records what the **app** did, never which keys were pressed. A test checks this.
+- If the app crashes, `crash.rs` saves one line (version, place in the code, thread, minutes since start; never the
+  message or a key) to `crash-note.txt` in the data folder. The next start puts it in the event log and the bug
+  report's problems, then deletes it.
 - The Key monitor is the only tool that shows key presses. It must be started by hand, stops after 60 seconds, and only talks to the settings window on this PC.
 - The bug report contains no key presses and no private link key, and your user name is removed from paths (from v1.4.0
   in its Windows, Linux and macOS forms; v1.3.0 removes the usual Windows form).

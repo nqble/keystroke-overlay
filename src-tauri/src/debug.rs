@@ -49,6 +49,8 @@ static ENABLED: AtomicBool = AtomicBool::new(false);
 static STARTED: OnceLock<Instant> = OnceLock::new();
 /// Each line: milliseconds since start, whether it is a Debug-mode detail, and the text.
 static LOG: Mutex<VecDeque<(u64, bool, String)>> = Mutex::new(VecDeque::new());
+/// The crash note from the last run, if it crashed (crash.rs), for the bug report.
+static LAST_CRASH: Mutex<Option<String>> = Mutex::new(None);
 /// When Debug mode was last turned on (milliseconds since start), for the bug report.
 static DETAIL_SINCE: Mutex<Option<u64>> = Mutex::new(None);
 /// Each time the key monitor is started or stopped this number goes up; a running monitor that sees a newer number
@@ -80,6 +82,11 @@ pub fn set_enabled(on: bool) {
             lines.pop_front();
         }
     }
+}
+
+/// Remember the last run's crash note for the Debug tab and the bug report.
+pub fn set_last_crash(note: String) {
+    *LAST_CRASH.lock().unwrap() = Some(note);
 }
 
 /// Record an important event: kept at all times (the last 100 while Debug mode is off).
@@ -138,7 +145,8 @@ pub fn debug_info(st: State<AppState>) -> Value {
         "inputActive": st.shared.bus.method().id(),
         "inputError": st.shared.bus.error(),
         "logLines": LOG.lock().unwrap().len(),
-        "detailSinceMs": *DETAIL_SINCE.lock().unwrap(),   // null: the log has only the important lines
+        "detailSinceMs": *DETAIL_SINCE.lock().unwrap(),
+        "lastCrash": *LAST_CRASH.lock().unwrap(),   // null unless the last run crashed   // null: the log has only the important lines
     })
 }
 

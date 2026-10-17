@@ -179,6 +179,7 @@ async function buildReport() {
       channel: lastUpdate.channel,
     },
     detailSinceMs: info.detailSinceMs,
+    lastCrash: info.lastCrash,
     log: log.slice(-REPORT_LOG_LINES),
   });
 }

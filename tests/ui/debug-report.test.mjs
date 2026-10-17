@@ -86,6 +86,16 @@ test('a report with nothing wrong says so, and names since when Debug mode detai
   assert.match(report, /everything since Debug mode was turned on \(\+65\.0s\)/);
 });
 
+test('a crash in the last run is the first problem listed, and is in the JSON', () => {
+  const report = bugReport({
+    ...facts,
+    lastCrash: 'v1.4.0 crashed in src/server.rs:120 (thread main), 3 min after start',
+  });
+  assert.match(report, /### Problems found\n- ✗ The last run crashed: v1\.4\.0 crashed in src\/server\.rs:120/);
+  const json = JSON.parse(report.split('```json\n')[1].split('\n```')[0]);
+  assert.match(json.lastCrash, /src\/server\.rs:120/);
+});
+
 test('the bug report never carries the user name', () => {
   assert.doesNotMatch(bugReport(facts), /jordan/);
 });
