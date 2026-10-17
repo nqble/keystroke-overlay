@@ -95,16 +95,15 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. **Export / Import layouts** share them as a file. |
+| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Other layouts** in the New layout popup. **Import… / Export…** share your layouts as a file. |
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click), then move them together, nudge them with the arrow buttons, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Choose how far keys jump with **Snap** (off, quarter, half or whole key) and show a **grid** if you like; both are remembered. X / Y fields give exact spots for a single key. **Tidy up** closes the gaps left by hidden keys while keeping the keyboard's shape. Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
-| **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
-| **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
-| **Fonts** | Add your own TTF / OTF / WOFF fonts. |
-| **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, program updates (channel, release notes), **Debug mode** and **Reset all settings**. |
+| **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts. |
+| **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
+| **General** | **Connection** (OBS link, port, **secure link**, **First run setup**), **keyboard input method**, start-up, program updates, and under **Advanced**: Debug mode, server restart and **Reset all settings**. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
-**Debug mode (for developers).** **General → App → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one empty test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](docs/DEBUGGING.md).
+**Debug mode (for developers).** **General → Advanced → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one empty test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## Keyboard input method
 
