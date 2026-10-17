@@ -4,7 +4,7 @@ Status: **Not built; a no-code workaround was chosen instead** (2026-10-15, see 
 case a built-in mode is wanted later; if that happens it becomes decision record 0009. Written 2026-10-15 by a side session; to be reviewed by the master session and the advisor
 before anyone writes code.
 
-> Update 2026-10-15: the advisor recommended documenting a no-code workaround (an SSH tunnel over Tailscale) instead of building this; see [README: Using two PCs](../../README.md#using-two-pcs-game-on-one-obs-on-the-other). The design below is kept as background in case a built-in mode is wanted later.
+> Update 2026-10-15: the advisor recommended documenting a no-code workaround (an SSH tunnel over Tailscale) instead of building this; see [User guide: Using two PCs](../USER-GUIDE.md#using-two-pcs-game-on-one-obs-on-the-other). The design below is kept as background in case a built-in mode is wanted later.
 
 ## Problem
 Some streamers use two PCs: a **gaming PC** (where the keys are pressed and this app runs) and a **streaming PC** (where OBS
