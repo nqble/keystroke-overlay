@@ -51,6 +51,15 @@ export function layoutTab() {
 }
 
 // ---- Layout tab pieces ----------------------------------------------------------------------------------------------
+/** Move the highlight to the card of layout `id` (and tell screen readers which one is pressed). */
+function markPicked(grid, id) {
+  for (const card of /** @type {NodeListOf<HTMLElement>} */ (grid.querySelectorAll('[data-layout-id]'))) {
+    const picked = card.dataset.layoutId === id;
+    card.classList.toggle('sel', picked);
+    card.setAttribute('aria-pressed', String(picked));
+  }
+}
+
 /**
  * One card in the layout grid, a real button so it works with the keyboard too. Click it (or press Enter) to pick the layout.
  * Right-click a layout you made, or press the Menu key (or Shift+F10) on its card, to delete it.
@@ -76,7 +85,8 @@ function layoutCard(layout) {
       onclick: () => {
         settings.layout.id = layout.id;
         setSelectedKey(null);
-        changed(true);
+        markPicked(card.parentElement, layout.id); // only the highlight moves: the cards are not drawn again, so focus stays
+        changed();
       },
       oncontextmenu: (e) => showMenu(e, [deleteItem]),
       test: 'layout-card',
