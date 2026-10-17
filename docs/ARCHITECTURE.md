@@ -15,7 +15,7 @@ keystroke-overlay/
 ├── assets/             icon source image
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
-├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), changelog-section.mjs (release notes + their format check),
+├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
 │                       check-privacy.mjs, check-style.mjs, gen-layouts.mjs, make-icon.ps1 (the icon source image),
 │                       preview.mjs (the overlay in a browser), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)

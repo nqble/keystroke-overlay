@@ -152,6 +152,17 @@ A background check runs about once an hour while the app is running, and when th
 If something newer exists, the tray icon gets an orange dot and an "Update available" entry at the top of its menu (it opens
 General), and a button appears in the settings window; the user must click it and confirm. The installer is verified against the public key before it runs.
 
+## Third-party notices
+
+The app is built from open-source libraries whose licences ask that their notices go with the app. The release
+workflow writes them (`npm run notices`, using cargo-about 0.9.2 and `src-tauri/about.toml`), puts the file in the
+installer (it lands next to the app as `THIRD-PARTY-NOTICES.html`) and attaches it to the GitHub release.
+
+If a library update brings a licence that is not listed in `src-tauri/about.toml`, the release stops there. Check that
+the new licence is compatible with MIT (permissive licences like MIT, BSD or Apache are; GPL and AGPL are not), then add
+it to the list. To try it on your PC: `cargo install cargo-about --version 0.9.2 --locked --features cli`, then
+`npm run notices`.
+
 ## After publishing: antivirus
 
 A program that reads the keyboard is exactly what antivirus tools watch for, and a new version has no reputation yet.
@@ -170,6 +181,6 @@ Signed releases (Code signing above) build reputation much faster, so these repo
 - `npm run check:privacy` passes
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
 - The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
-- Dependency licenses still compatible with MIT (`cargo metadata` → no GPL/AGPL; MPL-2.0 is fine)
+- Dependency licences still compatible with MIT: checked automatically (see Third-party notices)
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`
   (never set it in a real build)
