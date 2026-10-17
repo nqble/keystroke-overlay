@@ -155,6 +155,11 @@ creates user data, installs the current version over it (an upgrade) and checks 
 What's new popup appeared, uses the new features, and finally uninstalls (program and uninstall entry gone, your data folder kept).
 It needs ~4 GB temporarily in your TEMP folder and deletes everything when it finishes (`--keep` to keep it).
 
+## Tab switch speed
+
+`npm run test:e2e -- --suite tab-speed` (optional, not part of the normal run) opens every settings tab repeatedly and prints how long
+the switch takes, built from scratch and reused, to the swap and to the painted page. Reused pages must appear in under 50 ms.
+
 ## Quiet in-app update test
 
 `npm run test:quiet-update` (`tests/install/quiet-update.mjs`) checks the real "Update now" path with real installers: it builds the

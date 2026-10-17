@@ -29,7 +29,7 @@ const args = process.argv.slice(2);
 const keep = args.includes('--keep');
 const only = args.includes('--suite') ? args[args.indexOf('--suite') + 1] : 'all';
 // Optional suites run only when asked for by name (never in "all"): the visual test's baselines are from one PC, not shared.
-const OPTIONAL_SUITES = ['visual'];
+const OPTIONAL_SUITES = ['visual', 'tab-speed'];
 if (args.includes('--update')) process.env.VISUAL_UPDATE = '1';
 // smoke LAST: it ends by installing an update, which exits the app
 const SUITES = [
