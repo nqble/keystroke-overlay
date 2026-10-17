@@ -22,6 +22,10 @@ header {
   border-radius: var(--radius-lg);
   flex: none;
 }
+/* header.js draws into this; it adds no box of its own, so its two groups sit in the header's row directly. */
+.header-controls {
+  display: contents;
+}
 .header-status {
   display: flex;
   align-items: center;

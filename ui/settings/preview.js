@@ -2,7 +2,7 @@
 //  Saving a change, the live preview, and the OBS link / address bar.
 // =====================================================================================================================
 import { $, call, invoke, toast } from './helpers.js';
-import { paintObsStatus } from './messages.js';
+import { paintHeader } from './header.js';
 import { render } from './settings.js';
 import { settings, booted, obsUrl, setLinkChanged, setRegistry, setSize, size, tab } from './state.js';
 
@@ -82,11 +82,9 @@ export function updateObs() {
 export async function copyUrl() {
   await call('copy_text', { text: obsUrl });
   setLinkChanged(false);
-  paintObsStatus();
+  paintHeader();
   toast('OBS link copied');
 }
-
-$('#copyUrl').onclick = copyUrl;
 
 /** The address of the live preview: the OBS link plus ?preview=1 (a secured link keeps its ?key=). */
 export const previewSrc = () => {

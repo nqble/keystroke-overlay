@@ -1,6 +1,6 @@
 # Plan: Preact + htm for the settings window (v2.0)
 
-Status: **approved by Jordan (2026-10-17); step 1 done, step 2 (the header trial) in progress**, on `advisor/v2.0`. It is
+Status: **approved by Jordan (2026-10-17); steps 1 and 2 done; waiting for Jordan's review of the header trial before step 3**, on `advisor/v2.0`. It is
 v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor/` because the window only serves
 `ui/settings/`.
 
@@ -79,6 +79,21 @@ library."
 5. **Each tab as it is redesigned** (steps 6–11 of the tab plan): Debug, General, Style with Fonts, Layout, Animation, then
    the key editor. A tab is written once, in the new style.
 6. **Tidy up** when the last tab is converted: remove the wrapper and any helper nothing uses any more.
+
+## Step 2 results (the header trial)
+
+The header's status, Copy OBS link and Update ready are one Preact component (`ui/settings/header.js`); `paintHeader()`
+replaced the hand-written updates in messages.js, preview.js and update-popup.js. Measured in the UI sandbox (headless
+Chromium; to confirm on Windows with `tests/bench/run.mjs`):
+
+- **Looks:** 6 of 8 states pixel-identical; in the other 2, 15–18 pixels on the status pill's rounded edge differ by one
+  shade out of 255 (anti-aliasing rounding, invisible). Same text, classes, test hooks and screen-reader names in all 8.
+- **Behaviour:** 14 checks pass (status opens General, copying copies and clears "link changed", the arrow waits 150 ms,
+  ignores a pass-over, always finishes, starts at once on keyboard focus, the chip opens the popup and focus returns on Esc).
+- **Open time:** median about 79 ms before, 89 ms after (+10 ms, three runs of 30 each); preloading the library didn't help.
+  A one-time cost: more Preact screens don't add to it.
+- **Memory:** +174 KB of JavaScript heap, also one-time.
+- **Idle:** no timers at all in 5 s of an idle open window.
 
 ## Risks and how we handle them
 

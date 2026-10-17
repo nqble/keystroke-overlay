@@ -19,11 +19,11 @@
 //  in src-tauri/src/settings.rs and, if the overlay uses it, read it in ui/overlay/overlay.js.
 // =====================================================================================================================
 import { $, button, call, invoke } from './helpers.js';
-import { paintObsStatus, paintPause, showServerError, resync } from './messages.js';
+import { paintHeader } from './header.js';
+import { paintPause, showServerError, resync } from './messages.js';
 import { hideMenu } from './menu.js';
 import { refreshFades } from './scroll-fade.js';
 import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
-import './header.js';
 import { showNotes } from './notes.js';
 import { showUpdateResult } from './update-popup.js';
 import { fitPreview, frame, previewSrc, updateObs } from './preview.js';
@@ -94,7 +94,7 @@ export async function render() {
   pane.replaceChildren(content);
   pane.scrollTop = scroll;
   refreshFades();
-  paintObsStatus(); // a tab may have changed the link (new port or key), which the header status shows
+  paintHeader(); // a tab may have changed the link (new port or key), which the header status shows
 }
 
 // When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to

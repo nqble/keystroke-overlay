@@ -76,7 +76,7 @@ keystroke-overlay/
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)
         ├── pause-button.js  the round pause button on the live preview (same switch as the tray)
         ├── scroll-fade.js   the soft fade at the edges of every scrolling area
-        ├── header.js    the header buttons: status opens General, the Update ready arrow
+        ├── header.js      the header's status, Copy OBS link and Update ready, drawn with Preact (paintHeader)
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── text.js        the longer explanations the user reads
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)

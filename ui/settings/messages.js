@@ -4,12 +4,11 @@
 import { $, call, tauriEvent, invoke } from './helpers.js';
 import { paintProgress, showUpdateResult } from './update-popup.js';
 import { flushPendingSave, push } from './preview.js';
-import { obsStatus, obsStatusDetail } from './obs-status.js';
+import { paintHeader } from './header.js';
 import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
 import {
   TAB_NAMES,
-  linkChanged,
   overlays,
   serverError,
   paused,
@@ -37,7 +36,6 @@ const TEXT = {
   downloading: (done) => `Downloading… ${done}`,
   downloadingOf: (done, total, percent) => `Downloading… ${done} of ${total} (${percent}%)`,
   installing: 'Installing… the app will restart in a moment.',
-  statusTip: 'OBS link settings', // the OBS status's tooltip (it opens General)
 };
 
 tauriEvent.listen('update-progress', (e) => {
@@ -68,23 +66,13 @@ tauriEvent.listen('goto-tab', (e) => {
 
 export function paintPause() {
   paintPauseButton($('#pauseBtn'), paused);
-  paintObsStatus();
-}
-
-/** The header's status pill. Debug mode adds the exact count as a tooltip. */
-export function paintObsStatus() {
-  const facts = { paused, overlays, serverError, linkChanged };
-  const status = obsStatus(facts);
-  const pill = $('#obsStatus');
-  pill.textContent = status.text;
-  pill.className = 'obs-status ' + status.kind;
-  pill.title = settings?.general?.debugMode ? obsStatusDetail(paused, overlays) : TEXT.statusTip;
+  paintHeader();
 }
 
 // an OBS overlay connected or disconnected (sent only on a change, never polled)
 tauriEvent.listen('overlays-changed', (e) => {
   setOverlays(e.payload);
-  paintObsStatus();
+  paintHeader();
 });
 
 // The same switch as the tray's "Pause overlay". The app answers with the new state; the tray hears it too.
@@ -95,7 +83,7 @@ $('#pauseBtn').onclick = async () => {
 
 export function showServerError(message) {
   setServerError(message || null);
-  paintObsStatus();
+  paintHeader();
   const banner = $('#banner');
   banner.hidden = !message;
   if (message) banner.textContent = message + ' — pick another port in General → Port.';

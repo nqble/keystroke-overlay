@@ -3,6 +3,7 @@
 //  the button AND confirms in the popup.
 // =====================================================================================================================
 import { $, el, invoke, toast } from './helpers.js';
+import { paintHeader } from './header.js';
 import { md } from './notes.js';
 import { popupKeys } from './popup.js';
 import { saveNow } from './preview.js';
@@ -12,10 +13,10 @@ import { TEXT } from './text.js';
 
 let updateBusy = false;
 
-/** Remember the latest update answer and show or hide the corner button. */
+/** Remember the latest update answer; the header shows or hides its Update ready chip from it. */
 export function setUpdate(result) {
   setLastUpdate(result);
-  $('#updateBtn').hidden = !(result && result.available);
+  paintHeader();
   return result;
 }
 
@@ -51,8 +52,6 @@ export function openUpdateDialog() {
   popupKeys('#updModal', { onEscape: closeUpdatePopup, isLocked: () => updateBusy });
   $('#uGo').focus();
 }
-
-$('#updateBtn').onclick = openUpdateDialog;
 
 function closeUpdatePopup() {
   if (!updateBusy) $('#updModal').hidden = true;

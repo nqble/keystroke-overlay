@@ -42,7 +42,10 @@ test('debug detail gives the exact count', () => {
 });
 
 test('Copy OBS link is always in the header (ui-design-v2.md, Header)', () => {
-  const page = readFileSync(new URL('../../ui/settings/index.html', import.meta.url), 'utf8');
-  const copyButton = page.match(/<button id="copyUrl"[^>]*>/)[0];
+  // header.js draws it (Preact); its button must never be hidden or drawn only under a condition
+  const header = readFileSync(new URL('../../ui/settings/header.js', import.meta.url), 'utf8');
+  const copyButton = header.match(/<button id="copyUrl"[^>]*>/)[0];
   assert.doesNotMatch(copyButton, /\shidden\b/);
+  const drawn = header.match(/function HeaderControls[\s\S]*?\n}\n/)[0];
+  assert.match(drawn, /\n\s*<button id="copyUrl"/, 'drawn every time, not behind a ${condition && ...}');
 });

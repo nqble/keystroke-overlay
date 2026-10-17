@@ -37,24 +37,9 @@
           data-tauri-drag-region
         /><span data-test="brand-title" data-tauri-drag-region>Keystroke Overlay</span>
       </div>
-      <div class="header-status" data-tauri-drag-region>
-        <button
-          id="obsStatus"
-          class="obs-status off"
-          data-test="obs-status"
-          type="button"
-          aria-live="polite"
-          title="OBS link settings"
-        ></button>
-      </div>
-      <!-- Always top right, just before the window buttons: Copy OBS link, then Update ready when there is one. -->
-      <div class="header-actions">
-        <button id="copyUrl" data-test="obs-copy" class="primary" type="button">Copy OBS link</button>
-        <button id="updateBtn" data-test="update-button" class="update-chip" type="button" hidden>
-          <span class="update-arrow-box" aria-hidden="true"><span class="update-arrow">↓</span></span
-          >Update ready
-        </button>
-      </div>
+      <!-- The status, Copy OBS link and Update ready: drawn by header.js (Preact). Status on the left; the other two
+           always top right, just before the window buttons. -->
+      <div id="headerControls" class="header-controls"></div>
       <div class="winbtns" data-test="window-buttons">
         <button
           id="wMin"
