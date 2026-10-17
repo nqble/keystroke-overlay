@@ -5,11 +5,14 @@
 //! `defaults()` so newly added settings always have a value, then sanitized.
 //!
 //! HOW TO ADD A SETTING: add it to `defaults()` (and to the control list in
-//! ui/settings/settings.js). No migration is needed for purely additive changes.
+//! ui/settings/settings.js). No migration is needed for purely additive changes. If it needs a rule beyond its
+//! type (a range, a fixed set of choices, a text format), add one line to the tables in sanitize.rs.
 //! HOW TO RENAME/RESTRUCTURE: bump CURRENT_VERSION and add a step to `MIGRATIONS`.
 
 use serde_json::{json, Map, Value};
 use std::path::{Path, PathBuf};
+
+use crate::sanitize::sanitize;
 
 pub const CURRENT_VERSION: u64 = 3;
 
@@ -106,268 +109,6 @@ pub fn migrate(mut config: Value) -> Value {
     merge(&mut out, &config);
     sanitize(&mut out, &defaults());
     out
-}
-
-/// (path, min, max) for numeric settings. Anything out of range is clamped.
-const RANGES: &[(&str, f64, f64)] = &[
-    ("general.port", 1024.0, 65535.0),
-    ("style.borderWidth", 0.0, 20.0),
-    ("style.radius", 0.0, 100.0),
-    ("style.fontSize", 0.0, 120.0),
-    ("style.fontWeight", 100.0, 900.0),
-    ("style.glowSize", 0.0, 100.0),
-    ("style.keySize", 16.0, 200.0),
-    ("style.gap", 0.0, 60.0),
-    ("style.scale", 0.2, 4.0),
-    ("style.opacity", 0.0, 1.0),
-    ("animation.speed", 0.0, 2000.0),
-    ("animation.intensity", 0.0, 4.0),
-];
-
-/// The snap steps the Keys tab offers, in key widths (0 = off). Keep in step with the Snap menu in
-/// ui/settings/tabs/keys-toolbar.js.
-const SNAP_CHOICES: [f64; 4] = [0.0, 0.25, 0.5, 1.0];
-
-fn is_hex_color(color: &str) -> bool {
-    color.starts_with('#')
-        && (color.len() == 7 || color.len() == 9)
-        && color[1..].chars().all(|c| c.is_ascii_hexdigit())
-}
-fn is_ident(ident: &str) -> bool {
-    !ident.is_empty() && ident.len() <= 40 && ident.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-}
-/// Layout ids may also contain dots and spaces (they come from user-made files).
-fn is_id(id: &str) -> bool {
-    !id.is_empty() && id.len() <= 40 && id.chars().all(|c| c.is_ascii_alphanumeric() || "-_. ".contains(c))
-}
-fn is_version(version: &str) -> bool {
-    version.len() <= 24
-        && version
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-')
-}
-
-fn clean_strings(value: Option<&Value>) -> Value {
-    Value::Array(
-        value
-            .and_then(|a| a.as_array())
-            .map(|items| {
-                items
-                    .iter()
-                    .filter(|x| x.as_str().is_some_and(|s| s.len() <= 40))
-                    .take(300)
-                    .cloned()
-                    .collect()
-            })
-            .unwrap_or_default(),
-    )
-}
-fn clean_labels(value: Option<&Value>) -> Value {
-    Value::Object(
-        value
-            .and_then(|o| o.as_object())
-            .map(|entries| {
-                entries
-                    .iter()
-                    .filter(|(k, x)| k.len() <= 40 && x.as_str().is_some_and(|s| s.chars().count() <= 16))
-                    .take(300)
-                    .map(|(k, x)| (k.clone(), x.clone()))
-                    .collect()
-            })
-            .unwrap_or_default(),
-    )
-}
-/// How far a key's position may be, in key widths. The Keys tab keeps keys inside a smaller board; this only stops a
-/// hand-edited file from breaking the overlay. Keep in step with MAX_POSITION in ui/settings/profiles.js.
-const MAX_POSITION: f64 = 100.0;
-/// The narrowest and widest a resized key may be, in key widths (the Keys tab limits it further, to the board).
-/// Keep in step with MIN_KEY_WIDTH and MAX_KEY_WIDTH in ui/settings/profiles.js and ui/overlay/overlay.js.
-const MIN_KEY_WIDTH: f64 = 0.25;
-const MAX_KEY_WIDTH: f64 = 100.0;
-/// The layout styles a profile can keep positions for: "shape" (keys as the layout file draws them) and "grid" (every
-/// key one key wide in neat columns).
-const LAYOUT_STYLES: [&str; 2] = ["shape", "grid"];
-/// The most keys one profile may move or resize.
-const MAX_EDITED_KEYS: usize = 300;
-
-fn round_to_hundredths(units: f64) -> f64 {
-    (units * 100.0).round() / 100.0
-}
-
-/// Where the user dragged keys to in one layout style: { "KeyW": { "x": 1.25, "y": 0 } } in key units. Anything that is
-/// not a pair of finite numbers is dropped; numbers are limited to 0..MAX_POSITION and rounded to 2 decimals.
-fn clean_positions(value: Option<&Value>) -> Value {
-    let mut out = Map::new();
-    if let Some(moved_keys) = value.and_then(|x| x.as_object()) {
-        for (code, position) in moved_keys
-            .iter()
-            .filter(|(k, _)| !k.is_empty() && k.len() <= 40)
-            .take(MAX_EDITED_KEYS)
-        {
-            if let (Some(x), Some(y)) = (
-                position.get("x").and_then(Value::as_f64),
-                position.get("y").and_then(Value::as_f64),
-            ) {
-                if x.is_finite() && y.is_finite() {
-                    let limited = |units: f64| round_to_hundredths(units.clamp(0.0, MAX_POSITION));
-                    out.insert(code.clone(), json!({ "x": limited(x), "y": limited(y) }));
-                }
-            }
-        }
-    }
-    Value::Object(out)
-}
-
-/// How wide the user made keys in one layout style: { "Space": { "w": 4.5 } } in key widths. Anything that is not a finite
-/// number is dropped; widths are limited to MIN_KEY_WIDTH..MAX_KEY_WIDTH and rounded to 2 decimals.
-fn clean_sizes(value: Option<&Value>) -> Value {
-    let mut out = Map::new();
-    if let Some(resized_keys) = value.and_then(|x| x.as_object()) {
-        for (code, size) in resized_keys
-            .iter()
-            .filter(|(k, _)| !k.is_empty() && k.len() <= 40)
-            .take(MAX_EDITED_KEYS)
-        {
-            if let Some(width) = size.get("w").and_then(Value::as_f64).filter(|w| w.is_finite()) {
-                out.insert(
-                    code.clone(),
-                    json!({ "w": round_to_hundredths(width.clamp(MIN_KEY_WIDTH, MAX_KEY_WIDTH)) }),
-                );
-            }
-        }
-    }
-    Value::Object(out)
-}
-
-/// One layout style's edits: only the parts that have something in them, so untouched profiles stay small.
-fn clean_style(raw_style: Option<&Value>, fallback_positions: Option<&Value>) -> Map<String, Value> {
-    let mut cleaned = Map::new();
-    let positions = clean_positions(raw_style.and_then(|s| s.get("positions")).or(fallback_positions));
-    if positions.as_object().is_some_and(|m| !m.is_empty()) {
-        cleaned.insert("positions".into(), positions);
-    }
-    let sizes = clean_sizes(raw_style.and_then(|s| s.get("sizes")));
-    if sizes.as_object().is_some_and(|m| !m.is_empty()) {
-        cleaned.insert("sizes".into(), sizes);
-    }
-    cleaned
-}
-
-pub fn clean_profiles(raw_profiles: &Value) -> Value {
-    let mut out = Map::new();
-    if let Some(entries) = raw_profiles.as_object() {
-        for (id, profile) in entries.iter().filter(|(id, _)| is_id(id)).take(50) {
-            let mut cleaned = Map::new();
-            cleaned.insert("disabledKeys".into(), clean_strings(profile.get("disabledKeys")));
-            cleaned.insert("labels".into(), clean_labels(profile.get("labels")));
-            // "shape" is the default style and is not written; only a chosen "grid" is
-            if profile.get("layoutStyle").and_then(Value::as_str) == Some("grid") {
-                cleaned.insert("layoutStyle".into(), json!("grid"));
-            }
-            let mut styles = Map::new();
-            for style in LAYOUT_STYLES {
-                // files written before version 3 (an older layout export, say) keep positions straight on the profile
-                let legacy_positions = if style == "shape" {
-                    profile.get("positions")
-                } else {
-                    None
-                };
-                let edits = clean_style(profile.get("styles").and_then(|s| s.get(style)), legacy_positions);
-                if !edits.is_empty() {
-                    styles.insert(style.to_string(), Value::Object(edits));
-                }
-            }
-            if !styles.is_empty() {
-                cleaned.insert("styles".into(), Value::Object(styles));
-            }
-            out.insert(id.clone(), Value::Object(cleaned));
-        }
-    }
-    Value::Object(out)
-}
-
-/// Make arbitrary JSON (hand-edited file, imported preset) safe to use:
-/// wrong types fall back to defaults, numbers are clamped, colours/ids validated.
-pub fn sanitize(value: &mut Value, def: &Value) {
-    fn walk(value: &mut Value, def: &Value, path: &str) {
-        match def {
-            Value::Object(default_map) => {
-                if path == "layout.profiles" {
-                    *value = clean_profiles(value);
-                    return;
-                } // free-form map
-                if !value.is_object() {
-                    *value = def.clone();
-                    return;
-                }
-                let value_map = value.as_object_mut().unwrap();
-                value_map.retain(|k, _| default_map.contains_key(k));
-                for (key, default_value) in default_map {
-                    let child_path = if path.is_empty() {
-                        key.clone()
-                    } else {
-                        format!("{path}.{key}")
-                    };
-                    match value_map.get_mut(key) {
-                        Some(child) => walk(child, default_value, &child_path),
-                        None => {
-                            value_map.insert(key.clone(), default_value.clone());
-                        }
-                    }
-                }
-            }
-            Value::Number(_) => {
-                let number = value.as_f64().filter(|n| n.is_finite());
-                let (lo, hi) = RANGES
-                    .iter()
-                    .find(|r| r.0 == path)
-                    .map(|r| (r.1, r.2))
-                    .unwrap_or((f64::MIN, f64::MAX));
-                match number {
-                    // The Keys tab's snap step must be one of the menu's choices; anything else goes back to the default.
-                    Some(n) if path == "layout.editor.snap" => {
-                        if !SNAP_CHOICES.contains(&n) {
-                            *value = def.clone();
-                        }
-                    }
-                    // Valid and in range: leave the value exactly as it was.
-                    Some(n) if n >= lo && n <= hi && (path != "general.port" || n.fract() == 0.0) => {}
-                    Some(_) if path == "general.port" => *value = def.clone(), // invalid port: back to the default
-                    Some(n) => *value = json!(n.clamp(lo, hi)),
-                    None => *value = def.clone(),
-                }
-            }
-            Value::Bool(_) => {
-                if !value.is_boolean() {
-                    *value = def.clone()
-                }
-            }
-            Value::String(default_text) => {
-                let ok = match value.as_str() {
-                    Some(text) if default_text.starts_with('#') => is_hex_color(text),
-                    Some(text) if path == "style.fontFamily" => {
-                        !text.is_empty() && text.len() <= 80 && !text.contains(['"', '\\', '{', '}', ';', '<', '>'])
-                    }
-                    Some(text) if path == "general.lastSeenVersion" => is_version(text),
-                    Some(text) if path == "layout.id" => is_id(text),
-                    Some(text) if path == "general.updateChannel" => text == "stable" || text == "latest",
-                    Some(text) if path == "general.inputMethod" => text == "hook" || text == "rawinput",
-                    Some(text) if path == "general.linkKey" => {
-                        text.is_empty()
-                            || (text.len() >= 32 && text.len() <= 64 && text.chars().all(|c| c.is_ascii_hexdigit()))
-                    }
-                    Some(text) => is_ident(text),
-                    None => false,
-                };
-                if !ok {
-                    *value = def.clone();
-                }
-            }
-            Value::Array(_) => *value = clean_strings(Some(value)),
-            Value::Null => {}
-        }
-    }
-    walk(value, def, "");
 }
 
 /// A fresh private link key: 128 bits from the operating system's secure random generator, as 32 hex characters.
@@ -516,6 +257,7 @@ impl Paths {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::sanitize::*;
     #[test]
     fn garbage_becomes_defaults() {
         assert_eq!(migrate(json!("nope")), defaults());
@@ -873,6 +615,7 @@ mod tests {
 #[cfg(test)]
 mod robustness_tests {
     use super::*;
+    use crate::sanitize::*;
 
     struct Rng(u64);
     impl Rng {
@@ -1199,6 +942,7 @@ mod devbuild_tests {
 #[cfg(test)]
 mod position_tests {
     use super::*;
+    use crate::sanitize::*;
     #[test]
     fn moved_keys_are_kept_clamped_and_junk_is_dropped() {
         let raw = json!({ "wasd": { "styles": { "shape": { "positions": {
@@ -1221,6 +965,7 @@ mod position_tests {
 #[cfg(test)]
 mod layout_style_tests {
     use super::*;
+    use crate::sanitize::*;
 
     #[test]
     fn version_2_positions_move_into_the_shape_style() {

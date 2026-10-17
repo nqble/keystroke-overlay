@@ -10,6 +10,7 @@ mod downgrade;
 mod grid;
 mod keyboard;
 mod platform;
+mod sanitize;
 mod server;
 mod settings;
 mod state;

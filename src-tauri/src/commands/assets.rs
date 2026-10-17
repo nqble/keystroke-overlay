@@ -332,7 +332,7 @@ pub fn import_doc(
         )
         .map_err(|e| e.to_string())?;
         let old_id = item["id"].as_str().unwrap_or("");
-        let prof = crate::settings::clean_profiles(
+        let prof = crate::sanitize::clean_profiles(
             &serde_json::json!({ "x": top["profiles"].get(old_id).cloned().unwrap_or(Value::Null) }),
         );
         out.push((id.clone(), prof["x"].clone()));

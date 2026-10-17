@@ -33,7 +33,8 @@ keystroke-overlay/
 │       │   └── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
-│       ├── settings.rs     settings file: defaults, versioned migrations, validation, backup
+│       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
+│       ├── sanitize.rs     cleaning settings from outside: types, ranges and rules, one table line per setting
 │       ├── downgrade.rs    going back a version and forward again without losing settings (settings.vN.json)
 │       ├── state.rs        shared app state + small helpers
 │       ├── window.rs       the settings window (created on demand, destroyed on close)
@@ -127,7 +128,7 @@ returns (`downgrade.rs`). Per-layout key edits live in `layout.profiles[layoutId
       press: { ms: ms * 0.5, ease: 'ease-out' }, release: { ms: ms * 2, ease: 'cubic-bezier(.34,1.9,.64,1)' }, glow: 0 }) });
   ```
   Use only `transform`/`opacity`. It shows up in the Animation tab automatically. Themes work the same with `registerTheme`.
-- **Setting:** (1) default in `settings.rs` (sanitizer range/rule if needed), (2) a descriptor in `CONTROLS` in
+- **Setting:** (1) default in `settings.rs` (a range or rule line in `sanitize.rs` if needed), (2) a descriptor in `CONTROLS` in
   `ui/settings/controls.js`, (3) use it in `ui/overlay/overlay.js`. Renaming or restructuring needs a migration + test.
 - **Command for the settings window:** a `#[tauri::command]` in the matching `commands/*.rs`, registered in
   `main.rs` (`generate_handler!`).
