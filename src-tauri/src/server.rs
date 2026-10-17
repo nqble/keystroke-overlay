@@ -381,6 +381,7 @@ fn snapshot(st: &St) -> Message {
 /// One task per connected overlay. Sleeps until a key event/config change.
 async fn client(mut sock: WebSocket, st: St, counted: bool) {
     let _overlay_count = counted.then(|| OverlayCount::start(&st.shared.overlays));
+    let _watch = st.shared.bus.watch_guard(); // the keyboard-hook watch runs while a page is connected
     let mut keys = st.shared.bus.tx.subscribe();
     let mut cfg = st.shared.cfg_tx.subscribe();
     let mut shutdown = st.sd.clone();
