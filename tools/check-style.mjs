@@ -8,7 +8,7 @@ import { join, extname } from 'node:path';
 
 const ROOTS = ['src-tauri/src', 'ui', 'tools', 'tests'];
 const EXT = new Set(['.rs', '.js', '.mjs', '.css', '.html', '.ps1']);
-const SKIP = new Set(['node_modules', 'target']);
+const SKIP = new Set(['node_modules', 'target', 'vendor']); // vendor: copied libraries, kept exactly as copied
 const problems = [];
 
 function walk(dir) {

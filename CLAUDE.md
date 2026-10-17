@@ -50,7 +50,10 @@ When two principles conflict, the higher one wins.
 
 - Follow the map in `docs/ARCHITECTURE.md`. A new feature gets its own module (Rust) or ES module (`ui/`); don't grow an
   existing file past ~400 lines.
-- **No framework, no bundler, no build step for the UI.** Plain JavaScript ES modules and CSS.
+- **No bundler, no build step for the UI.** Plain JavaScript ES modules and CSS. The settings window uses **Preact with
+  htm** (copied into `ui/settings/vendor/` by `tools/vendor.mjs`, pinned and fingerprint-checked; never edit or add files
+  there by hand): new screens are Preact components using `html` from `ui/settings/html.js`. The overlay OBS shows stays
+  plain JavaScript with no library.
 - **Dependencies:** ask first (see section 7) and say why in the commit message. Every crate runs next to a keyboard hook.
 - **Settings:** a default in `settings.rs`, a line in `CONTROLS`, used in `overlay.js`. Renaming or restructuring needs a
   migration and a unit test. New features are **off by default**. A downgrade must never lose a user's settings: keep a

@@ -6,6 +6,7 @@ name: Security scan
 #
 # It checks the libraries the app is built from against the public lists of known vulnerabilities:
 #   - JavaScript libraries: npm audit (only the ones that ship in the app, high severity and above)
+#   - the libraries copied into the settings window (Preact, htm): tools/vendor.mjs --check
 #   - Rust libraries: cargo audit (RustSec advisory database)
 
 on:
@@ -27,6 +28,8 @@ jobs:
           node-version: 22
       - name: JavaScript libraries (npm audit)
         run: npm audit --omit=dev --audit-level=high
+      - name: Copied libraries in the settings window (Preact, htm; npm audit can't see them)
+        run: node tools/vendor.mjs --check
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
       - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2
         with:

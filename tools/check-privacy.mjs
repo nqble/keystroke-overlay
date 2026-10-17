@@ -5,6 +5,7 @@
 //   * logs/prints anything (a log line is how keystrokes usually leak)
 //   * makes the UI call an external address
 // Run:  node tools/check-privacy.mjs      (also runs in CI)
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { LOG, NET, WRITE, joinSplitPaths, withoutTestModules } from './privacy-patterns.mjs';
@@ -58,6 +59,24 @@ for (const f of walk('ui', ['.js', '.html'])) {
   scan(file, text, /\bfetch\(\s*['"`]https?:/, (n) => bad(file, n, 'fetch() to an absolute address'));
 }
 
+// ------------------------------------------------------------------ the copied libraries (Preact, htm)
+// ui/settings/vendor/ holds third-party code copied by tools/vendor.mjs. It is scanned like the rest of the UI above, and
+// must also be byte for byte what was copied: a file changed or added by hand fails here (the same check as
+// tests/ui/vendor.test.mjs, repeated so this gate alone is enough).
+const vendorDir = 'ui/settings/vendor';
+const vendorRecord = JSON.parse(readFileSync(`${vendorDir}/VENDOR.json`, 'utf8'));
+const vendorListed = new Set(['VENDOR.json', 'LICENSES.md', ...vendorRecord.map((entry) => entry.file)]);
+for (const entry of vendorRecord) {
+  const hash = createHash('sha256')
+    .update(readFileSync(`${vendorDir}/${entry.file}`, 'utf8'))
+    .digest('hex');
+  if (hash !== entry.sha256)
+    bad(`${vendorDir}/${entry.file}`, 1, 'copied library changed by hand (use tools/vendor.mjs)');
+}
+for (const file of readdirSync(vendorDir)) {
+  if (!vendorListed.has(file)) bad(`${vendorDir}/${file}`, 1, 'file in vendor/ that tools/vendor.mjs did not copy');
+}
+
 // ------------------------------------------------------------------ the local dev tools (npm run preview, npm run ui-sandbox)
 // tools/ is not scanned like the app, so these files get their own narrow rules: they may only listen, and only on
 // 127.0.0.1, and they may only use Node's own modules (no network client, no downloads, no packages).
@@ -93,5 +112,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
 );

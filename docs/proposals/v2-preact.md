@@ -1,7 +1,8 @@
 # Plan: Preact + htm for the settings window (v2.0)
 
-Status: **proposed** (Advisory Session). Jordan chose Preact with htm on 2026-10-17; this plan needs his approval before any
-step is built. It is v2.0 work, on `advisor/v2.0`, and changes nothing in v1.4.
+Status: **approved by Jordan (2026-10-17); step 1 done, step 2 (the header trial) in progress**, on `advisor/v2.0`. It is
+v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor/` because the window only serves
+`ui/settings/`.
 
 ## Why
 
@@ -21,33 +22,35 @@ a build step.
 
 | File | What | Version | Size (gzip) |
 |---|---|---|---|
-| `ui/vendor/preact.module.js` | Preact | 10.29.8 (2026-08-01) | 4.9 KB |
-| `ui/vendor/hooks.module.js` | Preact hooks (`useState`, `useEffect`, …) | 10.29.8 | 1.6 KB |
-| `ui/vendor/htm.module.js` | htm | 3.1.1 | 0.7 KB |
+| `ui/settings/vendor/preact.module.js` | Preact | 10.29.8 (2026-08-01) | 4.9 KB |
+| `ui/settings/vendor/hooks.module.js` | Preact hooks (`useState`, `useEffect`, …) | 10.29.8 | 1.6 KB |
+| `ui/settings/vendor/htm.module.js` | htm | 3.1.1 | 0.7 KB |
 | `ui/settings/html.js` | ours: `html` = htm bound to Preact's `h`, plus re-exports | — | — |
 
 - **Version choice:** Preact 11 is 2½ weeks old (11.0.1, 2026-10-08). For an app that runs next to a keyboard hook we take the
   mature 10.x line and move to 11 later as its own reviewed change.
 - **Never from the internet.** The files are copied into the repository. Nothing is fetched at run time; the security
   policy already forbids it.
-- **One import rewritten.** `hooks.module.js` imports `"preact"` by bare name, which only works with a bundler or an inline
+- **Two small changes to the copies, and only these.** `hooks.module.js` imports `"preact"` by bare name, which only works with a bundler or an inline
   import map (the policy blocks inline scripts). `tools/vendor.mjs` rewrites that one import to `./preact.module.js` while
-  copying; it is the only change to the libraries.
+  copying, and removes the source-map line at the end of each file (the maps aren't copied).
 - **Pinned and checked.** `tools/vendor.mjs` downloads the exact versions from npm, checks npm's published integrity hash,
-  copies the files and writes `ui/vendor/VENDOR.json` (name, version, source URL, SHA-256 of each file as stored). A unit
+  copies the files and writes `ui/settings/vendor/VENDOR.json` (name, version, source URL, SHA-256 of each file as stored). A unit
   test fails if any vendored file's hash differs from VENDOR.json, so a hand edit or a corrupted copy can't slip in.
   Updating = run the tool with a new version, review the diff, commit (the same review as any dependency).
-- **The privacy check** gets one narrow rule for `ui/vendor/`: these files are checked against VENDOR.json instead of the
+- **The privacy check** gets one narrow rule for `ui/settings/vendor/`: these files are checked against VENDOR.json instead of the
   line-by-line UI rules (minified library code contains strings like `http://www.w3.org` that are not requests). Every other
-  UI file keeps the existing rules, and no code outside `ui/vendor/` may import from a URL.
-- **Licences:** both MIT, the same as this project. A `ui/vendor/LICENSES.md` lists them.
+  UI file keeps the existing rules, and no code outside `ui/settings/vendor/` may import from a URL.
+- **Licences:** Preact is MIT, htm is Apache-2.0 (both permissive and fine for this MIT project). Both require their
+  licence text to ship with the code, so `tools/vendor.mjs` copies each `LICENSE` next to it, and
+  `ui/settings/vendor/LICENSES.md` lists them.
 
 ## CLAUDE.md change (applied with step 1, after Jordan approves)
 
 Section 4 today: "**No framework, no bundler, no build step for the UI.** Plain JavaScript ES modules and CSS."
 
-Proposed: "**No bundler, no build step for the UI.** Plain JavaScript ES modules and CSS. The settings window uses
-**Preact with htm** (copied into `ui/vendor/`, pinned and hash-checked, see `docs/proposals/v2-preact.md`); write new
+Applied in step 1 (CLAUDE.md now reads): "**No bundler, no build step for the UI.** Plain JavaScript ES modules and CSS. The settings window uses
+**Preact with htm** (copied into `ui/settings/vendor/`, pinned and hash-checked, see `docs/proposals/v2-preact.md`); write new
 screens as Preact components with `html` from `ui/settings/html.js`. The overlay OBS shows stays plain JavaScript, with no
 library."
 
@@ -63,7 +66,7 @@ library."
 
 ## Steps (each its own commit, all checks and the UI sandbox between steps; stop and report on any failure)
 
-1. **Vendor the libraries.** `tools/vendor.mjs`, `ui/vendor/` with VENDOR.json and LICENSES.md, the hash test, the
+1. **Vendor the libraries.** `tools/vendor.mjs`, `ui/settings/vendor/` with VENDOR.json and LICENSES.md, the hash test, the
    privacy-check rule, `ui/settings/html.js`, CLAUDE.md and ARCHITECTURE.md updated. No screen uses it yet.
 2. **Trial on one small screen: the header** (status, Copy OBS link, Update ready). It is small, already built for v2.0
    and well covered by tests. Before and after: the same `data-test` hooks pass the e2e suite, the screenshots match, and

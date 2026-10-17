@@ -12,5 +12,6 @@
     "baseUrl": ".",
     "paths": { "/overlay/*": ["./ui/overlay/*"] }
   },
-  "include": ["ui/**/*.js", "ui/globals.d.ts"]
+  "include": ["ui/**/*.js", "ui/globals.d.ts"],
+  "exclude": ["ui/settings/vendor/**", "ui/settings/html.js"]
 }

@@ -16,7 +16,7 @@ keystroke-overlay/
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes + their format check),
-│                       check-privacy.mjs, check-style.mjs, gen-layouts.mjs, preview.mjs (the overlay in a browser),
+│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
 │                       ui-sandbox.mjs + sandbox/ (the settings window in a browser, docs/DEBUGGING.md), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app
@@ -61,6 +61,8 @@ keystroke-overlay/
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
+        ├── html.js        Preact with htm for new screens (html.d.ts: its types); the libraries are copies in vendor/
+        ├── vendor/        Preact and htm, copied by tools/vendor.mjs, pinned and fingerprint-checked (never edit)
         ├── controls.js    CONTROLS: the table that draws every slider, colour picker and dropdown
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers

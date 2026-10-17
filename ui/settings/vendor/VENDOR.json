@@ -1,0 +1,32 @@
+[
+  {
+    "file": "preact.module.js",
+    "from": "preact@10.29.8/dist/preact.module.js",
+    "npmIntegrity": "sha512-ej2aVZ+vZ8WO7tvlQWRM9N63A0KzF9q4mWJfDUHgYaIofWY9hu74QdnQrjoPMmZi2/nZ5gN0bJCQF49xQqx09Q==",
+    "sha256": "25a5df7e9f628a587743c4641a368737a3b218f28ef738ba0376a2d5bdfc948c"
+  },
+  {
+    "file": "hooks.module.js",
+    "from": "preact@10.29.8/hooks/dist/hooks.module.js",
+    "npmIntegrity": "sha512-ej2aVZ+vZ8WO7tvlQWRM9N63A0KzF9q4mWJfDUHgYaIofWY9hu74QdnQrjoPMmZi2/nZ5gN0bJCQF49xQqx09Q==",
+    "sha256": "9e7eff58e0ae604583461eba1344da69a6894eab575eb591c635cc0d3f9ec57d"
+  },
+  {
+    "file": "preact.LICENSE.txt",
+    "from": "preact@10.29.8/LICENSE",
+    "npmIntegrity": "sha512-ej2aVZ+vZ8WO7tvlQWRM9N63A0KzF9q4mWJfDUHgYaIofWY9hu74QdnQrjoPMmZi2/nZ5gN0bJCQF49xQqx09Q==",
+    "sha256": "1fe6958409c8c257a70c587a18b6f7f412b179b456630790d30b2ec9a8e4b7d4"
+  },
+  {
+    "file": "htm.module.js",
+    "from": "htm@3.1.1/dist/htm.module.js",
+    "npmIntegrity": "sha512-983Vyg8NwUE7JkZ6NmOqpCZ+sh1bKv2iYTlUkzlWmA5JD2acKoxd4KVxbMmxX/85mtfdnDmTFoNKcg5DGAvxNQ==",
+    "sha256": "ab33dd3f38059b9be4d5f5350128eefb2356639c4e0bbe9d9e8b3ba75847e9e4"
+  },
+  {
+    "file": "htm.LICENSE.txt",
+    "from": "htm@3.1.1/LICENSE",
+    "npmIntegrity": "sha512-983Vyg8NwUE7JkZ6NmOqpCZ+sh1bKv2iYTlUkzlWmA5JD2acKoxd4KVxbMmxX/85mtfdnDmTFoNKcg5DGAvxNQ==",
+    "sha256": "740725f7252e750af735d0028cc534970772f513331e9f68150fede8fb3ce00f"
+  }
+]
