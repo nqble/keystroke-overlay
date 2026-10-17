@@ -114,6 +114,7 @@ addEventListener('message', (messageEvent) => {
   // only these tabs use the lists
   else if (message.type === 'registry') {
     setRegistry(message);
+    forgetPages(tab); // pages built before the lists arrived (Style, Animation) must be built again
     if (booted && (tab === 'style' || tab === 'animation')) render();
   } else if (message.type === 'size') {
     setSize(message);

@@ -61,9 +61,11 @@ let debugTab = null;
 // nothing has changed in between. Anything that changes the settings throws them away (render() and changed() do it).
 const keptPages = new Map();
 const scrollOf = new Map(); // where each tab was scrolled to when you left it
+let generation = 0; // goes up every time the kept pages are thrown away, so a page built meanwhile is not kept
 
 /** Throw away the kept pages, except the one named (the tab being used: it already shows the change). */
 export function forgetPages(except = null) {
+  generation += 1;
   for (const id of [...keptPages.keys()]) if (id !== except) keptPages.delete(id);
 }
 
@@ -84,11 +86,37 @@ async function draw(reuse) {
   const entry = tabs.find((t) => t.id === tab);
   let content = keptPages.get(tab);
   if (!content) {
+    const builtAt = generation;
     content = await entry.render();
-    if (entry.keep) keptPages.set(tab, content);
+    if (entry.keep && builtAt === generation) keptPages.set(tab, content);
   }
   pane.replaceChildren(content);
   pane.scrollTop = scroll;
+}
+
+/**
+ * Build the other tabs' pages while the window is idle, one at a time, so the first visit to each is instant too. A page
+ * built before a change is dropped (see `generation`), and nothing is built while a popup is open.
+ */
+function preloadTabs() {
+  const idle = window.requestIdleCallback ?? ((run) => setTimeout(run, 200));
+  const next = (queue) => {
+    const entry = queue.shift();
+    if (!entry) return;
+    idle(async () => {
+      const builtAt = generation;
+      if (!keptPages.has(entry.id) && entry.id !== tab && builtAt === generation) {
+        try {
+          const page = await entry.render();
+          if (builtAt === generation) keptPages.set(entry.id, page);
+        } catch {
+          /* it is built again when the tab is opened */
+        }
+      }
+      next(queue);
+    });
+  };
+  next(TABS.filter((entry) => entry.keep));
 }
 
 /** Redraw the active tab after something changed. */
@@ -140,6 +168,7 @@ addEventListener('resize', () => {
   }
   setBooted(true);
   await render();
+  preloadTabs();
   window.__uiReady = performance.timeOrigin + performance.now(); // read by the performance tests
   if (!state.serverError)
     requestAnimationFrame(() => {
