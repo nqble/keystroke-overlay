@@ -1,7 +1,7 @@
 // The helper that generates the built-in layout JSON files (then run Prettier on them: npm run format). You don't need
-// it to add a layout: just drop a .json file in ui/overlay/layouts/ (see README). A built-in layout that a new install
-// doesn't show also needs its id in the Layout tab's library (ui/settings/layout-order.js); tests/ui/layouts.test.mjs
-// checks every file. Run: node tools/gen-layouts.mjs
+// it to add a layout: just drop a .json file in ui/overlay/layouts/ (see README). A built-in layout that isn't in
+// DEFAULT_ORDER (src-tauri/src/layout_order.rs) shows up in "Other layouts" by itself; tests/ui/layouts.test.mjs checks
+// every file. Run: node tools/gen-layouts.mjs
 import { writeFileSync } from 'node:fs';
 
 const K = (code, label, x, y, w = 1, h = 1) => ({ code, label, x, y, ...(w !== 1 && { w }), ...(h !== 1 && { h }) });

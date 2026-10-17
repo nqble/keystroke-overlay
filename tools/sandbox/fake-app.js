@@ -47,6 +47,7 @@
   ]);
   let settings = null;
   const presets = {};
+  let ownLayouts = [];
   let paused = !!chosen.paused;
   const log = [[0, 'sandbox started: nothing here is real']];
 
@@ -72,7 +73,17 @@
 
   const COMMANDS = {
     get_state: getState,
-    list_layouts: async () => (await loaded)[1],
+    list_layouts: async () => [...(await loaded)[1], ...ownLayouts],
+    // your own layouts live in memory for the visit too, so making and deleting one can be tried
+    create_layout: async ({ name }) => {
+      const full = (await loaded)[1].find((layout) => layout.id === 'full');
+      const id = `user-${ownLayouts.length + 1}-${Date.now()}`;
+      ownLayouts.push({ ...structuredClone(full), id, name: name.trim() || 'My layout', user: true });
+      return id;
+    },
+    delete_layout: ({ id }) => {
+      ownLayouts = ownLayouts.filter((layout) => layout.id !== id);
+    },
     list_fonts: () => [],
     // presets live in memory for the visit, so saving, loading and deleting can be tried
     list_presets: () => Object.keys(presets),

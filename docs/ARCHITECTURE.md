@@ -68,7 +68,9 @@ keystroke-overlay/
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
         ├── dialogs.js     New layout and Reset all settings, built on popup.js
-        ├── menu.js        the layout cards' small menu; no browser right-click menu, no dragging
+        ├── other-layouts.js  "Other layouts" in the New layout popup: built-in layouts not on the Layout tab
+        ├── layout-order.js  which layouts the Layout tab shows and in what order; moving and dropping (tested)
+        ├── menu.js        the small "⋯" and right-click menus; no browser right-click menu, no dragging except layout cards
         ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
         ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup
         ├── update-popup.js  the update button, its popup and the download progress
@@ -82,7 +84,7 @@ keystroke-overlay/
         ├── text.js        the longer explanations the user reads
         ├── debug/         the optional Debug tab, one file per tool; index.js draws it (docs/DEBUGGING.md)
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
-        └── tabs/          one file per tab (layout, keys, style, animation, general; style-*.js and general-*.js are
+        └── tabs/          one file per tab (layout, keys, style, animation, general; layout-card.js, style-*.js and general-*.js are
                            parts of those); index.js lists them in order
             The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
             drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),

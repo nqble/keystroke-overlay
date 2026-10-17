@@ -300,3 +300,73 @@
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
+
+/* ---- Layout tab (tabs/layout.js): the mini keyboard picture, the card being dragged, and the line where it will land */
+.layout-picture {
+  display: block;
+  width: 100%;
+  height: 48px;
+}
+.layout-card .gallery-picture {
+  padding-right: var(--space-26); /* room for the card's "⋯" button */
+}
+.layout-picture rect {
+  fill: var(--color-key-line);
+}
+.layout-card.sel .layout-picture rect {
+  fill: var(--color-accent);
+}
+.layout-gallery {
+  position: relative;
+}
+.layout-item.dragging {
+  opacity: 0.35;
+}
+.layout-item.dragging .gallery-card {
+  border-style: dashed;
+}
+.drop-line {
+  position: absolute;
+  left: var(--drop-x);
+  top: var(--drop-top);
+  width: 2px;
+  height: var(--drop-height);
+  border-radius: 1px;
+  background: var(--color-accent);
+  /* centred in the gap between two cards (the .gallery gap) */
+  transform: translateX(calc(var(--space-12) / -2 - 1px));
+  pointer-events: none;
+}
+
+/* ---- Other layouts in the New layout popup (other-layouts.js): two columns, four rows tall, the rest scrolls */
+.other-layouts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+.other-layouts-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 52px;
+  gap: var(--space-8);
+  max-height: calc(4 * 52px + 3 * var(--space-8));
+  overflow-y: auto;
+}
+.other-layout {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  cursor: default;
+}
+.other-layout .gallery-picture {
+  flex: 0 0 56px;
+  margin: 0;
+}
+.other-layout .layout-picture {
+  height: 28px;
+}
+.other-layout .gallery-title {
+  flex: 1;
+  min-width: 0;
+}

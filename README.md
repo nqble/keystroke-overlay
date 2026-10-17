@@ -150,11 +150,14 @@ After an update, a **What's new** window shows the release notes once. You can r
 
 ## Make your own layout
 
-**In the app (easiest):** open the **Layout** tab and click the dashed **+** card. Give it a name and it starts as a copy of the
+**In the app (easiest):** open the **Layout** tab and click the dashed **+ New layout** card. Give it a name and it starts as a copy of the
 full-size keyboard. Then, in the **Keys** tab, hide the keys you don't want and relabel the ones you do. You can make up to **20**
-layouts (a counter shows how many you've used). To remove one, **right-click it and choose Delete layout**. Built-in layouts can't be deleted.
+layouts (a counter shows how many you've used). To remove one, open its **⋯** menu (or right-click it) and choose **Delete…**.
+Built-in layouts can be hidden the same way (**Hide**) and brought back from **Other layouts** in the New layout popup, which
+also has more keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad). Drag the cards, or press **Alt+←** / **Alt+→**, to put
+them in the order you like; the tray menu uses the same order.
 
-**Share layouts:** in the Layout tab, **Export layouts** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import layouts** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (a number is added to the name instead), and they count toward the 20-layout limit.
+**Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (a number is added to the name instead), and they count toward the 20-layout limit.
 
 **By hand (for full control):** a layout is a single JSON file. Put it in the app's `layouts` folder (**General → App → Open data folder → layouts**) and restart the app.
 

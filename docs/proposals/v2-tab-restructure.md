@@ -1,6 +1,6 @@
 # Plan: v2.0 tab restructure (approved by Jordan, from the Advisory Session)
 
-Status: Approved, not started. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
+Status: Approved; steps 1–9 done, 10 next. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
 lifecycle, `docs/proposals/ui-foundation.md` and `loading-and-lifetime.md` §A). Starts after that lands on v1.4.0-dev
 and is merged into `advisor/v2.0`, so the two never edit the same files at once.
 
@@ -40,8 +40,8 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 7. ~~**feat: General in section cards**, OBS link card, Advanced.~~ Done (Preact, `tabs/general*.js`).
 8. ~~**feat: Style with Fonts merged in**, theme gallery, preset cards.~~ Done (Preact, `tabs/style*.js`). The Fonts tab is removed (nothing opens it by
    name today, so no redirect is needed).
-9. **feat: Layout cards** with mini pictures and the "⋯" menu, drag to reorder, Hide for built-in layouts, and the
-   ready-made library in New layout (ui-design-v2.md, Layouts). The new
+9. ~~**feat: Layout cards** with mini pictures and the "⋯" menu, drag to reorder, Hide for built-in layouts, and the
+   ready-made library in New layout (ui-design-v2.md, Layouts).~~ Done (Preact, `tabs/layout*.js`, `layout-order.js`). The new
    `layout.order` setting gets its default in `settings.rs`, a sanitizer rule (known ids only, no duplicates) and tests,
    and Reset restores it. The eight new layout files (96%, 75%, 65%, 60%, Arrows, Numpad, Full ISO, TKL ISO) come first,
    each with the existing layout tests.

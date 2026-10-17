@@ -78,5 +78,8 @@ addEventListener('keydown', (e) => {
   if (e.key === 'Escape') hideMenu();
 });
 
-// nothing in this window can be dragged away
-addEventListener('dragstart', (e) => e.preventDefault());
+// nothing in this window can be dragged away (text, pictures, links), except what is made to be dragged: the layout
+// cards (tabs/layout-card.js), which only move within the window
+addEventListener('dragstart', (e) => {
+  if (!(e.target instanceof Element && e.target.closest('[draggable="true"]'))) e.preventDefault();
+});

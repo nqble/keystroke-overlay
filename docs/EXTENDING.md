@@ -4,9 +4,10 @@ The easy ways to add something, smallest first. None needs a build step. Why cus
 and not a general plugin system: [decision 0006](decisions/0006-layouts-themes-animations-are-data-files.md).
 
 ## 1. A layout
-**In the app:** Layout tab → the dashed **+** card → name it. It starts as the full-size keyboard; hide the keys you don't
+**In the app:** Layout tab → the dashed **+ New layout** card → name it. It starts as the full-size keyboard; hide the keys you don't
 want in the Keys tab. **By hand:** write a JSON file; format in [FILE-FORMATS.md](FILE-FORMATS.md). To ship it with the
-app, put it in `ui/overlay/layouts/`.
+app, put it in `ui/overlay/layouts/`: it appears in the New layout popup's "Other layouts" by itself. To show it on
+new installs, add its id to `DEFAULT_ORDER` in `src-tauri/src/layout_order.rs`.
 
 ## 2. A theme
 A theme is a named bundle of style values and an animation. Create `ui/overlay/themes/my-theme.js`:

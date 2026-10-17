@@ -1,22 +1,22 @@
 // =====================================================================================================================
-//  The small dialogs built on popup.js: New layout (with the 20-layout limit) and Reset all settings.
+//  The small dialogs built on popup.js: New layout (with the 20-layout limit and Other layouts) and Reset all settings.
 // =====================================================================================================================
 import { $, call, el, invoke, toast } from './helpers.js';
+import { html, render as drawPreact } from './html.js';
+import { otherLayouts, shownLayouts } from './layout-order.js';
+import { OtherLayouts } from './other-layouts.js';
 import { dialog } from './popup.js';
-import { frame, previewSrc, updateObs } from './preview.js';
+import { changed, frame, previewSrc, updateObs } from './preview.js';
 import { render } from './settings.js';
 import { MAX_LAYOUTS, settings, layouts, setLayouts, setObsUrl, setSelectedKey, setTab } from './state.js';
 import { TEXT } from './text.js';
 
+/**
+ * New layout: a name for a layout of your own (unless you have MAX_LAYOUTS already), and below it "Other layouts", the
+ * built-in ones not on the Layout tab, each with an Add button that puts it back at the end (layout-order.js).
+ */
 export function addLayoutDialog() {
-  if (layouts.filter((l) => l.user).length >= MAX_LAYOUTS) {
-    dialog({
-      title: 'Max layouts reached',
-      body: [el('p', { textContent: TEXT.layoutLimitReached(MAX_LAYOUTS) })],
-      buttons: [{ label: 'OK', test: 'dialog-ok', primary: true }],
-    });
-    return;
-  }
+  const full = layouts.filter((l) => l.user).length >= MAX_LAYOUTS;
   const nameInput = el('input', {
     type: 'text',
     placeholder: 'Layout name',
@@ -38,15 +38,31 @@ export function addLayoutDialog() {
       return false;
     }
   };
-  dialog({
+  const library = el('div');
+  const close = dialog({
     title: 'New layout',
-    body: [el('p', { textContent: TEXT.newLayoutHelp }), nameInput],
-    buttons: [
-      { label: 'Cancel', test: 'dialog-cancel' },
-      { label: 'Create', test: 'dialog-create', primary: true, run: create },
+    body: [
+      el('p', { textContent: full ? TEXT.layoutLimitReached(MAX_LAYOUTS) : TEXT.newLayoutHelp }),
+      ...(full ? [] : [nameInput]),
+      library,
     ],
+    buttons: full
+      ? [{ label: 'OK', test: 'dialog-ok', primary: true }]
+      : [
+          { label: 'Cancel', test: 'dialog-cancel' },
+          { label: 'Create', test: 'dialog-create', primary: true, run: create },
+        ],
   });
-  nameInput.focus();
+  const addBuiltIn = (id) => {
+    settings.layout.order = [...shownLayouts(layouts, settings.layout.order).map((l) => l.id), id];
+    close();
+    changed(true);
+  };
+  drawPreact(
+    html`<${OtherLayouts} choices=${otherLayouts(layouts, settings.layout.order)} onAdd=${addBuiltIn} />`,
+    library,
+  );
+  if (!full) nameInput.focus();
 }
 
 export function resetDialog() {

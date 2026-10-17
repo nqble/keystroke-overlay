@@ -109,7 +109,11 @@ Rules:
 | `dialog-ok`, `dialog-cancel`, `dialog-create`, `dialog-reset-confirm`, `dialog-layout-name` | Buttons and the name box inside dialogs |
 | `context-menu`, `context-menu-item` | The right-click menu and its entries |
 | `layout-card` + `data-layout-id` | One layout card |
-| `layout-add` | The dashed "+" card |
+| `layout-add` | The dashed "+ New layout" card |
+| `layout-cards`, `layout-count` | The Layout tab's card grid, and its "Your layouts: N / 20" counter |
+| `layout-menu` | A layout card's "⋯" button |
+| `other-layouts-toggle`, `other-layouts`, `other-layout-add` | New layout popup: the "Other layouts" toggle, its list, one card's Add |
+| `dialog-delete` | The Delete button of the "Delete …?" popup |
 | `layout-import`, `layout-export`, `style-import`, `style-export` | The Import / Export buttons of the Layout and Style tabs |
 | `keymap`, `keymap-canvas` | The keyboard picture and the area inside it that draws the grid |
 | `key-cell` + `data-code` | One key on the picture |

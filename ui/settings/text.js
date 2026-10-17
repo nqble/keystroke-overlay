@@ -8,7 +8,6 @@ export const TEXT = {
   resetBodyWhatChanges: 'Every option goes back to its default. Your layouts, presets, fonts and port are kept.',
   resetBodyLinkNote: 'If the secure link was on, copy the OBS link into OBS again.',
   manualInstallDialog: 'Install this one by hand: get the installer from GitHub, close this app, run it.',
-  layoutTabHelp: 'Pick a keyboard, or make your own with +.',
   keysTabHelp: 'Click a key to edit it. Drag to move. Drag a box to select several. Saved automatically.',
   nothingSelected: 'No keys selected',
   shortcutsHint:

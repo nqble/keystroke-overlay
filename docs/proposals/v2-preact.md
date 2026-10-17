@@ -1,6 +1,6 @@
 # Plan: Preact + htm for the settings window (v2.0)
 
-Status: **approved by Jordan (2026-10-17); steps 1–3 done (Jordan approved the header trial); step 4 next**, on `advisor/v2.0`. It is
+Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: Debug, General, Style and Layout done, Animation next**, on `advisor/v2.0`. It is
 v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor/` because the window only serves
 `ui/settings/`.
 

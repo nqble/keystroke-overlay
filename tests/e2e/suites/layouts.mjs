@@ -1,4 +1,4 @@
-// Suite: making and deleting layouts, the custom right-click menu, and "only inputs are selectable".
+// Suite: making, deleting, hiding and moving layouts, the custom right-click menu, and "only inputs are selectable".
 import { connect, byTest, check, finish, sleep, PORT } from '../lib/cdp.mjs';
 
 const p = await connect();
@@ -29,23 +29,79 @@ check(
     `(() => { const e = new MouseEvent('contextmenu', { bubbles: true, cancelable: true }); document.querySelector('${byTest('pane')}').dispatchEvent(e); return e.defaultPrevented && !document.querySelector('${byTest('context-menu')}'); })()`,
   ),
 );
-// ---- built-in layout: disabled explanation
+// ---- built-in layout: move and hide
+const menuLabels = () =>
+  p.q(
+    `[...document.querySelectorAll('${byTest('context-menu-item')}')].map((b) => b.textContent + (b.disabled ? ' (off)' : '')).join()`,
+  );
 await rightClick(byTest('layout-card'));
 check(
-  'right-click on a built-in layout offers only a disabled "can’t be deleted" note',
-  await p.q(
-    `(() => { const b = document.querySelectorAll('${byTest('context-menu-item')}'); return b.length === 1 && b[0].disabled && /Built-in/.test(b[0].textContent); })()`,
-  ),
+  'right-click on the first built-in layout offers Move left (off), Move right and Hide',
+  (await menuLabels()) === 'Move left (off),Move right,Hide',
+  await menuLabels(),
 );
 await p.ev(`document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))`);
 check('clicking elsewhere closes the menu', await p.q(`!document.querySelector('${byTest('context-menu')}')`));
 // ---- the dashed + card and the popup
 check(
-  'a dashed "+" card comes last, with a 0/20 counter, and the old hint text is gone',
+  'a dashed "+ New layout" card comes last, the heading counts 0 / 20, and the old hint text is gone',
   await p.q(
-    `(() => { const a = document.querySelector('${byTest('layout-add')}'); return a.parentElement.lastElementChild === a && getComputedStyle(a).borderTopStyle === 'dashed' && a.innerText.includes('0/20') && !document.querySelector('.previewHint'); })()`,
+    `(() => { const a = document.querySelector('${byTest('layout-add')}'); return a.parentElement.lastElementChild === a && getComputedStyle(a).borderTopStyle === 'dashed' && document.querySelector('${byTest('layout-count')}').textContent === 'Your layouts: 0 / 20' && !document.querySelector('.previewHint'); })()`,
   ),
 );
+// ---- Alt+→ moves a card, and the order is saved
+await p.ev(`${cardOf('full')}.focus()`);
+await p.send('Input.dispatchKeyEvent', {
+  type: 'rawKeyDown',
+  key: 'ArrowRight',
+  code: 'ArrowRight',
+  windowsVirtualKeyCode: 39,
+  modifiers: 1,
+});
+await p.send('Input.dispatchKeyEvent', {
+  type: 'keyUp',
+  key: 'ArrowRight',
+  code: 'ArrowRight',
+  windowsVirtualKeyCode: 39,
+  modifiers: 1,
+});
+await sleep(1200);
+const moved = (await p.invoke('get_state')).ok.settings.layout.order;
+check(
+  'Alt+→ moves Full size one place right, saves the order and keeps focus on it',
+  moved.slice(0, 2).join() === 'tkl,full' && (await p.q(`document.activeElement === ${cardOf('full')}`)),
+  moved.join(),
+);
+// ---- Hide a built-in, then add it back from Other layouts
+await rightClick(`[data-test="layout-card"][data-layout-id="gameplay"]`);
+await p.ev(
+  `[...document.querySelectorAll('${byTest('context-menu-item')}')].find((b) => b.textContent === 'Hide').click()`,
+);
+await sleep(1200);
+check('Hide takes the card off the tab', !(await p.q(`!!${cardOf('gameplay')}`)));
+await p.ev(`document.querySelector('${byTest('layout-add')}').click()`);
+await sleep(300);
+await p.ev(`document.querySelector('${byTest('other-layouts-toggle')}').click()`);
+await sleep(300);
+await p.ev(
+  `document.querySelector('[data-test="other-layouts"] [data-layout-id="gameplay"] ${byTest('other-layout-add')}').click()`,
+);
+await sleep(1200);
+const back = (await p.invoke('get_state')).ok.settings.layout.order;
+check(
+  'Other layouts → Add puts it back at the end',
+  back[back.length - 1] === 'gameplay' && (await p.q(`!!${cardOf('gameplay')}`)),
+  back.join(),
+);
+await p.invoke('save_settings', {
+  settings: {
+    ...(await p.invoke('get_state')).ok.settings,
+    layout: { ...(await p.invoke('get_state')).ok.settings.layout, order: ['full', 'tkl', 'gameplay', 'wasd'] },
+  },
+});
+await p.ev(`await __ko.resync()`);
+await tab('layout');
+await sleep(400);
 const before = (await api()).length;
 await p.ev(`document.querySelector('${byTest('layout-add')}').click()`);
 await sleep(300);
@@ -81,18 +137,37 @@ await p.ev(
   `${cardOf(mine.id)}.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 300, clientY: 400 }))`,
 );
 check(
-  'right-click on a user layout shows just "Delete layout"',
-  await p.q(
-    `(() => { const b = document.querySelectorAll('${byTest('context-menu-item')}'); return b.length === 1 && b[0].textContent === 'Delete layout' && !b[0].disabled; })()`,
-  ),
+  'right-click on your own (last) layout offers Move left, Move right (off) and Delete…',
+  (await menuLabels()) === 'Move left,Move right (off),Delete…',
+  await menuLabels(),
 );
-await p.ev(`document.querySelector('${byTest('context-menu-item')}').click()`);
+await p.ev(
+  `[...document.querySelectorAll('${byTest('context-menu-item')}')].find((b) => b.textContent === 'Delete…').click()`,
+);
+await sleep(300);
+check(
+  'Delete… asks first, and Cancel keeps the layout',
+  await p.q(`document.querySelector('${byTest('dialog-title')}').textContent === 'Delete My Board?'`),
+);
+await p.ev(`document.querySelector('${byTest('dialog-cancel')}').click()`);
+await sleep(800);
+check(
+  '…the layout is still there',
+  (await api()).some((l) => l.name === 'My Board'),
+);
+await rightClick(`[data-test="layout-card"][data-layout-id="${mine.id}"]`);
+await p.ev(
+  `[...document.querySelectorAll('${byTest('context-menu-item')}')].find((b) => b.textContent === 'Delete…').click()`,
+);
+await sleep(300);
+await p.ev(`document.querySelector('${byTest('dialog-delete')}').click()`);
 await sleep(1200);
 const gone = await api();
 const st2 = (await p.invoke('get_state')).ok;
 check(
-  'delete removes it, the selection falls back to a built-in, the card disappears',
-  !gone.some((l) => l.name === 'My Board') && st2.settings.layout.id === 'tkl' && !(await p.q(`!!${cardOf(mine.id)}`)),
+  'Delete removes it, the selection moves to the first card, the card disappears',
+  !gone.some((l) => l.name === 'My Board') && st2.settings.layout.id === 'full' && !(await p.q(`!!${cardOf(mine.id)}`)),
+  st2.settings.layout.id,
 );
 // ---- the keyboard works on layout cards and the delete menu
 const pressKey = async (key, code, windowsVirtualKeyCode) => {
@@ -137,10 +212,15 @@ await p.ev(
   `const box = ${boardCard}.getBoundingClientRect(); ${boardCard}.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + 20, clientY: box.top + 20 }))`,
 );
 await sleep(300);
+// the card is last, so its menu is Move left, Move right (off), Delete…: one step down skips the greyed-out item
+await pressKey('ArrowDown', 'ArrowDown', 40);
+await pressKey('Enter', 'Enter', 13);
+await sleep(300);
+await p.ev(`document.querySelector('${byTest('dialog-delete')}').focus()`);
 await pressKey('Enter', 'Enter', 13);
 await sleep(1200);
 check(
-  'Enter on "Delete layout" deletes it, without touching the mouse',
+  'Delete… then Enter deletes it, without touching the mouse',
   !(await api()).some((l) => l.name === 'Keyboard Test') && !(await p.q(`!!${boardCard}`)),
 );
 
@@ -195,14 +275,16 @@ for (let i = 0; i < 20; i++) await p.invoke('create_layout', { name: 'Fill ' + i
 await tab('layout');
 await sleep(400);
 check(
-  'the counter reads 20/20',
-  await p.q(`document.querySelector('${byTest('layout-add')}').innerText.includes('20/20')`),
+  'the counter reads 20 / 20',
+  await p.q(`document.querySelector('${byTest('layout-count')}').textContent === 'Your layouts: 20 / 20'`),
 );
 await p.ev(`document.querySelector('${byTest('layout-add')}').click()`);
 await sleep(300);
 check(
-  'at the limit, + shows a "Max layouts reached" popup',
-  await p.q(`document.querySelector('${byTest('dialog-title')}').textContent === 'Max layouts reached'`),
+  'at the limit, New layout says so instead of asking for a name (built-ins can still be added)',
+  await p.q(
+    `/the most the app keeps/.test(document.querySelector('${byTest('dialog')}').textContent) && !document.querySelector('${byTest('dialog-layout-name')}')`,
+  ),
 );
 check(
   'the backend refuses a 21st layout too',
