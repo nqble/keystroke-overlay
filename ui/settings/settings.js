@@ -47,10 +47,7 @@ import { TABS, isTab } from './tabs/index.js';
 // ---------------------------------------------------------------------------------------------------------------------
 /** One button in the tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
 function tabButton(id, name) {
-  const onclick = () => {
-    setTab(id);
-    render();
-  };
+  const onclick = () => switchTo(id);
   const tabItem = button(name, onclick, id === tab ? 'active' : '', 'tab');
   tabItem.dataset.tab = id;
   if (id === tab) tabItem.setAttribute('aria-current', 'page'); // tells screen readers which tab is open
@@ -60,18 +57,48 @@ function tabButton(id, name) {
 // The Debug tab (ui/settings/debug.js) only exists in Debug mode, so its code is only loaded then (the first time it is needed).
 let debugTab = null;
 
-/** Redraw the tab bar and the active tab, keeping the scroll position. */
-export async function render() {
+// Pages built earlier, by tab id, for the tabs marked `keep` in tabs/index.js. They are reused when you come back to a tab and
+// nothing has changed in between. Anything that changes the settings throws them away (render() and changed() do it).
+const keptPages = new Map();
+const scrollOf = new Map(); // where each tab was scrolled to when you left it
+
+/** Throw away the kept pages, except the one named (the tab being used: it already shows the change). */
+export function forgetPages(except = null) {
+  for (const id of [...keptPages.keys()]) if (id !== except) keptPages.delete(id);
+}
+
+/**
+ * Draw the tab bar and the active tab.
+ *   reuse  show the kept page if there is one, instead of building the tab again (used when only switching tabs)
+ * Without `reuse` this is a redraw after a change: the kept pages are dropped and the scroll position stays where it was.
+ */
+async function draw(reuse) {
   const debugOn = !!settings?.general?.debugMode;
   if (debugOn && !debugTab) debugTab = (await import('./debug.js')).debugTab;
   if (tab === 'debug' && !debugOn) setTab('general');
   const tabs = debugOn ? [...TABS, { id: 'debug', ...debugTab }] : TABS;
   $('#tabs').replaceChildren(...tabs.map(({ id, name }) => tabButton(id, name)));
-  const pane = $('#pane'),
-    scroll = pane.scrollTop;
-  const content = await tabs.find((t) => t.id === tab).render();
+  const pane = $('#pane');
+  const scroll = reuse ? (scrollOf.get(tab) ?? 0) : pane.scrollTop;
+  if (!reuse) forgetPages();
+  const entry = tabs.find((t) => t.id === tab);
+  let content = keptPages.get(tab);
+  if (!content) {
+    content = await entry.render();
+    if (entry.keep) keptPages.set(tab, content);
+  }
   pane.replaceChildren(content);
   pane.scrollTop = scroll;
+}
+
+/** Redraw the active tab after something changed. */
+export const render = () => draw(false);
+
+/** Open another tab (reusing its page when nothing has changed since it was built). */
+function switchTo(id) {
+  scrollOf.set(tab, $('#pane').scrollTop);
+  setTab(id);
+  return draw(true);
 }
 
 // When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to

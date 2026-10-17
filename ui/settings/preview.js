@@ -2,7 +2,7 @@
 //  Saving a change, the live preview, and the OBS link / address bar.
 // =====================================================================================================================
 import { $, call, invoke, toast } from './helpers.js';
-import { render } from './settings.js';
+import { forgetPages, render } from './settings.js';
 import { settings, booted, obsUrl, setRegistry, setSize, size, tab } from './state.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ export function push() {
  *   immediate  save now instead of waiting 150 ms (switches and toggles); sliders and typing wait so they batch up
  */
 export function changed(rebuildUi = false, immediate = false) {
+  forgetPages(tab); // the other tabs may show this setting: build them again when they are opened
   push();
   clearTimeout(saveTimer);
   const save = () => {
