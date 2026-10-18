@@ -23,14 +23,15 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { connect, check, finish, sleep } from '../e2e/lib/cdp.mjs';
 import { acquire } from '../lib/lock.mjs';
+import { APP } from '../../tools/app-config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)),
   ROOT = resolve(HERE, '../..');
 const keep = process.argv.includes('--keep');
 const WORK = process.env.INSTALL_WORK ?? join(tmpdir(), 'keyoverlay-install-test');
 const INSTALL = join(WORK, 'installed');
-const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
-const EXE = join(INSTALL, 'kotest-install.exe');
+const DATA = join(process.env.APPDATA, APP.identifiers.test);
+const EXE = join(INSTALL, `${APP.testApps.installExe}.exe`);
 const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
 // The previous release to upgrade FROM. Default v1.1.2. To test the newest published release:
 // INSTALL_OLD=v1.2.0:9016efe:1.2.0  (name:commit:version)
@@ -38,21 +39,21 @@ const [oName, oRef, oVer] = (process.env.INSTALL_OLD ?? 'v1.1.2:45456a9:1.1.2').
 const OLD = { name: oName, ref: oRef, version: oVer };
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const uninstallEntries = () =>
-  spawnSync('reg', ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall', '/s', '/f', 'KOTest'], {
+  spawnSync('reg', ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall', '/s', '/f', APP.testApps.installProduct], {
     encoding: 'utf8',
   })
     .stdout.split('\n')
-    .filter((l) => /KOTest/.test(l)).length;
+    .filter((l) => l.includes(APP.testApps.installProduct)).length;
 // only our uniquely named test exe
 const killTest = () =>
   spawnSync(
     'powershell.exe',
-    ['-NoProfile', '-Command', 'Stop-Process -Name kotest-install -Force -ErrorAction SilentlyContinue'],
+    ['-NoProfile', '-Command', `Stop-Process -Name ${APP.testApps.installExe} -Force -ErrorAction SilentlyContinue`],
     { stdio: 'ignore' },
   );
 const alive = () =>
   execSync(
-    'powershell.exe -NoProfile -Command "@(Get-Process -Name kotest-install -ErrorAction SilentlyContinue).Count"',
+    `powershell.exe -NoProfile -Command "@(Get-Process -Name ${APP.testApps.installExe} -ErrorAction SilentlyContinue).Count"`,
   )
     .toString()
     .trim() !== '0';
@@ -82,9 +83,9 @@ async function build(label, ref, version) {
   writeFileSync(
     cfg,
     JSON.stringify({
-      identifier: 'com.keyoverlay.test',
-      productName: 'KOTest',
-      mainBinaryName: 'kotest-install',
+      identifier: APP.identifiers.test,
+      productName: APP.testApps.installProduct,
+      mainBinaryName: APP.testApps.installExe,
       bundle: { createUpdaterArtifacts: false },
     }),
   );

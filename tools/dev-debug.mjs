@@ -10,8 +10,9 @@
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { APP } from './app-config.mjs';
 
-const DEV_ID = 'com.keyoverlay.dev';
+const DEV_ID = APP.identifiers.dev;
 const DEV_PORT = 7880;
 const dataDir = join(process.env.APPDATA ?? '', DEV_ID);
 const settingsFile = join(dataDir, 'settings.json');

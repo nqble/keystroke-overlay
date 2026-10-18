@@ -1,0 +1,22 @@
+{
+  "_about": "The values that belong to THIS app. The tools and tests read them from here; the program reads the same ones from src-tauri/src/app_info.rs and tauri.conf.json. `npm run check:config` makes sure all of them agree. To make another program from this code, change them here first.",
+  "name": "Keystroke Overlay",
+  "repo": "nqble/keystroke-overlay",
+  "identifiers": {
+    "app": "com.keyoverlay.app",
+    "test": "com.keyoverlay.test",
+    "devbuild": "com.keyoverlay.devbuild",
+    "dev": "com.keyoverlay.dev"
+  },
+  "testApps": {
+    "e2eExe": "kotest-e2e",
+    "installExe": "kotest-install",
+    "installProduct": "KOTest"
+  },
+  "devbuild": {
+    "binary": "keystroke-overlay-devbuild",
+    "productName": "Keystroke Overlay Devbuild"
+  },
+  "updaterKeyFolder": ".keystroke-overlay-keys",
+  "layoutsFileTag": "keystroke-overlay-layouts"
+}
