@@ -11,6 +11,7 @@ use super::keymap::TYPING_KEYS;
 use super::macos_keys::keycode_for;
 use std::collections::HashMap;
 use std::ffi::c_void;
+use std::sync::OnceLock;
 
 /// The layouts that print what the US layout files already say: the "U.S." layout and Apple's "ABC" layout.
 const US_LAYOUT_IDS: [&str; 2] = ["com.apple.keylayout.US", "com.apple.keylayout.ABC"];
@@ -26,8 +27,12 @@ const MAX_TYPED: usize = 4;
 /// The longest layout id we read (they are short, like "com.apple.keylayout.French").
 const ID_BUFFER: usize = 128;
 
+/// `CFNotificationSuspensionBehaviorDeliverImmediately`: tell us at once, not when the app next comes forward.
+const DELIVER_IMMEDIATELY: isize = 4;
+
 #[link(name = "Carbon", kind = "framework")]
 extern "C" {
+    static kTISNotifySelectedKeyboardInputSourceChanged: *const c_void;
     static kTISPropertyUnicodeKeyLayoutData: *const c_void;
     static kTISPropertyInputSourceID: *const c_void;
     fn TISCopyCurrentKeyboardLayoutInputSource() -> *const c_void;
@@ -53,6 +58,52 @@ extern "C" {
     fn CFDataGetBytePtr(data: *const c_void) -> *const u8;
     fn CFStringGetCString(string: *const c_void, buffer: *mut u8, buffer_size: isize, encoding: u32) -> u8;
     fn CFRelease(object: *const c_void);
+    fn CFNotificationCenterGetDistributedCenter() -> *const c_void;
+    #[allow(clippy::too_many_arguments)] // the shape of Apple's function
+    fn CFNotificationCenterAddObserver(
+        center: *const c_void,
+        observer: *const c_void,
+        callback: extern "C" fn(*const c_void, *mut c_void, *const c_void, *const c_void, *const c_void),
+        name: *const c_void,
+        object: *const c_void,
+        suspension_behavior: isize,
+    );
+}
+
+/// What to do when the person switches keyboard layout (set once by `watch`).
+static ON_LAYOUT_CHANGE: OnceLock<Box<dyn Fn() + Send + Sync>> = OnceLock::new();
+
+extern "C" fn layout_changed(
+    _center: *const c_void,
+    _observer: *mut c_void,
+    _name: *const c_void,
+    _object: *const c_void,
+    _info: *const c_void,
+) {
+    if let Some(on_change) = ON_LAYOUT_CHANGE.get() {
+        on_change();
+    }
+}
+
+/// Ask macOS to tell us whenever the person switches keyboard layout (the menu-bar input menu or a shortcut). It sends a
+/// system-wide notification, so nothing runs while the layout stays the same. Call it once, on the main thread, which
+/// is the thread whose run loop then delivers the notification.
+pub fn watch(on_change: Box<dyn Fn() + Send + Sync>) {
+    if ON_LAYOUT_CHANGE.set(on_change).is_err() {
+        return;
+    }
+    // SAFETY: the distributed centre is the system's own and lives for the whole run; the callback is a plain function
+    // that never unwinds; the notification name is the system's own constant string.
+    unsafe {
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDistributedCenter(),
+            std::ptr::null(),
+            layout_changed,
+            kTISNotifySelectedKeyboardInputSourceChanged,
+            std::ptr::null(),
+            DELIVER_IMMEDIATELY,
+        );
+    }
 }
 
 /// Is this layout id one that prints the same as the US layout files?
