@@ -110,7 +110,10 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   the real app (it came back with a new process id); the button itself is not clicked yet.
 - [x] Input Monitoring: the `.app` appears in the list as "Keystroke Overlay" with the keycap logo, and after granting and a
   restart keys are captured (checked on the M1).
-- [ ] Does the permission survive a rebuild (the open question below)?
+- [x] **Does the permission survive a rebuild?** On the M1 (macOS 26), yes for one rebuild: after a rebuild with a new
+  signature (the code hash changed, the identifier did not) keys were still captured without granting again. Oddly,
+  macOS's own check (`CGPreflightListenEventAccess`) answered "not allowed" for that rebuilt app, so the window's notice
+  now trusts whether capture is really running instead of that check. Not tested across several rebuilds or updates.
 - [ ] README: build-from-source steps for Mac.
 
 ## Things to double-check before relying on them
