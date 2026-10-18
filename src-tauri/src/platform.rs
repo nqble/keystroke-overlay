@@ -212,65 +212,46 @@ fn macos_resident_mb() -> f64 {
 }
 
 /// What each typing key (keyboard/keymap.rs, TYPING_KEYS) prints on the user's own keyboard, as labels for the
-/// overlay: {"KeyQ": "A", "Semicolon": "M", ...} on a French AZERTY keyboard. Empty for the US English keyboard (the
-/// layout files already say what it prints), on other systems, and if Windows can't tell. Reads the default keyboard
-/// in Windows' language settings once; it never looks at what is typed.
+/// overlay: {"KeyQ": "A", "Semicolon": "M", ...} on a French AZERTY keyboard. Empty for the US keyboard (the layout
+/// files already say what it prints) and if the system can't tell. Each system has its own file in keyboard/; none of
+/// them looks at what is typed.
 #[cfg(windows)]
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
-    use windows::Win32::UI::Input::KeyboardAndMouse::{MapVirtualKeyExW, ToUnicodeEx, HKL, MAPVK_VSC_TO_VK_EX};
-    use windows::Win32::UI::WindowsAndMessaging::{
-        SystemParametersInfoW, SPI_GETDEFAULTINPUTLANG, SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS,
-    };
-    /// The US English keyboard: language 0x0409 with layout 0x0409.
-    const US_ENGLISH: usize = 0x0409_0409;
-    /// ToUnicodeEx flag: don't change the keyboard state while asking (Windows 10 1607 and later).
-    const KEEP_KEYBOARD_STATE: u32 = 0x4;
-    let mut labels = std::collections::HashMap::new();
-    unsafe {
-        let mut keyboard = HKL(std::ptr::null_mut());
-        let found = SystemParametersInfoW(
-            SPI_GETDEFAULTINPUTLANG,
-            0,
-            Some(&mut keyboard as *mut HKL as *mut core::ffi::c_void),
-            SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS(0),
-        );
-        if found.is_err() || keyboard.0 as usize & 0xFFFF_FFFF == US_ENGLISH {
-            return labels;
-        }
-        let no_keys_held = [0u8; 256];
-        for &(code, scancode) in crate::keyboard::keymap::TYPING_KEYS {
-            let virtual_key = MapVirtualKeyExW(scancode, MAPVK_VSC_TO_VK_EX, Some(keyboard));
-            let mut typed = [0u16; 4];
-            let count = ToUnicodeEx(
-                virtual_key,
-                scancode,
-                &no_keys_held,
-                &mut typed,
-                KEEP_KEYBOARD_STATE,
-                Some(keyboard),
-            );
-            if let Some(label) = (count == 1).then(|| crate::key_labels::label_for(typed[0])).flatten() {
-                labels.insert(code, label);
-            }
-        }
-    }
-    labels
+    crate::keyboard::windows_labels::keyboard_labels()
 }
 #[cfg(target_os = "macos")]
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     crate::keyboard::macos_labels::keyboard_labels()
 }
-/// Call `on_change` (on the main thread) each time the person switches keyboard layout, so the key labels can follow
-/// live. macOS only, where the system sends a notification (no timer); elsewhere nothing happens and the labels are
-/// read once at start-up.
+/// Call `on_change` each time the keyboard layout may have changed, so the key labels can follow live, on a thread
+/// where `keyboard_labels` may be called (the main thread on a Mac). Each system tells the app itself (no timer): a
+/// notification on a Mac, XKB events on Linux, a window coming to the front on Windows. Elsewhere nothing happens and
+/// the labels are read once at start-up.
 pub fn watch_keyboard_layout(on_change: impl Fn() + Send + Sync + 'static) {
     #[cfg(target_os = "macos")]
     crate::keyboard::macos_labels::watch(Box::new(on_change));
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "linux")]
+    crate::keyboard::x11_labels::watch(Box::new(on_change));
+    #[cfg(windows)]
+    crate::keyboard::windows_labels::watch(Box::new(on_change));
+    #[cfg(not(any(target_os = "macos", target_os = "linux", windows)))]
     let _ = on_change;
 }
 
-#[cfg(not(any(windows, target_os = "macos")))]
+/// The keys whose release can end a layout switch inside one window, where the system doesn't announce it (Windows,
+/// keyboard/windows_labels.rs). Empty where the system does.
+pub fn layout_switch_keys() -> &'static [&'static str] {
+    #[cfg(windows)]
+    return crate::keyboard::windows_labels::SWITCH_KEYS;
+    #[cfg(not(windows))]
+    return &[];
+}
+
+#[cfg(target_os = "linux")]
+pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
+    crate::keyboard::x11_labels::keyboard_labels()
+}
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     std::collections::HashMap::new()
 }

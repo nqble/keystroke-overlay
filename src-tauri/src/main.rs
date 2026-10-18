@@ -117,6 +117,7 @@ fn main() {
                 auto_check_changed: tokio::sync::Notify::new(),
             });
 
+            key_labels::follow_switch_keys(app.handle()); // Windows: a layout switch inside one window
             state::forward_overlay_count(app.handle().clone(), &shared);
             tray::build(app, shared.clone())?;
             if let Err(problem) = hotkeys::apply(app.handle(), &shared.settings.read().unwrap()) {
