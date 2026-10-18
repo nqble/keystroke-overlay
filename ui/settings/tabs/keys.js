@@ -31,6 +31,7 @@ import {
 import { render } from '../settings.js';
 import { observe } from './keys-history.js';
 import { overlappingCodes } from './keys-board.js';
+import { systemWord } from '../system-words.js';
 import { macFnHintText } from './keys-mac.js';
 import { hideSelection, keysToolbar, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
 import { placeKeys } from '../editor/places.js';
@@ -81,7 +82,7 @@ function hintLine() {
   return el(
     'p',
     { className: 'keyhint', test: 'keys-shortcut-hint' },
-    el('span', { textContent: TEXT.dragHint }),
+    el('span', { textContent: systemWord('dragHint', platform) }),
     el(
       'span',
       { className: 'chips' },
@@ -89,7 +90,7 @@ function hintLine() {
       ' nudge · ',
       chip('Shift', 'Hold Shift with an arrow key to move a whole key'),
       ' whole key · ',
-      chip('Del', 'Delete or Backspace hides the selected keys'),
+      chip(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform)),
       ' hide · ',
       chip('Scroll', 'Scroll the mouse wheel over the keyboard to zoom'),
       ' zoom · ',
