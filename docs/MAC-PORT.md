@@ -114,7 +114,8 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   signature (the code hash changed, the identifier did not) keys were still captured without granting again. Oddly,
   macOS's own check (`CGPreflightListenEventAccess`) answered "not allowed" for that rebuilt app, so the window's notice
   now trusts whether capture is really running instead of that check. Not tested across several rebuilds or updates.
-- [ ] README: build-from-source steps for Mac.
+- [x] README: build-from-source steps for Mac (the "On a Mac" part of Building from source). Written from the commands run
+  on the M1; a clean-machine run of the steps is not done.
 
 ## Things to double-check before relying on them
 

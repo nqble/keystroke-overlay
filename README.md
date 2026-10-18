@@ -96,6 +96,8 @@ The full account, with ways to check every line yourself: [PRIVACY.md](PRIVACY.m
 
 ## Building from source
 
+### On Windows
+
 You need Windows 10/11, [Rust](https://rustup.rs) (MSVC toolchain) with Visual Studio Build Tools, and
 [Node.js](https://nodejs.org) 20+.
 
@@ -112,6 +114,40 @@ npm run test:e2e     # end-to-end tests (builds a throwaway copy, cleans up afte
 npm run test:install # clean install + upgrade + uninstall with real installers (throwaway identity)
 npm run build        # installer in src-tauri/target/release/bundle/nsis/
 ```
+
+### On a Mac (early: build it yourself)
+
+macOS support is in development, so there is no download yet; you build the app on your Mac. It is tested on an Apple
+Silicon MacBook Air (M1); Intel Macs are not tested. An app you build yourself is not blocked by macOS, so no signing
+or Apple account is needed.
+
+1. Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://rustup.rs) and
+   [Node.js](https://nodejs.org) 20+.
+2. Get the code and build the app:
+
+```bash
+git clone https://github.com/nqble/keystroke-overlay.git
+cd keystroke-overlay
+npm ci
+npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'
+```
+
+3. Open `src-tauri/target/release/bundle/macos/Keystroke Overlay.app` (drag it to Applications if you like). The update
+   signing key stays with the maintainer, which is why the build turns the updater files off.
+4. It lives in the menu bar (and in the Dock while its settings window is open). Open Settings from the menu-bar icon.
+   The first time, click **Allow keyboard access**, switch on Keystroke Overlay under System Settings → Privacy &
+   Security → Input Monitoring, come back and click **Restart now**. Then set up OBS as above.
+
+Good to know:
+
+- To try the code without building the app, `npm run dev` works too (macOS may then ask for Input Monitoring for the
+  program that started it, such as Terminal).
+- On a Mac laptop the F1 to F12 row only lights up while you hold **Fn**.
+- While a password field has focus, macOS blocks key capture on purpose, so passwords can never reach the overlay.
+- If the build stops with a linker error that says "malformed file" or "unknown architecture", your Command Line Tools
+  are older than your newest macOS SDK: update them in System Settings → Software Update, then build again.
+
+The plan, what has been tested on a real Mac and what has not: [docs/MAC-PORT.md](docs/MAC-PORT.md).
 
 Built with [Tauri](https://tauri.app) (Rust + WebView2), plain JavaScript with [Preact](https://preactjs.com) in the
 settings window, and the help of [Claude Code](https://claude.com/claude-code).
