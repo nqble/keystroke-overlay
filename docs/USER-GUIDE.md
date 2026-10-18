@@ -33,7 +33,7 @@ If you change the port in settings, update the URL in OBS too.
 
 These OBS settings make the biggest difference to how smooth the overlay looks and how little it costs while you stream:
 
-- **Size the source exactly** as shown in the app's header. To make the keys bigger or smaller, use **Style → Scale** in the app
+- **Size the source exactly** as shown in **General → Connection** (*Size in OBS*). To make the keys bigger or smaller, use **Style → Size → Overall scale** in the app
   instead of stretching the source in OBS: the keys stay sharp and OBS draws fewer pixels.
 - **Frame rate:** leave **Use custom frame rate** off; OBS then matches your stream's frame rate. Only turn it on to match a
   60 fps stream if OBS runs at a different rate.
@@ -56,7 +56,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Keystroke Overlay running on PC A as normal. Nothing to install or change on PC B except OBS.
 
 **Each time you stream**
-1. On PC A, open the app: **General → Secure link**, tick **Secure my OBS link**, and press **Copy secure link**. Keep this link private.
+1. On PC A, open the app: **General → Connection**, tick **Secure my OBS link**, and press **Copy secure link**. Keep this link private.
 2. On PC B, open a terminal and start the tunnel (use your Windows user name on PC A):
 
    ```
@@ -69,7 +69,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
    `http://localhost:7878/?key=…`.
 
 **Good to know**
-- **Keep both port numbers the same as the app's port** (**General → Port**, default 7878). The app only answers requests addressed to
+- **Keep both port numbers the same as the app's port** (**General → Connection → Port**, default 7878). The app only answers requests addressed to
   `localhost:<its port>`, so a different number on PC B would be refused.
 - **Keep the secure link on.** Without it, any program on either PC that can reach the port could read your key presses. With it, the
   stream and data are refused without the private key (`?key=…`), as described in [Secure link](#secure-link-optional). If you use **Make a new key**,
@@ -81,7 +81,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
   example with Tailscale access rules. **Pause overlay** still works, because the pause happens in the app on PC A.
 - **Fonts come from the computer that shows the overlay.** OBS draws the overlay with the fonts installed on PC B. If the
   font you picked isn't there, it falls back to Segoe UI, then to that computer's own system font (San Francisco on a
-  Mac). Pick a font both PCs have, or add a font file in **Style → Add font file**: the app hands its own fonts to OBS, so
+  Mac). Pick a font both PCs have, or add a font file in **Style → Text → Add font file…**: the app hands its own fonts to OBS, so
   they look the same everywhere.
 - Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
@@ -93,10 +93,10 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 | Tab | What it does |
 |---|---|
 | **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Other layouts** in the New layout popup. **Import… / Export…** share your layouts as a file. |
-| **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click), then move them together, nudge them with the arrow buttons, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Choose how far keys jump with **Snap** (off, quarter, half or whole key) and show a **grid** if you like; both are remembered. X / Y fields give exact spots for a single key. **Tidy up** closes the gaps left by hidden keys while keeping the keyboard's shape. Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
+| **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Choose how far keys jump with **Snap** (off, quarter, half or whole key) and show a **grid** if you like; both are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** slides keys together to close the space left by hidden or moved keys, keeping the shape. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
-| **General** | **Connection** (OBS link, port, **secure link**, **First run setup**), **keyboard input method**, start-up, program updates, and under **Advanced**: Debug mode, server restart and **Reset all settings**. |
+| **General** | **Connection** (OBS link, port, **secure link**, **First run setup**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
@@ -109,14 +109,14 @@ Under **General → Keyboard input** you choose how the app reads your keys. You
 | | When to use it |
 |---|---|
 | **Standard** (recommended, the default) | Works with nearly every game. |
-| **Compatibility** (Windows Raw Input) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC: both methods use about 0% CPU when idle. |
+| **Compatibility** (Windows Raw Input; Windows only) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC: both methods use about 0% CPU when idle. |
 
 Both methods read keys the same way and never save or send them. If a game runs **as administrator**, start Keystroke Overlay
 as administrator too — Windows doesn't let normal programs see keys typed into an elevated window, whichever method you pick.
 
 ## Secure link (optional)
 
-Under **General → Secure link** you can choose how locked-down your OBS link is. It is **off by default**: the link is plain
+Under **General → Connection** (**Secure my OBS link**) you can choose how locked-down your OBS link is. It is **off by default**: the link is plain
 (`http://localhost:7878/`) and needs no extra step.
 
 | | What it means |
@@ -133,18 +133,18 @@ Right-click the tray icon for quick actions without opening settings:
 - **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume. You can also set a key combination for it that works from any app, even in a game: **General → Pause shortcut** (off until you set one).
 - **Layout** — switch between layouts.
 - **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
-- **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to General → Program updates.
-- **Open settings**, **Copy OBS link**, **Quit**.
+- **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to General → Updates.
+- **Open settings**, **Copy OBS URL**, **Quit**.
 
 ## Updating
 
-While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window a small download button in the app's accent color also appears in the bottom-left corner (hover it: "New update"). Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Program updates → Check for updates** any time.
+While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window an **Update ready** chip also appears at the top right. Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Updates → Check now** any time.
 
-**Update channel** (General → Program updates). Version numbers look like `x.y.z`: **the middle number is Stable, the last number is Latest.**
+**Update channel** (General → Updates). Version numbers look like `x.y.z`: **the middle number is Stable, the last number is Latest.**
 - **Stable (recommended)** — the main, well-tested releases (the middle number goes up: 1.2.0, 1.3.0, …).
 - **Latest** — every release as soon as it is published, including the small fixes in between (1.2.1, 1.2.2, …).
 
-After an update, a **What's new** window shows the release notes once. You can reopen them anytime with **General → View release notes**.
+After an update, a **What's new** window shows the release notes once. You can reopen them anytime with **General → Updates → Release notes**.
 
 ## Make your own layout
 
@@ -191,7 +191,7 @@ your keyboard → Windows → Keystroke Overlay (in memory) → a web page on YO
 Every step happens on your computer, in memory. The moment a key is released, the event is gone.
 
 ### What is saved on your PC
-Only things you chose, in `%APPDATA%\com.keyoverlay.app\`: your settings (style, layout, hidden keys, labels, port,
+Only things you chose, in the app's data folder (`%APPDATA%\com.keyoverlay.app\` on Windows, `~/Library/Application Support/com.keyoverlay.app` on a Mac, `~/.local/share/com.keyoverlay.app` on Linux; **General → Advanced → Open data folder**): your settings (style, layout, hidden keys, labels, port,
 preferences), presets, fonts, and layouts you added; if the app ever crashes, a one-line note of where (read and deleted
 at the next start). **Nothing in there contains keystrokes.** Uninstall and delete that folder to
 remove everything.
@@ -201,9 +201,9 @@ Exactly three things, all with GitHub, all optional or user-triggered, and none 
 
 | What | When | What is sent |
 |---|---|---|
-| **Update check** | When you click *Check for updates*, or — if you leave *Check for updates automatically* on — about once an hour while the app is running (and when the settings window opens). Turn that setting off and the app **never** checks by itself. | An ordinary web request for a small file (`latest.json` / `stable.json`). GitHub sees your IP address, the time, and the app's name and version. |
+| **Update check** | When you click *Check now*, or — if you leave *Check automatically* on — about once an hour while the app is running (and when the settings window opens). Turn that setting off and the app **never** checks by itself. | An ordinary web request for a small file (`latest.json` / `stable.json`). GitHub sees your IP address, the time, and the app's name and version. |
 | **Update download** | Only after you click *Update now*. The file is verified against a signing key built into the app; anything that doesn't match is rejected and never run. | An ordinary file download. |
-| **Release notes** | When the *What's new* window or *View release notes* opens. | An ordinary request for one version's notes. |
+| **Release notes** | When the *What's new* window or *Release notes* opens. | An ordinary request for one version's notes. |
 
 There is no account, no user ID, no device ID, no cookies, no analytics, no telemetry, no crash reporting, no ads. If you never
 use updates you can block the app in your firewall and everything else keeps working.
@@ -218,7 +218,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 - The app can see **every** key while it runs, including in password boxes. That is inherent to the job, so use **Pause overlay**.
 - The local overlay server does **not** authenticate other *programs* on the same PC, including other Windows users logged in at the
   same time. A program already running as you could receive key events from it (though it could also install its own keyboard hook).
-  You can close this gap with the optional **Secure link** (General → Secure link): your OBS link then carries a private key and
+  You can close this gap with the optional **Secure link** (General → Connection → Secure my OBS link): your OBS link then carries a private key and
   the app refuses everything without it. It is off by default, so the link stays simple, and turning it on means pasting the new link into OBS once.
 - Three components are outside our control: **Microsoft Edge WebView2** (draws the settings window; Microsoft's diagnostic-data
   settings apply to it), **OBS**, and **Windows** itself.
@@ -279,14 +279,14 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
 
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
 - **OBS runs on a different PC from the game:** the overlay link only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
-- **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
+- **"Port already in use" message:** another program is using that port. Pick a different one in **General → Connection → Port** (then **Apply**), then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Check [the games tested so far](GAMES.md), then open an issue naming the game and its anti-cheat.
 - **Your antivirus flags the app:** check the file came from this project's
   [Releases](https://github.com/nqble/keystroke-overlay/releases) page, then
   [open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus. Each release is reported to
   Microsoft as a false positive when needed (docs/RELEASING.md).
 - **Reporting a bug:** turn on **General → Advanced → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
-- **Something is badly misconfigured:** **General → Advanced → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
+- **Something is badly misconfigured:** **General → Advanced → Reset all settings…** puts every option back to its default (your layouts, presets, fonts, port and secure link are kept).
 - **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size the app
   shows. The keyboard always fits inside the box, so a box of another shape leaves space at the sides.
 

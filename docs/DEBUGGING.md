@@ -82,7 +82,7 @@ Helpers you can use there: `el()`, `heading()`, `note()`, `button()`, `row()`, `
 
 ## Other things that speed up development
 
-- `npm test` runs the Rust unit tests, the UI unit tests and the privacy check (about a minute).
+- `npm test` runs the Rust unit tests, the UI unit tests, the privacy check and the every-system check (about a minute).
 - `npm run test:e2e -- --suite <name>` runs one end-to-end suite instead of everything (see `tests/README.md`).
 - `npm run check:privacy` fails if network code, logging or file writes appear where the privacy promises forbid them.
 
@@ -97,6 +97,7 @@ sessions can open it directly:
 | `?state=live` (default) / `off` | OBS connected / not connected |
 | `?state=paused` / `paused-no-obs` | paused, with and without OBS |
 | `?state=port-in-use` | the server could not start |
+| `?state=first-run` | the first run setup screen of a new install |
 | `?state=mac-allow`, `mac-restart`, `mac-secure` | the macOS keyboard access notice: not allowed yet, allowed but restart needed, Secure Input on |
 | `?state=update` / `whats-new` / `whats-new-long` | the update button and popup / the What's new popup / with notes long enough to scroll |
 | `?tab=debug` | Debug mode on, Debug tab open (any tab name works) |

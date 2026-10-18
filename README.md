@@ -107,7 +107,7 @@ cd keystroke-overlay
 npm install
 npm run dev          # run it
 npm run dev:debug    # run a separate development copy with Debug mode on (see docs/DEBUGGING.md)
-npm test             # unit tests (including hostile-input tests) + privacy check
+npm test             # unit tests (including hostile-input tests) + privacy and every-system checks
 npm run format       # format the code (Prettier + rustfmt); CI checks it
 npm run check:style  # tabs, trailing spaces, final newline
 npm run test:e2e     # end-to-end tests (builds a throwaway copy, cleans up after itself)
