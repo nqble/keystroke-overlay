@@ -9,13 +9,13 @@
 // =====================================================================================================================
 
 /** The default font's saved name, the same on every system (src-tauri/src/settings.rs). */
-export const DEFAULT_FONT = 'Segoe UI';
+export const DEFAULT_FONT = 'Segoe UI'; // per-system: the saved default on every system, a Windows font name
 
 const WINDOWS_FONTS = [
   // all of these come with Windows 10 and 11
-  'Segoe UI',
-  'Segoe UI Semibold',
-  'Segoe UI Black',
+  'Segoe UI', // per-system: the Windows font list
+  'Segoe UI Semibold', // per-system: the Windows font list
+  'Segoe UI Black', // per-system: the Windows font list
   'Bahnschrift',
   'Arial',
   'Arial Black',
@@ -79,5 +79,5 @@ export function systemFonts(platform) {
       fonts: [{ value: DEFAULT_FONT, label: SYSTEM_FONT_LABEL }, ...MAC_FONTS.map(plain)],
     };
   }
-  return { group: 'Windows fonts', fonts: WINDOWS_FONTS.map(plain) };
+  return { group: 'Windows fonts', fonts: WINDOWS_FONTS.map(plain) }; // per-system: the Windows list
 }

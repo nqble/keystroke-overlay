@@ -6,7 +6,7 @@ import { html, render as drawPreact, useLayoutEffect, useRef } from './html.js';
 import { el, get, put, row } from './helpers.js';
 import { changed } from './preview.js';
 import { settings, customFonts, platform, registry } from './state.js';
-import { systemFonts } from './system-fonts.js';
+import { DEFAULT_FONT, systemFonts } from './system-fonts.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 5. Style / Animation controls
@@ -274,7 +274,7 @@ function fontCtl(control) {
     const { value, label } = typeof font === 'string' ? { value: font, label: font } : font;
     const item = el('option', { value, textContent: label });
     item.dataset.font = value;
-    item.style.setProperty('--option-font', `"${value}", "Segoe UI", system-ui, sans-serif`); // the list shows each name in its own font
+    item.style.setProperty('--option-font', `"${value}", "${DEFAULT_FONT}", system-ui, sans-serif`); // the list shows each name in its own font
     return item;
   };
   const select = el(
