@@ -142,6 +142,15 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   `npm run dev:debug` now finds the Mac data folder, so the development copy gets its own port.
 - The visual suite (`npm run test:visual`) is Windows only: there are no macOS baselines yet.
 
+## Settings window words on a Mac
+
+The settings window says what a Mac says (`ui/settings/system-words.js`, chosen by `platform` from the app): "Open at
+login", "Minimize to the menu bar" (minimizing closes the window and leaves the menu-bar icon), no Compatibility input
+method (only Windows has it; Linux has none either), "⌘-click to add" and "delete" in the Keys tab hints, and the pause
+shortcut shows ⌘ ⌥ ⌃ ⇧ and asks for "⌘, ⌥ or ⌃". A Command shortcut is saved as "Super", which the shortcut library reads
+(tested). Not yet checked on the M1: that a Command-based pause shortcut registers and fires. Known gap: panning the key
+editor needs a middle mouse button, which a Mac trackpad does not have (zoom with the scroll wheel works).
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:

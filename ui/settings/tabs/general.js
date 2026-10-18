@@ -7,7 +7,8 @@ import { Detail, Note, Section, Segmented, Switch } from '../blocks.js';
 import { call, invoke, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
 import { changed } from '../preview.js';
-import { inputActive, inputError, setInputActive, setInputError, settings } from '../state.js';
+import { inputActive, inputError, platform, setInputActive, setInputError, settings } from '../state.js';
+import { inputMethods, systemWord } from '../system-words.js';
 import { resetDialog } from '../dialogs.js';
 import { TEXT } from '../text.js';
 import { Connection } from './general-connection.js';
@@ -21,16 +22,14 @@ const WORDS = {
   standard: 'Standard',
   compatibility: 'Compatibility',
   standardNote: 'Works with nearly every game. Keep it unless keys don’t light up in one game.',
+  standardOnlyNote: 'Works with nearly every game.', // when this system has no other method
   compatibilityNote: 'For games where keys don’t light up with Standard. Uses just as little CPU.',
   adminNote: 'If a game runs as administrator, start Keystroke Overlay as administrator too.',
   inputDetail: {
-    hook: 'Standard = WH_KEYBOARD_LL hook (Linux: XInput2 raw events)',
     rawinput: 'Compatibility = Raw Input (RIDEV_INPUTSINK, message-only window)',
   },
   inputChanged: (name) => `Keyboard input: ${name}`,
   startup: 'Startup',
-  autostart: 'Start with Windows',
-  tray: 'Minimize to tray',
   openOnLaunch: 'Open this window on launch',
   advanced: 'Advanced',
   debugMode: 'Debug mode (for developers)',
@@ -41,10 +40,13 @@ const WORDS = {
   quit: 'Quit app',
 };
 
-const INPUT_METHODS = [
+const ALL_INPUT_METHODS = [
   { value: 'hook', text: WORDS.standard },
   { value: 'rawinput', text: WORDS.compatibility },
 ];
+
+/** The methods this system has (system-words.js): only Windows has Compatibility. */
+const availableMethods = () => ALL_INPUT_METHODS.filter((choice) => inputMethods(platform).includes(choice.value));
 
 export function generalTab() {
   return html`<${General} />`;
@@ -67,6 +69,12 @@ function General() {
   </div>`;
 }
 
+/** The line under the method choice: with only one method there is nothing to switch to. */
+function inputNote(method) {
+  if (method !== 'hook') return WORDS.compatibilityNote;
+  return availableMethods().length > 1 ? WORDS.standardNote : WORDS.standardOnlyNote;
+}
+
 function KeyboardInput() {
   const [method, setMethod] = useState(inputActive);
   const [error, setError] = useState(inputError);
@@ -78,7 +86,7 @@ function KeyboardInput() {
       setInputError(null);
       setMethod(want);
       setError(null);
-      toast(WORDS.inputChanged(INPUT_METHODS.find((choice) => choice.value === want).text));
+      toast(WORDS.inputChanged(ALL_INPUT_METHODS.find((choice) => choice.value === want).text));
     } catch (problem) {
       // the new method could not start: the old one keeps running
       setInputError(String(problem));
@@ -89,15 +97,15 @@ function KeyboardInput() {
   return html`<${Section} title=${WORDS.input} test="general-input">
     <${Segmented}
       label=${WORDS.input}
-      choices=${INPUT_METHODS}
+      choices=${availableMethods()}
       value=${method}
       onChange=${choose}
       test="input-method-select"
     />
     ${error ? html`<div class="errnote" data-test="input-method-error">${error}</div>` : null}
-    <${Note} text=${method === 'hook' ? WORDS.standardNote : WORDS.compatibilityNote} test="input-method-info" />
-    <${Note} text=${WORDS.adminNote} />
-    <${Detail} text=${WORDS.inputDetail[method]} />
+    <${Note} text=${inputNote(method)} test="input-method-info" />
+    ${inputMethods(platform).includes('rawinput') ? html`<${Note} text=${WORDS.adminNote} />` : null}
+    <${Detail} text=${method === 'hook' ? systemWord('standardDetail', platform) : WORDS.inputDetail[method]} />
   <//>`;
 }
 
@@ -126,11 +134,15 @@ function Startup() {
   return html`<${Section} title=${WORDS.startup} test="general-startup">
     <${SettingSwitch}
       name="autostart"
-      label=${WORDS.autostart}
+      label=${systemWord('autostart', platform)}
       test="toggle-general-autostart"
       onTurn=${setAutostart}
     />
-    <${SettingSwitch} name="minimizeToTray" label=${WORDS.tray} test="toggle-general-minimize-to-tray" />
+    <${SettingSwitch}
+      name="minimizeToTray"
+      label=${systemWord('minimize', platform)}
+      test="toggle-general-minimize-to-tray"
+    />
     <${SettingSwitch} name="openOnLaunch" label=${WORDS.openOnLaunch} test="toggle-general-open-on-launch" />
   <//>`;
 }

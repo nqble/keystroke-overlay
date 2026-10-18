@@ -28,3 +28,19 @@ test('the shown name is friendly', () => {
   assert.equal(shortcutName('Ctrl+Shift+KeyP'), 'Ctrl + Shift + P');
   assert.equal(shortcutName('Super+Digit2'), 'Win + 2');
 });
+
+test('a Mac shows the modifiers as symbols, and Super as Command', () => {
+  assert.equal(shortcutName('Super+Shift+KeyP', 'macos'), '⌘ + ⇧ + P');
+  assert.equal(shortcutName('Ctrl+Alt+Digit2', 'macos'), '⌃ + ⌥ + 2');
+  assert.equal(shortcutName('F9', 'macos'), 'F9');
+});
+
+test('Linux calls the key Super, and an unknown system gets the Windows names', () => {
+  assert.equal(shortcutName('Super+KeyP', 'linux'), 'Super + P');
+  assert.equal(shortcutName('Super+KeyP', 'plan9'), 'Win + P');
+});
+
+test('Command on a Mac is saved as Super, which the app registers as Command', () => {
+  const press = { code: 'KeyP', ctrlKey: false, altKey: false, shiftKey: true, metaKey: true };
+  assert.equal(shortcutFromKey(press), 'Shift+Super+KeyP');
+});

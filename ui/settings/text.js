@@ -8,7 +8,6 @@ export const TEXT = {
   resetBodyWhatChanges: 'Every option goes back to its default. Your layouts, presets, fonts and port are kept.',
   resetBodyLinkNote: 'If the secure link was on, copy the OBS link into OBS again.',
   manualInstallDialog: 'Install this one by hand: get the installer from GitHub, close this app, run it.',
-  dragHint: 'Drag a key to move it. Ctrl-click to add.',
   noKeySelected: 'No key selected',
   inspectorTip: 'Click a key to label or hide it. Dragged keys line up with their neighbours. Saved for each layout.',
   overlapNote: 'This key overlaps another. Drag it to a free spot, or press Tidy up.',
