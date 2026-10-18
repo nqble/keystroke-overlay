@@ -1,8 +1,9 @@
 name: CI
 
+# Every push to main and to the work branches (each session's branches and the release branches), and every pull request.
 on:
   push:
-    branches: [main]
+    branches: [main, 'advisor/**', 'mac/**', 'v*-dev']
   pull_request:
 
 # The tests only need to read the code. Read-only means a compromised step or library could not change the repository.

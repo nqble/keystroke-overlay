@@ -3,7 +3,7 @@
 Keystroke Overlay is a Windows app, but you don't need Windows to work on most of it. Everything builds, runs and is
 tested on Linux and macOS too. Keyboard capture also works on **Linux X11 desktops** (from
 v1.4, not released yet); macOS capture works on v2.0 (it needs the Input Monitoring permission; tested on one Apple Silicon Mac). Wayland capture is
-built on v2.0 (it needs the `input` group; [LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI checks this on every pull request and every push to `main` (the `other-systems` job in
+built on v2.0 (it needs the `input` group; [LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI checks this on every pull request and every push to `main` and the work branches (the `other-systems` job in
 `.github/workflows/ci.yml`), so it stays that way.
 
 ## What works where
