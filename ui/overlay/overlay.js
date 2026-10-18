@@ -3,6 +3,7 @@
 // transitions do all the animation work on the compositor.
 import { animations, themes, easings } from '/overlay/registry.js';
 import { fitInBox } from '/overlay/fit.js';
+import { structureKey } from '/overlay/structure.js';
 
 // What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
 // own font (San Francisco on a Mac), so the keys look right on any computer that shows the overlay (OBS may run on
@@ -243,14 +244,7 @@ function apply(nextSettings) {
     refresh();
   }
   const layout = layouts.find((l) => l.id === nextSettings.layout.id) ?? layouts[0];
-  const key = JSON.stringify([
-    layout?.id,
-    profileOf(nextSettings, layout),
-    nextSettings.style.keySize,
-    nextSettings.style.gap,
-    nextSettings.style.fontSize,
-    nextSettings.style.scale,
-  ]);
+  const key = structureKey(layout, profileOf(nextSettings, layout), nextSettings.style);
   applyVars(nextSettings);
   if (key !== structKey) {
     structKey = key;
