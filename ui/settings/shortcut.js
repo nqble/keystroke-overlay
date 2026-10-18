@@ -4,6 +4,17 @@
 //  friendly name ("Ctrl + Shift + P"). No imports, so the tests can load it on its own.
 // =====================================================================================================================
 
+/**
+ * What each modifier is called on each system, in the friendly name. The saved text always says Ctrl, Alt, Shift and
+ * Super (what src-tauri/src/hotkeys.rs registers; Super is Command on a Mac). Windows is the default.
+ */
+const MODIFIER_NAMES = {
+  windows: { Super: 'Win' },
+  linux: { Super: 'Super' },
+  macos: { Ctrl: '⌃', Alt: '⌥', Shift: '⇧', Super: '⌘' },
+};
+const DEFAULT_SYSTEM = 'windows';
+
 /** The longest shortcut text the app accepts. Must match MAX_SHORTCUT_LENGTH in src-tauri/src/hotkeys.rs. */
 export const MAX_SHORTCUT_LENGTH = 48;
 
@@ -18,7 +29,7 @@ const MODIFIER_CODES = new Set([
   'MetaRight',
 ]);
 
-/** Keys that may be a shortcut on their own; any other key needs Ctrl, Alt or Win, so it never steals typing. */
+/** Keys that may be a shortcut on their own; any other key needs Ctrl, Alt or Win (⌘, ⌥ or ⌃ on a Mac), so it never steals typing. */
 const ALONE_OK = /^(F([1-9]|1\d|2[0-4])|Pause|ScrollLock)$/;
 
 /**
@@ -39,9 +50,9 @@ export function shortcutFromKey(event) {
   return text.length <= MAX_SHORTCUT_LENGTH ? text : null;
 }
 
-/** "Ctrl+Shift+KeyP" → "Ctrl + Shift + P", for showing to the user. */
-export function shortcutName(text) {
-  const parts = text.split('+');
-  const friendly = parts.map((part) => part.replace(/^(Key|Digit)/, '').replace('Super', 'Win'));
+/** "Ctrl+Shift+KeyP" → "Ctrl + Shift + P" ("⌃ + ⇧ + P" on a Mac), for showing to the user. */
+export function shortcutName(text, platform = DEFAULT_SYSTEM) {
+  const names = MODIFIER_NAMES[platform] ?? MODIFIER_NAMES[DEFAULT_SYSTEM];
+  const friendly = text.split('+').map((part) => names[part] ?? part.replace(/^(Key|Digit)/, ''));
   return friendly.join(' + ');
 }

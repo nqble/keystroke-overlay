@@ -6,8 +6,9 @@
 import { Note, Section, Switch } from '../blocks.js';
 import { invoke, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
-import { settings } from '../state.js';
+import { platform, settings } from '../state.js';
 import { shortcutFromKey, shortcutName } from '../shortcut.js';
+import { systemWord } from '../system-words.js';
 
 const WORDS = {
   title: 'Pause shortcut',
@@ -16,7 +17,7 @@ const WORDS = {
   none: 'No shortcut yet',
   choose: 'Choose shortcut',
   listening: 'Press the keys… (Esc to cancel)',
-  needsModifier: 'Use Ctrl, Alt or Win with that key, so it doesn’t get in the way of typing.',
+  needsModifier: (modifiers) => `Use ${modifiers} with that key, so it doesn’t get in the way of typing.`,
   clear: 'Clear',
   saved: (name) => `Pause shortcut: ${name}`,
 };
@@ -32,7 +33,7 @@ export function PauseShortcut() {
       settings.hotkeys = { enabled: wantEnabled, pause: wantShortcut };
       setEnabled(wantEnabled);
       setShortcut(wantShortcut);
-      if (wantEnabled && wantShortcut) toast(WORDS.saved(shortcutName(wantShortcut)));
+      if (wantEnabled && wantShortcut) toast(WORDS.saved(shortcutName(wantShortcut, platform)));
     } catch (problem) {
       toast(String(problem), true);
     }
@@ -48,7 +49,7 @@ export function PauseShortcut() {
     if (text === '') return;
     setListening(false);
     if (text === null) {
-      toast(WORDS.needsModifier, true);
+      toast(WORDS.needsModifier(systemWord('modifiers', platform)), true);
       return;
     }
     save(enabled, text);
@@ -67,7 +68,7 @@ export function PauseShortcut() {
 }
 
 function ShortcutPicker({ shortcut, listening, setListening, onKeyDown, save }) {
-  const shown = shortcut ? shortcutName(shortcut) : WORDS.none;
+  const shown = shortcut ? shortcutName(shortcut, platform) : WORDS.none;
   return html`<div class="btns">
     <button
       type="button"

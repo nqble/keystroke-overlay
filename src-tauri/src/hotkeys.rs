@@ -96,6 +96,15 @@ mod tests {
         assert!(!is_shortcut_text(&"A".repeat(MAX_SHORTCUT_LENGTH + 1)));
     }
 
+    /// The settings window saves Command on a Mac as "Super" (the browser calls the key meta). The library must read it
+    /// (as Command on a Mac, the Windows key elsewhere), or a shortcut set with Command could never be registered.
+    #[test]
+    fn a_shortcut_with_the_command_key_saved_as_super_parses() {
+        for text in ["Super+KeyP", "Shift+Super+KeyP", "Ctrl+Alt+Super+Digit2"] {
+            assert!(text.parse::<Shortcut>().is_ok(), "{text}");
+        }
+    }
+
     #[test]
     fn the_settings_windows_shortcut_names_parse() {
         for text in ["Ctrl+Shift+KeyP", "Alt+F9", "Ctrl+Alt+Digit1", "Shift+Pause"] {
