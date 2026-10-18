@@ -26,9 +26,12 @@ What it records about each event is only *which physical key* and *down or up* (
 build up the text you type, and it keeps no history: it remembers only which keys are held **right now** so a key can
 never look stuck.
 
-From v2.0, so key labels can follow your keyboard language, the app asks Windows once at start-up **which keyboard
-you use** (for example French AZERTY) and which character each letter key prints on it. That is a fact about the
-keyboard, not about anything you type, and it stays in memory.
+From v2.0, so key labels can follow your keyboard language, the app asks the system **which keyboard layout is in
+use** (for example French AZERTY) and which character each letter key prints on it. It asks at start-up and again when
+the layout may have changed: when you switch layout (macOS and Linux tell the app), when another window comes to the
+front, or just after you let go of Shift, Alt, Ctrl or Win (on Windows, where a switch inside one window isn't
+announced). For that last one it only notes that a modifier key was released, never which other keys you typed. The
+layout is a fact about the keyboard, not about anything you type, and it stays in memory.
 
 From v2.0 you can also set a **pause shortcut** (General → Pause shortcut, off by default). The app then asks Windows
 to tell it about that one key combination only; it sees no other key that way, and registers nothing while the

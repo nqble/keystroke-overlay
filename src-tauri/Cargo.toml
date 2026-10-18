@@ -51,6 +51,7 @@ windows = { version = "0.62", features = [
   "Win32_Graphics_Gdi",
   "Win32_System_ProcessStatus",
   "Win32_System_Threading",
+  "Win32_UI_Accessibility",
 ] }
 
 # Smaller debug builds (saves roughly 1.5 GB of disk). Set debug = 2 when you need to step through code in a debugger.

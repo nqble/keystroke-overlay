@@ -4,10 +4,11 @@
 //! punctuation instead (the digit row keeps its digits, see keyboard/keymap.rs TYPING_KEYS). A user's own label for a
 //! key always wins, because it is applied on top of these by the overlay and the key editor.
 //!
-//! What each key types is asked from the system at start-up (platform::keyboard_labels; Windows, and macOS in
-//! keyboard/macos_labels.rs), and on a Mac again each time the person switches keyboard layout, so the preview and OBS
-//! follow the keyboard live (platform::watch_keyboard_layout; no timer, the system tells us). Nothing about what the
-//! user types is read.
+//! What each key types is asked from the system at start-up (platform::keyboard_labels; one file per system in
+//! keyboard/: windows_labels.rs, macos_labels.rs, x11_labels.rs), and again each time the layout may have changed, so
+//! the preview and OBS follow the keyboard live. No timer: the system tells us (platform::watch_keyboard_layout), and
+//! on Windows, which doesn't announce a switch inside one window, a released modifier key is the hint
+//! (`follow_switch_keys`). Nothing about what the user types is read.
 //!
 //! The same setting also makes the keys that are named differently on each system follow the system the app runs on:
 //! Command and Option on a Mac, Super on Linux, Win and Alt on Windows (the layout files' own words). So nobody has to
@@ -51,6 +52,39 @@ pub fn init(app: &AppHandle) {
     replace_labels(&KEYBOARD, crate::platform::keyboard_labels());
     let app = app.clone();
     crate::platform::watch_keyboard_layout(move || reload(&app));
+}
+
+/// How long after a switch key is let go to ask again: Windows switches the layout only after it has handled the key,
+/// which comes just after the app sees it.
+const SWITCH_SETTLE: std::time::Duration = std::time::Duration::from_millis(150);
+
+/// Was this the release of a key that can end a layout switch (`platform::layout_switch_keys`)?
+fn ends_a_switch(event: &crate::keyboard::KeyEvent, switch_keys: &[&str]) -> bool {
+    !event.down && switch_keys.contains(&event.code)
+}
+
+/// Where the system doesn't announce a layout switch inside one window (Windows), ask again shortly after a switch key
+/// is let go. Call once the app state exists. The thread waits for key events, so it costs nothing while nobody types;
+/// it only looks at which modifier was released, never at what was typed. Nowhere else does anything.
+pub fn follow_switch_keys(app: &AppHandle) {
+    let switch_keys = crate::platform::layout_switch_keys();
+    if switch_keys.is_empty() {
+        return;
+    }
+    let mut events = app.state::<AppState>().shared.bus.tx.subscribe();
+    let app = app.clone();
+    let _ = std::thread::Builder::new()
+        .name("key-layout-keys".into())
+        .spawn(move || loop {
+            match events.blocking_recv() {
+                Ok(event) if ends_a_switch(&event, switch_keys) => {
+                    std::thread::sleep(SWITCH_SETTLE);
+                    reload(&app);
+                }
+                Ok(_) | Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {}
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
+            }
+        });
 }
 
 /// The person switched keyboard layout: ask again, and when the labels changed tell the overlays (OBS and the
@@ -128,6 +162,29 @@ pub fn layouts_to_show(paths: &Paths, settings: &Value) -> Vec<Value> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn only_releasing_a_switch_key_ends_a_switch() {
+        use crate::keyboard::KeyEvent;
+        let switch_keys = ["ShiftLeft", "AltLeft"];
+        let released = |code| KeyEvent { down: false, code };
+        assert!(ends_a_switch(&released("ShiftLeft"), &switch_keys));
+        assert!(
+            !ends_a_switch(
+                &KeyEvent {
+                    down: true,
+                    code: "ShiftLeft"
+                },
+                &switch_keys
+            ),
+            "pressing it"
+        );
+        assert!(!ends_a_switch(&released("KeyQ"), &switch_keys), "a typing key");
+        assert!(
+            !ends_a_switch(&released("ShiftLeft"), &[]),
+            "a system that announces switches itself"
+        );
+    }
 
     #[test]
     fn a_label_is_the_visible_character_in_upper_case() {

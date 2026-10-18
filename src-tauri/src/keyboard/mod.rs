@@ -33,6 +33,8 @@ pub mod macos_labels;
 mod rawinput;
 #[cfg_attr(not(windows), allow(dead_code))]
 mod tracker;
+#[cfg(windows)]
+pub mod windows_labels;
 #[cfg(target_os = "linux")]
 mod x11;
 #[cfg(target_os = "linux")]

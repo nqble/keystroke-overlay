@@ -27,6 +27,7 @@ keystroke-overlay/
 │       │   ├── mod.rs        controller (switch methods live), key bus, dispatcher thread
 │       │   ├── hook.rs       Standard method: Windows low-level keyboard hook (WH_KEYBOARD_LL)
 │       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
+│       │   ├── windows_labels.rs Windows: what each typing key prints on the layout in front, and its watcher
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
 │       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
