@@ -159,6 +159,7 @@ fn main() {
             debug::debug_log,
             debug::debug_log_clear,
             debug::debug_simulate_update,
+            debug::debug_tray_state,
             debug::debug_key_monitor,
             commands::updates::open_release_page,
             commands::updates::ack_whats_new,

@@ -171,19 +171,35 @@ pub fn debug_log_clear() {
     LOG.lock().unwrap().clear();
 }
 
+/// Is a fake update showing (Debug tab → Fake update available)? While it is, update checks answer with it instead of
+/// asking GitHub, so a real "up to date" can't take the tray dot away in the middle of a test.
+static FAKE_UPDATE: AtomicBool = AtomicBool::new(false);
+
+/// The fake update's answer, while one is showing.
+pub fn fake_update() -> Option<Value> {
+    FAKE_UPDATE.load(Ordering::Relaxed).then(|| {
+        json!({ "available": true, "version": "9.9.9", "current": env!("CARGO_PKG_VERSION"), "channel": "stable", "manual": false, "url": "",
+                "notes": "**This is a fake update** made by Debug mode.\n\n- Nothing can be downloaded.\n- Use *Clear fake update* in the Debug tab to remove it." })
+    })
+}
+
 /// Pretend an update is (or is no longer) available, so the update button, the tray dot and the tray entry can be tried
-/// without publishing a release. Nothing is downloaded; "Update now" on a fake update just says "Already up to date".
+/// without publishing a release. It stays until cleared: update checks answer with it meanwhile. Nothing is downloaded;
+/// "Update now" on a fake update says there is nothing to install.
 #[tauri::command]
 pub fn debug_simulate_update(app: AppHandle, on: bool) {
     log(format!("simulated update {}", if on { "ON" } else { "OFF" }));
+    FAKE_UPDATE.store(on, Ordering::Relaxed);
     crate::tray::set_update_badge(&app, on);
-    let result = if on {
-        json!({ "available": true, "version": "9.9.9", "current": env!("CARGO_PKG_VERSION"), "channel": "stable", "manual": false, "url": "",
-                "notes": "**This is a fake update** made by Debug mode.\n\n- Nothing can be downloaded.\n- Use *Clear fake update* in the Debug tab to remove it." })
-    } else {
-        json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": "stable" })
-    };
+    let result = fake_update()
+        .unwrap_or_else(|| json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": "stable" }));
     let _ = app.emit("update-result", result);
+}
+
+/// What the tray shows right now (tray::indicator_state), for the Debug tab and the tests.
+#[tauri::command]
+pub fn debug_tray_state(app: AppHandle) -> Value {
+    crate::tray::indicator_state(&app)
 }
 
 /// Start or stop the key monitor: while on, every key event is also sent to the settings window as a "debug-key" event
@@ -221,6 +237,18 @@ pub fn debug_key_monitor(app: AppHandle, st: State<AppState>, on: bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_fake_update_answers_checks_until_it_is_cleared() {
+        FAKE_UPDATE.store(false, Ordering::Relaxed);
+        assert!(fake_update().is_none(), "no fake update unless one was asked for");
+        FAKE_UPDATE.store(true, Ordering::Relaxed);
+        let fake = fake_update().expect("a fake update while it is on");
+        assert_eq!(fake["available"], true);
+        assert_eq!(fake["version"], "9.9.9");
+        FAKE_UPDATE.store(false, Ordering::Relaxed);
+        assert!(fake_update().is_none(), "cleared again");
+    }
 
     #[test]
     fn important_lines_are_always_kept_details_only_in_debug_mode_and_both_are_capped() {

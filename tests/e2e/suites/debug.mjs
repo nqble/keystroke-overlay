@@ -168,11 +168,32 @@ check(
   '"Fake update available" shows the update button and the tray indicator',
   (await p.q(`!document.querySelector('${byTest('update-button')}').hidden`)) && (await state()).updateBadge === true,
 );
+const trayWithFake = (await p.invoke('debug_tray_state')).ok;
+check(
+  'the tray itself shows the update: the dot, "Update available" first in its menu, and the tooltip',
+  trayWithFake?.updateShown === true &&
+    trayWithFake.firstMenuEntry === 'Update available' &&
+    /update available/.test(trayWithFake.tooltip),
+);
+check(
+  'the Debug tab draws the tray icon with the dot',
+  (await p.q(`document.querySelector('${byTest('debug-tray')}').dataset.updateShown`)) === 'true',
+);
+// A real check must not take the fake update away in the middle of a test (it answers with the fake one).
+const checkedDuringFake = (await p.invoke('check_update')).ok;
+check(
+  '"Check for updates" keeps the fake update showing',
+  checkedDuringFake?.version === '9.9.9' && (await state()).updateBadge === true,
+);
 await click('debug-clear-fake-update');
 await sleep(800);
+const trayCleared = (await p.invoke('debug_tray_state')).ok;
 check(
   '"Clear fake update" removes both',
-  (await p.q(`document.querySelector('${byTest('update-button')}').hidden`)) && (await state()).updateBadge === false,
+  (await p.q(`document.querySelector('${byTest('update-button')}').hidden`)) &&
+    (await state()).updateBadge === false &&
+    trayCleared?.updateShown === false &&
+    trayCleared.firstMenuEntry === 'Open settings',
 );
 
 // ---- bug report (read the real clipboard)

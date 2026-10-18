@@ -147,6 +147,7 @@ Rules:
 | `debug-log`, `debug-log-copy`, `debug-log-clear` | Event log |
 | `debug-monitor-toggle`, `debug-monitor-status`, `debug-monitor-log` | Key monitor (the Start / Stop button is one button) |
 | `debug-json`, `debug-raw-apply`, `debug-raw-reload`, `debug-raw-copy`, `debug-raw-result` | Raw settings |
+| `debug-tray`, `debug-tray-icon`, `debug-tray-state` | Test helpers: the picture of the tray icon as it is now (`data-update-shown` on `debug-tray`) and its state line |
 | `debug-fake-update`, `debug-clear-fake-update`, `debug-whats-new`, `debug-new-layout`, `debug-toast`, `debug-error-toast`, `debug-restart-server`, `debug-reload-window` | Test helpers |
 | `debug-copy-command`, `debug-bug-report` | Developer tools and Bug report |
 
