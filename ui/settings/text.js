@@ -19,7 +19,9 @@ export const TEXT = {
     'Positions, sizes, hidden keys and labels go back to the layout file, and the style to Keyboard shape. You can undo this.',
   groupInspectorTip: 'Drag any of them to move them together. The bar above them lines them up or spaces them.',
   clickToDismiss: 'Click to dismiss',
-  gridHelp: 'Faint dots at every snap step.',
+  snapHelp: 'Keys jump a quarter key and stick to the edges of other keys. Off places them anywhere.',
+  gridHelp: 'Faint dots every half key, or every whole key in the Even grid.',
+  showHiddenHelp: 'Show the keys you hid, dimmed. Turn it off to see only what the overlay draws.',
   animationTabNote: 'Light on your PC. Press keys to try it.',
   keyPictureHelp: 'Drag a key to move it. Drag on the background to select several. Tab and Enter work too.',
   secureLinkOff:

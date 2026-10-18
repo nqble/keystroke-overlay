@@ -333,24 +333,54 @@ button:disabled:hover {
   pointer-events: none;
 }
 .handle {
+  /* A handle is a thin line on one side of the key with a slightly larger area to grab (the ::before is what you see). */
   position: absolute;
-  top: 50%;
-  width: 8px;
-  height: 60%;
-  transform: translateY(-50%);
-  background: var(--color-accent);
-  border: 2px solid var(--color-panel);
-  border-radius: var(--radius-md);
-  box-sizing: content-box;
+  background: transparent;
   pointer-events: auto;
   touch-action: none;
+}
+.handle::before {
+  content: '';
+  position: absolute;
+  background: var(--color-accent);
+  border: 1px solid var(--color-panel);
+  border-radius: var(--radius-md);
+}
+.handle.left,
+.handle.right {
+  top: 50%;
+  width: 10px;
+  height: 60%;
+  transform: translateY(-50%);
   cursor: ew-resize;
 }
 .handle.left {
-  left: -6px;
+  left: -5px;
 }
 .handle.right {
-  right: -6px;
+  right: -5px;
+}
+.handle.left::before,
+.handle.right::before {
+  inset: 0 3px;
+}
+.handle.top,
+.handle.bottom {
+  left: 50%;
+  width: 60%;
+  height: 10px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+.handle.top {
+  top: -5px;
+}
+.handle.bottom {
+  bottom: -5px;
+}
+.handle.top::before,
+.handle.bottom::before {
+  inset: 3px 0;
 }
 .arrange-bar {
   position: absolute;
@@ -400,6 +430,10 @@ button:disabled:hover {
   color: var(--color-text);
   cursor: pointer;
   overflow: hidden;
+}
+.kmk[hidden],
+.handles[hidden] {
+  display: none;
 }
 .kmk.off {
   opacity: 0.28;

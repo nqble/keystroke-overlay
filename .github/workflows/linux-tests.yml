@@ -104,13 +104,13 @@ jobs:
         run: |
           RUNTIME=/tmp/runtime-$TEST_USER
           sudo install -d -m 700 -o "$TEST_USER" "$RUNTIME"
-          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" weston --backend=headless-backend.so --socket=wayland-1 --idle-time=0 > /tmp/weston.log 2>&1 &
+          sudo -u "$TEST_USER" env XDG_RUNTIME_DIR="$RUNTIME" weston --backend=headless-backend.so --socket=wayland-1 --idle-time=0 > /tmp/weston.log 2>&1 &
           sleep 3
           # The helper makes its keyboard before the app starts: the app finds keyboards when capture starts.
           KO_TYPE_WHEN=/tmp/type-now sudo -E -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::type_for_the_app_test > /tmp/typer.log 2>&1 &
           sleep 2
           # Headless Weston has no GPU: WebKitGTK's GPU buffer path is switched off so the window can open.
-          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" WAYLAND_DISPLAY=wayland-1 WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+          sudo -u "$TEST_USER" env XDG_RUNTIME_DIR="$RUNTIME" WAYLAND_DISPLAY=wayland-1 WEBKIT_DISABLE_DMABUF_RENDERER=1 \
             keyoverlay > /tmp/app.log 2>&1 &
       - name: Keys reach the overlay
         run: node tests/linux/overlay-check.mjs keys -- touch /tmp/type-now
@@ -130,5 +130,5 @@ jobs:
           chmod +x downloads/*.AppImage
           cp downloads/*.AppImage /tmp/app.AppImage
           sudo pkill -x keyoverlay || true # one copy at a time: both use port 7878
-          sudo -u "$TEST_USER" XDG_RUNTIME_DIR=/tmp/runtime-$TEST_USER WAYLAND_DISPLAY=wayland-1 \
+          sudo -u "$TEST_USER" env XDG_RUNTIME_DIR=/tmp/runtime-$TEST_USER WAYLAND_DISPLAY=wayland-1 \
             timeout 15 /tmp/app.AppImage --appimage-extract-and-run || test $? -eq 124

@@ -73,7 +73,7 @@ What to know:
 - After every update the person must allow keyboard access again (clear the old entry first, with `tccutil reset ListenEvent com.keyoverlay.app`): the
   permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
   are in docs/MAC-PORT.md.
-- **The first release that carries the zip (v2.0):** the workflow has never run on GitHub yet, so try it first (Actions →
+- **The first release that carries the zip (v2.0):** the workflow builds in CI on every push (green since October 2026), but its release jobs (attaching the zip) first run with this release, so check the release page afterwards (or try it first: Actions →
   **Mac app** → Run workflow, which counts as posting on GitHub: Jordan's OK). Add one Mac line to the README's "Get
   started" pointing to the user guide's On a Mac section, and say in that release's CHANGELOG entry that a Mac download
   (Apple Silicon, Open Anyway on first launch) is attached.
@@ -95,7 +95,7 @@ What to know:
   each new version. TODO (Jordan, awake): to switch updates on, sign the AppImage in `linux-app.yml` (drop
   `createUpdaterArtifacts: false` and give it the signing key) and add a `linux-x86_64` entry to both manifests. Changing
   the manifests affects every installed copy, so it is Jordan's call. The .deb can't update itself; it stays a download.
-- **The first release that carries them (v2.0):** the workflow has never run on GitHub yet, so try it first (Run
+- **The first release that carries them (v2.0):** the workflow builds and is tested in CI on every push, but `linux-publish` first runs with this release, so check the release page afterwards (or try it first: Run
   workflow, which counts as posting on GitHub: Jordan's OK), and mention the Linux downloads in that release's CHANGELOG entry.
 - If the Linux job fails, the Windows release is already published. Fix the cause and re-run only the failed jobs; the
   upload replaces any earlier files (`--clobber`).

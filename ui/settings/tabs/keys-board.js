@@ -63,6 +63,40 @@ export function evenGridBoxes(layout) {
   });
 }
 
+/**
+ * The board with the layout in the middle of it: { w, h, originX, originY }. A key's board place (what the editor draws and
+ * works with) is its saved place plus the origin, so a layout saved at x 0 sits in the middle of the board, with room on every
+ * side, and keys can be dragged to the left of and above it (saved positions may be negative). The origin is a whole number
+ * of keys, so grid dots line up with whole and half keys. `layoutBoxes` are the layout style's own places (the file's, or
+ * the even grid's); `placedBoxes` are the keys as the user left them, in saved places. If a saved key reaches past the
+ * board, the origin or the board grows so nothing is moved on load.
+ */
+export function boardFrame(layoutBoxes, placedBoxes = []) {
+  const board = sizeFor(layoutBoxes);
+  const layout = boundsOf(layoutBoxes);
+  let originX = Math.floor((board.w - (layout.maxX - layout.minX)) / 2 - layout.minX);
+  let originY = Math.floor((board.h - (layout.maxY - layout.minY)) / 2 - layout.minY);
+  let { w, h } = board;
+  if (placedBoxes.length) {
+    const placed = boundsOf(placedBoxes);
+    originX = Math.max(originX, Math.ceil(-placed.minX));
+    originY = Math.max(originY, Math.ceil(-placed.minY));
+    w = Math.max(w, Math.ceil(placed.maxX + originX + BOARD_MARGIN_W / 2));
+    h = Math.max(h, Math.ceil(placed.maxY + originY + BOARD_MARGIN_H / 2));
+  }
+  return { w, h, originX, originY };
+}
+
+/** Saved places as board places, and back: the same shift in both directions. */
+export const toBoardPlace = (place, frame) => ({
+  x: round2(place.x + frame.originX),
+  y: round2(place.y + frame.originY),
+});
+export const toSavedPlace = (place, frame) => ({
+  x: round2(place.x - frame.originX),
+  y: round2(place.y - frame.originY),
+});
+
 /** The board as an area for clampMove (keys-arrange.js): { minX, minY, maxX, maxY }. */
 export const boardArea = (board) => ({ minX: 0, minY: 0, maxX: board.w, maxY: board.h });
 
@@ -85,27 +119,36 @@ export function clampToBoard(box, board) {
 }
 
 /**
- * The widths a key may take when dragged by one side ('left' or 'right'): { min, max }. The opposite edge stays put, so
- * growing to the right stops at the board's right edge and growing to the left stops at its left edge.
+ * The sizes a key may take when dragged by one side: { min, max }. 'left' and 'right' change its width, 'top' and 'bottom' its
+ * height. The opposite edge stays put, so growing to the right stops at the board's right edge, growing to the left at its left
+ * edge, and the same for down and up. `layoutSize` is the layout's own width (or height): a key may be made narrower than one
+ * key only if the layout already has it that narrow.
  */
-export function resizeLimits(box, side, board, layoutWidth = MIN_RESIZE_WIDTH) {
-  const min = Math.min(MIN_RESIZE_WIDTH, layoutWidth);
-  const max = side === 'right' ? board.w - box.x : box.x + box.w;
+export function resizeLimits(box, side, board, layoutSize = MIN_RESIZE_WIDTH) {
+  const min = Math.min(MIN_RESIZE_WIDTH, layoutSize);
+  const max = {
+    right: board.w - box.x,
+    left: box.x + box.w,
+    bottom: board.h - box.y,
+    top: box.y + box.h,
+  }[side];
   return { min, max: Math.max(min, max) };
 }
 
 /**
- * Resize a key by dragging one side by `delta` keys. Snaps the width to `step` (0 = no snapping) and keeps it within
- * resizeLimits. Returns the key's new { x, w }.
+ * Resize a key by dragging one side by `delta` keys. Snaps the size to `step` (0 = no snapping) and keeps it within
+ * resizeLimits. Returns the key's new { x, w } for 'left' and 'right', or { y, h } for 'top' and 'bottom'.
  */
-export function resizeBox(box, side, delta, board, step, layoutWidth = MIN_RESIZE_WIDTH) {
-  const limits = resizeLimits(box, side, board, layoutWidth);
-  const grow = side === 'right' ? delta : -delta;
-  const wished = box.w + grow;
+export function resizeBox(box, side, delta, board, step, layoutSize = MIN_RESIZE_WIDTH) {
+  const limits = resizeLimits(box, side, board, layoutSize);
+  const vertical = side === 'top' || side === 'bottom';
+  const current = vertical ? box.h : box.w;
+  const grow = side === 'right' || side === 'bottom' ? delta : -delta;
+  const wished = current + grow;
   const snapped = step ? Math.round(wished / step) * step : wished;
-  const w = round2(Math.min(limits.max, Math.max(limits.min, snapped)));
-  const x = side === 'right' ? box.x : round2(box.x + box.w - w);
-  return { x, w };
+  const size = round2(Math.min(limits.max, Math.max(limits.min, snapped)));
+  if (vertical) return { y: side === 'bottom' ? box.y : round2(box.y + box.h - size), h: size };
+  return { x: side === 'right' ? box.x : round2(box.x + box.w - size), w: size };
 }
 
 /** True when two boxes cover some of the same area (touching edges do not count). */
