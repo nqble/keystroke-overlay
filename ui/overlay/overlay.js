@@ -4,6 +4,11 @@
 import { animations, themes, easings } from '/overlay/registry.js';
 import { fitInBox } from '/overlay/fit.js';
 
+// What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
+// own font (San Francisco on a Mac), so the keys look right on any computer that shows the overlay (OBS may run on
+// another PC than the app). Must match the Mac fonts note in ui/settings/system-fonts.js.
+const FONT_FALLBACKS = '"Segoe UI", system-ui, -apple-system, sans-serif';
+
 const PAD = 16; // room around the keys so glows aren't clipped
 const params = new URLSearchParams(location.search);
 const PREVIEW = params.has('preview') && window.parent !== window;
@@ -18,7 +23,7 @@ function showLocked() {
   lockedNotice.id = 'locked';
   lockedNotice.style.cssText =
     'position:fixed;left:8px;top:8px;max-width:420px;padding:8px 12px;border-radius:8px;' +
-    'background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",sans-serif';
+    'background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",system-ui,sans-serif';
   lockedNotice.textContent =
     '🔒 This overlay link is secured. Copy the current link from Keystroke Overlay ' +
     '(General → Secure link) into this OBS source.';
@@ -79,7 +84,7 @@ function applyVars(nextSettings) {
   set('--bc-on', st.borderColorPressed);
   set('--bw', st.borderWidth + 'px');
   set('--radius', st.radius + 'px');
-  set('--font', `"${st.fontFamily}", "Segoe UI", sans-serif`);
+  set('--font', `"${st.fontFamily}", ${FONT_FALLBACKS}`);
   set('--fs', st.fontSize + 'px');
   set('--fw', st.fontWeight);
   set('--tc', st.textColor);
