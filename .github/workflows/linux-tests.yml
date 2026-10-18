@@ -1,0 +1,121 @@
+name: Linux tests
+
+# Tests the Linux app the way a person uses it, without a Linux PC: the downloads that linux-app.yml built in the same CI
+# run are installed and started on virtual desktops, and keys are typed on a virtual keyboard (docs/LINUX-PORT.md,
+# "Automated Linux tests"). Called by ci.yml after its linux-app job.
+#
+#   x11      Xvfb and xdotool: keys reach the overlay's key stream, and the key labels follow the keyboard layout.
+#   wayland  headless Weston and a uinput virtual keyboard: without the input group the app says so; with it, every
+#            press and release is captured and reaches the overlay's key stream.
+#
+# Both install the .deb and start the AppImage once. What this can't cover: a real GNOME or KDE tray, games, and OBS on
+# Linux. It uses no secrets; the test user and the open /dev/uinput exist only on the throwaway runner.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  TEST_USER: kotest # a user made for the tests, so being in the input group (or not) is under the workflow's control
+
+jobs:
+  x11:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: linux-app
+          path: downloads
+      - name: Install the .deb and the virtual desktop tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ./downloads/Keystroke-Overlay_*_linux-amd64.deb xvfb xdotool x11-xkb-utils
+      - name: Start a virtual X11 desktop and the installed app
+        run: |
+          mkdir -p "$RUNNER_TEMP/home" "$RUNNER_TEMP/home2"
+          Xvfb :99 -screen 0 1280x800x24 &
+          sleep 2
+          DISPLAY=:99 HOME="$RUNNER_TEMP/home" keyoverlay &
+      - name: Keys reach the overlay
+        run: DISPLAY=:99 node tests/linux/overlay-check.mjs keys -- xdotool key w a s d
+      - name: Key labels follow the keyboard layout (US, then French)
+        run: DISPLAY=:99 node tests/linux/overlay-check.mjs labels -- setxkbmap fr
+      # Switching between two layout groups (us,fr) with Alt+Shift: Xvfb did not switch groups for typed keys when this
+      # was written, so this step reports without failing the run. The layout change above is the required check.
+      - name: Key labels follow a layout group switch (information only)
+        continue-on-error: true
+        run: |
+          DISPLAY=:99 setxkbmap -layout us,fr -option grp:alt_shift_toggle
+          DISPLAY=:99 node tests/linux/overlay-check.mjs labels -- xdotool keydown Shift_L keydown Alt_L keyup Alt_L keyup Shift_L
+      - name: The AppImage starts
+        run: |
+          chmod +x downloads/*.AppImage
+          # Still running after 15 s means it started; timeout then stops it with exit code 124.
+          DISPLAY=:99 HOME="$RUNNER_TEMP/home2" timeout 15 downloads/*.AppImage --appimage-extract-and-run || test $? -eq 124
+
+  wayland:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: linux-app
+          path: downloads
+      - name: Install the .deb, Weston and the build tools for the device tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ./downloads/Keystroke-Overlay_*_linux-amd64.deb weston \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev
+      - name: Build the device tests (keyboard/linux_devices.rs)
+        run: |
+          npm ci
+          # Cargo names the test program it built: "Executable unittests src/main.rs (src-tauri/target/debug/deps/keyoverlay-<hash>)".
+          cargo test --manifest-path src-tauri/Cargo.toml --no-run 2>&1 | tee build.log
+          TESTS=$(grep -o 'target/debug/deps/keyoverlay-[0-9a-f]*' build.log | head -1)
+          cp "src-tauri/$TESTS" /tmp/device-tests
+          chmod 755 /tmp/device-tests
+      - name: A virtual keyboard, and a test user outside the input group
+        run: |
+          sudo modprobe uinput
+          sudo chmod 666 /dev/uinput # lets the test user make the virtual keyboard; the keyboards themselves stay input-group only
+          sudo useradd --create-home "$TEST_USER"
+      - name: Without the input group, the app says what to do
+        run: |
+          # A keyboard must exist for "no permission" to be the answer, so the helper makes one and waits.
+          KO_TYPE_WHEN=/tmp/never sudo -E -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::type_for_the_app_test &
+          sleep 2
+          sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::without_the_input_group_the_error_says_so
+          sudo pkill -f type_for_the_app_test || true
+      - name: With the input group, every key is captured
+        run: |
+          sudo usermod -aG input "$TEST_USER"
+          sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::captures_a_virtual_keyboard
+      - name: Start headless Weston and the installed app
+        run: |
+          RUNTIME=/tmp/runtime-$TEST_USER
+          sudo install -d -m 700 -o "$TEST_USER" "$RUNTIME"
+          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" weston --backend=headless-backend.so --socket=wayland-1 --idle-time=0 &
+          sleep 3
+          # The helper makes its keyboard before the app starts: the app finds keyboards when capture starts.
+          KO_TYPE_WHEN=/tmp/type-now sudo -E -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::type_for_the_app_test &
+          sleep 2
+          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" WAYLAND_DISPLAY=wayland-1 keyoverlay &
+      - name: Keys reach the overlay
+        run: node tests/linux/overlay-check.mjs keys -- touch /tmp/type-now
+      - name: The AppImage starts
+        run: |
+          chmod +x downloads/*.AppImage
+          cp downloads/*.AppImage /tmp/app.AppImage
+          sudo pkill -x keyoverlay || true # one copy at a time: both use port 7878
+          sudo -u "$TEST_USER" XDG_RUNTIME_DIR=/tmp/runtime-$TEST_USER WAYLAND_DISPLAY=wayland-1 \
+            timeout 15 /tmp/app.AppImage --appimage-extract-and-run || test $? -eq 124

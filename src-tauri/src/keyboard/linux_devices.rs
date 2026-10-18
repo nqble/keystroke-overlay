@@ -269,6 +269,89 @@ mod tests {
         assert_eq!(nothing_opened(false), NO_KEYBOARD);
     }
 
+    // ---- Tests on a real virtual keyboard (uinput). They need /dev/uinput, so they are skipped by default and run in the
+    // Linux tests workflow (.github/workflows/linux-tests.yml, docs/LINUX-PORT.md). Making a virtual device is only
+    // allowed here, in tests: the app itself never does (tools/check-privacy.mjs).
+
+    /// The keys the virtual keyboard types: W, A, S, D, as evdev codes and the names the overlay gets.
+    const TYPED: [(u16, &str); 4] = [(17, "KeyW"), (30, "KeyA"), (31, "KeyS"), (32, "KeyD")];
+
+    /// How long the kernel and the desktop take to list a new virtual device.
+    const DEVICE_SETTLE: std::time::Duration = std::time::Duration::from_millis(500);
+
+    fn virtual_keyboard() -> evdev::uinput::VirtualDevice {
+        let mut keys = evdev::AttributeSet::<KeyCode>::new();
+        for code in [
+            KeyCode::KEY_A,
+            KeyCode::KEY_Z,
+            KeyCode::KEY_SPACE,
+            KeyCode::KEY_W,
+            KeyCode::KEY_S,
+            KeyCode::KEY_D,
+        ] {
+            keys.insert(code);
+        }
+        let device = evdev::uinput::VirtualDevice::builder()
+            .and_then(|builder| builder.name("Keystroke Overlay test keyboard").with_keys(&keys))
+            .and_then(|builder| builder.build())
+            .expect("needs write access to /dev/uinput (run as root)");
+        std::thread::sleep(DEVICE_SETTLE);
+        device
+    }
+
+    fn type_keys(device: &mut evdev::uinput::VirtualDevice) {
+        for (code, _) in TYPED {
+            for value in [KEY_PRESSED, KEY_RELEASED] {
+                device
+                    .emit(&[evdev::InputEvent::new(EventType::KEY.0, code, value)])
+                    .unwrap();
+            }
+        }
+    }
+
+    #[test]
+    #[ignore = "needs /dev/uinput (the Linux tests workflow)"]
+    fn captures_a_virtual_keyboard() {
+        let mut device = virtual_keyboard();
+        let (tx, rx) = std::sync::mpsc::channel();
+        let handle = start(tx).expect("capture should start when the keyboards can be read");
+        type_keys(&mut device);
+        let wait = std::time::Duration::from_secs(2);
+        for (_, name) in TYPED {
+            for down in [true, false] {
+                let event = rx.recv_timeout(wait).expect("every press and release should arrive");
+                assert_eq!((event.down, event.code), (down, name));
+            }
+        }
+        handle.stop();
+    }
+
+    /// Run as a user who is not in the input group, while a keyboard exists: the error must point to the fix.
+    #[test]
+    #[ignore = "needs a keyboard device and a user outside the input group (the Linux tests workflow)"]
+    fn without_the_input_group_the_error_says_so() {
+        let (tx, _rx) = std::sync::mpsc::channel();
+        let error = start(tx)
+            .err()
+            .expect("no keyboard should open without the input group");
+        assert_eq!(error, NO_PERMISSION);
+        assert!(!can_read_a_keyboard());
+    }
+
+    /// Not a check: the virtual keyboard the workflow types on while the installed app runs. It waits for the file named
+    /// in KO_TYPE_WHEN (the test script makes it once the overlay is connected), types, and keeps the device a moment.
+    #[test]
+    #[ignore = "a helper for the Linux tests workflow"]
+    fn type_for_the_app_test() {
+        let signal = std::env::var("KO_TYPE_WHEN").expect("KO_TYPE_WHEN names the file to wait for");
+        let mut device = virtual_keyboard();
+        while !std::path::Path::new(&signal).exists() {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+        type_keys(&mut device);
+        std::thread::sleep(std::time::Duration::from_secs(2));
+    }
+
     #[test]
     fn stops_promptly_while_waiting() {
         let (wake_reader, wake) = std::io::pipe().unwrap();

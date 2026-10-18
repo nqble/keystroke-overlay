@@ -10,6 +10,15 @@ The layers, from quick to thorough:
 | `npm test` | Rust unit tests + `test:ui` + the privacy and every-system checks. The Rust tests cover (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + `npm run test:ui` + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
 | `npm run test:e2e` | **End to end:** builds a throwaway copy of the app, drives its real settings window, injects real key presses, runs a real signed update download | ~5–8 min | ~4 GB **temporary, deleted when it finishes** |
 
+## Linux tests (on GitHub)
+
+`.github/workflows/linux-tests.yml` runs in CI after the Linux downloads are built: it installs the .deb on a virtual
+X11 desktop (Xvfb, typing with xdotool) and a headless Wayland one (Weston, typing on a uinput virtual keyboard), checks
+the key stream and the key labels with `tests/linux/overlay-check.mjs`, and runs the device tests that are skipped
+elsewhere (`#[ignore]` in `keyboard/linux_devices.rs`). To run the X11 checks on your own Linux PC, start the app and run
+`node tests/linux/overlay-check.mjs keys -- xdotool key w a s d`. Not covered: a real GNOME or KDE tray, games, and OBS on
+Linux ([LINUX-PORT.md](../docs/LINUX-PORT.md)).
+
 ## End-to-end tests
 
 ```bash
