@@ -32,12 +32,8 @@
       access: { allowed: false, secureInput: false },
       inputError: 'macOS has not let the app read the keyboard',
     },
-    'mac-restart': {
-      overlays: 0,
-      access: { allowed: true, secureInput: false },
-      inputError: 'macOS has not let the app read the keyboard',
-    },
-    'mac-secure': { overlays: 1, access: { allowed: true, secureInput: true } },
+    'mac-restart': { overlays: 0, access: { allowed: true, allowedAtStart: false, secureInput: false } },
+    'mac-secure': { overlays: 1, access: { allowed: true, allowedAtStart: true, secureInput: true } },
   };
   const chosen = STATES[stateName] ?? STATES.live;
 

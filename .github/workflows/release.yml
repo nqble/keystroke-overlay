@@ -14,6 +14,10 @@ name: Release
 # SIGNPATH_ORGANIZATION_ID is set, the app's .exe and then the installer are sent to SignPath to be signed, and each
 # signing request waits for Jordan's approval there. Until it is set, the release is built unsigned, as before.
 #
+# The Mac app: once the release is published, mac-app.yml builds the Apple Silicon app (no secrets, not signed by Apple)
+# and the last job attaches Keystroke-Overlay_<version>_macOS-arm64.zip to the same release. Mac users are not updated by
+# the app: latest.json has no Mac entry (docs/RELEASING.md, Mac download).
+#
 # x.y.0 versions are also promoted to the Stable channel automatically; x.y.z patch releases are Latest-only unless you tick
 # "Also make this the Stable version" (for an important fix that Stable users must get).
 
@@ -173,3 +177,25 @@ jobs:
           gh release view channel-stable > /dev/null 2>&1 || gh release create channel-stable --prerelease \
             --title "Stable channel" --notes "Holds stable.json for the Stable update channel. Managed automatically; please do not edit."
           gh release upload channel-stable "release/$V/stable.json" --clobber
+
+  # ---- The Mac download. Runs only after the Windows release above succeeded (so only for an approved, published
+  # release), builds with no secrets, and attaches the zip to that release.
+  mac-app:
+    needs: release
+    uses: ./.github/workflows/mac-app.yml
+
+  mac-publish:
+    needs: mac-app
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: mac-app
+      - name: Attach the Mac download to the release
+        shell: bash
+        run: |
+          ZIP=$(ls Keystroke-Overlay_*_macOS-arm64.zip)
+          V=${ZIP#Keystroke-Overlay_}; V=${V%_macOS-arm64.zip}
+          gh release upload "v$V" "$ZIP" --clobber --repo "${{ github.repository }}"

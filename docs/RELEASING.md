@@ -54,6 +54,28 @@ installer → publish. Each SignPath step waits up to an hour for approval. `too
 finish` runs one part each; on your PC it runs all three, unsigned. The uninstaller inside the installer stays
 unsigned (SignPath can't reach inside an NSIS installer); Windows only shows it when someone uninstalls.
 
+## Mac download (Apple Silicon, not signed by Apple)
+
+Every release also gets `Keystroke-Overlay_<version>_macOS-arm64.zip` attached, with no extra step. After the Windows
+release is published, the Release workflow runs `.github/workflows/mac-app.yml` on a Mac machine (it uses no secrets and
+no build cache), and the last job, `mac-publish`, attaches the zip to the same release. The zip holds
+`Keystroke Overlay.app` and `THIRD-PARTY-NOTICES.html` for the Mac build (`node tools/notices.mjs --target
+aarch64-apple-darwin`). `ci.yml` runs the same workflow on every change, so a break shows up before release day. To try
+it without releasing: Actions → **Mac app** → Run workflow, and download the `mac-app` artifact.
+
+What to know:
+- The app is **not signed or notarized by Apple**. The workflow signs the whole app ad hoc (which Apple Silicon needs) and
+  checks that signature. On first launch macOS blocks it; the person clicks **Open Anyway** in System Settings → Privacy &
+  Security. Signing and notarizing need an Apple Developer account (US$99 a year) and are not set up.
+- **No in-app updates on a Mac.** `latest.json` and `stable.json` have no `darwin` entries, on purpose, and the app says
+  so when a Mac checks. Mac users download the new zip.
+- After every update the person must allow keyboard access again (clear the old entry first, with `tccutil reset ListenEvent com.keyoverlay.app`): the
+  permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
+  are in docs/MAC-PORT.md.
+- If the Mac job fails, the Windows release is already published. Fix the cause, then re-run only the failed jobs; the
+  upload replaces any earlier zip (`--clobber`).
+- Intel Macs are not covered yet.
+
 ## Versioning rule (decides the channel)
 
 `x.y.z` — **the middle number is Stable, the last number is Latest.**

@@ -2,25 +2,28 @@
 //! capture off for a password field (Secure Input). Elsewhere both answers are "fine". The window shows a notice from
 //! these (ui/settings/keyboard-access.js); see docs/MAC-PORT.md.
 
-use crate::keyboard;
+use crate::keyboard::{self, Bus};
+use crate::state::AppState;
 use serde_json::{json, Value};
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
 
 /// The answer sent to the window, in get_state and get_keyboard_access. `applies` is false off macOS, where the window
 /// must not show a notice (a capture problem on Windows or Linux has its own message in General).
-pub fn status() -> Value {
+pub fn status(bus: &Bus) -> Value {
     let access = keyboard::access();
     json!({
         "applies": crate::platform::name() == "macos",
         "allowed": access.allowed,
         "secureInput": access.secure_input,
+        "allowedAtStart": bus.was_allowed_at_start(),
+        "captureSeen": bus.has_seen_keys(),
     })
 }
 
 /// Asked again whenever the window gets focus, so coming back from System Settings shows the new answer at once.
 #[tauri::command]
-pub fn get_keyboard_access() -> Value {
-    status()
+pub fn get_keyboard_access(st: State<AppState>) -> Value {
+    status(&st.shared.bus)
 }
 
 /// The "Allow keyboard access" button: macOS's own prompt, and the System Settings page to tick the app in.
