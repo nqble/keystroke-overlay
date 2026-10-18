@@ -129,8 +129,8 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
 - **The permission belongs to one exact build.** macOS's log says "Failed to match existing code requirement" after a
   rebuild: an ad-hoc signed app's identity is its code hash (`designated => cdhash ...`), which changes with every build.
   The old Input Monitoring entry then still looks on but does nothing. What fixed it on the M1: `tccutil reset
-  ListenEvent com.keyoverlay.app`, then Allow keyboard access, switch it on, restart (the app then appears in the list
-  and keys light up). Toggling the old entry, or removing it with the minus button, did not (as far as the test on the M1 showed). So Mac users must re-allow after
+  ListenEvent com.keyoverlay.app`, then Allow keyboard access, switch it on, restart (the app usually then appears in the list and keys light up; once it did not appear even though macOS logged the request, and
+  adding it with the **+** button and the app's folder worked, then Restart now, then keys lit up). Toggling the old entry, or removing it with the minus button, did not (as far as the test on the M1 showed). So Mac users must re-allow after
   every update. Ways around it, none done: a signing certificate that stays the same between builds (a self-signed one
   kept as a secret in CI, or Apple's paid Developer ID), or signing with a rule that matches on the identifier alone,
   which would let any program with the same identifier inherit the keyboard permission, a real weakening for this app.

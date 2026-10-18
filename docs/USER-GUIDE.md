@@ -259,7 +259,9 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
 - **After you update or rebuild the app.** macOS ties the permission to the exact build, so a new build needs it again,
   even though the old entry still looks switched on. If keys stop lighting up, clear the old entry in Terminal:
   `tccutil reset ListenEvent com.keyoverlay.app`. Then click **Allow keyboard access** in the app, switch Keystroke
-  Overlay on in the list that opens, and click **Restart now**. (Switching the old entry off and on, or removing it
+  Overlay on in the list that opens, and click **Restart now**. If Keystroke Overlay is not in that list (macOS sometimes
+  leaves it out after the reset), click the **+** under the list, press ⌘⇧G, paste the folder the app is in, choose
+  Keystroke Overlay and switch it on. (Switching the old entry off and on, or removing it
   with the minus button, was not enough in testing.)
 - **The F row.** On a Mac laptop, F1 to F12 only light up while you hold **Fn**. Without it they are brightness and volume
   keys, which macOS doesn't send as F keys.
