@@ -32,7 +32,8 @@ keystroke-overlay/
 │       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
 │       │   ├── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
-│       │   └── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
+│       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
+│       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup

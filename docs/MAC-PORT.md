@@ -150,7 +150,11 @@ method (only Windows has it; Linux has none either), "⌘-click to add" and "del
 shortcut shows ⌘ ⌥ ⌃ ⇧ and asks for "⌘, ⌥ or ⌃". A Command shortcut is saved as "Super", which the shortcut library reads
 (tested). Not yet checked on the M1: that a Command-based pause shortcut registers and fires. Fonts: the Style → Font family list shows "Mac fonts" on a Mac; the saved default stays "Segoe UI" (changing it
 would need a settings migration) and shows as "System font (default)", and the overlay falls back to the system font, so
-the keys look right even when OBS runs on another computer (`ui/overlay/overlay.js`, FONT_FALLBACKS). Known gap: panning the key
+the keys look right even when OBS runs on another computer (`ui/overlay/overlay.js`, FONT_FALLBACKS). Key labels follow the keyboard language on a Mac too
+(`keyboard/macos_labels.rs`: the current layout through the Text Input Sources and `UCKeyTranslate` calls in Carbon, no
+crate; the US and ABC layouts give nothing; asked once at start-up on the main thread). Checked on the M1 on the US
+layout with the lookup forced on: all 16 typing keys tried came back as the US letters, so the calls and the key-code
+table work; not yet seen on a real French or German layout. Known gap: panning the key
 editor needs a middle mouse button, which a Mac trackpad does not have (zoom with the scroll wheel works).
 
 ## Things to double-check before relying on them

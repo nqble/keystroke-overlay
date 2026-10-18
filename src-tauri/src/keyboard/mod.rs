@@ -27,6 +27,8 @@ mod linux_keys;
 mod macos;
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 mod macos_keys;
+#[cfg(target_os = "macos")]
+pub mod macos_labels;
 #[cfg(windows)]
 mod rawinput;
 #[cfg_attr(not(windows), allow(dead_code))]

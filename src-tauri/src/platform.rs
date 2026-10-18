@@ -256,7 +256,11 @@ pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     }
     labels
 }
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
+    crate::keyboard::macos_labels::keyboard_labels()
+}
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     std::collections::HashMap::new()
 }
