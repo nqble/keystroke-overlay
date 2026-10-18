@@ -148,7 +148,7 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
 ## Settings window words on a Mac
 
 The settings window says what a Mac says (`ui/settings/system-words.js`, chosen by `platform` from the app): "Open at
-login", "Minimize to the menu bar" (minimizing closes the window and leaves the menu-bar icon), no Compatibility input
+login" (there is no Minimize switch on a Mac, see "Closing, quitting and reopening" below), no Compatibility input
 method (only Windows has it; Linux has none either), "⌘-click to add" and "delete" in the Keys tab hints, and the pause
 shortcut shows ⌘ ⌥ ⌃ ⇧ and asks for "⌘, ⌥ or ⌃". A Command shortcut is saved as "Super", which the shortcut library reads
 (tested). On the M1 a pause shortcut set with Command worked for two-key combinations (⌘P, ⌘↑), which fired with another app in front, and ⌘⌥P and ⌃⌥P were set successfully (firing with another app in front was not separately confirmed); ⌘⇧P did not work (the cause is not known, another app may use it). Before that fix, Esc and a click did nothing while recording a shortcut, because Safari's engine does not focus a clicked button; clicking now focuses the button. Fonts: the Style → Font family list shows "Mac fonts" on a Mac; the saved default stays "Segoe UI" (changing it
@@ -172,6 +172,25 @@ simulated Safari pinch, and the Windows mode (the wheel zooms, a sideways scroll
 real fingers on the M1 trackpad in the Mac window: the pinch zooms around the pointer, and the two-finger scroll pans
 (it lagged until sliding was switched off during the scroll, then felt right). The Windows precision-touchpad pinch
 (Ctrl + a small wheel delta) is not yet tried on a PC.
+
+## Closing, quitting and reopening on a Mac
+
+Jordan's decisions: Command+Q quits the app; Command+W, the red button and the yellow button all close the settings window to
+the menu bar (the app keeps running, the Dock icon goes away); the green button keeps its default. How it works:
+- `platform::install_app_menu` gives the app its own menu bar while the window is open (the app name menu with Settings…
+  (⌘,), Hide, Hide Others and Quit Keystroke Overlay (⌘Q); Edit, so copy and paste work in the settings fields; Window with
+  Close Window (⌘W)). Quit has to be our own item: the default one asks the app to exit without a code, which the app
+  refuses so that closing the last window leaves it in the tray (`RunEvent::ExitRequested` in `main.rs`).
+- The yellow button: macOS sends no resize event when a window is minimized, so `window.rs` checks 400 ms after the window
+  loses focus whether it is minimized and closes it (`platform::minimize_closes_window`: always on a Mac; elsewhere the
+  "Minimize to tray" setting). The Minimize switch is hidden on a Mac (`hasMinimizeSetting` in `system-words.js`).
+- Opening the app again from Finder, Launchpad or Spotlight while it runs in the menu bar brings the window back
+  (`platform::on_run_event`, macOS's "reopen" message); a second start of the program reuses the first (single instance).
+- Checked on the M1 with the built app, clicking the real buttons and the menu items (not by pressing keys): Window → Close
+  Window, the red button and the yellow button (with the app in front) each close the window, keep the process running and
+  hide the Dock icon; opening the app again brings a window back with the same process; Quit ends the process with no helper
+  left. The key presses ⌘W, ⌘Q and ⌘, themselves were not pressed (no way to send keys from here): try them by hand.
+  A closed window can still show in tools that list windows as a lingering off-screen window; it is not on screen.
 
 ## Checked on the M1: Secure Input and the update dot
 

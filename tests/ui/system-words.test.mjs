@@ -1,7 +1,7 @@
 // Unit tests for the per-system words (ui/settings/system-words.js). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { inspectorTool, inputMethods, systemWord } from '../../ui/settings/system-words.js';
+import { hasMinimizeSetting, inspectorTool, inputMethods, systemWord } from '../../ui/settings/system-words.js';
 
 test('each system names starting with the computer in its own way', () => {
   assert.equal(systemWord('startup', 'windows'), 'start-with-Windows');
@@ -29,7 +29,6 @@ test('only Windows offers the Compatibility input method', () => {
 
 test("the Startup switches use each system's own words", () => {
   assert.equal(systemWord('autostart', 'macos'), 'Open at login');
-  assert.equal(systemWord('minimize', 'macos'), 'Minimize to the menu bar');
   assert.equal(systemWord('autostart', 'windows'), 'Start with Windows');
   assert.equal(systemWord('minimize', 'linux'), 'Minimize to tray');
   assert.match(systemWord('standardDetail', 'macos'), /event tap/);
@@ -56,4 +55,11 @@ test('the Keys tab view hints say what pans and zooms on each system', () => {
   assert.equal(systemWord('panChip', 'windows'), 'Space-drag');
   assert.match(systemWord('panTip', 'macos'), /two fingers/);
   assert.match(systemWord('panTip', 'windows'), /middle mouse button/);
+});
+
+test('there is no Minimize switch on a Mac, where every close path leaves the window the same way', () => {
+  assert.equal(hasMinimizeSetting('macos'), false);
+  assert.equal(hasMinimizeSetting('windows'), true);
+  assert.equal(hasMinimizeSetting('linux'), true);
+  assert.equal(hasMinimizeSetting(undefined), true);
 });

@@ -7,6 +7,10 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Windo
 /// to take back the memory the window used.
 const TRIM_MEMORY_AFTER_MS: u64 = 1500;
 
+/// macOS sends no "resized" event when the yellow button minimizes the window, but the window loses focus. A moment after
+/// that (once the minimize has really happened) it is checked once, and a minimized window is closed to the tray.
+const MINIMIZE_CHECK_DELAY_MS: u64 = 400;
+
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
         let _ = settings_window.unminimize();
@@ -61,13 +65,27 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
             crate::platform::trim_memory();
         });
     }
-    if let WindowEvent::Resized(_) = ev {
-        let st = win.state::<AppState>();
-        let minimize_to_tray = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]
-            .as_bool()
-            .unwrap_or(true);
-        if minimize_to_tray && win.is_minimized().unwrap_or(false) {
-            let _ = win.close();
+    match ev {
+        WindowEvent::Resized(_) => close_if_minimized(win),
+        WindowEvent::Focused(false) if crate::platform::minimize_needs_focus_check() => {
+            // See MINIMIZE_CHECK_DELAY_MS.
+            let win = win.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(MINIMIZE_CHECK_DELAY_MS));
+                close_if_minimized(&win);
+            });
         }
+        _ => {}
+    }
+}
+
+/// "Minimize to tray": a minimized settings window is closed instead (always on a Mac, see platform::minimize_closes_window).
+fn close_if_minimized(win: &tauri::Window) {
+    let st = win.state::<AppState>();
+    let minimize_to_tray = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]
+        .as_bool()
+        .unwrap_or(true);
+    if crate::platform::minimize_closes_window(minimize_to_tray) && win.is_minimized().unwrap_or(false) {
+        let _ = win.close();
     }
 }

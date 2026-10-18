@@ -8,7 +8,7 @@ import { call, invoke, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
 import { changed } from '../preview.js';
 import { inputActive, inputError, platform, setInputActive, setInputError, settings } from '../state.js';
-import { inputMethods, systemWord } from '../system-words.js';
+import { hasMinimizeSetting, inputMethods, systemWord } from '../system-words.js';
 import { resetDialog } from '../dialogs.js';
 import { TEXT } from '../text.js';
 import { Connection } from './general-connection.js';
@@ -138,11 +138,15 @@ function Startup() {
       test="toggle-general-autostart"
       onTurn=${setAutostart}
     />
-    <${SettingSwitch}
-      name="minimizeToTray"
-      label=${systemWord('minimize', platform)}
-      test="toggle-general-minimize-to-tray"
-    />
+    ${
+      hasMinimizeSetting(platform)
+        ? html`<${SettingSwitch}
+            name="minimizeToTray"
+            label=${systemWord('minimize', platform)}
+            test="toggle-general-minimize-to-tray"
+          />`
+        : null
+    }
     <${SettingSwitch} name="openOnLaunch" label=${WORDS.openOnLaunch} test="toggle-general-open-on-launch" />
   <//>`;
 }

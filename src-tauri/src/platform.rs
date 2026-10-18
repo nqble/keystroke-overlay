@@ -105,6 +105,119 @@ pub fn restart_app(app: &AppHandle) {
     app.restart();
 }
 
+/// What a macOS menu-bar item should do. The ids are the ones `install_app_menu` gives its items.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))] // built on macOS, and tested everywhere
+#[derive(Debug, PartialEq)]
+pub enum AppMenuAction {
+    OpenSettings,
+    Quit,
+}
+
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+const MENU_SETTINGS_ID: &str = "app-settings";
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+const MENU_QUIT_ID: &str = "app-quit";
+
+/// Which action a menu item id means, if it is one of ours (the other items, like Copy and Close Window, work by themselves).
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+pub fn app_menu_action(id: &str) -> Option<AppMenuAction> {
+    match id {
+        MENU_SETTINGS_ID => Some(AppMenuAction::OpenSettings),
+        MENU_QUIT_ID => Some(AppMenuAction::Quit),
+        _ => None,
+    }
+}
+
+/// Does minimizing the settings window close it to the tray? On a Mac always: the yellow button does what Command+W and
+/// the red button do, so the window is never minimized into the Dock. Elsewhere it follows the "Minimize to tray" setting.
+pub fn minimize_closes_window(minimize_to_tray_setting: bool) -> bool {
+    cfg!(target_os = "macos") || minimize_to_tray_setting
+}
+
+/// Does minimizing the settings window send no "resized" event, so that losing focus is the sign to check for it? True on a
+/// Mac (the yellow button); elsewhere the resize event already tells.
+pub fn minimize_needs_focus_check() -> bool {
+    cfg!(target_os = "macos")
+}
+
+/// macOS: the app's own menu bar while the settings window is open (the Dock icon is showing). Quit (Command+Q) really
+/// quits: the default Quit asks the app to exit without a code, which the app refuses so that closing the last window leaves
+/// it in the tray. Close Window (Command+W) closes the window like the red button, Command+, opens Settings, and the Edit
+/// menu keeps copy and paste working in the settings fields. Does nothing elsewhere.
+#[cfg(target_os = "macos")]
+pub fn install_app_menu(app: &tauri::App) -> tauri::Result<()> {
+    use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+    let name = crate::app_info::NAME;
+    let settings = MenuItemBuilder::with_id(MENU_SETTINGS_ID, "Settings…")
+        .accelerator("Cmd+,")
+        .build(app)?;
+    let quit = MenuItemBuilder::with_id(MENU_QUIT_ID, format!("Quit {name}"))
+        .accelerator("Cmd+Q")
+        .build(app)?;
+    let app_menu = SubmenuBuilder::new(app, name)
+        .item(&settings)
+        .separator()
+        .hide()
+        .hide_others()
+        .separator()
+        .item(&quit)
+        .build()?;
+    let edit_menu = SubmenuBuilder::new(app, "Edit")
+        .undo()
+        .redo()
+        .separator()
+        .cut()
+        .copy()
+        .paste()
+        .select_all()
+        .build()?;
+    let window_menu = SubmenuBuilder::new(app, "Window").close_window().build()?;
+    let menu = MenuBuilder::new(app)
+        .item(&app_menu)
+        .item(&edit_menu)
+        .item(&window_menu)
+        .build()?;
+    app.set_menu(menu)?;
+    Ok(())
+}
+#[cfg(not(target_os = "macos"))]
+pub fn install_app_menu(_app: &tauri::App) -> tauri::Result<()> {
+    Ok(())
+}
+
+/// Do what a menu item of ours asks (see `install_app_menu`). Quit uses `exit(0)`: an exit with a code is the one the app
+/// does not hold back.
+pub fn on_app_menu_event(app: &AppHandle, id: &str) {
+    match app_menu_action(id) {
+        Some(AppMenuAction::OpenSettings) => crate::window::open_settings_async(app),
+        Some(AppMenuAction::Quit) => app.exit(0),
+        None => {}
+    }
+}
+
+/// Should a "reopen" open the settings window? macOS sends one when the person opens the app again (Finder, Launchpad,
+/// Spotlight, the Dock icon) while it is already running; with no window showing, they expect it to appear.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))] // used by on_run_event on macOS, and by the tests
+fn reopen_opens_settings(has_visible_windows: bool) -> bool {
+    !has_visible_windows
+}
+
+/// macOS: opening the app again while it runs in the menu bar brings up the settings window (see `reopen_opens_settings`).
+/// Other systems have no such event, and a second start is handled by the single-instance plugin.
+pub fn on_run_event(app: &AppHandle, event: &tauri::RunEvent) {
+    #[cfg(target_os = "macos")]
+    if let tauri::RunEvent::Reopen {
+        has_visible_windows, ..
+    } = event
+    {
+        if reopen_opens_settings(*has_visible_windows) {
+            crate::window::open_settings_async(app);
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, event);
+}
+
 /// macOS: show the app in the Dock (and the app switcher) while its settings window is open, hide it when the window
 /// closes, so the app is a menu-bar app the rest of the time. Does nothing elsewhere.
 pub fn set_dock_icon_visible(app: &AppHandle, visible: bool) {
@@ -328,6 +441,29 @@ mod tests {
         let (memory_mb, handles) = process_stats();
         assert!(memory_mb > 0.0, "memory should be measured");
         assert!(handles.is_some_and(|count| count > 0), "open handles should be counted");
+    }
+
+    #[test]
+    fn opening_the_app_again_shows_settings_only_when_no_window_is_showing() {
+        assert!(reopen_opens_settings(false));
+        assert!(
+            !reopen_opens_settings(true),
+            "a window already there is just brought forward by macOS"
+        );
+    }
+
+    #[test]
+    fn our_menu_items_map_to_their_actions_and_others_to_nothing() {
+        assert_eq!(app_menu_action("app-quit"), Some(AppMenuAction::Quit));
+        assert_eq!(app_menu_action("app-settings"), Some(AppMenuAction::OpenSettings));
+        assert_eq!(app_menu_action("copy"), None);
+        assert_eq!(app_menu_action(""), None);
+    }
+
+    #[test]
+    fn minimizing_closes_the_window_on_a_mac_whatever_the_setting_says() {
+        assert!(minimize_closes_window(true));
+        assert_eq!(minimize_closes_window(false), cfg!(target_os = "macos"));
     }
 
     #[test]

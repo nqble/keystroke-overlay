@@ -59,6 +59,7 @@ fn main() {
         ))
         .setup(|app| {
             platform::set_dock_icon_visible(app.handle(), false); // a menu-bar app until the settings window opens
+            platform::install_app_menu(app)?; // macOS: Command+Q, Command+W and Command+,
             let paths = Paths {
                 root: app.path().app_data_dir()?,
             };
@@ -136,6 +137,7 @@ fn main() {
             Ok(())
         })
         .on_window_event(window::on_event)
+        .on_menu_event(|app, event| platform::on_app_menu_event(app, event.id().as_ref()))
         .invoke_handler(tauri::generate_handler![
             commands::settings::get_state,
             commands::settings::save_settings,
@@ -187,7 +189,8 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("failed to build app");
 
-    app.run(|_, ev| {
+    app.run(|app, ev| {
+        platform::on_run_event(app, &ev);
         // Keep running in the tray when the last window closes.
         if let RunEvent::ExitRequested { api, code, .. } = ev {
             if code.is_none() {

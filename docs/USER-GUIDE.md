@@ -247,8 +247,10 @@ use updates you can block the app in your firewall and everything else keeps wor
 The Mac version is early: you build the app yourself (the steps are in the [README](../README.md#building-from-source)),
 and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
 
-- **Where it lives.** In the menu bar. Click its icon and choose **Open settings**. While the settings window is open, the
-  app also shows in the Dock.
+- **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
+  Launchpad. While the settings window is open, the app also shows in the Dock.
+- **Closing and quitting.** ⌘W, the red button and the yellow button all close the window to the menu bar; the app keeps
+  running. ⌘Q quits it. ⌘, opens Settings.
 - **First launch: allow keyboard access.** macOS won't give an app your key presses until you say yes. In the settings
   window, click **Allow keyboard access** (the blue bar under the header). In System Settings → Privacy & Security →
   **Input Monitoring**, switch on Keystroke Overlay. Come back to the app and click **Restart now**. Your keys now light

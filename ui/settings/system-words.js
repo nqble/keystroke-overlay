@@ -9,7 +9,7 @@ const WORDS = {
   startup: { windows: 'start-with-Windows', macos: 'open-at-login', linux: 'start-at-login' },
   // the General -> Startup switches: starting with the computer, and what minimizing does
   autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' },
-  minimize: { windows: 'Minimize to tray', macos: 'Minimize to the menu bar', linux: 'Minimize to tray' },
+  minimize: { windows: 'Minimize to tray', linux: 'Minimize to tray' }, // not shown on a Mac: see hasMinimizeSetting
   // where the app's icon lives while its window is closed
   trayName: { windows: 'tray', macos: 'menu bar', linux: 'tray' },
   // the modifiers a shortcut needs, in words, for the pause shortcut's hint
@@ -58,6 +58,14 @@ export function inspectorTool(platform) {
  */
 export function inputMethods(platform) {
   return platform === 'windows' || platform === undefined ? ['hook', 'rawinput'] : ['hook'];
+}
+
+/**
+ * Is there a "Minimize to tray" switch on this system? Not on a Mac: the yellow button, Command+W and the red button all
+ * close the window to the menu bar, so there is nothing to choose (src-tauri/src/platform.rs, minimize_closes_window).
+ */
+export function hasMinimizeSetting(platform) {
+  return platform !== 'macos';
 }
 
 const DEFAULT_SYSTEM = 'windows'; // the layout files' and the original words
