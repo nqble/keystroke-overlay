@@ -92,6 +92,22 @@ cannot see keys while a game has focus. The realistic alternatives are (a) a Mac
   the top row is brightness, volume and media keys by default, which are not ordinary key events. A test pressing
   F1 to F12 with and without Fn gave F1, F2, F3 and F11 twice and the other eight once.
 
+## Free route, Stage A: build from source (status, so the work can pause at any point)
+
+Plan: build a real `.app`, test it, write the README steps. Nothing in this stage touches GitHub beyond pushing `mac/port`.
+
+- [x] **The app builds.** `npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'` makes
+  `src-tauri/target/release/bundle/macos/Keystroke Overlay.app` (5.9 MB, about 2 minutes on an M1 after the first build).
+  The updater setting is switched off for this build because it needs the release signing key, which stays outside the
+  project. If the Command Line Tools are older than their newest SDK, the linker fails with a "malformed file" error;
+  `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk` (any older SDK there) works around it, and updating the
+  Command Line Tools fixes it for good.
+- [x] **It is signed ad hoc by the build** (`codesign -dv` says `Signature=adhoc`, identifier `keyoverlay-<hash>`), so it
+  runs on Apple Silicon. A locally built app is not quarantined, so macOS opens it without the Open Anyway step.
+- [ ] Input Monitoring: does the `.app` appear in the list by name, and does capture start after granting and restarting?
+- [ ] Does the permission survive a rebuild (the open question below)?
+- [ ] README: build-from-source steps for Mac.
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:
