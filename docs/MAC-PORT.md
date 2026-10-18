@@ -173,6 +173,37 @@ real fingers on the M1 trackpad in the Mac window: the pinch zooms around the po
 (it lagged until sliding was switched off during the scroll, then felt right). The Windows precision-touchpad pinch
 (Ctrl + a small wheel delta) is not yet tried on a PC.
 
+## Idle CPU and memory on a Mac (measured on the M1, macOS 26, the built app)
+
+Average CPU from the processes' own cumulative CPU time, memory as resident size, the app plus its web view helper processes:
+
+| State | CPU | Memory | Processes |
+|---|---|---|---|
+| Settings window open (preview running) | 0% over 45 s and 60 s | about 183 to 191 MB | 4 (the app, the web content for the settings page and the preview, and Apple's networking helper) |
+| Settings window closed, menu-bar only | 0% over 60 s and 90 s | about 99 to 108 MB | 2 (the app about 83 MB, and `com.apple.WebKit.Networking` about 16 MB) |
+
+So the "about 0% CPU at idle" promise holds on a Mac, and closing the window really ends its web view processes (about 80
+MB less). The memory is much higher than the few MB the Windows build is described with, because the app process itself
+holds about 83 MB at rest (Tauri, the WebKit framework and the key tap) and Apple's networking helper stays; that is a
+fact about the Mac build, not measured against the Windows number. Not measured: memory over hours, or with OBS
+connected.
+
+## Open at login on a Mac
+
+Read from the `auto-launch` crate source (the autostart plugin uses `MacosLauncher::LaunchAgent`): turning it on writes
+`~/Library/LaunchAgents/<app name>.plist` pointing at the running app and its `--autostart` argument; turning it off removes
+that file. Not toggled on the M1 (the control tool could not scroll the General tab down to the switch). To check by hand: open
+General, scroll to Startup, turn **Open at login** on, look for the file with `ls ~/Library/LaunchAgents | grep -i keystroke`,
+turn it off, and look again (it should be gone). A login item points at the app's current location, so it breaks if the app is
+moved or rebuilt elsewhere.
+
+## Bundle and the minimum macOS version
+
+`tauri.conf.json` gives the Mac bundle the category Utility (`LSApplicationCategoryType`) and the minimum system version 11.0
+(`LSMinimumSystemVersion`). Before this the bundle said 10.13 while the program itself is built for macOS 11.0 (its
+`minos`, from Rust's default Mac target), so an older Mac would have started it and failed. Only the newest macOS (26) on
+one Apple Silicon Mac has been tried.
+
 ## Closing, quitting and reopening on a Mac
 
 Jordan's decisions: Command+Q quits the app; Command+W, the red button and the yellow button all close the settings window to
