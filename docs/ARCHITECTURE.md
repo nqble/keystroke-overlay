@@ -30,7 +30,9 @@ keystroke-overlay/
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
 │       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
-│       │   └── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
+│       │   ├── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
+│       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
+│       │   └── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
@@ -173,4 +175,4 @@ key presses through both input methods, a signed update download); it cleans up 
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs`, in development and in no release yet ([LINUX-PORT.md](LINUX-PORT.md)); for macOS, see [MAC-PORT.md](MAC-PORT.md).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs`, in development and in no release yet ([LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs`, in development and in no release yet ([MAC-PORT.md](MAC-PORT.md)).

@@ -1,4 +1,4 @@
-# Porting to macOS — research (no macOS key capture yet; some groundwork done)
+# Porting to macOS — plan and status (Phase 1 code written on `mac/port`; key capture not yet seen working on a Mac)
 
 **Verdict: yes, and the best route is to keep Tauri.** Roughly 80% of the app is already cross-platform
 (overlay, settings window, local server, settings storage, tray, updater, autostart). What is Windows-only is key capture (the hook and Raw
@@ -56,8 +56,9 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
 
 1. **Phase 1 — it runs.** Already done: the capture methods sit behind one interface (`Method` in `keyboard/mod.rs`),
    Windows-only crates are gated with `[target.'cfg(windows)'.dependencies]`, and CI builds and tests on `macos-latest` (the
-   `other-systems` job). Still to do: add `keyboard/macos.rs` (CGEventTap + key-code map + repeat filter) and make CI upload
-   an unsigned `.app`.
+   `other-systems` job). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
+   release) are written and unit-tested; it still has to be seen working on a real Mac. Still to do: make CI upload an
+   unsigned `.app`.
 2. **Phase 2 — it behaves.** Permission screen, Secure Input hint, menu-bar icon, Dock icon hidden, visual pass over
    the settings window in WKWebView.
 3. **Phase 3 — it ships.** Apple Developer ID, signing + notarization in a GitHub Actions release workflow, universal
