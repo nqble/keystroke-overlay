@@ -18,7 +18,7 @@ export const developerTools = {
       el(
         'ol',
         { className: 'dbg-steps' },
-        el('li', { textContent: 'Quit Keystroke Overlay (tray icon → Quit).' }),
+        el('li', { textContent: 'Quit Keystroke Overlay (tray icon → Quit).' }), // per-system: these steps are for Windows and Linux only
         el('li', {
           textContent: 'In a Command Prompt, run the line below, then start the app from that same window.',
         }),

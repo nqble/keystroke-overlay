@@ -39,7 +39,7 @@ const ALONE_OK = /^(F([1-9]|1\d|2[0-4])|Pause|ScrollLock)$/;
 export function shortcutFromKey(event) {
   if (MODIFIER_CODES.has(event.code)) return '';
   const parts = [];
-  if (event.ctrlKey) parts.push('Ctrl');
+  if (event.ctrlKey) parts.push('Ctrl'); // per-system: the saved shortcut text (hotkeys.rs), not shown as it is
   if (event.altKey) parts.push('Alt');
   if (event.shiftKey) parts.push('Shift');
   if (event.metaKey) parts.push('Super');
