@@ -1,7 +1,7 @@
 // The pause shortcut's text (ui/settings/shortcut.js): what a key press becomes, and how it is shown.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { shortcutFromKey, shortcutName } from '../../ui/settings/shortcut.js';
+import { shortcutFromKey, shortcutName, toggleListening } from '../../ui/settings/shortcut.js';
 
 const press = (code, mods = {}) => ({ code, ctrlKey: false, altKey: false, shiftKey: false, metaKey: false, ...mods });
 
@@ -43,4 +43,20 @@ test('Linux calls the key Super, and an unknown system gets the Windows names', 
 test('Command on a Mac is saved as Super, which the app registers as Command', () => {
   const press = { code: 'KeyP', ctrlKey: false, altKey: false, shiftKey: true, metaKey: true };
   assert.equal(shortcutFromKey(press), 'Shift+Super+KeyP');
+});
+
+test('clicking the button focuses it, so the keys reach it even where a click does not focus a button', () => {
+  let focused = false;
+  let listening = false;
+  const click = { currentTarget: { focus: () => (focused = true) } };
+  toggleListening(click, listening, (value) => (listening = value));
+  assert.equal(focused, true);
+  assert.equal(listening, true);
+});
+
+test('clicking again while listening stops listening', () => {
+  let listening = true;
+  const click = { currentTarget: { focus() {} } };
+  toggleListening(click, listening, (value) => (listening = value));
+  assert.equal(listening, false);
 });

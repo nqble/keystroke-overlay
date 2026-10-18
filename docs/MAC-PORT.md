@@ -154,7 +154,14 @@ the keys look right even when OBS runs on another computer (`ui/overlay/overlay.
 (`keyboard/macos_labels.rs`: the current layout through the Text Input Sources and `UCKeyTranslate` calls in Carbon, no
 crate; the US and ABC layouts give nothing; asked once at start-up on the main thread). Checked on the M1 on the US
 layout with the lookup forced on: all 16 typing keys tried came back as the US letters, so the calls and the key-code
-table work; not yet seen on a real French or German layout. Known gap: panning the key
+table work. Then checked on a real French (AZERTY) layout, added in System Settings and switched to before starting the
+app: Q shows A, W shows Z, A shows Q, Z shows W, the key beside L shows M, the comma, period and slash keys show
+semicolon, colon and equals, the quote key shows Ù, and the digit row keeps its digits.
+It also follows the keyboard live: switching layout in the menu-bar input menu makes macOS post a system-wide notice
+(`kTISNotifySelectedKeyboardInputSourceChanged`), the app asks the layout again on the main thread, and when the labels
+changed the preview, OBS and the settings window re-read their layouts (checked on the M1: switched to French with the
+window open, the preview changed by itself; no timer runs). `platform::watch_keyboard_layout` is the hook for the other
+systems. Known gap: panning the key
 editor needs a middle mouse button, which a Mac trackpad does not have (zoom with the scroll wheel works).
 
 ## Things to double-check before relying on them

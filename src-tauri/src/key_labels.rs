@@ -4,8 +4,9 @@
 //! punctuation instead (the digit row keeps its digits, see keyboard/keymap.rs TYPING_KEYS). A user's own label for a
 //! key always wins, because it is applied on top of these by the overlay and the key editor.
 //!
-//! What each key types is asked from the system once, at start-up (platform::keyboard_labels; Windows, and macOS in
-//! keyboard/macos_labels.rs). Nothing about what the
+//! What each key types is asked from the system at start-up (platform::keyboard_labels; Windows, and macOS in
+//! keyboard/macos_labels.rs), and on a Mac again each time the person switches keyboard layout, so the preview and OBS
+//! follow the keyboard live (platform::watch_keyboard_layout; no timer, the system tells us). Nothing about what the
 //! user types is read.
 //!
 //! The same setting also makes the keys that are named differently on each system follow the system the app runs on:
@@ -14,9 +15,11 @@
 
 use crate::server;
 use crate::settings::Paths;
+use crate::state::AppState;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::sync::OnceLock;
+use std::sync::Mutex;
+use tauri::{AppHandle, Emitter, Manager};
 
 /// What the keys that differ between systems are called, per system (`platform::name()`). Windows is the layout files'
 /// own words, so it has no entry. A symbol is used where the key is small (one key wide). A new system, or a key whose
@@ -38,11 +41,40 @@ const SYSTEM_NAMES: [(&str, &[(&str, &str)]); 2] = [
     ("linux", &[("MetaLeft", "Super"), ("MetaRight", "Super")]),
 ];
 
-static KEYBOARD: OnceLock<HashMap<&'static str, String>> = OnceLock::new();
+/// What the user's keyboard prints, as last asked. Only `init` and the layout watcher ask the system (on the main
+/// thread, which macOS requires); the server just reads this.
+static KEYBOARD: Mutex<Option<HashMap<&'static str, String>>> = Mutex::new(None);
 
-/// Ask the operating system what the user's keyboard prints (once, at start-up, on the main thread: macOS needs it).
-pub fn init() {
-    KEYBOARD.get_or_init(crate::platform::keyboard_labels);
+/// Ask the operating system what the user's keyboard prints, then keep asking each time the layout is switched (on the
+/// main thread, at start-up).
+pub fn init(app: &AppHandle) {
+    replace_labels(&KEYBOARD, crate::platform::keyboard_labels());
+    let app = app.clone();
+    crate::platform::watch_keyboard_layout(move || reload(&app));
+}
+
+/// The person switched keyboard layout: ask again, and when the labels changed tell the overlays (OBS and the
+/// preview re-read their layouts) and the settings window.
+fn reload(app: &AppHandle) {
+    if !replace_labels(&KEYBOARD, crate::platform::keyboard_labels()) {
+        return;
+    }
+    let st = app.state::<AppState>();
+    let _ = st.shared.cfg_tx.send("assets");
+    let _ = app.emit("settings-changed", ());
+}
+
+/// Store new labels; true when they differ from the ones held.
+fn replace_labels(slot: &Mutex<Option<HashMap<&'static str, String>>>, new: HashMap<&'static str, String>) -> bool {
+    let mut held = slot.lock().unwrap();
+    let changed = held.as_ref() != Some(&new);
+    *held = Some(new);
+    changed
+}
+
+/// The labels as last asked (none before `init`).
+fn current_labels() -> HashMap<&'static str, String> {
+    KEYBOARD.lock().unwrap().clone().unwrap_or_default()
 }
 
 /// The label for one character a key types: upper case, as on a keycap. None for anything that isn't a visible
@@ -85,11 +117,9 @@ pub fn layouts_to_show(paths: &Paths, settings: &Value) -> Vec<Value> {
     let mut layouts = server::layouts(paths);
     if settings["style"]["keyLabels"].as_str() != Some("layout") {
         apply(&mut layouts, &system_labels(crate::platform::name()));
-        // Only read here: asking the system must happen in `init`, on the main thread (macOS requires it), and this
-        // runs on the server's threads. Before `init` there are simply no keyboard labels yet.
-        if let Some(keyboard) = KEYBOARD.get() {
-            apply(&mut layouts, keyboard);
-        }
+        // Only read here: asking the system happens in `init` and the layout watcher, on the main thread (macOS
+        // requires it), and this runs on the server's threads. Before `init` there are simply no keyboard labels yet.
+        apply(&mut layouts, &current_labels());
     }
     layouts
 }
@@ -106,6 +136,19 @@ mod tests {
         assert_eq!(label_for(';' as u16), Some(";".into()));
         assert_eq!(label_for(' ' as u16), None);
         assert_eq!(label_for(0x1B), None, "a control code keeps the layout's label");
+    }
+
+    #[test]
+    fn switching_layout_replaces_the_labels_and_says_whether_they_changed() {
+        let slot = Mutex::new(None);
+        let azerty = HashMap::from([("KeyQ", "A".to_string())]);
+        assert!(replace_labels(&slot, azerty.clone()), "the first answer is a change");
+        assert!(!replace_labels(&slot, azerty), "the same layout again is not");
+        assert!(
+            replace_labels(&slot, HashMap::new()),
+            "back to US (no labels) is a change"
+        );
+        assert_eq!(slot.lock().unwrap().as_ref().map(HashMap::len), Some(0));
     }
 
     #[test]

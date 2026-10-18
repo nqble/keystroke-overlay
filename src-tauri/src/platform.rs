@@ -260,6 +260,16 @@ pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     crate::keyboard::macos_labels::keyboard_labels()
 }
+/// Call `on_change` (on the main thread) each time the person switches keyboard layout, so the key labels can follow
+/// live. macOS only, where the system sends a notification (no timer); elsewhere nothing happens and the labels are
+/// read once at start-up.
+pub fn watch_keyboard_layout(on_change: impl Fn() + Send + Sync + 'static) {
+    #[cfg(target_os = "macos")]
+    crate::keyboard::macos_labels::watch(Box::new(on_change));
+    #[cfg(not(target_os = "macos"))]
+    let _ = on_change;
+}
+
 #[cfg(not(any(windows, target_os = "macos")))]
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     std::collections::HashMap::new()

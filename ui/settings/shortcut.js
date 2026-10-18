@@ -50,6 +50,16 @@ export function shortcutFromKey(event) {
   return text.length <= MAX_SHORTCUT_LENGTH ? text : null;
 }
 
+/**
+ * A click on the "Choose shortcut" button: start listening for the keys, or stop if it already is. The button is asked to
+ * take keyboard focus itself, because the key presses are read on it and Safari's engine (the Mac window) does not focus
+ * a button when it is clicked, so without this Esc and every other key went to the page and did nothing.
+ */
+export function toggleListening(event, listening, setListening) {
+  event.currentTarget.focus();
+  setListening(!listening);
+}
+
 /** "Ctrl+Shift+KeyP" → "Ctrl + Shift + P" ("⌃ + ⇧ + P" on a Mac), for showing to the user. */
 export function shortcutName(text, platform = DEFAULT_SYSTEM) {
   const names = MODIFIER_NAMES[platform] ?? MODIFIER_NAMES[DEFAULT_SYSTEM];

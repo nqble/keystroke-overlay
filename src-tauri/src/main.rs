@@ -87,7 +87,7 @@ fn main() {
                 debug::set_last_crash(note);
             }
             crash::install(&paths.root);
-            key_labels::init(); // what the user's keyboard prints, asked once
+            key_labels::init(app.handle()); // what the user's keyboard prints, asked now and on each layout switch
 
             let (cfg_tx, _) = broadcast::channel(8);
             let shared = Arc::new(Shared {
