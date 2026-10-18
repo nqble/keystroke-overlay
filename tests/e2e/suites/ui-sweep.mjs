@@ -168,10 +168,10 @@ for (const id of ids) {
   await p.ev(`const k = document.querySelector('${byTest('key-cell')}'); k && k.click()`);
   await sleep(150);
   // the first view of a layout shows every key inside the editor box (the board around them may reach past it)
-  const fit = await p.q(
-    `(() => { const m = document.querySelector('${byTest('keymap')}').getBoundingClientRect(); return [...document.querySelectorAll('${byTest('key-cell')}')].every((k) => { const r = k.getBoundingClientRect(); return r.left >= m.left - 1 && r.right <= m.right + 1 && r.top >= m.top - 1 && r.bottom <= m.bottom + 1; }); })()`,
+  const fit = await p.ev(
+    `const m = document.querySelector('${byTest('keymap')}').getBoundingClientRect(); const out = [...document.querySelectorAll('${byTest('key-cell')}')].filter((k) => { const r = k.getBoundingClientRect(); return !(r.left >= m.left - 1 && r.right <= m.right + 1 && r.top >= m.top - 1 && r.bottom <= m.bottom + 1); }).map((k) => k.dataset.code); return { box: [m.left, m.top, m.right, m.bottom].map(Math.round), outside: out.slice(0, 5), count: out.length };`,
   );
-  check(`Keys tab: the whole "${id}" keyboard is visible in the first view`, fit);
+  check(`Keys tab: the whole "${id}" keyboard is visible in the first view`, fit.count === 0, JSON.stringify(fit));
 }
 check(`all ${ids.length} layouts open in the Keys tab`, (await errs()).length === 0, JSON.stringify(await errs()));
 await p.invoke('set_layout', { id: 'tkl' });

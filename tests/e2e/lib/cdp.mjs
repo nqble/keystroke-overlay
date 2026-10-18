@@ -3,10 +3,11 @@
 import { spawn, execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { APP } from '../../../tools/app-config.mjs';
 
 const LIB = dirname(fileURLToPath(import.meta.url));
 // the test app is renamed so we can never hit a user's real keyoverlay.exe
-export const EXE_NAME = 'kotest-e2e';
+export const EXE_NAME = APP.testApps.e2eExe;
 export const PORT = 7879; // test overlay port (the real app defaults to 7878)
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

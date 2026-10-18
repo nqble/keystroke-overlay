@@ -1,6 +1,6 @@
 # Cleanup audit
 
-Checked against [CLAUDE.md](../CLAUDE.md) on `v1.3.0-dev` (4b82723) plus `advisor/editor-logic`; line counts and done items
+Checked against [CLAUDE.md](../../CLAUDE.md) on `v1.3.0-dev` (4b82723) plus `advisor/editor-logic`; line counts and done items
 re-checked on `v1.4.0-dev` (2026-10-16). Most findings are still open; the rows say which are done. Each area below is fixed later in its own `refactor:` commits, with tests run between
 areas (see "How to work through it").
 

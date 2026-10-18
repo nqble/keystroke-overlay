@@ -155,6 +155,18 @@ export function addLayoutDialog() {
   nameInput.focus();
 }
 
+/** Ask before something that is hard to undo by hand. `onConfirm` runs when the danger button is pressed. */
+export function confirmDialog({ title, body, confirmLabel, test, onConfirm }) {
+  dialog({
+    title,
+    body: [el('p', { textContent: body })],
+    buttons: [
+      { label: 'Cancel', test: 'dialog-cancel' },
+      { label: confirmLabel, test, danger: true, run: onConfirm },
+    ],
+  });
+}
+
 export function resetDialog() {
   const reset = async () => {
     try {
@@ -191,7 +203,10 @@ export function hideMenu() {
   menuOpener = null;
 }
 
-/** Show a small menu at the mouse. items: [{ label, run?, danger?, disabled? }] */
+/**
+ * Show a small menu at the mouse. items: [{ label, run?, danger?, disabled?, test? }] (`test` is the item's test hook), or
+ * { separator: true } for a dividing line.
+ */
 export function showMenu(event, items) {
   event.preventDefault();
   event.stopPropagation();
@@ -201,17 +216,19 @@ export function showMenu(event, items) {
     'div',
     { className: 'ctxmenu', test: 'context-menu' },
     items.map((item) =>
-      el('button', {
-        test: 'context-menu-item',
-        type: 'button',
-        textContent: item.label,
-        className: item.danger ? 'danger' : '',
-        disabled: !!item.disabled,
-        onclick: () => {
-          hideMenu();
-          item.run?.();
-        },
-      }),
+      item.separator
+        ? el('hr', { className: 'menu-separator' })
+        : el('button', {
+            test: item.test ?? 'context-menu-item',
+            type: 'button',
+            textContent: item.label,
+            className: item.danger ? 'danger' : '',
+            disabled: !!item.disabled,
+            onclick: () => {
+              hideMenu();
+              item.run?.();
+            },
+          }),
     ),
   );
   document.body.append(menuEl);

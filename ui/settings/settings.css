@@ -20,6 +20,7 @@
 
   /* Text */
   --color-text: #e6e9f0;
+  --color-guide: #ff9f43; /* the smart-guide lines shown while a key is dragged */
   --color-text-dim: #8b93a7; /* secondary text, hints */
   --color-on-fill: #fff; /* text on a strong fill (active tab, primary button, close button) */
 
@@ -460,8 +461,12 @@ button:disabled:hover {
 
 .keymap {
   position: relative;
-  height: clamp(300px, 55vh, 560px);
-  background: var(--color-well);
+  /* the box has the board's proportions (--board-w by --board-h keys), so a keyboard that fits across also fits down */
+  aspect-ratio: calc(var(--board-w, 24) / var(--board-h, 12));
+  max-height: 62vh;
+  min-height: 200px;
+  /* the same grey as the board, so the room that shows past the board's edge does not look like a darker frame */
+  background: var(--color-panel);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-2xl);
   margin: var(--space-8) 0 var(--space-14);
@@ -488,6 +493,81 @@ button:disabled:hover {
 .keymap-canvas.dots {
   background-image: radial-gradient(circle, var(--color-text-dim) 0.8px, transparent 1.4px);
   background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
+}
+.keymap-canvas.holding .kmk:not(.drag) {
+  opacity: 0.35;
+}
+.kmk {
+  transition: opacity 160ms ease-out;
+}
+.guide {
+  position: absolute;
+  z-index: 4;
+  background: var(--color-guide);
+  pointer-events: none;
+}
+.guide.vertical {
+  top: 0;
+  bottom: 0;
+  left: calc(var(--at) * var(--unit));
+  width: 1px;
+}
+.guide.horizontal {
+  left: 0;
+  right: 0;
+  top: calc(var(--at) * var(--unit));
+  height: 1px;
+}
+/* The resize handles sit on the selected key; the container only positions them. */
+.handles {
+  position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc(var(--y) * var(--unit));
+  width: calc(var(--w) * var(--unit) - 3px);
+  height: calc(var(--h, 1) * var(--unit) - 3px);
+  z-index: 4;
+  pointer-events: none;
+}
+.handle {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 60%;
+  transform: translateY(-50%);
+  background: var(--color-accent);
+  border: 2px solid var(--color-panel);
+  border-radius: var(--radius-md);
+  box-sizing: content-box;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: ew-resize;
+}
+.handle.left {
+  left: -6px;
+}
+.handle.right {
+  right: -6px;
+}
+.arrange-bar {
+  position: absolute;
+  left: var(--bar-x, 0);
+  top: var(--bar-y, 0);
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-menu);
+}
+.arrange-bar[hidden] {
+  display: none;
+}
+.arrange-bar button {
+  padding: var(--space-2) var(--space-8);
+  font-size: var(--text-sm);
 }
 .zoom-controls {
   position: absolute;
@@ -1265,6 +1345,125 @@ label.inline {
   box-shadow:
     0 0 0 4px var(--color-panel),
     0 0 0 6px var(--color-text);
+}
+.keys-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-14);
+}
+.style-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+.segmented {
+  display: flex;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+.segmented .segment {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-4) var(--space-12);
+}
+.segmented .segment.on {
+  background: var(--color-selection-fill);
+  color: var(--color-text);
+}
+.menu-separator {
+  margin: var(--space-4) 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+.keys-row {
+  display: flex;
+  gap: var(--space-14);
+  align-items: flex-start;
+}
+.keys-main {
+  flex: 1;
+  min-width: 0;
+}
+.inspector {
+  flex: none;
+  width: 260px;
+  margin-top: var(--space-8);
+}
+.inspector .editor {
+  max-width: none;
+  margin: 0;
+}
+/* in the narrow inspector each row is a label above its controls */
+.inspector .row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  padding: var(--space-6) 0;
+}
+.inspector .row > label {
+  width: auto;
+}
+.inspector .row .ctl {
+  max-width: none;
+}
+.inspector input[type='text'] {
+  flex: 1;
+  min-width: 0;
+}
+.inspector .num-field {
+  width: 72px;
+}
+.inspector-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-8);
+}
+.danger-note {
+  margin: var(--space-8) 0;
+  padding: var(--space-6) var(--space-8);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+.danger-text {
+  color: var(--color-danger);
+}
+.keytools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-14);
+  margin-bottom: var(--space-8);
+}
+.keytools .keystatus {
+  margin: 0 0 0 auto;
+}
+.toggle.on {
+  background: var(--color-selection-fill);
+  border-color: var(--color-accent);
+}
+.keytools .toolgroup {
+  flex-direction: row;
+  gap: var(--space-6);
+}
+.keyhint {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-14);
+}
+.keyhint kbd {
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--color-text);
 }
 .keyhint {
   margin: -8px 0 var(--space-6);

@@ -29,9 +29,9 @@ pub fn install(data_dir: &Path) {
     let started = Instant::now();
     let usual = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
-        let location = info
-            .location()
-            .map_or("an unknown place".to_string(), |l| format!("{}:{}", l.file(), l.line()));
+        let location = info.location().map_or("an unknown place".to_string(), |l| {
+            format!("{}:{}", l.file().replace('\\', "/"), l.line())
+        });
         let thread = std::thread::current().name().unwrap_or("unnamed").to_string();
         let _ = std::fs::write(&path, describe(&location, &thread, started.elapsed().as_secs() / 60));
         usual(info);

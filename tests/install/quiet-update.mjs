@@ -16,21 +16,22 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { connect, check, finish, sleep } from '../e2e/lib/cdp.mjs';
 import { acquire } from '../lib/lock.mjs';
+import { APP } from '../../tools/app-config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)),
   ROOT = resolve(HERE, '../..');
 const keep = process.argv.includes('--keep');
 const WORK = process.env.QUIET_WORK ?? join(tmpdir(), 'keyoverlay-quiet-update');
 const INSTALL = join(WORK, 'installed');
-const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
-const EXE = join(INSTALL, 'kotest-install.exe');
+const DATA = join(process.env.APPDATA, APP.identifiers.test);
+const EXE = join(INSTALL, `${APP.testApps.installExe}.exe`);
 const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
 const NEW_VERSION = '9.9.9';
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const ps = (script) =>
   spawnSync('powershell.exe', ['-NoProfile', '-Command', script], { encoding: 'utf8' }).stdout?.trim() ?? '';
-const killTest = () => ps('Stop-Process -Name kotest-install -Force -ErrorAction SilentlyContinue');
-const alive = () => ps('@(Get-Process -Name kotest-install -ErrorAction SilentlyContinue).Count') !== '0';
+const killTest = () => ps(`Stop-Process -Name ${APP.testApps.installExe} -Force -ErrorAction SilentlyContinue`);
+const alive = () => ps(`@(Get-Process -Name ${APP.testApps.installExe} -ErrorAction SilentlyContinue).Count`) !== '0';
 const portBusy = (port) =>
   fetch(`http://127.0.0.1:${port}/`)
     .then(() => true)
@@ -53,9 +54,9 @@ function build(version, key) {
   writeFileSync(
     cfg,
     JSON.stringify({
-      identifier: 'com.keyoverlay.test',
-      productName: 'KOTest',
-      mainBinaryName: 'kotest-install',
+      identifier: APP.identifiers.test,
+      productName: APP.testApps.installProduct,
+      mainBinaryName: APP.testApps.installExe,
       version,
       bundle: { createUpdaterArtifacts: false },
       plugins: {
@@ -142,7 +143,7 @@ try {
     [
       '-NoProfile',
       '-Command',
-      `$end=(Get-Date).AddSeconds(75); $seen=@{}; while((Get-Date) -lt $end){ Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.ProcessName -ne 'kotest-install' -and ($_.ProcessName -match 'setup|nsis|KOTest|installer' -or $_.MainWindowTitle -match 'Setup|Installing|Installer|KOTest') } | ForEach-Object { $seen[$_.ProcessName + ' | ' + $_.MainWindowTitle]=1 }; Start-Sleep -Milliseconds 100 }; $seen.Keys | Sort-Object`,
+      `$end=(Get-Date).AddSeconds(75); $seen=@{}; while((Get-Date) -lt $end){ Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.ProcessName -ne '${APP.testApps.installExe}' -and ($_.ProcessName -match 'setup|nsis|KOTest|installer' -or $_.MainWindowTitle -match 'Setup|Installing|Installer|KOTest') } | ForEach-Object { $seen[$_.ProcessName + ' | ' + $_.MainWindowTitle]=1 }; Start-Sleep -Milliseconds 100 }; $seen.Keys | Sort-Object`,
     ],
     { stdio: ['ignore', 'pipe', 'ignore'] },
   );
@@ -152,10 +153,10 @@ try {
 
   const snapshot = () =>
     ps(
-      `$v=(Get-Item '${EXE}' -ErrorAction SilentlyContinue).VersionInfo.FileVersion; $p=@(Get-Process kotest-install -ErrorAction SilentlyContinue | ForEach-Object { $_.Id.ToString() + '@' + $_.StartTime.ToString('HH:mm:ss') }) -join ','; "file $v, running [$p]"`,
+      `$v=(Get-Item '${EXE}' -ErrorAction SilentlyContinue).VersionInfo.FileVersion; $p=@(Get-Process ${APP.testApps.installExe} -ErrorAction SilentlyContinue | ForEach-Object { $_.Id.ToString() + '@' + $_.StartTime.ToString('HH:mm:ss') }) -join ','; "file $v, running [$p]"`,
     );
   console.log(`  before: ${snapshot()}`);
-  const idBefore = ps(`(Get-Process kotest-install -ErrorAction SilentlyContinue).Id`);
+  const idBefore = ps(`(Get-Process ${APP.testApps.installExe} -ErrorAction SilentlyContinue).Id`);
   p.invoke('install_update').catch(() => {}); // never answers: the app is replaced while it runs
   await sleep(1500); // let the message leave before the connection is closed
   p.close();
@@ -169,7 +170,7 @@ try {
     console.log(`  +${Math.round((Date.now() - started) / 1000)} s: ${snapshot()}`);
     try {
       const q = await connect();
-      const now = ps(`(Get-Process kotest-install -ErrorAction SilentlyContinue).Id`);
+      const now = ps(`(Get-Process ${APP.testApps.installExe} -ErrorAction SilentlyContinue).Id`);
       const onDisk = ps(`(Get-Item '${EXE}').VersionInfo.FileVersion`);
       // The app reports its version from Cargo.toml, which a test build does not change, so the new version is told apart
       // by the program file's own version number and by a new process id (the old one was closed and a new one started).

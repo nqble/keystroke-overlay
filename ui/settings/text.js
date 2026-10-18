@@ -23,31 +23,32 @@ export const TEXT = {
   layoutTabHelp:
     'Pick a layout, or click + to make your own from the full-size keyboard. Right-click a layout you ' +
     'made to delete it.',
-  keysTabHelp:
-    'Click a key to edit it and drag it to move it. To work with several keys at once, drag a box around them ' +
-    '(or Ctrl-click keys one by one), then drag any of them or use the arrows. Disabled keys are hidden in the ' +
-    'overlay. Changes are saved automatically for each layout.',
-  nothingSelected: 'No keys selected',
-  shortcutsHint:
-    'Shortcuts: arrow keys nudge · Shift = a whole key · Delete hides · Ctrl+Z undo · Ctrl+Shift+Z redo · ' +
-    'Ctrl+A select all · Esc clear',
+  dragHint: 'Drag a key to move it. Ctrl-click to add.',
+  noKeySelected: 'No key selected',
+  inspectorTip:
+    'Click a key to change its label or hide it. Drag keys anywhere and they line up with their neighbours. ' +
+    'Changes are saved automatically for each layout.',
+  overlapNote: 'This key overlaps another. Drag it to a free spot, or press Close gaps.',
+  inspectorTipGrid:
+    'Want every key the same size in neat columns? Switch Layout style to Even grid. Each style keeps its own ' +
+    'positions, so you can switch back and forth.',
+  closeGapsHelp: 'Slide keys together to close the empty space left by hidden or moved keys. The shape stays the same.',
+  resetMenuHelp: 'Put keys, labels or the whole layout back the way the layout file has them. You can undo it.',
+  resetLayoutBody:
+    'Positions, sizes, hidden keys and labels go back to the layout file, and the layout style goes back to Keyboard ' +
+    'shape. You can undo this.',
+  groupInspectorTip:
+    'Drag any of them to move them together. Use the bar above them to line them up or space them evenly.',
   clickToDismiss: 'Click to dismiss',
-  noKeysMoved: 'No keys moved from the layout file',
-  snapMenuHelp:
-    'How far a key jumps while you drag it or use the arrow buttons. Off lets you place a key anywhere. ' +
-    'Remembered next time.',
+  snapHelp:
+    'Keys jump a quarter key while you drag them or use the arrow keys, and stick to the edges of other keys. ' +
+    'Off lets you place a key anywhere. Remembered next time.',
   gridHelp: 'Show faint dots at every snap step. Remembered next time.',
-  groupEditorTip:
-    'Drag any selected key to move them all together, or use the arrow buttons above. Click an empty spot to ' +
-    'clear the selection.',
   animationTabNote:
     'Only transform and opacity are animated (GPU friendly). Click keys in the preview to try an ' + 'animation.',
   fontsTabHelp:
     'Add TTF, OTF or WOFF files. They are copied into the app’s fonts folder. After adding, pick it ' +
     'in Style → Font family (under “Your fonts”), or click Use.',
-  keyEditorTip:
-    'Tip: use symbols like ⎵ or ↑, or words like "Jump". Drag a key on the keyboard to move it, or ' +
-    'select it and use the arrow buttons above or the arrow keys (Shift moves a whole key).',
   keyPictureHelp:
     'Drag a key to move it. Drag on the empty background to select several keys. Tab to a key and press ' +
     'Enter to select it.',

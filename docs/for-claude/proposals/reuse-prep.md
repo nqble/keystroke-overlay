@@ -1,7 +1,11 @@
-# Preparing for reuse (checklist for M6, do after v2.0 is planned, not before)
+# Preparing for reuse (checklist; the app-specific values are collected, the rest waits for after v2.0)
+
+Status: **Section 2 is done (2026-10-18)**: the app's name, repository and identifiers are in `app.config.json` (read by the tools
+and tests), `src-tauri/src/app_info.rs` (read by the program) and `tauri.conf.json`, and `npm run check:config` (in CI) fails when
+they disagree. Section 1 (header lines) and the extraction itself wait for after v2.0.
 
 Goal: after v2.0 ships, the reusable parts become general building blocks for future programs
-(see the standing rules in the notes). This file is only the checklist. No code was changed.
+(see the standing rules in the notes). This file is the checklist.
 
 ## 1. Header comments
 
@@ -16,10 +20,14 @@ with a comment (checked). The top-up is only for the files meant to be lifted ou
 - Tooling: `tools/check-style.mjs`, `tools/check-privacy.mjs`, `tools/changelog-section.mjs`,
   `tests/e2e/lib/cdp.mjs`, `tests/e2e/lib/mock-updates.mjs`, `tests/bench/latency.mjs`
 
-## 2. App-specific values to collect in one place
+## 2. App-specific values to collect in one place (done)
 
-Today these are spread over many files. Target: one small config (for example `app.config.json`) that the
-scripts read, and Rust reads through one constants file.
+Done: `app.config.json` (name, repository, the four identifiers, the test app names, the devbuild names, the updater key
+folder, the layouts file tag), read by `tools/app-config.mjs`; `app_info.rs` for the program; `tools/check-config.mjs` for
+agreement. Left as they are on purpose: the user-facing texts in the overlay and settings pages and in the tests that check them,
+the tray and window text that come from `NAME`, the ports (7879, 7881, 7999, 9222, which are test infrastructure, not the app's
+identity), the PowerShell helper scripts' default process name, and the `w!()` window class name in `rawinput.rs` (a macro that
+needs a literal). The table below is what it looked like before.
 
 | Value | Where it appears now |
 |---|---|

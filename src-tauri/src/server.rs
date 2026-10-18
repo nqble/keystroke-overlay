@@ -126,7 +126,10 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
     if is_protected(req.uri().path()) && !key_ok(&st.shared.settings.read().unwrap(), req.uri().query()) {
         return (
             StatusCode::UNAUTHORIZED,
-            "This overlay link is secured. Copy the current link from Keystroke Overlay (General > Secure link).",
+            format!(
+                "This overlay link is secured. Copy the current link from {} (General > Secure link).",
+                crate::app_info::NAME
+            ),
         )
             .into_response();
     }
