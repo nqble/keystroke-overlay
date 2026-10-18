@@ -3,6 +3,7 @@
 //   * listens on anything but 127.0.0.1, or listens outside server.rs
 //   * writes files from the keyboard hook or the overlay server
 //   * does more than listen on macOS: a key-event tap that is not listen-only, or injected key events
+//   * does more than read the keyboards on Linux: grabbing one, virtual devices, sent events, or evdev outside linux_devices.rs
 //   * logs/prints anything (a log line is how keystrokes usually leak)
 //   * makes the UI call an external address
 //   * registers global shortcuts anywhere but hotkeys.rs (which registers only the one the user chose)
@@ -10,7 +11,16 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { LOG, MAC_ACTIVE, NET, WRITE, joinSplitPaths, withoutTestModules } from './privacy-patterns.mjs';
+import {
+  LINUX_ACTIVE,
+  LINUX_DEVICES,
+  LOG,
+  MAC_ACTIVE,
+  NET,
+  WRITE,
+  joinSplitPaths,
+  withoutTestModules,
+} from './privacy-patterns.mjs';
 
 const walk = (dir, exts, out = []) => {
   for (const f of readdirSync(dir)) {
@@ -52,6 +62,13 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
   scan(file, text, MAC_ACTIVE, (n) =>
     bad(file, n, 'macOS key capture must be a listen-only tap made with CGEventTap::new(..ListenOnly..)'),
   );
+  scan(file, text, LINUX_ACTIVE, (n) =>
+    bad(file, n, 'Linux key capture must only read the keyboards: no grab, virtual device or sent events'),
+  );
+  scan(file, text, LINUX_DEVICES, (n) => {
+    if (file !== 'src-tauri/src/keyboard/linux_devices.rs')
+      bad(file, n, 'keyboard devices read outside keyboard/linux_devices.rs');
+  });
   scan(file, text, LOG, (n) => bad(file, n, 'logging/printing is not allowed (keystrokes could leak)'));
 }
 
@@ -121,5 +138,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, macOS capture listen-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, macOS capture listen-only, Linux capture read-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
 );

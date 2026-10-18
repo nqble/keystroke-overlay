@@ -18,6 +18,16 @@ export const WRITE =
 export const MAC_ACTIVE =
   /CGEventTapOptions\s*::\s*Default|CGEventPost|CGEventTapCreate|CGEventTapPostEvent|\.post\s*\(|\.post_to_pid\s*\(|CGEventTapOptions\s*\(\s*0|\bCGEventTapOptions\b(?!\s*::\s*ListenOnly)(?!\s*,)(?!\s*\})/;
 
+/**
+ * Linux key capture must only read the keyboards. These are the ways to do more: grabbing a keyboard (which takes its
+ * keys away from every other app), opening a device with evdev's own open (which asks for writing too), making a virtual input device (whose emit() sends keys),
+ * or sending input events. A plain .emit( is not matched: the app uses it everywhere for window events.
+ */
+export const LINUX_ACTIVE = /\.grab\s*\(|RawDevice::open|Device::open|\bVirtualDevice\w*|\buinput\b|\.send_events\s*\(/;
+
+/** The keyboard-device library. Allowed only in src-tauri/src/keyboard/linux_devices.rs, which opens devices read-only. */
+export const LINUX_DEVICES = /\bevdev::/;
+
 /** Logging and printing: a log line is how keystrokes usually leak. Never allowed. */
 export const LOG = /\b(println!|eprintln!|print!|eprint!|dbg!|log::|tracing::|env_logger)/;
 

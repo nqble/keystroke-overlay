@@ -1,7 +1,16 @@
 // Unit tests for the privacy check's patterns (tools/privacy-patterns.mjs). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LOG, MAC_ACTIVE, NET, WRITE, joinSplitPaths, withoutTestModules } from '../../tools/privacy-patterns.mjs';
+import {
+  LINUX_ACTIVE,
+  LINUX_DEVICES,
+  LOG,
+  MAC_ACTIVE,
+  NET,
+  WRITE,
+  joinSplitPaths,
+  withoutTestModules,
+} from '../../tools/privacy-patterns.mjs';
 
 test('network code is caught, including the ways the outside review found missing', () => {
   for (const line of [
@@ -78,4 +87,23 @@ test('the listen-only tap the app really uses is allowed', () => {
   for (const line of ['CGEventTapOptions::ListenOnly,', 'use core_graphics::event::{CGEventTap, CGEventTapOptions};']) {
     assert.doesNotMatch(line, MAC_ACTIVE, line);
   }
+});
+
+test('doing more than reading the keyboards on Linux is caught', () => {
+  for (const line of [
+    'keyboard.grab()?;',
+    'let device = RawDevice::open(path)?;',
+    'let device = VirtualDeviceBuilder::new()?',
+    'std::fs::File::open("/dev/uinput")',
+    'device.send_events(&events)',
+  ]) {
+    assert.match(line, LINUX_ACTIVE, line);
+  }
+});
+
+test('the read-only Linux capture the app really uses is allowed', () => {
+  for (const line of ['let Ok(events) = keyboard.fetch_events() else {', 'RawDevice::from_fd(file.into())']) {
+    assert.doesNotMatch(line, LINUX_ACTIVE, line);
+  }
+  assert.match('use evdev::raw_stream::RawDevice;', LINUX_DEVICES);
 });

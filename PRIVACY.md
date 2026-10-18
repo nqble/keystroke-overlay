@@ -20,7 +20,7 @@ and how you can check every claim yourself instead of trusting it.
 
 While it is running, the app can see **every key you press or release on this computer, in any program** — including
 games, password boxes and private chats. That is unavoidable: the way the app reads keys so the overlay works in games (the keyboard hook or Raw Input on
-Windows, XInput2 on Linux X11, a listen-only event tap on a Mac) sees all keys, exactly like any other keystroke-display tool.
+Windows, XInput2 on Linux X11, the read-only keyboard devices on Linux Wayland, a listen-only event tap on a Mac) sees all keys, exactly like any other keystroke-display tool.
 
 What it records about each event is only *which physical key* and *down or up* (for example `KeyW`, down). It does not
 build up the text you type, and it keeps no history: it remembers only which keys are held **right now** so a key can
@@ -43,7 +43,7 @@ forwards nothing at all.
 ## Where keystrokes go
 
 ```
-keyboard  ->  hook / Raw Input (Windows), XInput2 (Linux), event tap (macOS)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
+keyboard  ->  hook / Raw Input (Windows), XInput2 or the keyboard devices (Linux), event tap (macOS)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
 ```
 
 Every step happens on your PC, in memory. When the key is released the event is gone. There is no step that writes
@@ -59,6 +59,14 @@ to disk and no step that uses the network.
   works the same way: listen-only, the same two facts per key, kept only in memory, sent only to the local overlay page. Any
   program on an X11 desktop can listen this way; the app doesn't gain a power others don't already have
   ([docs/LINUX-PORT.md](docs/LINUX-PORT.md)).
+- **On Linux Wayland desktops** (in development), Wayland doesn't let one app see another's keys, so Standard reads the
+  keyboard devices in `/dev/input` directly. It opens them **read-only and never grabs them**, so every other app still
+  gets every key; it keeps the same two facts per key, only in memory, sent only to the local overlay page. Reading those
+  devices needs the **`input` group**, which you add yourself (`sudo usermod -aG input $USER`, then log out and in). Be
+  aware that the group is not just for this app: **every program you run can then read the keyboards**, so only do it if
+  you trust the programs on your computer, and remove yourself again with `sudo gpasswd -d $USER input`. The settings window
+  says this before you do it. `npm run check:privacy` fails if the code ever grabs a keyboard, makes a virtual input
+  device or sends input events, or reads the devices anywhere but `keyboard/linux_devices.rs`.
 - **On macOS** (in development), Standard reads keys through a *listen-only event tap*. It gets a copy of each key event and
   can never change, block or send keys. It records the same two facts per key (which key, down or up), keeps them only in
   memory, and sends them only to the local overlay page. Because it is listen-only, macOS asks for **Input Monitoring**

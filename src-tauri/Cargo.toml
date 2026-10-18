@@ -30,6 +30,9 @@ reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"
 # (docs/LINUX-PORT.md).
 [target.'cfg(target_os = "linux")'.dependencies]
 x11rb = { version = "0.13", features = ["xinput", "xkb"] }
+# Wayland desktops: reads the keyboard devices in /dev/input, read-only and never grabbed (keyboard/linux_devices.rs).
+# Approved by Jordan for the Wayland port. No default features: no async runtime.
+evdev = { version = "0.13", default-features = false }
 
 # macOS only: keyboard capture with a listen-only event tap (keyboard/macos.rs, docs/MAC-PORT.md). core-graphics wraps
 # Apple's CGEventTap; core-foundation gives it the run loop the tap needs. Both are already built into the app by the

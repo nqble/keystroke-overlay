@@ -8,7 +8,8 @@
 //! (tracks held keys, drops everything while paused) → broadcast to WebSocket clients.
 //! The method can be switched while the app runs (`Bus::set_method`).
 //!
-//! Both methods are Windows only. On Linux, the Standard method uses X11 instead (`x11`, docs/LINUX-PORT.md), and on
+//! Both methods are Windows only. On Linux, the Standard method uses X11 instead (`x11`, docs/LINUX-PORT.md), or on a
+//! Wayland desktop reads the keyboard devices (`linux_devices`, which needs the `input` group), and on
 //! macOS it uses a listen-only event tap (`macos`, docs/MAC-PORT.md). On other systems the app builds and runs without
 //! keyboard capture: starting a method fails with a clear message, shown in the settings window like any other
 //! start-up problem (docs/CROSS-PLATFORM.md). A port adds its own method here (docs/MAC-PORT.md).
@@ -21,6 +22,8 @@ mod hook;
 // system so their unit tests run everywhere; on other systems nothing calls them.
 #[cfg_attr(not(windows), allow(dead_code))]
 pub mod keymap;
+#[cfg(target_os = "linux")]
+mod linux_devices;
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 mod linux_keys;
 #[cfg(target_os = "macos")]
@@ -74,6 +77,7 @@ impl Method {
     }
     pub fn label(self) -> &'static str {
         match self {
+            Self::Hook if cfg!(target_os = "linux") && wayland() => "Standard (keyboard devices)",
             Self::Hook if cfg!(target_os = "linux") => "Standard (X11)",
             Self::Hook if cfg!(target_os = "macos") => "Standard (event tap)",
             Self::Hook => "Standard (keyboard hook)",
@@ -94,6 +98,16 @@ const LINUX_STANDARD_ONLY: &str = "only the Standard method is available on Linu
 #[cfg(target_os = "macos")]
 const MACOS_STANDARD_ONLY: &str = "only the Standard method is available on macOS so far";
 
+/// True on a Linux Wayland desktop, where the Standard method reads the keyboard devices instead of using X11.
+#[cfg(target_os = "linux")]
+fn wayland() -> bool {
+    linux_devices::wayland_session()
+}
+#[cfg(not(target_os = "linux"))]
+fn wayland() -> bool {
+    false
+}
+
 enum Source {
     #[cfg(windows)]
     Hook(hook::Handle),
@@ -101,6 +115,8 @@ enum Source {
     RawInput(rawinput::Handle),
     #[cfg(target_os = "linux")]
     X11(x11::Handle),
+    #[cfg(target_os = "linux")]
+    Devices(linux_devices::Handle),
     #[cfg(target_os = "macos")]
     Macos(macos::Handle),
 }
@@ -115,6 +131,7 @@ impl Source {
     #[cfg(target_os = "linux")]
     fn start(method: Method, tx: Sender<KeyEvent>) -> Result<Self, String> {
         match method {
+            Method::Hook if wayland() => linux_devices::start(tx).map(Source::Devices),
             Method::Hook => x11::start(tx).map(Source::X11),
             Method::RawInput => Err(LINUX_STANDARD_ONLY.to_string()),
         }
@@ -146,6 +163,8 @@ impl Source {
             Source::RawInput(handle) => handle.stop(),
             #[cfg(target_os = "linux")]
             Source::X11(handle) => handle.stop(),
+            #[cfg(target_os = "linux")]
+            Source::Devices(handle) => handle.stop(),
             #[cfg(target_os = "macos")]
             Source::Macos(handle) => handle.stop(),
         }
@@ -188,8 +207,9 @@ impl Drop for WatchGuard<'_> {
     }
 }
 
-/// What the operating system lets the app do with the keyboard. Only macOS asks the person first (Input Monitoring) and
-/// can switch capture off while a password is typed (Secure Input); everywhere else both are fine.
+/// What the operating system lets the app do with the keyboard. macOS asks the person first (Input Monitoring) and can
+/// switch capture off while a password is typed (Secure Input); a Linux Wayland desktop needs the `input` group to read
+/// the keyboards; everywhere else both are fine.
 pub struct Access {
     pub allowed: bool,
     pub secure_input: bool,
@@ -202,7 +222,14 @@ pub fn access() -> Access {
         secure_input: macos::secure_input_on(),
     }
 }
-#[cfg(not(target_os = "macos"))]
+#[cfg(target_os = "linux")]
+pub fn access() -> Access {
+    Access {
+        allowed: !wayland() || linux_devices::can_read_a_keyboard(),
+        secure_input: false,
+    }
+}
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
 pub fn access() -> Access {
     Access {
         allowed: true,
