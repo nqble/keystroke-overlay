@@ -192,3 +192,31 @@ fn switch_tap_back_on(tap_address: &AtomicUsize) {
     // SAFETY: the address is the tap's mach port, which stays alive as long as the capture thread runs this callback.
     unsafe { CGEventTapEnable(address as *mut c_void, true) };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[link(name = "Carbon", kind = "framework")]
+    extern "C" {
+        fn EnableSecureEventInput() -> i32;
+        fn DisableSecureEventInput() -> i32;
+    }
+
+    /// Turns Secure Input on the way a password box does and checks the app sees it, then off again. It is on only for the
+    /// moment of the test, and it proves `secure_input_on` (what the window's Secure Input hint and the bug report use)
+    /// follows the system.
+    #[test]
+    fn secure_input_on_follows_the_system() {
+        assert!(
+            !secure_input_on(),
+            "start from Secure Input off (close any app that holds it)"
+        );
+        // SAFETY: plain calls that take no arguments; they are paired, so the system is left as it was found.
+        unsafe { EnableSecureEventInput() };
+        let seen_on = secure_input_on();
+        unsafe { DisableSecureEventInput() };
+        assert!(seen_on, "Secure Input was switched on, so the app must see it");
+        assert!(!secure_input_on(), "and see it end");
+    }
+}

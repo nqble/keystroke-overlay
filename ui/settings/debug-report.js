@@ -70,6 +70,17 @@ function runningFor(secs) {
   return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
 }
 
+/**
+ * The web engine that draws this window, from the browser's user-agent text: "Edg/130.0.2849.56" on Windows (Edge's
+ * WebView2), "WebKit 605.1.15" on a Mac (the window is a WKWebView, Safari's engine), else the whole text.
+ */
+export function engineName(userAgent) {
+  const edge = userAgent.match(/Edg\/[\d.]+/);
+  if (edge) return edge[0];
+  const webkit = userAgent.match(/AppleWebKit\/([\d.]+)/);
+  return webkit ? `WebKit ${webkit[1]}` : userAgent;
+}
+
 /** "20.5 MB · 133 handles", saying so for what this system does not measure (macOS has no handle count like Windows). */
 export function memoryText(memoryMb, handles) {
   const memory = memoryMb > 0 ? `${memoryMb} MB` : 'memory not measured on this system';

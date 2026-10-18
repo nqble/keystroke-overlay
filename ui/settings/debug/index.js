@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  Keystroke Overlay: the Debug tab (developer tools), shown only while General → App → "Debug mode" is on, and only
+//  Keystroke Overlay: the Debug tab (developer tools), shown only while General → Advanced → "Debug mode" is on, and only
 //  then loaded (tabs/index.js). The Rust half is src-tauri/src/debug.rs. Full guide: docs/DEBUGGING.md.
 //
 //  PRIVACY: nothing here is saved to disk or sent anywhere. The event log is the app's own memory and records what the
