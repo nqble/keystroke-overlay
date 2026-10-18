@@ -74,7 +74,10 @@ fn clean_labels(value: Option<&Value>) -> Value {
     )
 }
 /// How far a key's position may be, in key widths. The Keys tab keeps keys inside a smaller board; this only stops a
-/// hand-edited file from breaking the overlay. Keep in step with MAX_POSITION in ui/settings/profiles.js.
+/// hand-edited file from breaking the overlay. Positions may be negative (a key left of or above the layout's own
+/// origin, so the layout can sit in the middle of the board). Keep in step with MIN_POSITION and MAX_POSITION in
+/// ui/settings/profiles.js.
+pub(crate) const MIN_POSITION: f64 = -100.0;
 pub(crate) const MAX_POSITION: f64 = 100.0;
 /// The narrowest and widest a resized key may be, in key widths (the Keys tab limits it further, to the board).
 /// Keep in step with MIN_KEY_WIDTH and MAX_KEY_WIDTH in ui/settings/profiles.js and ui/overlay/overlay.js.
@@ -91,7 +94,7 @@ fn round_to_hundredths(units: f64) -> f64 {
 }
 
 /// Where the user dragged keys to in one layout style: { "KeyW": { "x": 1.25, "y": 0 } } in key units. Anything that is
-/// not a pair of finite numbers is dropped; numbers are limited to 0..MAX_POSITION and rounded to 2 decimals.
+/// not a pair of finite numbers is dropped; numbers are limited to MIN_POSITION..MAX_POSITION and rounded to 2 decimals.
 fn clean_positions(value: Option<&Value>) -> Value {
     let mut out = Map::new();
     if let Some(moved_keys) = value.and_then(|x| x.as_object()) {
@@ -105,7 +108,7 @@ fn clean_positions(value: Option<&Value>) -> Value {
                 position.get("y").and_then(Value::as_f64),
             ) {
                 if x.is_finite() && y.is_finite() {
-                    let limited = |units: f64| round_to_hundredths(units.clamp(0.0, MAX_POSITION));
+                    let limited = |units: f64| round_to_hundredths(units.clamp(MIN_POSITION, MAX_POSITION));
                     out.insert(code.clone(), json!({ "x": limited(x), "y": limited(y) }));
                 }
             }
@@ -114,8 +117,9 @@ fn clean_positions(value: Option<&Value>) -> Value {
     Value::Object(out)
 }
 
-/// How wide the user made keys in one layout style: { "Space": { "w": 4.5 } } in key widths. Anything that is not a finite
-/// number is dropped; widths are limited to MIN_KEY_WIDTH..MAX_KEY_WIDTH and rounded to 2 decimals.
+/// How wide and tall the user made keys in one layout style: { "Space": { "w": 4.5 }, "KeyW": { "h": 2 } } in key sizes (an
+/// entry may hold a width, a height or both). Anything that is not a finite number is dropped; sizes are limited to
+/// MIN_KEY_WIDTH..MAX_KEY_WIDTH and rounded to 2 decimals.
 fn clean_sizes(value: Option<&Value>) -> Value {
     let mut out = Map::new();
     if let Some(resized_keys) = value.and_then(|x| x.as_object()) {
@@ -124,11 +128,17 @@ fn clean_sizes(value: Option<&Value>) -> Value {
             .filter(|(k, _)| !k.is_empty() && k.len() <= 40)
             .take(MAX_EDITED_KEYS)
         {
-            if let Some(width) = size.get("w").and_then(Value::as_f64).filter(|w| w.is_finite()) {
-                out.insert(
-                    code.clone(),
-                    json!({ "w": round_to_hundredths(width.clamp(MIN_KEY_WIDTH, MAX_KEY_WIDTH)) }),
-                );
+            let mut entry = Map::new();
+            for part in ["w", "h"] {
+                if let Some(length) = size.get(part).and_then(Value::as_f64).filter(|n| n.is_finite()) {
+                    entry.insert(
+                        part.into(),
+                        json!(round_to_hundredths(length.clamp(MIN_KEY_WIDTH, MAX_KEY_WIDTH))),
+                    );
+                }
+            }
+            if !entry.is_empty() {
+                out.insert(code.clone(), Value::Object(entry));
             }
         }
     }

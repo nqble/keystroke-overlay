@@ -7,6 +7,10 @@ import { changed } from '../preview.js';
 import {
   MAX_KEY_WIDTH,
   MAX_POSITION,
+  baseHeight,
+  keyHeight,
+  setKeyHeight,
+  MIN_POSITION,
   SNAP,
   baseWidth,
   curLayout,
@@ -216,7 +220,7 @@ function keyInspector(key, profile, overlaps) {
   );
 
   const at = keyPos(key, profile);
-  const num = (value, test, min = 0, max = MAX_POSITION) =>
+  const num = (value, test, min = MIN_POSITION, max = MAX_POSITION) =>
     el('input', { type: 'number', min, max, step: SNAP, value: round2(value), className: 'num-field', test });
   const px = num(at.x, 'key-x'),
     py = num(at.y, 'key-y');
@@ -224,7 +228,11 @@ function keyInspector(key, profile, overlaps) {
     const x = parseFloat(px.value),
       y = parseFloat(py.value);
     if (Number.isFinite(x) && Number.isFinite(y)) {
-      setKeyPos(key, Math.min(MAX_POSITION, Math.max(0, x)), Math.min(MAX_POSITION, Math.max(0, y)));
+      setKeyPos(
+        key,
+        Math.min(MAX_POSITION, Math.max(MIN_POSITION, x)),
+        Math.min(MAX_POSITION, Math.max(MIN_POSITION, y)),
+      );
       changed();
     }
   };
@@ -241,6 +249,16 @@ function keyInspector(key, profile, overlaps) {
     changed();
   };
   width.onchange = () => render();
+
+  const minHeight = Math.min(1, baseHeight(key));
+  const height = num(keyHeight(key, profile), 'key-height', minHeight, MAX_KEY_WIDTH);
+  height.oninput = () => {
+    const value = parseFloat(height.value);
+    if (!Number.isFinite(value)) return;
+    setKeyHeight(key, Math.min(MAX_KEY_WIDTH, Math.max(minHeight, value)));
+    changed();
+  };
+  height.onchange = () => render();
 
   const back = button(
     'Put back where it was',
@@ -264,6 +282,7 @@ function keyInspector(key, profile, overlaps) {
     ),
     row('Label', label, resetLabel),
     row('Width in keys', width),
+    row('Height in keys', height),
     row('Position', el('span', { textContent: 'X' }), px, el('span', { textContent: 'Y' }), py),
   );
   if (overlaps) editor.append(el('p', { className: 'danger-note', textContent: TEXT.overlapNote }));

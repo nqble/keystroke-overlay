@@ -5,6 +5,7 @@ import {
   BOARD_MIN_H,
   BOARD_MIN_W,
   boardArea,
+  boardFrame,
   boardSize,
   centreOffset,
   clampToBoard,
@@ -13,6 +14,8 @@ import {
   overlappingCodes,
   resizeBox,
   resizeLimits,
+  toBoardPlace,
+  toSavedPlace,
 } from '../../ui/settings/tabs/keys-board.js';
 
 const key = (code, x, y, w = 1, h = 1) => ({ code, x, y, w, h });
@@ -132,4 +135,41 @@ test('evenGridBoxes uses the places the app worked out, every key 1 wide', () =>
 test('evenGridBoxes keeps a key missing from layout.grid in its layout-file place', () => {
   const layout = { keys: [{ code: 'KeyW', x: 2, y: 3 }] };
   assert.deepEqual(evenGridBoxes(layout), [{ code: 'KeyW', x: 2, y: 3, w: 1, h: 1 }]);
+});
+
+test('boardFrame puts the layout in the middle of the board, on whole keys', () => {
+  const frame = boardFrame(WASD);
+  assert.deepEqual([frame.w, frame.h], [BOARD_MIN_W, BOARD_MIN_H]);
+  const [first, ...rest] = WASD.map((box) => toBoardPlace(box, frame));
+  const xs = [first, ...rest].map((place, i) => [place.x, place.x + WASD[i].w]).flat();
+  const left = Math.min(...xs);
+  const right = BOARD_MIN_W - Math.max(...xs);
+  assert.ok(Math.abs(left - right) <= 1, `room left ${left}, right ${right}`);
+  assert.ok(Number.isInteger(frame.originX) && Number.isInteger(frame.originY));
+});
+
+test('boardFrame leaves places that are already on the board where they are, and grows for keys outside', () => {
+  const inside = boardFrame(WASD, [key('KeyW', 1, 0)]);
+  assert.deepEqual(inside, boardFrame(WASD));
+  const farLeft = boardFrame(WASD, [key('KeyW', -20, 0)]);
+  assert.ok(farLeft.originX >= 20, 'the origin moves right so the key is on the board');
+  assert.ok(toBoardPlace(key('KeyW', -20, 0), farLeft).x >= 0);
+  const farRight = boardFrame(WASD, [key('KeyW', 60, 0)]);
+  assert.ok(farRight.w >= 60 + farRight.originX, 'the board grows to hold it');
+});
+
+test('a saved place becomes a board place and back', () => {
+  const frame = boardFrame(WASD);
+  const there = toBoardPlace({ x: 1.25, y: 0.5 }, frame);
+  assert.deepEqual(toSavedPlace(there, frame), { x: 1.25, y: 0.5 });
+});
+
+test('a key can be resized from the top and bottom too, and the opposite edge stays put', () => {
+  const tall = key('KeyW', 5, 5, 1, 1);
+  assert.deepEqual(resizeBox(tall, 'bottom', 1, BOARD, 0.25), { y: 5, h: 2 });
+  assert.deepEqual(resizeBox(tall, 'top', -1, BOARD, 0.25), { y: 4, h: 2 }, 'growing upwards keeps the bottom edge');
+  assert.deepEqual(resizeBox(tall, 'bottom', 0.4, BOARD, 0.25), { y: 5, h: 1.5 }, 'snaps to the step');
+  assert.equal(resizeBox(tall, 'bottom', -5, BOARD, 0.25).h, 1, 'never shorter than one key');
+  assert.equal(resizeBox(tall, 'bottom', 99, BOARD, 0.25).h, BOARD.h - 5, 'stops at the board edge');
+  assert.equal(resizeBox(tall, 'top', -99, BOARD, 0.25).h, 6, 'stops at the top edge');
 });

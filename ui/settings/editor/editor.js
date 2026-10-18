@@ -12,12 +12,23 @@
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
 import { changed, push } from '../preview.js';
-import { baseWidth, gridShown, round2, setKeyPos, setKeyWidth, snap, snapStep } from '../profiles.js';
+import {
+  baseHeight,
+  baseWidth,
+  gridShown,
+  round2,
+  setKeyHeight,
+  setKeyPos,
+  setKeyWidth,
+  showHiddenKeys,
+  snap,
+  snapStep,
+} from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
 import { TEXT } from '../text.js';
 import { alignPositions, boundsOf, clampMove, distributePositions, movedPositions } from '../tabs/keys-arrange.js';
-import { boardArea, boardSize, evenGridBoxes, overlappingCodes, resizeBox } from '../tabs/keys-board.js';
+import { boardArea, boardFrame, overlappingCodes, resizeBox } from '../tabs/keys-board.js';
 import { snapToGuides } from '../tabs/keys-guides.js';
 import {
   BUTTON_ZOOM,
@@ -31,7 +42,7 @@ import {
   wheelFactor,
   zoomAt,
 } from '../tabs/keys-view.js';
-import { placeKeys, selectedBoxes } from './places.js';
+import { layoutBoxesFor, placeKeys } from './places.js';
 
 const UNIT = 40; // pixels per key at 100% zoom (keep in step with --unit in settings.css)
 const KEY_GAP = 3; // pixels between neighbouring keys at 100% zoom (keep in step with the .kmk size in settings.css)
@@ -68,9 +79,10 @@ function createEditor() {
   const nodes = new Map(); // key code -> its element
   let view = { zoom: 1, panX: 0, panY: 0 };
   let board = { w: 24, h: 12 };
+  let frame = { w: 24, h: 12, originX: 0, originY: 0 }; // the board and where the layout's own origin sits on it (in keys)
+  let layoutPlaces = []; // the layout style's own places before any edit, in saved places: [{ code, x, y, w, h }]
   let boxSize = { w: 0, h: 0 }; // the editor box in pixels (0 while it is not on the page)
   let shownFor = ''; // layout id and style the key elements were made for
-  let layoutBounds = { minX: 0, minY: 0, maxX: 1, maxY: 1 }; // the layout file's own area, for the first view
   let needsFirstView = true;
   let viewTouched = false; // true once the user zoomed or panned: the view is theirs from then on
   let placed = []; // [{ key, x, y, w, h }] as of the last update
@@ -121,6 +133,26 @@ function createEditor() {
 
   const content = () => ({ w: board.w * UNIT, h: board.h * UNIT });
 
+  /** Save a key's place, given as a board place (the board is centred on the layout, so a saved place is the board place minus the origin). */
+  const saveAt = (key, x, y) => setKeyPos(key, x - frame.originX, y - frame.originY);
+
+  /** The selected keys as boxes in board places: [{ code, x, y, w, h }]. */
+  const selectedBoardBoxes = () =>
+    placed
+      .filter((item) => selectedKeys.has(item.key.code))
+      .map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
+
+  /** The area the first view shows: the keys that are drawn (the whole layout while hidden keys are shown), in board places. */
+  function shownBounds() {
+    const hidden = new Set(profile.disabledKeys);
+    const drawn = placed.filter((item) => !hidden.has(item.key.code));
+    const boxes =
+      showHiddenKeys() || !drawn.length
+        ? layoutPlaces.map((place) => ({ ...place, x: place.x + frame.originX, y: place.y + frame.originY }))
+        : drawn.map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
+    return boundsOf(boxes);
+  }
+
   // ---- The view: zoom and pan ---------------------------------------------------------------------------------------
   /** Show the board at `next` (a { zoom, panX, panY } view state). */
   function setView(next) {
@@ -130,11 +162,13 @@ function createEditor() {
     canvas.style.setProperty('--pan-y', view.panY + 'px');
     zoomLabel.textContent = Math.round(view.zoom * 100) + '%';
     placeArrangeBar();
-    // dots at every snap step, thinned out (every 2nd, 4th, ...) when they would be closer than MIN_DOT_SPACING on screen
-    let spacing = snapStep() * UNIT * view.zoom;
+    // grid dots every half key (every whole key in the Even grid), whatever the Snap switch says, thinned out (every 2nd, 4th,
+    // ...) when they would be closer than MIN_DOT_SPACING on screen
+    const dotStep = profile?.layoutStyle === 'grid' ? 1 : 0.5;
+    const spacing = dotStep * UNIT * view.zoom;
     let every = 1;
-    while (spacing > 0 && spacing * every < MIN_DOT_SPACING) every *= 2;
-    canvas.style.setProperty('--dot-spacing', snapStep() * UNIT * every + 'px');
+    while (spacing * every < MIN_DOT_SPACING) every *= 2;
+    canvas.style.setProperty('--dot-spacing', dotStep * UNIT * every + 'px');
   }
 
   /** Keep the view legal after the box or the board changed size. */
@@ -148,14 +182,15 @@ function createEditor() {
   function firstView() {
     // The keyboard goes in the middle of the box with FIRST_VIEW_PADDING of space around it, and the zoom buttons get their own
     // strip underneath (FIRST_VIEW_BOTTOM), so nothing sits on top of the keys.
-    const spanX = layoutBounds.maxX - layoutBounds.minX;
-    const spanY = layoutBounds.maxY - layoutBounds.minY;
+    const shown = shownBounds();
+    const spanX = shown.maxX - shown.minX;
+    const spanY = shown.maxY - shown.minY;
     const availableW = boxSize.w - FIRST_VIEW_PADDING * 2;
     const availableH = boxSize.h - FIRST_VIEW_PADDING * 2 - FIRST_VIEW_BOTTOM;
     const fit = Math.min(1, availableW / (spanX * UNIT), availableH / (spanY * UNIT));
     const zoom = Math.min(ZOOM_MAX, Math.max(fit, coverZoom(boxSize, content())));
-    const panX = FIRST_VIEW_PADDING + (availableW - spanX * UNIT * zoom) / 2 - layoutBounds.minX * UNIT * zoom;
-    const panY = FIRST_VIEW_PADDING + (availableH - spanY * UNIT * zoom) / 2 - layoutBounds.minY * UNIT * zoom;
+    const panX = FIRST_VIEW_PADDING + (availableW - spanX * UNIT * zoom) / 2 - shown.minX * UNIT * zoom;
+    const panY = FIRST_VIEW_PADDING + (availableH - spanY * UNIT * zoom) / 2 - shown.minY * UNIT * zoom;
     box.classList.add('instant'); // no sliding into the first view
     setView(clampView({ zoom, panX, panY }, boxSize, content(), OVERSCAN));
     requestAnimationFrame(() => box.classList.remove('instant'));
@@ -276,6 +311,7 @@ function createEditor() {
     const label = profile.labels[key.code] ?? key.label;
     if (node.textContent !== (label ?? '')) node.textContent = label ?? '';
     node.title = key.code + ' (drag to move)';
+    node.hidden = !showHiddenKeys() && hidden.has(key.code); // the Hidden keys switch is off
     node.classList.toggle('off', hidden.has(key.code));
     node.classList.toggle('sel', selectedKeys.has(key.code));
     node.classList.toggle('clash', clash.has(key.code));
@@ -307,19 +343,28 @@ function createEditor() {
   function update(nextLayout, nextProfile) {
     layout = nextLayout;
     profile = nextProfile;
-    placed = placeKeys(layout, profile);
-    const layoutBoxes =
-      profile.layoutStyle === 'grid'
-        ? evenGridBoxes(layout)
-        : layout.keys.map((key) => ({ code: key.code, x: key.x, y: key.y, w: key.w ?? 1, h: key.h ?? 1 }));
+    const savedPlaces = placeKeys(layout, profile);
+    layoutPlaces = layoutBoxesFor(layout, profile);
+    frame = boardFrame(
+      layoutPlaces,
+      savedPlaces.map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h })),
+    );
+    board = { w: frame.w, h: frame.h };
+    // everything below works in board places: the saved place plus the origin (the layout sits in the middle of the board)
+    placed = savedPlaces.map((item) => ({
+      ...item,
+      x: round2(item.x + frame.originX),
+      y: round2(item.y + frame.originY),
+    }));
     const placedBoxes = placed.map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
-    board = boardSize(layoutBoxes, placedBoxes);
     canvas.style.setProperty('--board-w', String(board.w));
     canvas.style.setProperty('--board-h', String(board.h));
     box.style.setProperty('--board-w', String(board.w));
     box.style.setProperty('--board-h', String(board.h));
     canvas.dataset.boardW = String(board.w);
     canvas.dataset.boardH = String(board.h);
+    canvas.dataset.originX = String(frame.originX);
+    canvas.dataset.originY = String(frame.originY);
     box.setAttribute('aria-label', `Keyboard layout ${layout.name}`);
 
     const key = `${layout.id}:${profile.layoutStyle}`;
@@ -328,7 +373,6 @@ function createEditor() {
       nodes.clear();
       handles = null;
       canvas.replaceChildren();
-      layoutBounds = boundsOf(layoutBoxes);
       needsFirstView = true;
       viewTouched = false;
     }
@@ -350,7 +394,7 @@ function createEditor() {
         node.remove();
         nodes.delete(code);
       }
-    canvas.classList.toggle('dots', gridShown() && snapStep() > 0);
+    canvas.classList.toggle('dots', gridShown());
     updateHandles(hidden);
     placeArrangeBar();
     if (box.clientWidth && box.clientHeight) {
@@ -401,6 +445,7 @@ function createEditor() {
         box.classList.add('panning'); // no sliding while a key is dragged
         canvas.classList.add('holding'); // the other keys fade while one is held
         arrangeBar.hidden = true;
+        if (handles) handles.hidden = true; // the resize handles step aside while a key is dragged
         for (const boxOf of boxes) nodes.get(boxOf.code)?.classList.add('drag');
         readout = el('div', { className: 'readout', test: 'key-readout' });
         canvas.append(readout);
@@ -420,7 +465,7 @@ function createEditor() {
         const dragged = nodes.get(code);
         dragged?.style.setProperty('--x', String(position.x));
         dragged?.style.setProperty('--y', String(position.y));
-        setKeyPos(keysByCode.get(code), position.x, position.y);
+        saveAt(keysByCode.get(code), position.x, position.y);
       }
       showGuides(guideLines, stuck?.guideX ?? null, stuck?.guideY ?? null);
       const at = positions[pressed.code];
@@ -477,14 +522,14 @@ function createEditor() {
   function applyPositions(positions) {
     for (const item of placed) {
       const position = positions[item.key.code];
-      if (position) setKeyPos(item.key, position.x, position.y);
+      if (position) saveAt(item.key, position.x, position.y);
     }
     changed(true);
   }
 
   /** Line the selected keys up, or space them evenly. */
   function arrange(kind, how) {
-    const boxes = selectedBoxes(layout);
+    const boxes = selectedBoardBoxes();
     applyPositions(kind === 'align' ? alignPositions(boxes, how) : distributePositions(boxes, how));
   }
 
@@ -500,7 +545,7 @@ function createEditor() {
         ? arrangeButton.dataset.tooltip
         : `Select at least ${arrangeButton.dataset.needed} keys first`;
     }
-    const boxes = selectedBoxes(layout);
+    const boxes = selectedBoardBoxes();
     if (!boxes.length) return;
     const bounds = boundsOf(boxes);
     const topLeft = toScreen({ x: bounds.minX * UNIT, y: bounds.minY * UNIT }, view);
@@ -526,7 +571,7 @@ function createEditor() {
     }
     if (!handles) {
       handles = el('div', { className: 'handles', test: 'key-handles' });
-      for (const side of ['left', 'right']) {
+      for (const side of ['left', 'right', 'top', 'bottom']) {
         const handle = el('div', { className: 'handle ' + side, test: 'key-handle-' + side });
         handle.onpointerdown = (pointerEvent) => {
           if (pointerEvent.button !== 0) return;
@@ -537,6 +582,7 @@ function createEditor() {
       }
       canvas.append(handles);
     }
+    handles.hidden = false;
     handles.dataset.code = item.key.code;
     handles.style.setProperty('--x', String(item.x));
     handles.style.setProperty('--y', String(item.y));
@@ -552,9 +598,10 @@ function createEditor() {
     const item = placed.find((candidate) => candidate.key.code === handles.dataset.code);
     if (!item) return;
     const { key } = item;
-    const start = { x: pointerEvent.clientX };
+    const start = { x: pointerEvent.clientX, y: pointerEvent.clientY };
     const startBox = { code: key.code, x: item.x, y: item.y, w: item.w, h: item.h };
-    const layoutWidth = baseWidth(key, profile.layoutStyle);
+    const vertical = side === 'top' || side === 'bottom';
+    const layoutSize = vertical ? baseHeight(key) : baseWidth(key, profile.layoutStyle);
     const node = nodes.get(key.code);
     const readout = el('div', { className: 'readout', test: 'key-readout' });
     canvas.append(readout);
@@ -568,17 +615,24 @@ function createEditor() {
       /* not a real pointer (tests) */
     }
     const move = (moveEvent) => {
-      const delta = (moveEvent.clientX - start.x) / (UNIT * view.zoom);
-      const resized = resizeBox(startBox, side, delta, board, snapStep(), layoutWidth);
+      const delta = (vertical ? moveEvent.clientY - start.y : moveEvent.clientX - start.x) / (UNIT * view.zoom);
+      const resized = resizeBox(startBox, side, delta, board, snapStep(), layoutSize);
+      const at = { x: resized.x ?? startBox.x, y: resized.y ?? startBox.y };
       for (const target of [node, handles]) {
-        target?.style.setProperty('--x', String(resized.x));
-        target?.style.setProperty('--w', String(resized.w));
+        if (vertical) {
+          target?.style.setProperty('--y', String(resized.y));
+          target?.style.setProperty('--h', String(resized.h));
+        } else {
+          target?.style.setProperty('--x', String(resized.x));
+          target?.style.setProperty('--w', String(resized.w));
+        }
       }
-      if (side === 'left') setKeyPos(key, resized.x, startBox.y);
-      setKeyWidth(key, resized.w);
-      readout.textContent = `width ${round2(resized.w)}`;
-      readout.style.setProperty('--x', String(resized.x));
-      readout.style.setProperty('--y', String(startBox.y));
+      if (side === 'left' || side === 'top') saveAt(key, at.x, at.y); // the opposite edge stays put, so the place moves
+      if (vertical) setKeyHeight(key, resized.h);
+      else setKeyWidth(key, resized.w);
+      readout.textContent = vertical ? `height ${round2(resized.h)}` : `width ${round2(resized.w)}`;
+      readout.style.setProperty('--x', String(at.x));
+      readout.style.setProperty('--y', String(at.y));
       push();
     };
     const done = () => {

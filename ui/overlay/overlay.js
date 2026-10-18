@@ -129,7 +129,13 @@ function placedKey(layoutKey, layout, prof) {
   const baseWidth = inGrid ? 1 : (layoutKey.w ?? 1);
   const resized = prof.sizes[layoutKey.code]?.w;
   const width = resized === undefined ? baseWidth : Math.min(MAX_KEY_WIDTH, Math.max(Math.min(1, baseWidth), resized));
-  return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width };
+  const baseHeight = layoutKey.h ?? 1;
+  const resizedHeight = prof.sizes[layoutKey.code]?.h;
+  const height =
+    resizedHeight === undefined
+      ? baseHeight
+      : Math.min(MAX_KEY_WIDTH, Math.max(Math.min(1, baseHeight), resizedHeight));
+  return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width, h: height };
 }
 
 function build(nextSettings) {

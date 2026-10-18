@@ -13,20 +13,19 @@ import {
   gridShown,
   isCustom,
   restoreProfile,
+  showHiddenKeys,
   setKeyPos,
   snapStep,
   tidyProf,
   viewProf,
 } from '../profiles.js';
 import { confirmDialog, showMenu } from '../popups.js';
-import { selectedKeys, setSelectedKey, settings } from '../state.js';
+import { selectedKeys, setSelectedKey, setSelectedKeys, settings } from '../state.js';
 import { TEXT } from '../text.js';
 import { clampMove, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
 import { boardFor, placedBoxesFor, selectedBoxes } from '../editor/places.js';
 import { CLOSED_GAP, closeGapsPositions } from './keys-board.js';
-
-const MAX_POSITION = 100; // a key's position is limited to 0–100 key units (keep in step with settings.rs)
 
 /** Save new positions ({ code: { x, y } }) for keys of this layout, then redraw. */
 function applyPositions(layout, positions) {
@@ -37,11 +36,18 @@ function applyPositions(layout, positions) {
   changed(true);
 }
 
-/** Move every selected key by (dx, dy) key units, keeping the group's shape and staying inside 0 to MAX_POSITION. */
+/** Move every selected key by (dx, dy) key units, keeping the group's shape and staying on the board. */
 export function nudgeSelection(layout, dx, dy) {
   const boxes = selectedBoxes(layout);
   if (!boxes.length) return;
-  const area = { minX: 0, minY: 0, maxX: MAX_POSITION, maxY: MAX_POSITION };
+  // the board in saved places: its edges minus where the layout's own origin sits on it
+  const frame = boardFor(layout, viewProf());
+  const area = {
+    minX: -frame.originX,
+    minY: -frame.originY,
+    maxX: frame.w - frame.originX,
+    maxY: frame.h - frame.originY,
+  };
   const allowed = clampMove(boxes, dx, dy, area);
   applyPositions(layout, movedPositions(boxes, allowed.dx, allowed.dy));
 }
@@ -64,15 +70,22 @@ function toggleButton(label, on, tooltip, test, onclick) {
 function closeGaps(layout) {
   const profile = viewProf();
   const hidden = new Set(profile.disabledKeys);
-  const boxes = placedBoxesFor(layout, profile).filter((box) => !hidden.has(box.code));
+  const frame = boardFor(layout, profile);
+  // the keys as they sit on the board (saved place plus the origin), closed up and centred on the board, then back to saved places
+  const boxes = placedBoxesFor(layout, profile)
+    .filter((box) => !hidden.has(box.code))
+    .map((box) => ({ ...box, x: box.x + frame.originX, y: box.y + frame.originY }));
   if (!boxes.length) return;
   const evenGrid = profile.layoutStyle === 'grid';
-  const positions = closeGapsPositions(
+  const onBoard = closeGapsPositions(
     boxes,
-    boardFor(layout, profile),
+    frame,
     evenGrid ? 0 : CLOSED_GAP, // the Even grid closes gaps completely
     snapStep() || CLOSED_GAP,
   );
+  const positions = {};
+  for (const [code, place] of Object.entries(onBoard))
+    positions[code] = { x: place.x - frame.originX, y: place.y - frame.originY };
   applyPositions(layout, positions);
   toast('Gaps closed');
 }
@@ -153,6 +166,15 @@ function toolGroup(label, ...controls) {
   return group;
 }
 
+/** The Hidden keys switch: show or hide the dimmed keys that are hidden in the overlay (hidden ones are dropped from the selection). */
+function toggleHiddenKeys(profile, on) {
+  if (on) {
+    const hidden = new Set(profile.disabledKeys);
+    setSelectedKeys([...selectedKeys].filter((code) => !hidden.has(code)));
+  }
+  setEditorChoice('showHidden', !on);
+}
+
 /** Undo the last change to this layout's keys (same as the Undo button). */
 export const undoLastChange = (layout) => stepHistory(layout, undo);
 
@@ -215,6 +237,9 @@ export function keysToolbar(layout, profile, overlapCount) {
       'View',
       toggleButton('Snap', snapOn, TEXT.snapHelp, 'key-snap', () => setEditorChoice('snap', snapOn ? 0 : SNAP)),
       toggleButton('Grid', gridOn, TEXT.gridHelp, 'key-grid', () => setEditorChoice('grid', !gridOn)),
+      toggleButton('Hidden keys', showHiddenKeys(), TEXT.showHiddenHelp, 'key-show-hidden', () =>
+        toggleHiddenKeys(profile, showHiddenKeys()),
+      ),
     ),
     toolGroup(
       'Tidy',
