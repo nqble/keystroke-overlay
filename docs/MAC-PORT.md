@@ -81,6 +81,14 @@ There is no good shortcut: a Windows VM or Wine cannot see keystrokes on the Mac
 cannot see keys while a game has focus. The realistic alternatives are (a) a Mac-only companion written separately, or
 (b) telling Mac users to use another tool. A native Tauri port is the least work for the most reliable result.
 
+## Seen on a real Mac (M1 MacBook Air, macOS 26)
+
+- **Key capture works** with a listen-only tap once Input Monitoring is allowed. A dev build started *before* the
+  permission was granted showed nothing; after a restart it captured normally, so the restart hint is needed.
+- **F keys:** all of F1 to F12 arrive when Fn is held. Without Fn only some of them arrive as F keys: on a Mac laptop
+  the top row is brightness, volume and media keys by default, which are not ordinary key events. A test pressing
+  F1 to F12 with and without Fn gave F1, F2, F3 and F11 twice and the other eight once.
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:

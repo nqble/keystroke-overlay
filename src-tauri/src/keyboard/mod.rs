@@ -9,10 +9,9 @@
 //! The method can be switched while the app runs (`Bus::set_method`).
 //!
 //! Both methods are Windows only. On Linux, the Standard method uses X11 instead (`x11`, docs/LINUX-PORT.md), and on
-//! macOS it uses a listen-only event tap (`macos`, docs/MAC-PORT.md). On other
-//! systems the app builds and runs without keyboard capture: starting a method fails with a clear message, shown in the
-//! settings window like any other start-up problem (docs/CROSS-PLATFORM.md). A port adds its own method here
-//! (docs/MAC-PORT.md).
+//! macOS it uses a listen-only event tap (`macos`, docs/MAC-PORT.md). On other systems the app builds and runs without
+//! keyboard capture: starting a method fails with a clear message, shown in the settings window like any other
+//! start-up problem (docs/CROSS-PLATFORM.md). A port adds its own method here (docs/MAC-PORT.md).
 //!
 //! Privacy: events live only in memory and are forwarded to localhost WebSocket clients. Nothing is written to disk.
 
