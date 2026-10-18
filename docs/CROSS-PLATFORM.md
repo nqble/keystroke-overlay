@@ -2,8 +2,8 @@
 
 Keystroke Overlay is a Windows app, but you don't need Windows to work on most of it. Everything builds, runs and is
 tested on Linux and macOS too. Keyboard capture also works on **Linux X11 desktops** (from
-v1.4, not released yet); macOS capture works on v2.0 (it needs the Input Monitoring permission; tested on one Apple Silicon Mac). Wayland capture is not
-built yet ([LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI checks this on every pull request and every push to `main` (the `other-systems` job in
+v1.4, not released yet); macOS capture works on v2.0 (it needs the Input Monitoring permission; tested on one Apple Silicon Mac). Wayland capture is
+built on v2.0 (it needs the `input` group; [LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI checks this on every pull request and every push to `main` (the `other-systems` job in
 `.github/workflows/ci.yml`), so it stays that way.
 
 ## What works where
@@ -15,11 +15,11 @@ built yet ([LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI check
 | Rust lints and unit tests (`cargo clippy`, `cargo test`) | yes | yes |
 | Privacy and formatting checks | yes | yes |
 | Running the app: tray, settings window, local server, overlay in OBS | yes | yes |
-| Keyboard capture | yes | Linux X11: yes (from v1.4). macOS: yes (v2.0; needs Input Monitoring). Linux Wayland: not yet |
+| Keyboard capture | yes | Linux X11: yes (from v1.4). macOS: yes (v2.0; needs Input Monitoring). Linux Wayland: yes (v2.0; needs the `input` group) |
 | End-to-end tests (`npm run test:e2e`), install test, benchmark | yes | no (they drive Windows with PowerShell) |
-| Building the installer, releasing (`npm run build`, `npm run release`, `npm run devbuild`) | yes | no |
+| Building the installer, releasing (`npm run build`, `npm run release`, `npm run devbuild`) | yes | no (the Linux and Mac downloads are built on GitHub) |
 
-Where there is no capture method yet (Wayland-only setups), the app still starts normally. The settings window shows
+Where capture can't start (for example Wayland without the `input` group), the app still starts normally. The settings window shows
 why keys aren't captured where it would show a capture problem on Windows. The overlay, settings, layouts and every other tab work,
 so you can try visual changes in the real app.
 
@@ -52,9 +52,10 @@ Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://
   (`[target.'cfg(windows)'.dependencies]` in `src-tauri/Cargo.toml`).
 - **Everything else is shared**, including the key naming table (`keyboard/keymap.rs`) and the repeat and stuck-key
   logic (`keyboard/tracker.rs`), so their tests run on every system.
-- **Linux-only code:** `keyboard/x11.rs` (X11 capture), `keyboard/x11_labels.rs` (key labels from XKB, and the layout
-  watcher) and the `#[cfg(target_os = "linux")]` functions in `platform.rs`, with the `x11rb` crate (features `xinput`
-  and `xkb`) as a Linux-only dependency. The Linux key
+- **Linux-only code:** `keyboard/x11.rs` (X11 capture), `keyboard/linux_devices.rs` (Wayland capture from the keyboard
+  devices), `keyboard/x11_labels.rs` (key labels from XKB, and the layout watcher) and the `#[cfg(target_os = "linux")]`
+  functions in `platform.rs`, with the `x11rb` crate (features `xinput` and `xkb`) and the `evdev` crate as Linux-only
+  dependencies. The Linux key
   names and repeat filter (`keyboard/linux_keys.rs`) are plain logic, built and tested everywhere.
 - **macOS-only code:** the settings window's native frame, the template tray icon and the Dock icon that shows only while the settings window is open are small functions in `platform.rs` (`style_settings_window`, `tray_icon`, `set_dock_icon_visible`, `restart_app`, `watch_keyboard_layout`); the key capture is `keyboard/macos.rs` (the event tap) and the key labels that follow the keyboard layout are `keyboard/macos_labels.rs`, with the `core-graphics` and `core-foundation` crates as macOS-only
   dependencies. The key names and repeat filter (`keyboard/macos_keys.rs`) are plain logic, built and tested everywhere.

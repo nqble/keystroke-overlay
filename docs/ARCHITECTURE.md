@@ -32,6 +32,7 @@ keystroke-overlay/
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
 │       │   ├── x11.rs        Linux: X11 key capture with XInput2 raw events
+│       │   ├── linux_devices.rs Linux: Wayland key capture, reading the keyboard devices (input group)
 │       │   ├── linux_keys.rs Linux: X11 key numbers -> the same DOM "code" names, plus the repeat filter
 │       │   ├── x11_labels.rs Linux: what each typing key prints (XKB), and a watcher for layout switches
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
@@ -187,4 +188,4 @@ key presses through both input methods, a signed update download); it cleans up 
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4, not released yet; Wayland is next: [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, not released yet; [MAC-PORT.md](MAC-PORT.md)).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4, not released yet) and Wayland capture in `keyboard/linux_devices.rs` (v2.0; [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, not released yet; [MAC-PORT.md](MAC-PORT.md)).

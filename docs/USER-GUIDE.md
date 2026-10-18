@@ -14,6 +14,7 @@ handled, with the ways to check it, is in [PRIVACY.md](../PRIVACY.md).
 - [Updating](#updating)
 - [Make your own layout](#make-your-own-layout)
 - [On a Mac](#on-a-mac)
+- [On Linux](#on-linux)
 - [Privacy](#privacy)
 - [Troubleshooting](#troubleshooting)
 - [Requirements](#requirements)
@@ -275,6 +276,20 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
 - **Running with `npm run dev`.** macOS may then ask for Input Monitoring for the program that started it, such as
   Terminal, instead of for Keystroke Overlay.
 
+## On Linux
+
+The Linux version is early (v2.0 and later). Each release has two downloads for 64-bit PCs: the **AppImage** (one file
+for most distributions: make it executable and open it) and the **.deb** for Debian and Ubuntu. The app doesn't update
+itself on Linux yet: download each new version. The plan and what has been tested: [LINUX-PORT.md](LINUX-PORT.md).
+
+- **X11 desktops** need nothing more: keys show straight away.
+- **Wayland desktops** (the default on recent Ubuntu, Fedora and others) don't let one app see another app's keys, so
+  Keystroke Overlay reads the keyboards directly. That needs the `input` group, and the app shows how under the header:
+  run `sudo usermod -aG input $USER`, then log out and back in. Be aware that **every program you run can then read the
+  keyboards**, not just this one ([PRIVACY.md](../PRIVACY.md)). To undo it: `sudo gpasswd -d $USER input`.
+- **The tray icon** needs a desktop that shows tray icons (GNOME needs the "AppIndicator" extension).
+- A keyboard plugged in while the app runs is picked up after a restart of the app.
+
 ## Troubleshooting
 
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
@@ -292,4 +307,4 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
 
 ## Requirements
 
-Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11. On a Mac, see [On a Mac](#on-a-mac).
+Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11. On a Mac, see [On a Mac](#on-a-mac); on Linux, [On Linux](#on-linux).
