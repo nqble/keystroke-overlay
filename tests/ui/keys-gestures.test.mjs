@@ -77,3 +77,10 @@ test('Space typed into a text box or dropdown is typing, not a pan', () => {
   assert.equal(isTypingTarget({ tagName: 'BUTTON' }), false);
   assert.equal(isTypingTarget(null), false);
 });
+
+test('a pan and a pinch are streams that must not slide; a single wheel notch may', () => {
+  assert.equal(wheelAction(wheel({ deltaX: 3, deltaY: 4 }), 'macos').type, 'pan');
+  assert.equal(wheelAction(wheel({ ctrlKey: true, deltaY: 3 }), 'macos').continuous, true);
+  assert.equal(wheelAction(wheel({ deltaY: -100 }), 'windows').continuous, undefined);
+  assert.equal(wheelAction(wheel({ metaKey: true, deltaY: -100 }), 'macos').continuous, undefined);
+});
