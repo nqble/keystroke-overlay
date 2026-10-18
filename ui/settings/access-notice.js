@@ -14,18 +14,20 @@ const TEXT = {
 };
 
 /**
- * The notice to show, or null for none, from { access: {applies, allowed, secureInput} | null, inputError }.
- * `action` names what its button does ('allow' or 'restart'); no button when it is missing. Whether capture is really
- * running (`inputError` is empty) is the truth: macOS's own "allowed" answer can say no for an app that is capturing
- * fine (seen on a rebuilt app), and a notice asking for what already works would never go away. The order matters:
+ * The notice to show, or null for none, from { access: {applies, allowed, secureInput, captureSeen} | null, inputError }.
+ * `action` names what its button does ('allow' or 'restart'); no button when it is missing. macOS's own "allowed"
+ * answer and "the tap started" are both unreliable (an app can capture fine while macOS says no, and an app macOS denied
+ * can still start a tap that never gets a key), so the proof is a key that really arrived (`captureSeen`). The order
+ * matters:
  *   0. not macOS: no notice (other systems show a capture problem in General);
- *   1. access not given yet: macOS has to be asked first;
+ *   1. access not given, and capture failed or no key has arrived: macOS has to be asked;
  *   2. capture failed although access is on: it only starts after a restart;
  *   3. capture running but macOS has Secure Input on: a hint, nothing to click.
  */
 export function accessNotice({ access, inputError }) {
   if (!access?.applies) return null;
-  if (inputError && !access.allowed) return { kind: 'ask', text: TEXT.ask, action: 'allow', button: TEXT.allow };
+  if (!access.allowed && (inputError || !access.captureSeen))
+    return { kind: 'ask', text: TEXT.ask, action: 'allow', button: TEXT.allow };
   if (inputError) return { kind: 'restart', text: TEXT.restart, action: 'restart', button: TEXT.restartButton };
   if (access.secureInput) return { kind: 'secure', text: TEXT.secure };
   return null;

@@ -149,7 +149,8 @@ Built. **One shared popup** (`popup.js`) for everything: the general dialog, Wha
 - **Keyboard access notice (macOS only, `keyboard-access.js`):** a one-line bar under the header, announced to screen
   readers (`role="status"`), blue-lined because it asks for something rather than reporting a fault. It says one of:
   allow keyboard access (button opens System Settings), restart once so macOS starts sending keys (button restarts), or
-  that Secure Input is blocking capture (no button). It is checked again whenever the window gets focus, never on a timer.
+  that Secure Input is blocking capture (no button). It is checked again whenever the window gets focus, never on a timer. It asks for access while macOS says no and no
+  key has arrived yet; one key that really arrives proves capture works and the bar goes.
 
 **Release notes** (What's new and the update popup) always use the same five sections, in this order. A section with
 nothing to say is left out. The colour is on the heading and a thin line beside its list; the list text stays normal,

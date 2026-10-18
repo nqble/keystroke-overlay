@@ -36,7 +36,17 @@ test('off macOS there is never a notice, whatever the capture says', () => {
   assert.equal(accessNotice({ access, inputError: 'capture failed' }), null);
 });
 
-test('capture running means no request, even when macOS says access is off', () => {
-  const access = { applies: true, allowed: false, secureInput: false };
+test('a key that really arrived means no request, even when macOS says access is off', () => {
+  const access = { applies: true, allowed: false, secureInput: false, captureSeen: true };
   assert.equal(accessNotice({ access, inputError: null }), null);
+});
+
+test('access off and no key seen yet: ask, even if the tap seems to run', () => {
+  const access = { applies: true, allowed: false, secureInput: false, captureSeen: false };
+  assert.equal(accessNotice({ access, inputError: null }).kind, 'ask');
+});
+
+test('off macOS there is never a notice, whatever the capture says', () => {
+  const access = { applies: false, allowed: true, secureInput: false };
+  assert.equal(accessNotice({ access, inputError: 'capture failed' }), null);
 });

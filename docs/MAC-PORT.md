@@ -117,6 +117,12 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
 - [x] README: the short "On a Mac" build steps, and the "On a Mac" section of USER-GUIDE.md (first launch, keyboard access,
   Fn, Secure Input, troubleshooting). Written from the commands run on the M1; a clean-machine run is not done.
 
+- **A denied app can still start a tap.** After the permission record was reset, macOS's log said "does not allow
+  prompting; returning denied", yet the tap started without an error and received no keys, so "no error" does not prove
+  capture works. The window therefore shows the Allow bar while macOS says no and no key has arrived yet (the app
+  remembers only that a key arrived, never which). Also seen: a build re-signed as a whole (new identity) lost its
+  Input Monitoring permission until the old record was removed and the app allowed again.
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:

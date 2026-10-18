@@ -222,6 +222,9 @@ pub struct Bus {
     pub held: Mutex<HashSet<&'static str>>,
     /// When true, key events are dropped (tray "Pause overlay"). Capture keeps running.
     pub paused: AtomicBool,
+    /// Has any key event ever arrived? Only a fact (never which key), so the window can tell "capture works" from "macOS
+    /// let the tap start but sends it nothing", which is what a missing Input Monitoring permission can look like.
+    keys_seen: AtomicBool,
     ev_tx: Sender<KeyEvent>,
     capture: Mutex<Capture>,
     /// How many overlay pages are connected (the hook watch runs while this is above 0).
@@ -233,6 +236,7 @@ impl Bus {
     /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
     /// Pause is pressed can never slip through or leave a stuck key behind.
     fn forward(&self, event: KeyEvent) {
+        self.keys_seen.store(true, Ordering::Relaxed);
         let mut held = self.held.lock().unwrap();
         if self.paused.load(Ordering::Relaxed) {
             return;
@@ -243,6 +247,11 @@ impl Bus {
             held.remove(event.code);
         }
         let _ = self.tx.send(event); // Err = no listeners; fine.
+    }
+
+    /// Has any key event arrived since the app started? See `keys_seen`.
+    pub fn has_seen_keys(&self) -> bool {
+        self.keys_seen.load(Ordering::Relaxed)
     }
 
     /// Pause or resume (tray "Pause overlay" and the pause button). Pausing forgets every held key.
@@ -328,6 +337,7 @@ pub fn start(method: Method) -> Arc<Bus> {
         tx: btx,
         held: Mutex::new(HashSet::new()),
         paused: AtomicBool::new(false),
+        keys_seen: AtomicBool::new(false),
         ev_tx,
         capture: Mutex::new(Capture { method, source, error }),
         watchers: AtomicUsize::new(0),
@@ -355,6 +365,7 @@ mod tests {
             tx: broadcast::channel(256).0,
             held: Mutex::new(HashSet::new()),
             paused: AtomicBool::new(false),
+            keys_seen: AtomicBool::new(false),
             ev_tx,
             capture: Mutex::new(Capture {
                 method: Method::Hook,
@@ -401,6 +412,17 @@ mod tests {
             0,
             "the last page leaving turns it off"
         );
+    }
+
+    #[test]
+    fn the_bus_remembers_that_a_key_arrived() {
+        let bus = test_bus();
+        assert!(!bus.has_seen_keys());
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyW",
+        });
+        assert!(bus.has_seen_keys());
     }
 
     #[test]
