@@ -42,11 +42,13 @@ in Performance (RELEASING.md requires them). Do not copy this into CHANGELOG.md 
 - Type checking for the interface code, a benchmark for key-press delay, and key capture on Linux X11 desktops (for developers; there is no Linux release yet).
 ```
 
-## Still to do before v1.4 is released
-The key editor makeover ([design/key-editor.md](../design/key-editor.md)) is built (M4.1 to M4.3). What remains is the release
-preparation: the advisor's pending fixes (settings backup restore, code signing, keyboard-hook watch, overlay fit in OBS), the five
-version files, the CHANGELOG entry from the notes above with real benchmark numbers, the install and upgrade test, and Jordan's go. The saved-data format for sizes and
-the grid style already shipped in 1.3.0, so 1.4 needs no further migration for them.
+## State of the v1.4 release (prepared, waiting for Jordan's go)
+
+Prepared on `v1.4.0-dev` (2026-10-18): the five version files are at 1.4.0, `CHANGELOG.md` has the v1.4.0 entry (the notes above, plus the
+advisor's merged fixes and the measured numbers from `tests/bench/run.mjs`), and the install and upgrade test, the quiet update
+test, the benchmark and the full test suites have passed. **Nothing is released**: merge into `main` and run the Release workflow only
+when Jordan says so. Before the release: confirm the update key and the deployment approval on GitHub, and decide whether code
+signing (SignPath, off until its variables are set) is on for this release.
 
 ## How a release is made
 Raise the versions in `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml` and
