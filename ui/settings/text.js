@@ -43,7 +43,9 @@ export const TEXT = {
   snapHelp:
     'Keys jump a quarter key while you drag them or use the arrow keys, and stick to the edges of other keys. ' +
     'Off lets you place a key anywhere. Remembered next time.',
-  gridHelp: 'Show faint dots at every snap step. Remembered next time.',
+  gridHelp: 'Show faint dots on the board: every half key, or every whole key in the Even grid. Remembered next time.',
+  showHiddenHelp:
+    'Show the keys you hid (dimmed, so you can show them again). Turn it off to see only the keys the overlay draws. Remembered next time.',
   animationTabNote:
     'Only transform and opacity are animated (GPU friendly). Click keys in the preview to try an ' + 'animation.',
   fontsTabHelp:

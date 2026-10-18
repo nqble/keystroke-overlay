@@ -7,7 +7,7 @@ run of `tests/bench/run.mjs` on one PC; numbers from different entries come from
 
 ### ✨ New
 - **A new key editor on the Keys tab.** The keyboard comes first, on a board you can zoom (mouse wheel, up to 200%) and move around (hold the middle mouse button and drag). Keys can never leave the board, and an inspector on the right shows the selected key's label, width and place. The live preview steps aside on this tab.
-- **Make keys wider or narrower** by dragging the blue handles on either edge of the selected key, or by typing a width.
+- **Make keys wider, narrower, taller or shorter** by dragging the thin handles on any side of the selected key, or by typing a width or height. The OBS overlay draws the new sizes.
 - **Two layout styles.** Keyboard shape keeps the keys as the layout draws them; Even grid puts every key one key wide in neat columns. Each style keeps its own moves, so you can switch back and forth.
 - **Keys stick to each other.** While you drag, a key's edges snap to the edges of nearby keys, and an orange guide line shows it.
 - **Line keys up faster.** Select two or more keys and a small bar appears above them to align them or space them evenly.
@@ -18,6 +18,7 @@ run of `tests/bench/run.mjs` on one PC; numbers from different entries come from
 ### 🛠 Improved
 - **Easier with the keyboard and screen readers.** Every setting's label is linked to its control, popups keep keyboard focus inside them and give it back when they close, layout cards can be picked with Enter and deleted with the Menu key (or Shift+F10), the tab bar says which tab is open, and slider outlines show when you reach them with the keyboard.
 - **Clearer to read.** White text on blue buttons is easier to read, fields, dropdowns, buttons and cards have visible borders, and buttons that cannot be used yet look dimmed.
+- **The Keys board is centred on your keyboard,** with room on every side, and keys can be placed left of or above the layout's own corner. A new **Hidden keys** switch shows or hides the dimmed keys you turned off, and **Grid** shows its dots with or without Snap.
 - **Snap and Grid are simple switches** in the Keys toolbar, and the arrow keys move the selected keys (Shift for a whole key). The old arrow buttons, the "Whole key" tickbox and the Snap menu are gone.
 - **Tabs open instantly.** The Layout, Style, Animation and Fonts tabs are built once and kept until something changes, and they are prepared while the window is idle.
 - **A bug report that reads top to bottom.** "Copy bug report" gives a short summary first, then what you changed from the defaults, the self-test and the recent event log, and it removes your user name from file paths. The important events are kept at all times; the details only in Debug mode.

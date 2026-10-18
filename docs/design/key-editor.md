@@ -90,10 +90,11 @@ switching Keys → Style → Keys does not reload the preview.
   key's left or right edge, it snaps to it and an orange 1px guide line (`#ff9f43`) is drawn through the board; the same for
   top edges. Snap off = free movement (1px steps).
 - **Grid (toggle, on by default):** shows dots every ½ key (every 1 key in Even grid). Display only.
-- **Resize:** when exactly one visible key is selected, accent handles (8px wide, rounded, with a board-coloured outline)
-  appear on its left and right edges. Drag a handle to resize; the opposite edge stays put. Width snaps to 0.25 with Snap on.
-  Min = 1 key (or the layout width if smaller); max = up to the board edge in that direction. Badge shows "width 3.5" while
-  dragging. Other keys fade exactly as when holding a key.
+- **Resize:** when exactly one visible key is selected, thin accent lines (4px, with a board-coloured outline and a larger
+  area to grab) appear on **all four sides** (changed from the original design, which had left and right only). Drag a handle
+  to resize; the opposite edge stays put. Width or height snaps to 0.25 with Snap on. Min = 1 key (or the layout's own size
+  if smaller); max = up to the board edge in that direction. Badge shows "width 3.5" or "height 2" while dragging. Other keys
+  fade exactly as when holding a key. The inspector has Width and Height fields.
 - **Floating arrange bar:** when 2+ keys are selected (and not while dragging or box-selecting), a small toolbar floats
   10px above the selection (below it if there's no room above). Icon buttons with tooltips: align left, align centres,
   align right | align tops, align bottoms | space evenly across, space evenly down (both disabled under 3 keys).

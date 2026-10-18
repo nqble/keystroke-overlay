@@ -38,14 +38,14 @@ when chosen), and keeps each style's edits under `styles`:
   "layoutStyle": "grid",                                           // omitted for the default "shape"
   "styles": {
     "shape": { "positions": { "KeyW": { "x": 1.25, "y": 0 } },     // where keys were dragged to, in key units
-               "sizes":     { "Space": { "w": 4.5 } } },           // how wide keys were made, in key widths
+               "sizes":     { "Space": { "w": 4.5 }, "KeyW": { "h": 2 } } },  // how wide and tall keys were made (w, h or both), in key sizes
     "grid":  { "positions": { }, "sizes": { } }
   }
 }
 ```
 
 Only keys the user moved or resized are listed; every other key stays where, and as wide as, the layout style puts it. On load,
-entries that are not finite numbers are dropped, positions are limited to 0–100 and widths to 0.25–100, values are rounded to
+entries that are not finite numbers are dropped, positions are limited to −100 to 100 (a key may sit left of or above the layout's own origin, so the Keys tab can centre the layout on its board) and widths and heights to 0.25–100, values are rounded to
 2 decimals, at most 300 keys are kept per list, an unknown `layoutStyle` means `"shape"`, and parts with nothing in them are not
 written (so older settings files stay small). Files saved by version 2 kept `positions` directly on the profile; version 3 moves
 them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
