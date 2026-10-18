@@ -1,8 +1,8 @@
-# Porting to macOS — plan and status (Phases 1 and 2 on `mac/port`; Phase 1 seen working on a Mac, Phase 2 partly)
+# Porting to macOS — plan and status (Phases 1 and 2 done and checked on one Mac and merged into v2.0; Phase 3 is the free route)
 
 **Verdict: yes, and the best route is to keep Tauri.** Roughly 80% of the app is already cross-platform
 (overlay, settings window, local server, settings storage, tray, updater, autostart). What is Windows-only is key capture (the hook and Raw
-Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`), and the way the app is packaged and signed.
+Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`; `process_stats` is now measured on a Mac too, `trim_memory` is a no-op there), and the way the app is packaged and signed.
 
 ## What carries over unchanged
 
@@ -11,9 +11,9 @@ Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`), and t
 | Overlay page, settings UI, layouts, animations, themes | Same HTML/CSS/JS. The web view is **WKWebView** instead of WebView2, so it needs one visual test pass. OBS on Mac uses the same Browser Source, so the OBS setup is identical. |
 | Local server + WebSocket (axum/tokio) | Same code. |
 | Settings, presets, migrations | Same code (data folder becomes `~/Library/Application Support/com.keyoverlay.app`). |
-| Tray / menu bar, pause, layout switch | Tauri supports it (becomes a **menu-bar icon**). Needs a monochrome "template" icon. |
+| Tray / menu bar, pause, layout switch | Tauri supports it (becomes a **menu-bar icon**). Uses a monochrome "template" icon (`src-tauri/icons/tray-template.png`, made from `assets/logo/logo-tray.svg`). |
 | Autostart, clipboard, dialogs, single-instance | Tauri plugins already support macOS (autostart uses a LaunchAgent). |
-| Updater | Supported (macOS uses a `.app.tar.gz` + the same signature scheme). Manifest gains `darwin-aarch64` and `darwin-x86_64` entries. |
+| Updater | Not used on a Mac: `latest.json` and `stable.json` have no `darwin` entries, and the update check on a Mac says so and points to the Releases page. |
 
 ## What has to be written for Mac
 
@@ -25,7 +25,7 @@ Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`), and t
      100 entries, physical-position based, same idea as `code_name()` in `keyboard/keymap.rs`.
    - **Repeat filtering** and the stuck-key self-heal carry over (macOS exposes key state via `CGEventSourceKeyState`).
 2. **Permission flow (new first-run UX).** macOS will not deliver keys until the user ticks the app in
-   *System Settings → Privacy & Security → Input Monitoring*, and the tap **fails silently** without it. So the app
+   *System Settings → Privacy & Security → Input Monitoring*, and without it the tap either fails to start or starts and never receives a key (the second is what macOS 26 did on the test Mac). So the app
    needs: a friendly "Allow keyboard access" screen, a button that opens that settings pane, a re-check, and an app restart
    after granting. Apple's forums report the app sometimes doesn't appear in the list until it has requested access
    (`CGRequestListenEventAccess`) and created a tap, so the flow should do both.
@@ -35,20 +35,19 @@ Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`), and t
    should detect it (`IsSecureEventInputEnabled`) and show a hint ("macOS is blocking key capture; lock/unlock the screen
    or quit the app holding secure input").
 4. **Platform glue (small).** Menu-bar app (hide the Dock icon with the *accessory* activation policy, and show it while the settings window is open), template tray
-   icon, remove Windows-only WebView2 flags, `trim_memory` already a no-op via `platform.rs`, folder opening already uses `open`.
+   icon, the Windows-only WebView2 flags in `window.rs` are ignored on a Mac (Tauri's `additional_browser_args` is Windows-only), `trim_memory` already a no-op via `platform.rs`, folder opening already uses `open`.
 5. **Packaging, signing, notarization** (the part that costs money and time) — below.
 
 ## Distribution options
 
 | Option | Cost | User experience | Notes |
 |---|---|---|---|
-| **Developer ID + notarization (recommended)** | Apple Developer Program, **US$99/year** | Double-click, no warnings | Tauri automates signing + notarization from CI using a certificate and App Store Connect API key. **Permissions (Input Monitoring) survive updates** because the signing identity stays the same. |
-| Ad-hoc signed, unsigned/un-notarized | Free | Gatekeeper blocks the first launch; user must open *Privacy & Security → Open Anyway* (right-click → Open no longer works on recent macOS) | Required to run at all on Apple Silicon (ad-hoc signing). Because the identity changes every build, macOS may **re-ask for Input Monitoring after each update** (to verify when testing). Acceptable for early testers only. |
-| **Build from source** (free, available as soon as the port exists) | Free | `brew install rust node`, `npm install`, `npm run build` | A locally built app is not quarantined, so Gatekeeper doesn't block it. Good for developers and early adopters, and a natural fit for an open-source project. |
+| **Developer ID + notarization** (not used: Jordan chose the free route) | Apple Developer Program, **US$99/year** | Double-click, no warnings | Tauri automates signing + notarization from CI using a certificate and App Store Connect API key. **Permissions (Input Monitoring) survive updates** because the signing identity stays the same. |
+| Ad-hoc signed, unsigned/un-notarized | Free | Gatekeeper blocks the first launch; user must open *Privacy & Security → Open Anyway* (right-click → Open no longer works on recent macOS) | Required to run at all on Apple Silicon (ad-hoc signing). Because the identity changes every build, macOS does **not honour the old Input Monitoring permission after each update** (verified on the M1: it must be cleared and allowed again, see below). Acceptable for early testers only. |
+| **Build from source** (free, available as soon as the port exists) | Free | Command Line Tools, Rust, Node, `npm ci`, `npx tauri build --bundles app ...` (see the README) | A locally built app is not quarantined, so Gatekeeper doesn't block it. Good for developers and early adopters, and a natural fit for an open-source project. |
 | Homebrew cask | Free (needs a notarized or at least stable download) | `brew install --cask keystroke-overlay` | Nice later, once releases are signed. |
 
-Build once as a **universal binary** (`--target universal-apple-darwin`) so one download runs on Intel and Apple
-Silicon Macs.
+Not done: the build is Apple Silicon only (Jordan's choice), and Intel Macs are untested. A universal binary (`--target universal-apple-darwin`) would cover both.
 
 ## Most efficient plan
 
@@ -56,14 +55,14 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
 
 1. **Phase 1 — it runs.** Already done: the capture methods sit behind one interface (`Method` in `keyboard/mod.rs`),
    Windows-only crates are gated with `[target.'cfg(windows)'.dependencies]`, and CI builds and tests on `macos-latest` (the
-   `other-systems` job). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
-   release) are written and unit-tested; it still has to be seen working on a real Mac. Still to do: make CI upload an
-   unsigned `.app`.
-2. **Phase 2 — it behaves.** Written on `mac/port`: a notice under the header (Allow keyboard access / restart / Secure
+   `other-systems` job, which is still allowed to fail until its first green run). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
+   release) are written and unit-tested, and seen working on a real Mac. The workflow that builds an unsigned `.app` in CI and attaches it to a release
+   (`mac-app.yml`) is written and has not yet run on GitHub.
+2. **Phase 2 — it behaves.** Done and merged into v2.0: a notice under the header (Allow keyboard access / restart / Secure
    Input hint, `ui/settings/keyboard-access.js`), menu-bar app (in the Dock only while the settings window is open) with a monochrome template tray
    icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: the tray icon, the native
-   window and header fit. The Dock icon (shown only while the settings window is open) is not yet seen. Not yet seen: the Allow / restart / Secure Input notices on screen, the
-   update badge on the template icon, and a visual pass over every tab.
+   window and header fit, the Dock icon (shown only while the settings window is open), the Allow and restart notices, the update dot on the tray icon, and every tab. The Secure Input hint is tested
+   in code but has not been seen on screen.
 3. **Phase 3 — it ships (decided by Jordan: the free route only).** No Apple Developer account, no signing certificate and no
    notarization. Every release from `main` gets an Apple Silicon download (`mac-app.yml`, attached by `release.yml`); it is signed
    ad hoc, so a first launch needs **Open Anyway**, and the keyboard permission must be allowed again after every update
@@ -72,7 +71,7 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
    a Homebrew cask are not part of this.
 4. **Phase 4 — polish.** Mac-specific docs, Homebrew cask, community testers.
 
-Rough effort: about **3–5 working days** of development plus the Apple account setup, most of it in steps 1–2.
+Rough effort (the original estimate): about **3–5 working days** of development plus the Apple account setup, most of it in steps 1–2; the Apple account is not used.
 Making the repository public helps: GitHub's macOS build machines are free for public repositories, and Mac users can
 help test.
 
@@ -107,17 +106,17 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk` (any older SDK there) works around it, and updating the
   Command Line Tools fixes it for good.
 - [x] **It is signed ad hoc by the build** (`codesign -dv` says `Signature=adhoc`, identifier `keyoverlay-<hash>`), so it
-  runs on Apple Silicon. A locally built app is not quarantined, so macOS opens it without the Open Anyway step.
+  runs on Apple Silicon (the release workflow signs the whole app ad hoc again, which makes the identifier `com.keyoverlay.app`). A locally built app is not quarantined, so macOS opens it without the Open Anyway step.
 - [x] **Restart after granting.** The first version of the "Restart now" button made the app vanish: Tauri's restart opens
   the new copy while the old one still runs, and the single-instance guard sends the new copy away. `platform::restart_app`
   now waits for the old copy to exit and then opens the app. Checked on the M1 by running that wait-then-open step against
   the real app (it came back with a new process id); the button itself is not clicked yet.
 - [x] Input Monitoring: the `.app` appears in the list as "Keystroke Overlay" with the keycap logo, and after granting and a
   restart keys are captured (checked on the M1).
-- [x] **Does the permission survive a rebuild?** On the M1 (macOS 26), yes for one rebuild: after a rebuild with a new
-  signature (the code hash changed, the identifier did not) keys were still captured without granting again. Oddly,
-  macOS's own check (`CGPreflightListenEventAccess`) answered "not allowed" for that rebuilt app, so the window's notice
-  now trusts whether capture is really running instead of that check. Not tested across several rebuilds or updates.
+- [x] **Does the permission survive a rebuild?** Not in general (see "The permission belongs to one exact build" below). One
+  early rebuild (the build's own signature, code hash changed, identifier did not) happened to keep capturing without
+  granting again, while macOS's own check (`CGPreflightListenEventAccess`) answered "not allowed" for it, which is why the
+  window's notice does not trust that check alone.
 - [x] README: the short "On a Mac" build steps, and the "On a Mac" section of USER-GUIDE.md (first launch, keyboard access,
   Fn, Secure Input, troubleshooting). Written from the commands run on the M1; a clean-machine run is not done.
 
@@ -131,7 +130,7 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   rebuild: an ad-hoc signed app's identity is its code hash (`designated => cdhash ...`), which changes with every build.
   The old Input Monitoring entry then still looks on but does nothing. What fixed it on the M1: `tccutil reset
   ListenEvent com.keyoverlay.app`, then Allow keyboard access, switch it on, restart (the app then appears in the list
-  and keys light up). Toggling the old entry, or removing it with the minus button, did not. (One earlier rebuild kept working; the log says why it normally does not.) So Mac users must re-allow after
+  and keys light up). Toggling the old entry, or removing it with the minus button, did not (as far as the test on the M1 showed). So Mac users must re-allow after
   every update. Ways around it, none done: a signing certificate that stays the same between builds (a self-signed one
   kept as a secret in CI, or Apple's paid Developer ID), or signing with a rule that matches on the identifier alone,
   which would let any program with the same identifier inherit the keyboard permission, a real weakening for this app.
@@ -152,7 +151,7 @@ The settings window says what a Mac says (`ui/settings/system-words.js`, chosen 
 login", "Minimize to the menu bar" (minimizing closes the window and leaves the menu-bar icon), no Compatibility input
 method (only Windows has it; Linux has none either), "⌘-click to add" and "delete" in the Keys tab hints, and the pause
 shortcut shows ⌘ ⌥ ⌃ ⇧ and asks for "⌘, ⌥ or ⌃". A Command shortcut is saved as "Super", which the shortcut library reads
-(tested). Not yet checked on the M1: that a Command-based pause shortcut registers and fires. Fonts: the Style → Font family list shows "Mac fonts" on a Mac; the saved default stays "Segoe UI" (changing it
+(tested). On the M1 a pause shortcut set with Command worked for two-key combinations (⌘P, ⌘↑), which fired with another app in front, and ⌘⌥P and ⌃⌥P were set successfully (firing with another app in front was not separately confirmed); ⌘⇧P did not work (the cause is not known, another app may use it). Before that fix, Esc and a click did nothing while recording a shortcut, because Safari's engine does not focus a clicked button; clicking now focuses the button. Fonts: the Style → Font family list shows "Mac fonts" on a Mac; the saved default stays "Segoe UI" (changing it
 would need a settings migration) and shows as "System font (default)", and the overlay falls back to the system font, so
 the keys look right even when OBS runs on another computer (`ui/overlay/overlay.js`, FONT_FALLBACKS). Key labels follow the keyboard language on a Mac too
 (`keyboard/macos_labels.rs`: the current layout through the Text Input Sources and `UCKeyTranslate` calls in Carbon, no
@@ -195,9 +194,7 @@ with "listen-only event tap"; the Debug tab shows memory and open files, Input M
 
 ## Things to double-check before relying on them
 
-These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:
-the exact Input Monitoring behaviour for listen-only taps, whether the app reliably appears in the Input Monitoring list,
-and whether ad-hoc signed builds really lose their permission on every update.
+These came from community sources. Confirmed on the M1: ad-hoc signed builds do lose their Input Monitoring permission after a rebuild (macOS's log says it fails to match the code requirement), and the app appears in the list once it has asked. Still to confirm in Apple's docs or on other macOS versions: the exact Input Monitoring behaviour for listen-only taps (the test Mac runs macOS 26 only).
 
 ## Sources
 
