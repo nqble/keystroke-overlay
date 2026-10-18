@@ -71,7 +71,7 @@ The notes from before:
   `tools/release.mjs` and the release workflow, signed like the Windows installer, with `linux-x86_64` entries in
   `stable.json` / `latest.json`.
 - "Start with Windows" already reads "Start at login" on Linux (the autostart plugin writes an XDG autostart file).
-- `platform.rs`: `process_stats` has its Linux version (`/proc/self`); `trim_memory` still does nothing on Linux.
+- `platform.rs`: `process_stats` has its Linux version (`/proc/self`); `trim_memory` uses glibc's `malloc_trim` on Linux.
 - The e2e tests drive Windows with PowerShell. A Linux runner could use `xdotool` for key presses (as the manual test
   below does); that is a separate, optional piece of work.
 

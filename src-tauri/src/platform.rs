@@ -122,7 +122,19 @@ pub fn trim_memory() {
         let _ = EmptyWorkingSet(GetCurrentProcess());
     }
 }
-#[cfg(not(windows))]
+/// Linux (glibc): give the memory the allocator kept after the settings window closed back to the system, like
+/// EmptyWorkingSet does on Windows. Without it the freed pages stay counted against the app until reused.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+pub fn trim_memory() {
+    extern "C" {
+        fn malloc_trim(pad: usize) -> i32;
+    }
+    // SAFETY: glibc's malloc_trim takes a plain number and only touches the allocator's own free lists.
+    unsafe {
+        malloc_trim(0);
+    }
+}
+#[cfg(not(any(windows, all(target_os = "linux", target_env = "gnu"))))]
 pub fn trim_memory() {}
 
 /// This process's memory (MB, the part resident in RAM) and open handle count, for the Debug tab. Each is 0 / None
@@ -280,6 +292,27 @@ pub fn open_url(url: &str) -> std::io::Result<()> {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+
+    /// Freed memory goes back to the system after trim_memory (Linux): allocate and free about 64 MB in small pieces,
+    /// which glibc keeps for reuse, then check that trimming brings the resident size down again.
+    #[cfg(all(target_os = "linux", target_env = "gnu"))]
+    #[test]
+    fn trimming_gives_freed_memory_back_on_linux() {
+        const PIECES: usize = 64 * 1024;
+        const PIECE_SIZE: usize = 1024;
+        let pieces: Vec<Vec<u8>> = (0..PIECES).map(|i| vec![(i % 251) as u8; PIECE_SIZE]).collect();
+        let full = process_stats().0;
+        drop(pieces);
+        let before_trim = process_stats().0;
+        trim_memory();
+        let after_trim = process_stats().0;
+        assert!(full > 0.0, "the resident size is measured");
+        assert!(after_trim <= before_trim, "trimming never grows the resident size");
+        assert!(
+            after_trim < full - 16.0,
+            "most of the 64 MB went back: {full} MB, then {after_trim} MB"
+        );
+    }
 
     #[test]
     fn the_resident_size_is_read_from_a_linux_status_file() {
