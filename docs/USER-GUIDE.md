@@ -13,6 +13,7 @@ handled, with the ways to check it, is in [PRIVACY.md](../PRIVACY.md).
 - [Tray menu](#tray-menu)
 - [Updating](#updating)
 - [Make your own layout](#make-your-own-layout)
+- [On a Mac](#on-a-mac)
 - [Privacy](#privacy)
 - [Troubleshooting](#troubleshooting)
 - [Requirements](#requirements)
@@ -236,6 +237,30 @@ use updates you can block the app in your firewall and everything else keeps wor
   scanner read our own code (on demand only).
   More in [SECURITY.md](../SECURITY.md).
 
+## On a Mac
+
+The Mac version is early: you build the app yourself (the steps are in the [README](../README.md#building-from-source)),
+and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
+
+- **Where it lives.** In the menu bar. Click its icon and choose **Open settings**. While the settings window is open, the
+  app also shows in the Dock.
+- **First launch: allow keyboard access.** macOS won't give an app your key presses until you say yes. In the settings
+  window, click **Allow keyboard access** (the blue bar under the header). In System Settings → Privacy & Security →
+  **Input Monitoring**, switch on Keystroke Overlay. Come back to the app and click **Restart now**. Your keys now light
+  up. The blue bar only shows while keys are not being captured.
+- **The F row.** On a Mac laptop, F1 to F12 only light up while you hold **Fn**. Without it they are brightness and volume
+  keys, which macOS doesn't send as F keys.
+- **Key names.** The overlay shows your own keyboard's names: ⌘ ⌥ ⌃, **delete** and **return**. To use the layout file's
+  names instead, set **Style → Key labels** to **Layout file**.
+- **Passwords.** While a password box has focus, macOS blocks key capture on purpose, so passwords can never reach the
+  overlay. If the app says capture is blocked and it doesn't clear, lock and unlock the screen, or quit the app that is
+  holding it.
+- **Updates.** The app can't install updates on a Mac yet. **Check for updates** points you to the Releases page.
+- **If the build stops** with a linker error that says "malformed file" or "unknown architecture", your Xcode Command Line
+  Tools are older than your newest macOS SDK. Update them in System Settings → Software Update, then build again.
+- **Running with `npm run dev`.** macOS may then ask for Input Monitoring for the program that started it, such as
+  Terminal, instead of for Keystroke Overlay.
+
 ## Troubleshooting
 
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
@@ -253,4 +278,4 @@ use updates you can block the app in your firewall and everything else keeps wor
 
 ## Requirements
 
-Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11.
+Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11. On a Mac, see [On a Mac](#on-a-mac).
