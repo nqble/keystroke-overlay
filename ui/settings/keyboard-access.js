@@ -8,7 +8,8 @@ import { $, invoke } from './helpers.js';
 import { html, render as draw } from './html.js';
 import { inputError } from './state.js';
 
-let access = null; // { allowed, secureInput } from the app; null before the first answer
+let access = null; // { applies, allowed, allowedAtStart, secureInput, captureSeen } from the app; null before the first answer
+let asked = false; // true once Allow keyboard access was pressed: the next step is the restart
 
 export function setKeyboardAccess(value) {
   access = value;
@@ -16,7 +17,7 @@ export function setKeyboardAccess(value) {
 
 /** Draw the notice for the current state. Cheap to call often. */
 export function paintAccess() {
-  const notice = accessNotice({ access, inputError });
+  const notice = accessNotice({ access, inputError, asked });
   const banner = $('#accessBanner');
   banner.hidden = !notice;
   draw(notice ? html`<${Notice} notice=${notice} />` : null, banner);
@@ -33,7 +34,12 @@ export async function refreshAccess() {
 }
 
 function Notice({ notice }) {
-  const press = () => invoke(notice.action === 'restart' ? 'restart_app' : 'request_keyboard_access');
+  const press = () => {
+    if (notice.action === 'restart') return invoke('restart_app');
+    asked = true;
+    paintAccess();
+    return invoke('request_keyboard_access');
+  };
   return html`<span data-test="keyboard-access-text">${notice.text}</span> ${
       notice.button
         ? html`<button class="primary" type="button" data-test="keyboard-access-button" onClick=${press}>

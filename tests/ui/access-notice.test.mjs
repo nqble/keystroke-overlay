@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { accessNotice } from '../../ui/settings/access-notice.js';
 
-const allowed = { applies: true, allowed: true, secureInput: false };
+const allowed = { applies: true, allowed: true, allowedAtStart: true, secureInput: false };
 
 test('nothing to show before the app has answered', () => {
   assert.equal(accessNotice({ access: null, inputError: null }), null);
@@ -22,7 +22,10 @@ test('access given but capture not running: restart', () => {
 });
 
 test('Secure Input is a hint without a button', () => {
-  const notice = accessNotice({ access: { applies: true, allowed: true, secureInput: true }, inputError: null });
+  const notice = accessNotice({
+    access: { applies: true, allowed: true, allowedAtStart: true, secureInput: true },
+    inputError: null,
+  });
   assert.equal(notice.kind, 'secure');
   assert.equal(notice.button, undefined);
 });
@@ -49,4 +52,22 @@ test('access off and no key seen yet: ask, even if the tap seems to run', () => 
 test('off macOS there is never a notice, whatever the capture says', () => {
   const access = { applies: false, allowed: true, secureInput: false };
   assert.equal(accessNotice({ access, inputError: 'capture failed' }), null);
+});
+
+test('after Allow is pressed, offer the restart', () => {
+  const access = { applies: true, allowed: false, allowedAtStart: false, secureInput: false, captureSeen: false };
+  const notice = accessNotice({ access, inputError: null, asked: true });
+  assert.equal(notice.kind, 'restart');
+  assert.equal(notice.action, 'restart');
+});
+
+test('access given after the app started, and no key yet: restart', () => {
+  const access = { applies: true, allowed: true, allowedAtStart: false, secureInput: false, captureSeen: false };
+  assert.equal(accessNotice({ access, inputError: null }).kind, 'restart');
+});
+
+test('once a key has arrived the restart prompt goes away, and only Secure Input can show', () => {
+  const working = { applies: true, allowed: true, allowedAtStart: false, secureInput: false, captureSeen: true };
+  assert.equal(accessNotice({ access: working, inputError: null, asked: true }), null);
+  assert.equal(accessNotice({ access: { ...working, secureInput: true }, inputError: null }).kind, 'secure');
 });

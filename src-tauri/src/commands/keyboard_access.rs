@@ -15,6 +15,7 @@ pub fn status(bus: &Bus) -> Value {
         "applies": crate::platform::name() == "macos",
         "allowed": access.allowed,
         "secureInput": access.secure_input,
+        "allowedAtStart": bus.was_allowed_at_start(),
         "captureSeen": bus.has_seen_keys(),
     })
 }
