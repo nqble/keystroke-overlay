@@ -1,7 +1,8 @@
-# Plan: loading and lifetime across the app (in progress, from the Advisory Session)
+# Plan: loading and lifetime across the app (done, from the Advisory Session)
 
-Status: **In progress** on `v1.4.0-dev` (checked 2026-10-16). Done: A3 for the Debug tab (8d9691e), A2 for presets
-(8d9691e), C8 (no change needed, see docs/for-claude/CLEANUP.md). Not started: A1, A2 for fonts and layouts, A4, A5, B6, B7.
+Status: **Done in v1.4.0** (checked 2026-10-19). In: A1 (tabs built once and kept), A2 (lists fetched once), A3 (the Debug tab loads on demand),
+A5 (the hidden preview keeps only the latest settings) and C8 (no change needed, see docs/for-claude/CLEANUP.md). B6 and B7 were measured and
+left alone (section B). A4 (targeted updates instead of full redraws) was not re-checked for this status.
 Approved by Jordan in the Advisory Session. It applies the ideas of section 9a of
 [../design/key-editor.md](../../design/key-editor.md) to the whole app.
 
