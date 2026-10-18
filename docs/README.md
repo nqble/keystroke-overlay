@@ -7,6 +7,7 @@ CODE_OF_CONDUCT) and [CLAUDE.md](../CLAUDE.md), the rules for Claude sessions.
 
 - [USER-GUIDE.md](USER-GUIDE.md): everything about using the app (OBS settings, two PCs, input methods, secure link,
   layouts, troubleshooting); the root README is the short version
+- [GAMES.md](GAMES.md): the games the overlay has been tested in, and what happened (anti-cheat notes)
 
 ## How it works (reference)
 

@@ -30,7 +30,7 @@
 
 - 🪶 **Light.** About 3 MB of memory and ~0% CPU when idle. The installer is about 2.3 MB.
 - 🎮 **Works in games.** It sees your keys while a game has focus, and has a Compatibility mode for games that block
-  the usual method.
+  the usual method. [Games tested so far](docs/GAMES.md).
 - 🎨 **Yours to design.** Pick a keyboard or build your own, then choose a theme, fine-tune every color and add an
   animation.
 - 🔒 **Private by design.** Keystrokes never leave your PC: never saved, never sent. An automatic check in every
