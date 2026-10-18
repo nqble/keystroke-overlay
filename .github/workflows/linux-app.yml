@@ -1,7 +1,7 @@
 name: Linux app
 
 # Builds the Linux downloads (x86-64): an AppImage, which runs on most distributions as one file, and a .deb for Debian and
-# Ubuntu, each zipped with the third-party notices and handed on as the workflow artifact "linux-app". Key capture works on
+# Ubuntu, with the third-party notices beside them, handed on as the workflow artifact "linux-app". Key capture works on
 # X11 desktops; Wayland support is being built (docs/LINUX-PORT.md). The app does not update itself on Linux yet: the
 # update manifests have no Linux entry, so Linux users download each new version (docs/RELEASING.md, Linux download).
 #
@@ -46,7 +46,7 @@ jobs:
       - name: Build the AppImage and the .deb
         run: npx tauri build --bundles appimage,deb --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
-      - name: Name and zip the downloads with the notices
+      - name: Name the downloads and add the notices
         run: |
           VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
           BUNDLE=src-tauri/target/release/bundle

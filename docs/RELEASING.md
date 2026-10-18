@@ -81,6 +81,25 @@ What to know:
   upload replaces any earlier zip (`--clobber`).
 - Intel Macs are not covered yet.
 
+## Linux download (x86-64, X11 desktops)
+
+Every release also gets `Keystroke-Overlay_<version>_linux-x86_64.AppImage` (one file that runs on most distributions)
+and `Keystroke-Overlay_<version>_linux-amd64.deb` (Debian and Ubuntu) attached, with no extra step. After the Windows
+release is published, the Release workflow runs `.github/workflows/linux-app.yml` on Ubuntu 22.04 (no secrets, no build
+cache), and `linux-publish` attaches both files to the same release. `ci.yml` runs the same workflow on every change. To
+try it without releasing: Actions → **Linux app** → Run workflow, and download the `linux-app` artifact.
+
+What to know:
+- Key capture works on **X11 desktops**; Wayland capture is being built ([LINUX-PORT.md](LINUX-PORT.md)).
+- **No in-app updates on Linux yet.** `latest.json` and `stable.json` have no `linux` entries, so Linux users download
+  each new version. TODO (Jordan, awake): to switch updates on, sign the AppImage in `linux-app.yml` (drop
+  `createUpdaterArtifacts: false` and give it the signing key) and add a `linux-x86_64` entry to both manifests. Changing
+  the manifests affects every installed copy, so it is Jordan's call. The .deb can't update itself; it stays a download.
+- **The first release that carries them (v2.0):** the workflow has never run on GitHub yet, so try it first (Run
+  workflow, which counts as posting on GitHub: Jordan's OK), and mention the Linux downloads in that release's CHANGELOG entry.
+- If the Linux job fails, the Windows release is already published. Fix the cause and re-run only the failed jobs; the
+  upload replaces any earlier files (`--clobber`).
+
 ## Versioning rule (decides the channel)
 
 `x.y.z` — **the middle number is Stable, the last number is Latest.**
