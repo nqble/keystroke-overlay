@@ -465,7 +465,8 @@ button:disabled:hover {
   aspect-ratio: calc(var(--board-w, 24) / var(--board-h, 12));
   max-height: 62vh;
   min-height: 200px;
-  background: var(--color-well);
+  /* the same grey as the board, so the room that shows past the board's edge does not look like a darker frame */
+  background: var(--color-panel);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-2xl);
   margin: var(--space-8) 0 var(--space-14);
