@@ -2,7 +2,15 @@
 //  The self-test's checks and the facts for "Copy bug report" (debug-report.js formats them).
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { REPORT_LOG_LINES, accessRows, bugReport, redactSettings, scrub, settingsDiff } from '../debug-report.js';
+import {
+  REPORT_LOG_LINES,
+  accessRows,
+  bugReport,
+  engineName,
+  redactSettings,
+  scrub,
+  settingsDiff,
+} from '../debug-report.js';
 import { invoke } from '../helpers.js';
 import { lastUpdate, layouts, paused, settings, size } from '../state.js';
 import { facts } from './shared.js';
@@ -57,7 +65,7 @@ export async function buildReport() {
     invoke('debug_log'),
     invoke('debug_defaults'),
   ]);
-  const engine = (navigator.userAgent.match(/Edg\/[\d.]+/) || [navigator.userAgent])[0];
+  const engine = engineName(navigator.userAgent);
   const state = {
     paused,
     port: info.port,

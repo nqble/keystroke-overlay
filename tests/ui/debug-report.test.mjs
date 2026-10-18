@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   accessRows,
   bugReport,
+  engineName,
   memoryText,
   redactSettings,
   scrub,
@@ -156,4 +157,13 @@ test('the bug report shows the method name, the macOS rows and honest memory', (
   assert.match(report, /\| Keyboard input \| Standard \(event tap\) \|/);
   assert.match(report, /\| Input Monitoring \| allowed \(keys are arriving\) \|/);
   assert.match(report, /\| Memory \| 31.2 MB · 21 handles \|/);
+});
+
+test('the engine is named for Edge on Windows and WebKit on a Mac', () => {
+  const edge =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.2849.56';
+  const mac = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)';
+  assert.equal(engineName(edge), 'Edg/130.0.2849.56');
+  assert.equal(engineName(mac), 'WebKit 605.1.15');
+  assert.equal(engineName('SomethingElse/1.0'), 'SomethingElse/1.0');
 });

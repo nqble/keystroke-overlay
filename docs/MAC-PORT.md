@@ -184,6 +184,15 @@ real fingers on the M1 trackpad in the Mac window: the pinch zooms around the po
   orange dot, and "Update available" at the top of the tray menu. Since v2.0 the in-window update button is the
   "Update ready" button in the header's top right.
 
+## Every tab checked in the real Mac window
+
+Layout, Keys, Style, Animation, General and Debug were opened in the real app (a built `.app`, Debug mode on) and
+looked at: the real window frame and buttons line up with the header; the keys show the Mac names (⌃ ⌘ ⌥, delete, return);
+the Keys tab has the Layout style switch, Close gaps, Reset and the Pinch / Scroll hints; General shows only Standard
+with "listen-only event tap"; the Debug tab shows memory and open files, Input Monitoring, Secure Input and "Standard
+(event tap)". It also showed the browser engine as a long text (now "WebKit 605.1.15"), and Debug's intro said
+"General → App → Debug mode" (the section is called Advanced).
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:

@@ -2,7 +2,7 @@
 //  "This app": version, system, uptime, memory and the server.
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { accessRows, scrub } from '../debug-report.js';
+import { accessRows, engineName, scrub } from '../debug-report.js';
 import { button, call, el, invoke } from '../helpers.js';
 import { every, facts, seconds } from './shared.js';
 
@@ -48,7 +48,7 @@ export const thisApp = {
           scrub(info.dataDir) + (info.dataWritable ? '' : '   (cannot write here!)'),
           info.dataWritable ? '' : 'bad',
         ],
-        ['Browser engine', (navigator.userAgent.match(/Edg\/[\d.]+/) || [navigator.userAgent])[0]],
+        ['Browser engine', engineName(navigator.userAgent)],
         [
           'Window / screen',
           `${innerWidth}×${innerHeight} window, ${screen.width}×${screen.height} screen at ${devicePixelRatio}×`,

@@ -54,7 +54,7 @@ export const TEXT = {
     'the details (version, system, self-test, the settings you changed and the recent event log). It contains no key ' +
     'presses and no private link key, and your user name is removed.',
   debugToolsIntro:
-    'Developer tools. Switch them off in General → App → Debug mode. Nothing here is saved to disk or ' +
+    'Developer tools. Switch them off in General → Advanced → Debug mode. Nothing here is saved to disk or ' +
     'sent anywhere.',
 };
 
