@@ -32,5 +32,5 @@ pub fn request_keyboard_access() {
 /// macOS only starts delivering keys to an app that was already running after the app is restarted.
 #[tauri::command]
 pub fn restart_app(app: AppHandle) {
-    app.restart();
+    crate::platform::restart_app(&app);
 }

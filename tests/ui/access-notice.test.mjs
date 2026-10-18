@@ -9,7 +9,7 @@ test('nothing to show before the app has answered', () => {
   assert.equal(accessNotice({ access: null, inputError: null }), null);
 });
 
-test('without access, ask for it first, even when capture also failed', () => {
+test('capture failed and access is off: ask for access first', () => {
   const notice = accessNotice({ access: { applies: true, allowed: false, secureInput: true }, inputError: 'failed' });
   assert.equal(notice.kind, 'ask');
   assert.equal(notice.action, 'allow');
@@ -34,4 +34,9 @@ test('everything fine: no notice', () => {
 test('off macOS there is never a notice, whatever the capture says', () => {
   const access = { applies: false, allowed: true, secureInput: false };
   assert.equal(accessNotice({ access, inputError: 'capture failed' }), null);
+});
+
+test('capture running means no request, even when macOS says access is off', () => {
+  const access = { applies: true, allowed: false, secureInput: false };
+  assert.equal(accessNotice({ access, inputError: null }), null);
 });

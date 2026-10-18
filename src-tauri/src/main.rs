@@ -57,7 +57,7 @@ fn main() {
             Some(vec!["--autostart"]),
         ))
         .setup(|app| {
-            platform::hide_dock_icon(app);
+            platform::set_dock_icon_visible(app.handle(), false); // a menu-bar app until the settings window opens
             let paths = Paths {
                 root: app.path().app_data_dir()?,
             };

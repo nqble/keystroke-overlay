@@ -71,13 +71,47 @@ pub fn set_tray_icon_template(tray: &TrayIcon, template: bool) {
     let _ = (tray, template);
 }
 
-/// macOS: a menu-bar app has no Dock icon and no app menu bar of its own (the settings window and the tray are all there
-/// is). Does nothing elsewhere.
-pub fn hide_dock_icon(app: &mut tauri::App) {
+/// Where the running app's `.app` folder is, from the program's own path (`.../Keystroke Overlay.app/Contents/MacOS/name`).
+/// None when the program does not run from a `.app` (a `tauri dev` build, for example).
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))] // used by restart_app on macOS, and by the tests
+fn app_bundle_of(program: &Path) -> Option<std::path::PathBuf> {
+    let bundle = program.parent()?.parent()?.parent()?;
+    let is_app_folder = bundle.extension().is_some_and(|extension| extension == "app");
+    let in_macos_folder = program.parent()?.file_name()? == "MacOS";
+    (is_app_folder && in_macos_folder).then(|| bundle.to_path_buf())
+}
+
+/// Quit and start the app again. macOS: Tauri's own restart opens the new copy while this one is still running, and the
+/// single-instance guard sends the new copy away, so the app would just disappear. Instead a small helper waits for this
+/// process to be gone, then opens the app. Elsewhere, and for a `tauri dev` build, Tauri's restart is fine.
+pub fn restart_app(app: &AppHandle) {
     #[cfg(target_os = "macos")]
-    app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+    if let Some(bundle) = std::env::current_exe().ok().and_then(|program| app_bundle_of(&program)) {
+        // $1 is the app folder, $2 this process's id. Waits until that process is gone, then opens a fresh copy.
+        const WAIT_THEN_OPEN: &str = "while kill -0 \"$2\" 2>/dev/null; do sleep 0.2; done; /usr/bin/open -n \"$1\"";
+        let helper = std::process::Command::new("/bin/sh")
+            .args(["-c", WAIT_THEN_OPEN, "restart"])
+            .arg(&bundle)
+            .arg(std::process::id().to_string())
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn();
+        if helper.is_ok() {
+            app.exit(0);
+            return;
+        }
+    }
+    app.restart();
+}
+
+/// macOS: show the app in the Dock (and the app switcher) while its settings window is open, hide it when the window
+/// closes, so the app is a menu-bar app the rest of the time. Does nothing elsewhere.
+pub fn set_dock_icon_visible(app: &AppHandle, visible: bool) {
+    #[cfg(target_os = "macos")]
+    let _ = app.set_dock_visibility(visible);
     #[cfg(not(target_os = "macos"))]
-    let _ = app;
+    let _ = (app, visible);
 }
 
 /// Hand freed memory pages back to the OS so the tray-only footprint drops after the settings window closes.
@@ -184,4 +218,31 @@ pub fn open_folder(folder: &Path) {
 /// Open a web address in the default browser.
 pub fn open_url(url: &str) -> std::io::Result<()> {
     std::process::Command::new(opener()).arg(url).spawn().map(|_| ())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn the_app_folder_is_found_from_the_program_inside_it() {
+        let program = Path::new("/Applications/Keystroke Overlay.app/Contents/MacOS/keyoverlay");
+        assert_eq!(
+            app_bundle_of(program),
+            Some(PathBuf::from("/Applications/Keystroke Overlay.app"))
+        );
+    }
+
+    #[test]
+    fn a_program_outside_an_app_folder_has_none() {
+        assert_eq!(
+            app_bundle_of(Path::new(
+                "/Users/me/keystroke-overlay/src-tauri/target/debug/keyoverlay"
+            )),
+            None
+        );
+        assert_eq!(app_bundle_of(Path::new("/Applications/Tool.app/keyoverlay")), None);
+        assert_eq!(app_bundle_of(Path::new("keyoverlay")), None);
+    }
 }

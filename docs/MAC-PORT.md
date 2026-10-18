@@ -34,7 +34,7 @@ Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`), and t
    apps sometimes leave it stuck on (reports exist for Cursor and 1Password), which silently kills the overlay. The app
    should detect it (`IsSecureEventInputEnabled`) and show a hint ("macOS is blocking key capture; lock/unlock the screen
    or quit the app holding secure input").
-4. **Platform glue (small).** Menu-bar-only app (hide the Dock icon with the *accessory* activation policy), template tray
+4. **Platform glue (small).** Menu-bar app (hide the Dock icon with the *accessory* activation policy, and show it while the settings window is open), template tray
    icon, remove Windows-only WebView2 flags, `trim_memory` already a no-op via `platform.rs`, folder opening already uses `open`.
 5. **Packaging, signing, notarization** (the part that costs money and time) — below.
 
@@ -60,9 +60,9 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
    release) are written and unit-tested; it still has to be seen working on a real Mac. Still to do: make CI upload an
    unsigned `.app`.
 2. **Phase 2 — it behaves.** Written on `mac/port`: a notice under the header (Allow keyboard access / restart / Secure
-   Input hint, `ui/settings/keyboard-access.js`), menu-bar-only app (accessory policy) with a monochrome template tray
-   icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: tray icon, no Dock
-   icon, the native window and header fit. Not yet seen: the Allow / restart / Secure Input notices on screen, the
+   Input hint, `ui/settings/keyboard-access.js`), menu-bar app (in the Dock only while the settings window is open) with a monochrome template tray
+   icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: the tray icon, the native
+   window and header fit. The Dock icon (shown only while the settings window is open) is not yet seen. Not yet seen: the Allow / restart / Secure Input notices on screen, the
    update badge on the template icon, and a visual pass over every tab.
 3. **Phase 3 — it ships.** Apple Developer ID, signing + notarization in a GitHub Actions release workflow, universal
    build, `darwin-*` entries in `latest.json`/`stable.json`, README install steps.
@@ -91,6 +91,30 @@ cannot see keys while a game has focus. The realistic alternatives are (a) a Mac
 - **F keys:** all of F1 to F12 arrive when Fn is held. Without Fn only some of them arrive as F keys: on a Mac laptop
   the top row is brightness, volume and media keys by default, which are not ordinary key events. A test pressing
   F1 to F12 with and without Fn gave F1, F2, F3 and F11 twice and the other eight once.
+
+## Free route, Stage A: build from source (status, so the work can pause at any point)
+
+Plan: build a real `.app`, test it, write the README steps. Nothing in this stage touches GitHub beyond pushing `mac/port`.
+
+- [x] **The app builds.** `npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'` makes
+  `src-tauri/target/release/bundle/macos/Keystroke Overlay.app` (5.9 MB, about 2 minutes on an M1 after the first build).
+  The updater setting is switched off for this build because it needs the release signing key, which stays outside the
+  project. If the Command Line Tools are older than their newest SDK, the linker fails with a "malformed file" error;
+  `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk` (any older SDK there) works around it, and updating the
+  Command Line Tools fixes it for good.
+- [x] **It is signed ad hoc by the build** (`codesign -dv` says `Signature=adhoc`, identifier `keyoverlay-<hash>`), so it
+  runs on Apple Silicon. A locally built app is not quarantined, so macOS opens it without the Open Anyway step.
+- [x] **Restart after granting.** The first version of the "Restart now" button made the app vanish: Tauri's restart opens
+  the new copy while the old one still runs, and the single-instance guard sends the new copy away. `platform::restart_app`
+  now waits for the old copy to exit and then opens the app. Checked on the M1 by running that wait-then-open step against
+  the real app (it came back with a new process id); the button itself is not clicked yet.
+- [x] Input Monitoring: the `.app` appears in the list as "Keystroke Overlay" with the keycap logo, and after granting and a
+  restart keys are captured (checked on the M1).
+- [x] **Does the permission survive a rebuild?** On the M1 (macOS 26), yes for one rebuild: after a rebuild with a new
+  signature (the code hash changed, the identifier did not) keys were still captured without granting again. Oddly,
+  macOS's own check (`CGPreflightListenEventAccess`) answered "not allowed" for that rebuilt app, so the window's notice
+  now trusts whether capture is really running instead of that check. Not tested across several rebuilds or updates.
+- [ ] README: build-from-source steps for Mac.
 
 ## Things to double-check before relying on them
 

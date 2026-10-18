@@ -27,6 +27,7 @@ pub fn open_settings(app: &AppHandle) {
         // while the window is open, measured). Both pages are our own local content. The first flag keeps
         // Tauri's default WebView2 flags.
         .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1");
+    crate::platform::set_dock_icon_visible(app, true);
     let _ = crate::platform::style_settings_window(builder).build();
 }
 
@@ -54,6 +55,7 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
         return;
     }
     if let WindowEvent::Destroyed = ev {
+        crate::platform::set_dock_icon_visible(win.app_handle(), false);
         std::thread::spawn(|| {
             std::thread::sleep(std::time::Duration::from_millis(TRIM_MEMORY_AFTER_MS));
             crate::platform::trim_memory();
