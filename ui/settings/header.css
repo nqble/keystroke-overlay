@@ -199,3 +199,12 @@ header {
   background: var(--color-close-active);
   color: var(--color-on-fill);
 }
+
+/* macOS: the window has its real red / yellow / green buttons in the top left (window.rs adds the `mac` class), so the
+   drawn buttons go and the logo moves right of the real ones. */
+.mac header {
+  padding-left: var(--mac-window-buttons-width);
+}
+.mac .winbtns {
+  display: none;
+}
