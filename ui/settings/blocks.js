@@ -2,7 +2,7 @@
 //  The shared building blocks every v2.0 screen is made of (docs/design/ui-design-v2.md, "Building blocks" and
 //  "States"): a section card, a switch, a segmented choice, a gallery card, the "⋯" menu button, and notes (a short
 //  note, and the technical detail Debug mode adds). Preact components
-//  (docs/proposals/v2-preact.md); their look is in blocks.css, and every one of them can be seen in every state in the
+//  (docs/for-claude/proposals/v2-preact.md); their look is in blocks.css, and every one of them can be seen in every state in the
 //  UI sandbox at /__sandbox__/blocks.html. Popups are not a component: screens call dialog() in popup.js.
 //
 //  Each block is a real control with a name a screen reader can say, works with the keyboard, and takes a `test` hook

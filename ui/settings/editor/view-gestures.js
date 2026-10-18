@@ -14,7 +14,8 @@ const NO_PAN_AREAS = '.zoom-controls, .arrange-bar'; // controls on top of the b
 /**
  * Wire the gestures onto `box`. `editor` has: `view()` the current { zoom, panX, panY }, `setView(next)`, `boxSize()`
  * { w, h }, `content()` { w, h } of the board at 100%, `insideBox(event)` a pointer as a point inside the box, and
- * `markTouched()` to say the view is now the user's (it stops following the box on its own).
+ * `markTouched()` to say the view is now the user's (it stops following the box on its own), and `overscan`, the empty room
+ * in pixels that may show beyond the board's edge (keys-view.js clampPan).
  */
 export function attachViewGestures(box, editor) {
   const state = { spaceHeld: false, pointerInside: false, lastScale: 1 };
@@ -28,11 +29,18 @@ export function attachViewGestures(box, editor) {
       editor.markTouched();
       const action = wheelAction(wheelEvent, platform);
       if (action.type === 'pan') {
-        editor.setView(panBy(editor.view(), action.dx, action.dy, editor.boxSize(), editor.content()));
+        editor.setView(panBy(editor.view(), action.dx, action.dy, editor.boxSize(), editor.content(), editor.overscan));
         return;
       }
       editor.setView(
-        zoomAt(editor.view(), action.factor, editor.insideBox(wheelEvent), editor.boxSize(), editor.content()),
+        zoomAt(
+          editor.view(),
+          action.factor,
+          editor.insideBox(wheelEvent),
+          editor.boxSize(),
+          editor.content(),
+          editor.overscan,
+        ),
       );
     },
     { passive: false },
@@ -48,7 +56,16 @@ export function attachViewGestures(box, editor) {
     editor.markTouched();
     const factor = gestureFactor(gestureEvent.scale, state.lastScale);
     state.lastScale = gestureEvent.scale;
-    editor.setView(zoomAt(editor.view(), factor, editor.insideBox(gestureEvent), editor.boxSize(), editor.content()));
+    editor.setView(
+      zoomAt(
+        editor.view(),
+        factor,
+        editor.insideBox(gestureEvent),
+        editor.boxSize(),
+        editor.content(),
+        editor.overscan,
+      ),
+    );
   });
 
   // ---- Space ----------------------------------------------------------------------------------------------------------
@@ -98,8 +115,8 @@ export function attachViewGestures(box, editor) {
         const panY = start.panY + moveEvent.clientY - start.y;
         editor.setView({
           zoom: now.zoom,
-          panX: stretchPan(panX, now.zoom, size.w, content.w),
-          panY: stretchPan(panY, now.zoom, size.h, content.h),
+          panX: stretchPan(panX, now.zoom, size.w, content.w, editor.overscan),
+          panY: stretchPan(panY, now.zoom, size.h, content.h, editor.overscan),
         });
       };
       const done = () => {
@@ -107,7 +124,7 @@ export function attachViewGestures(box, editor) {
         box.removeEventListener('pointerup', done);
         box.removeEventListener('pointercancel', done);
         box.classList.remove('panning');
-        editor.setView(clampView(editor.view(), editor.boxSize(), editor.content())); // springs back
+        editor.setView(clampView(editor.view(), editor.boxSize(), editor.content(), editor.overscan)); // springs back
       };
       box.addEventListener('pointermove', move);
       box.addEventListener('pointerup', done);

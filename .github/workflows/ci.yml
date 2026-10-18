@@ -29,6 +29,8 @@ jobs:
         run: npm run check:format
       - name: Code style (tabs, trailing spaces, final newline)
         run: npm run check:style
+      - name: Documentation (where files live, the indexes, working links)
+        run: npm run check:docs
       - name: JavaScript types (loose; see jsconfig.json)
         run: npm run check:types
       - name: JavaScript syntax

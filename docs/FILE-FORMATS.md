@@ -1,7 +1,7 @@
 # File formats
 
 The files the app reads and writes. All are plain JSON or tiny JavaScript, and everything the app loads from the outside
-is validated and cleaned first. Schemas for the two shareable formats are in [`docs/schemas/`](schemas/).
+is validated and cleaned first. Schemas for the two shareable formats are in [`docs/schemas/`](schemas).
 
 Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows (General → App → Open data folder).
 

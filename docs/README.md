@@ -21,8 +21,6 @@ CODE_OF_CONDUCT) and [CLAUDE.md](../CLAUDE.md), the rules for Claude sessions.
 ## Releasing and the project
 
 - [RELEASING.md](RELEASING.md): how a release is made
-- [NEXT-RELEASE.md](NEXT-RELEASE.md): the draft notes for the release in progress
-- [CLEANUP.md](CLEANUP.md): the cleanup audit and the order to work through it
 - [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md): running the project in the open
 
 ## Other platforms
@@ -33,4 +31,9 @@ CODE_OF_CONDUCT) and [CLAUDE.md](../CLAUDE.md), the rules for Claude sessions.
 
 - [decisions/](decisions): short numbered records of choices already made (start with its README)
 - [design/](design): approved designs: [key-editor.md](design/key-editor.md), [future-inputs.md](design/future-inputs.md)
-- [proposals/](proposals): plans that are queued, drafted or only proposed. Finished ones move to [proposals/done/](proposals/done).
+
+## For Claude sessions
+
+- [for-claude/](for-claude/README.md): the working notes of the Claude sessions that help build this project (plans, the
+  cleanup audit, the draft notes of the release in progress). They are public on purpose, but written for the sessions and
+  the maintainer: contributors can ignore them.

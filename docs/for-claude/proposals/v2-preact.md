@@ -6,7 +6,7 @@ v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor
 
 ## Why
 
-The v2.0 redesign ([ui-design-v2.md](../design/ui-design-v2.md)) adds the screens where updating the page by hand gets
+The v2.0 redesign ([ui-design-v2.md](../../design/ui-design-v2.md)) adds the screens where updating the page by hand gets
 tangled: drag-to-reorder cards, galleries, menus, the first run setup screen and, above all, the key editor. Preact lets each
 screen say what it looks like for the current state, and updates the page itself. That reads better top to bottom
 (CLAUDE.md principle 2). htm writes the markup as plain JavaScript (``html`<button>…</button>` ``), so there is still **no

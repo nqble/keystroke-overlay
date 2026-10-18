@@ -3,7 +3,7 @@
 Short notes on **why** the project is built the way it is today. Read these before changing something that looks odd:
 there is usually a reason, and the reason is written down here. Ideas that are *not* decided live in
 [ideas-not-decided.md](ideas-not-decided.md).
-Larger ideas that need review before anyone builds them are written up in [../proposals/](../proposals/).
+Larger ideas that need review before anyone builds them are written up in [../for-claude/proposals/](../for-claude/proposals).
 
 | # | Decision | Status |
 |---|---|---|

@@ -107,9 +107,9 @@ pub fn set_update_badge(app: &AppHandle, available: bool) {
     }));
     crate::platform::set_tray_icon_template(&tray, !available);
     let _ = tray.set_tooltip(Some(if available {
-        "Keystroke Overlay: update available"
+        format!("{}: update available", crate::app_info::NAME)
     } else {
-        "Keystroke Overlay"
+        crate::app_info::NAME.to_string()
     }));
     if available {
         let _ = menu.insert(&item, 0);
@@ -230,7 +230,7 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
     let tray = TrayIconBuilder::new()
         .icon(crate::platform::tray_icon(&icon))
         .icon_as_template(crate::platform::tray_icon_is_template())
-        .tooltip("Keystroke Overlay")
+        .tooltip(crate::app_info::NAME)
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(move |app, ev| {

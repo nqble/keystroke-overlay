@@ -4,7 +4,7 @@ Status: **approved by Jordan, for v2.0.** This is the one design reference for t
 `v2-redesign.md`. When code and this file disagree, one of them is a bug: fix it, or ask Jordan. The pictures are on
 the Claude Design canvas (https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE), one board per screen. The Keys tab has
 its own detailed spec, [key-editor.md](key-editor.md), which follows this file. The audit that led here is
-[ui-audit.md](ui-audit.md); the build order is [v2-tab-restructure.md](../proposals/v2-tab-restructure.md).
+[ui-audit.md](ui-audit.md); the build order is [v2-tab-restructure.md](../for-claude/proposals/v2-tab-restructure.md).
 
 Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (approved, not built yet).
 

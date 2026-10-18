@@ -86,7 +86,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
-  [docs/proposals/tailscale-dual-pc.md](proposals/tailscale-dual-pc.md).
+  [docs/for-claude/proposals/tailscale-dual-pc.md](for-claude/proposals/tailscale-dual-pc.md).
 
 ## Settings
 

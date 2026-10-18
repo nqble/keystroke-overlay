@@ -3,14 +3,29 @@
 //  it on the page. Moving, aligning and spacing keys is done in editor/editor.js (the bar that floats above the selection);
 //  the maths is in keys-arrange.js.
 // =====================================================================================================================
-import { button, el, plural } from '../helpers.js';
+import { button, el, plural, toast } from '../helpers.js';
 import { changed } from '../preview.js';
-import { SNAP, editProf, gridShown, restoreProfile, setKeyPos, snapStep } from '../profiles.js';
-import { selectedKeys, settings } from '../state.js';
+import {
+  SNAP,
+  editProf,
+  forgetKeyEdits,
+  forgetStyleEdits,
+  gridShown,
+  isCustom,
+  restoreProfile,
+  setKeyPos,
+  snapStep,
+  tidyProf,
+  viewProf,
+} from '../profiles.js';
+import { confirmDialog } from '../dialogs.js';
+import { showMenu } from '../menu.js';
+import { selectedKeys, setSelectedKey, settings } from '../state.js';
 import { TEXT } from '../text.js';
 import { clampMove, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
-import { selectedBoxes } from '../editor/places.js';
+import { boardFor, placedBoxesFor, selectedBoxes } from '../editor/places.js';
+import { CLOSED_GAP, closeGapsPositions } from './keys-board.js';
 
 const MAX_POSITION = 100; // a key's position is limited to 0–100 key units (keep in step with settings.rs)
 
@@ -44,6 +59,91 @@ function toggleButton(label, on, tooltip, test, onclick) {
   toggle.title = tooltip;
   toggle.setAttribute('aria-pressed', String(on));
   return toggle;
+}
+
+/** "Close gaps": slide the shown keys together, keeping their order, then centre them on the board. */
+function closeGaps(layout) {
+  const profile = viewProf();
+  const hidden = new Set(profile.disabledKeys);
+  const boxes = placedBoxesFor(layout, profile).filter((box) => !hidden.has(box.code));
+  if (!boxes.length) return;
+  const evenGrid = profile.layoutStyle === 'grid';
+  const positions = closeGapsPositions(
+    boxes,
+    boardFor(layout, profile),
+    evenGrid ? 0 : CLOSED_GAP, // the Even grid closes gaps completely
+    snapStep() || CLOSED_GAP,
+  );
+  applyPositions(layout, positions);
+  toast('Gaps closed');
+}
+
+/** The Reset menu: put selected keys, all keys, hidden keys or labels back, or reset the whole layout. */
+function resetMenu(layout, profile, event) {
+  const selectedCodes = [...selectedKeys];
+  const isEdited = (code) => !!(profile.positions[code] || profile.sizes[code]);
+  const items = [
+    {
+      label: 'Put selected keys back',
+      test: 'keys-put-selected-back',
+      disabled: !selectedCodes.some(isEdited),
+      run: () => {
+        forgetKeyEdits(selectedCodes);
+        changed(true);
+      },
+    },
+    {
+      label: 'Put all keys back',
+      test: 'keys-reset-positions',
+      disabled: !Object.keys(profile.positions).length && !Object.keys(profile.sizes).length,
+      run: () => {
+        forgetStyleEdits();
+        changed(true);
+      },
+    },
+    {
+      label: 'Show all hidden keys',
+      test: 'keys-enable-all',
+      disabled: !profile.disabledKeys.length,
+      run: () => {
+        editProf().disabledKeys = [];
+        tidyProf();
+        changed(true);
+      },
+    },
+    {
+      label: 'Reset all labels',
+      test: 'keys-reset-labels',
+      disabled: !Object.keys(profile.labels).length,
+      run: () => {
+        editProf().labels = {};
+        tidyProf();
+        changed(true);
+      },
+    },
+    { separator: true },
+    {
+      label: 'Reset this layout completely',
+      test: 'keys-revert',
+      danger: true,
+      disabled: !isCustom(layout.id),
+      run: () =>
+        confirmDialog({
+          title: 'Reset this layout?',
+          body: TEXT.resetLayoutBody,
+          confirmLabel: 'Reset layout',
+          test: 'dialog-reset-layout-confirm',
+          onConfirm: () => {
+            delete settings.layout.profiles[layout.id];
+            setSelectedKey(null);
+            changed(true);
+            toast(layout.name + ' reset');
+            return true;
+          },
+        }),
+    },
+  ];
+  showMenu(event, items);
 }
 
 /** A small named group of controls in the toolbar (screen readers announce its name). */
@@ -116,6 +216,19 @@ export function keysToolbar(layout, profile, overlapCount) {
       'View',
       toggleButton('Snap', snapOn, TEXT.snapHelp, 'key-snap', () => setEditorChoice('snap', snapOn ? 0 : SNAP)),
       toggleButton('Grid', gridOn, TEXT.gridHelp, 'key-grid', () => setEditorChoice('grid', !gridOn)),
+    ),
+    toolGroup(
+      'Tidy',
+      Object.assign(
+        button('Close gaps', () => closeGaps(layout), '', 'keys-tidy'),
+        { title: TEXT.closeGapsHelp },
+      ),
+      Object.assign(
+        button('Reset ▾', (event) => resetMenu(layout, profile, event), '', 'keys-reset-menu'),
+        {
+          title: TEXT.resetMenuHelp,
+        },
+      ),
     ),
     statusLine(profile, overlapCount),
   );

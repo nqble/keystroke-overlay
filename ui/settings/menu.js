@@ -18,7 +18,8 @@ export function hideMenu() {
 
 /**
  * Show a small menu at the mouse, or at `at` (a "⋯" button opens it just below itself, also for the keyboard, where a
- * click has no mouse position). items: [{ label, run?, danger?, disabled? }]
+ * click has no mouse position). items: [{ label, run?, danger?, disabled?, test? }] (`test` is the item's test hook), or
+ * { separator: true } for a dividing line.
  */
 export function showMenu(event, items, at = { x: event.clientX, y: event.clientY }) {
   event.preventDefault();
@@ -29,17 +30,19 @@ export function showMenu(event, items, at = { x: event.clientX, y: event.clientY
     'div',
     { className: 'ctxmenu', test: 'context-menu' },
     items.map((item) =>
-      el('button', {
-        test: 'context-menu-item',
-        type: 'button',
-        textContent: item.label,
-        className: item.danger ? 'danger' : '',
-        disabled: !!item.disabled,
-        onclick: () => {
-          hideMenu();
-          item.run?.();
-        },
-      }),
+      item.separator
+        ? el('hr', { className: 'menu-separator' })
+        : el('button', {
+            test: item.test ?? 'context-menu-item',
+            type: 'button',
+            textContent: item.label,
+            className: item.danger ? 'danger' : '',
+            disabled: !!item.disabled,
+            onclick: () => {
+              hideMenu();
+              item.run?.();
+            },
+          }),
     ),
   );
   document.body.append(menuEl);

@@ -4,6 +4,7 @@
 //! Keystroke Overlay — entry point: builds the app, starts the keyboard hook + local server, shows the tray.
 //! See docs/ARCHITECTURE.md for how the pieces fit together.
 
+mod app_info;
 mod commands;
 mod crash;
 mod debug;

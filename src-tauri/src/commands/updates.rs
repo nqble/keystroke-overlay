@@ -1,9 +1,10 @@
 //! Updates and release notes. The ONLY code in the app that talks to the internet (GitHub), and only when the
 //! user checks / the optional background check runs / release notes are shown. Nothing but the app version is sent.
 
+use crate::app_info::{releases_url, REPO};
 use crate::platform;
 use crate::settings;
-use crate::state::{channel_of_settings, AppState, REPO};
+use crate::state::{channel_of_settings, AppState};
 use serde_json::{json, Value};
 use std::sync::atomic::Ordering;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -13,8 +14,6 @@ use tauri_plugin_updater::UpdaterExt as _;
 use std::time::Duration;
 
 const CHECK_EVERY_SECS: u64 = 3600;
-const GITHUB: &str = "https://github.com/nqble/keystroke-overlay/releases";
-const RELEASES_URL: &str = "https://github.com/nqble/keystroke-overlay/releases/latest";
 
 /// Where each channel's update manifest lives:
 ///   latest -> latest.json on the newest GitHub release (uploaded with every release)
@@ -25,9 +24,9 @@ fn manifest_url(channel: &str) -> String {
         return format!("{base}/{}.json", if channel == "latest" { "latest" } else { "stable" });
     }
     if channel == "latest" {
-        format!("{GITHUB}/latest/download/latest.json")
+        format!("{}/latest/download/latest.json", releases_url())
     } else {
-        format!("{GITHUB}/download/channel-stable/stable.json")
+        format!("{}/download/channel-stable/stable.json", releases_url())
     }
 }
 
@@ -52,7 +51,8 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
 fn check_failed_text(system: &str, channel: &str, error: &str) -> String {
     if system == "macos" {
         return format!(
-            "Couldn't check for updates. On a Mac the app can't install updates by itself yet: get new versions from the Releases page ({RELEASES_URL})."
+            "Couldn't check for updates. On a Mac the app can't install updates by itself yet: get new versions from the Releases page ({}).",
+            releases_url()
         );
     }
     format!("Couldn't check for updates ({error}). You may be offline, or no {channel} release has been published yet.")
@@ -65,11 +65,12 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
         Ok(Some(update)) => {
             // The manifest may carry "manual": true (+ "manual_url") for updates the in-app installer can't apply.
             let manual = update.raw_json.get("manual").and_then(|v| v.as_bool()).unwrap_or(false);
+            let latest_page = format!("{}/latest", releases_url());
             let url = update
                 .raw_json
                 .get("manual_url")
                 .and_then(|v| v.as_str())
-                .unwrap_or(RELEASES_URL);
+                .unwrap_or(&latest_page);
             json!({ "available": true, "version": update.version, "notes": update.body, "current": update.current_version, "manual": manual, "url": url, "channel": channel })
         }
         Ok(None) => json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": channel }),

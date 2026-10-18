@@ -978,7 +978,7 @@ mod devbuild_tests {
     #[test]
     fn only_devbuilds_get_their_own_port_and_no_update_check() {
         let mut dev = defaults();
-        apply_devbuild_defaults("com.keyoverlay.devbuild", &mut dev);
+        apply_devbuild_defaults(crate::app_info::ID_DEVBUILD, &mut dev);
         assert_eq!(
             (
                 dev["general"]["port"].clone(),
@@ -987,7 +987,7 @@ mod devbuild_tests {
             (json!(7881), json!(false))
         );
         let mut real = defaults();
-        apply_devbuild_defaults("com.keyoverlay.app", &mut real);
+        apply_devbuild_defaults(crate::app_info::ID_APP, &mut real);
         assert_eq!(real, defaults());
     }
 }

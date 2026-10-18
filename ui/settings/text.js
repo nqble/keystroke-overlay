@@ -10,9 +10,14 @@ export const TEXT = {
   manualInstallDialog: 'Install this one by hand: get the installer from GitHub, close this app, run it.',
   noKeySelected: 'No key selected',
   inspectorTip: 'Click a key to label or hide it. Dragged keys line up with their neighbours. Saved for each layout.',
-  overlapNote: 'This key overlaps another. Drag it to a free spot, or press Tidy up.',
+  overlapNote: 'This key overlaps another. Drag it to a free spot, or press Close gaps.',
+  inspectorTipGrid:
+    'Want every key the same size in neat columns? Switch Layout style to Even grid. Each style keeps its own positions.',
+  closeGapsHelp: 'Slide keys together to close the space left by hidden or moved keys. The shape stays the same.',
+  resetMenuHelp: 'Put keys, labels or the whole layout back the way the layout file has them. You can undo it.',
+  resetLayoutBody:
+    'Positions, sizes, hidden keys and labels go back to the layout file, and the style to Keyboard shape. You can undo this.',
   groupInspectorTip: 'Drag any of them to move them together. The bar above them lines them up or spaces them.',
-  snapHelp: 'Keys jump a quarter key when moved and stick to other keys’ edges. Off: anywhere.',
   clickToDismiss: 'Click to dismiss',
   gridHelp: 'Faint dots at every snap step.',
   animationTabNote: 'Light on your PC. Press keys to try it.',

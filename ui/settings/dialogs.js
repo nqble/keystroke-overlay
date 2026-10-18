@@ -1,5 +1,6 @@
 // =====================================================================================================================
-//  The small dialogs built on popup.js: New layout (with the 20-layout limit and Other layouts) and Reset all settings.
+//  The small dialogs built on popup.js: New layout (with the 20-layout limit and Other layouts), Reset all settings, and
+//  a plain "are you sure" for things that are hard to undo by hand.
 // =====================================================================================================================
 import { $, call, el, invoke, toast } from './helpers.js';
 import { html, render as drawPreact } from './html.js';
@@ -63,6 +64,18 @@ export function addLayoutDialog() {
     library,
   );
   if (!full) nameInput.focus();
+}
+
+/** Ask before something that is hard to undo by hand. `onConfirm` runs when the danger button is pressed. */
+export function confirmDialog({ title, body, confirmLabel, test, onConfirm }) {
+  dialog({
+    title,
+    body: [el('p', { textContent: body })],
+    buttons: [
+      { label: 'Cancel', test: 'dialog-cancel' },
+      { label: confirmLabel, test, danger: true, run: onConfirm },
+    ],
+  });
 }
 
 export function resetDialog() {

@@ -15,7 +15,7 @@ pub fn open_settings(app: &AppHandle) {
     }
     crate::debug::detail("settings window opened");
     let builder = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
-        .title("Keystroke Overlay")   // still used by the taskbar and Alt+Tab
+        .title(crate::app_info::NAME)   // still used by the taskbar and Alt+Tab
         .shadow(true)
         .inner_size(1060.0, 800.0)
         .min_inner_size(820.0, 600.0)

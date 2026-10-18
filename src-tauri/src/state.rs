@@ -9,9 +9,6 @@ use tauri::menu::{CheckMenuItem, Menu, MenuItem, Submenu};
 use tauri::tray::TrayIcon;
 use tauri::{AppHandle, Emitter, Manager};
 
-/// GitHub repository that hosts releases and update manifests.
-pub const REPO: &str = "nqble/keystroke-overlay";
-
 /// Tray menu items we need to re-check when settings change from elsewhere.
 pub struct TrayItems {
     pub pause: CheckMenuItem<tauri::Wry>,

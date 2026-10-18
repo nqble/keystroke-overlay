@@ -10,13 +10,14 @@ keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
 ├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
-│                       design/ holds approved designs; proposals/ holds plans (queued, in progress or just proposed;
-│                       finished ones in proposals/done/); schemas/ holds the JSON schemas for layout and preset files
+│                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
+│                       (plans in for-claude/proposals/, finished ones in proposals/done/, the cleanup audit, release drafts;
+│                       public on purpose); schemas/ holds the JSON schemas for layout and preset files
 ├── assets/             logo/: the logo as SVG (app, devbuild, tray); the app's icons are made from it
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
-│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
+│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
 │                       ui-sandbox.mjs + sandbox/ (the settings window in a browser, docs/DEBUGGING.md), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app

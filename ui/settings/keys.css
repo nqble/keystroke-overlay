@@ -206,3 +206,17 @@ label.inline {
   color: var(--color-text-dim);
   font-size: var(--text-sm);
 }
+/* The heading row: the layout's name, and the Layout style switch (a shared segmented control, blocks.css). */
+.keys-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-14);
+}
+.style-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
