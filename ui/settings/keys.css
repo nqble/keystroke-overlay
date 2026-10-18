@@ -5,6 +5,14 @@
   cursor: grab;
   touch-action: none;
 }
+.keymap.space-held,
+.keymap.space-held .kmk {
+  cursor: grab; /* Space is held: a drag over the board pans it (editor/view-gestures.js) */
+}
+.keymap.space-held.panning,
+.keymap.space-held.panning .kmk {
+  cursor: grabbing;
+}
 .kmk.drag {
   cursor: grabbing;
   z-index: 3;

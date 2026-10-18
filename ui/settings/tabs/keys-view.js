@@ -81,6 +81,11 @@ export function zoomAt(state, factor, point, view, content) {
   );
 }
 
+/** The view moved by (dx, dy) screen pixels, as a two-finger scroll does, kept so only the board shows. */
+export function panBy(state, dx, dy, view, content) {
+  return clampView({ ...state, panX: state.panX + dx, panY: state.panY + dy }, view, content);
+}
+
 /** A point inside the box (screen pixels) as a point on the board layer at 100%, undoing the zoom and pan. */
 export const toBoard = (point, state) => ({
   x: (point.x - state.panX) / state.zoom,

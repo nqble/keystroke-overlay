@@ -48,3 +48,12 @@ test('the Keys tab hint uses Command-click and "delete" on a Mac', () => {
   assert.equal(systemWord('deleteKey', 'windows'), 'Del');
   assert.match(systemWord('deleteKeyTip', 'macos'), /delete key/);
 });
+
+test('the Keys tab view hints say what pans and zooms on each system', () => {
+  assert.equal(systemWord('zoomChip', 'macos'), 'Pinch');
+  assert.equal(systemWord('panChip', 'macos'), 'Scroll');
+  assert.equal(systemWord('zoomChip', 'windows'), 'Scroll');
+  assert.equal(systemWord('panChip', 'windows'), 'Space-drag');
+  assert.match(systemWord('panTip', 'macos'), /two fingers/);
+  assert.match(systemWord('panTip', 'windows'), /middle mouse button/);
+});

@@ -161,8 +161,8 @@ It also follows the keyboard live: switching layout in the menu-bar input menu m
 (`kTISNotifySelectedKeyboardInputSourceChanged`), the app asks the layout again on the main thread, and when the labels
 changed the preview, OBS and the settings window re-read their layouts (checked on the M1: switched to French with the
 window open, the preview changed by itself; no timer runs). `platform::watch_keyboard_layout` is the hook for the other
-systems. Known gap: panning the key
-editor needs a middle mouse button, which a Mac trackpad does not have (zoom with the scroll wheel works).
+systems. The key editor pans with a two-finger scroll, zooms with a pinch (or ⌘ + scroll), and Space + drag pans everywhere
+(`editor/view-gestures.js`); the gesture logic is tested, but it is not yet tried on the M1 trackpad.
 
 ## Things to double-check before relying on them
 
