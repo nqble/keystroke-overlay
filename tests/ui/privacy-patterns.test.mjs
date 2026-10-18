@@ -1,7 +1,7 @@
 // Unit tests for the privacy check's patterns (tools/privacy-patterns.mjs). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LOG, NET, WRITE, joinSplitPaths, withoutTestModules } from '../../tools/privacy-patterns.mjs';
+import { LOG, MAC_ACTIVE, NET, WRITE, joinSplitPaths, withoutTestModules } from '../../tools/privacy-patterns.mjs';
 
 test('network code is caught, including the ways the outside review found missing', () => {
   for (const line of [
@@ -59,4 +59,23 @@ test('only test modules are skipped: code after them is still checked', () => {
 test('unbalanced braces: nothing is skipped', () => {
   const source = '#[cfg(test)]\nmod tests {\n fn t() { std::fs::write("a", "b"); \n';
   assert.equal(withoutTestModules(source), source);
+});
+
+test('macOS code that does more than listen is caught, in any spelling', () => {
+  for (const line of [
+    'CGEventTapOptions::Default,',
+    'CGEventTapOptions :: Default,',
+    'CGEventPost(tap, event);',
+    'ev.post(CGEventTapLocation::HID);',
+    'event.post_to_pid(pid);',
+    'CGEventTapPostEvent(proxy, event);',
+  ]) {
+    assert.match(line, MAC_ACTIVE, line);
+  }
+});
+
+test('the listen-only tap the app really uses is allowed', () => {
+  for (const line of ['CGEventTapOptions::ListenOnly,', 'use core_graphics::event::{CGEventTap, CGEventTapOptions};']) {
+    assert.doesNotMatch(line, MAC_ACTIVE, line);
+  }
 });
