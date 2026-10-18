@@ -28,7 +28,6 @@ import { render } from '../settings.js';
 import { observe } from './keys-history.js';
 import { overlappingCodes } from './keys-board.js';
 import { systemWord } from '../system-words.js';
-import { macFnHintText } from './keys-mac.js';
 import { hideSelection, keysToolbar, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
 import { placeKeys } from '../editor/places.js';
 import { platform, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
@@ -58,17 +57,11 @@ export async function keysTab() {
     el(
       'div',
       { className: 'keys-row' },
-      el('div', { className: 'keys-main' }, editor.element, hintLine(), macFnHint()),
+      el('div', { className: 'keys-main' }, editor.element, hintLine()),
       inspector(layout, profile, overlapping),
     ),
   );
   return page;
-}
-
-/** On a Mac laptop: why the F row needs Fn (keys-mac.js). Nothing on other systems. */
-function macFnHint() {
-  const text = macFnHintText(platform);
-  return text && el('p', { className: 'keyhint', test: 'keys-mac-fn-hint', textContent: text });
 }
 
 /** The switch in the heading row: the keyboard's own shape, or every key one key wide in neat columns. */
@@ -107,7 +100,14 @@ function layoutStyleSwitch(profile) {
 
 /** One line under the editor: how to move keys, and the shortcuts as small key caps. */
 function hintLine() {
-  const chip = (text, tooltip) => el('kbd', { textContent: text, title: tooltip });
+  const item = (chipText, tooltip, word) =>
+    el(
+      'span',
+      { className: 'hintitem' },
+      el('kbd', { textContent: chipText, title: tooltip }),
+      el('span', { textContent: word }),
+    );
+  const panItems = systemWord('panHints', platform).map(({ chip, tip }) => item(chip, tip, 'pan'));
   return el(
     'p',
     { className: 'keyhint', test: 'keys-shortcut-hint' },
@@ -115,16 +115,11 @@ function hintLine() {
     el(
       'span',
       { className: 'chips' },
-      chip('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key'),
-      ' nudge · ',
-      chip('Shift', 'Hold Shift with an arrow key to move a whole key'),
-      ' whole key · ',
-      chip(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform)),
-      ' hide · ',
-      chip(systemWord('zoomChip', platform), systemWord('zoomTip', platform)),
-      ' zoom · ',
-      chip(systemWord('panChip', platform), systemWord('panTip', platform)),
-      ' pan',
+      item('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key', 'nudge'),
+      item('Shift', 'Hold Shift with an arrow key to move a whole key', 'whole key'),
+      item(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform), 'hide'),
+      item(systemWord('zoomChip', platform), systemWord('zoomTip', platform), 'zoom'),
+      ...panItems,
     ),
   );
 }

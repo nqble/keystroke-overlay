@@ -192,7 +192,19 @@ label.inline {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--space-2) var(--space-14);
+  gap: var(--space-6) var(--space-14);
+}
+/* The chips of the hint line: each key cap with its word, evenly spaced, wrapping as whole pairs. */
+.keyhint .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-14);
+}
+.keyhint .hintitem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  white-space: nowrap;
 }
 .keyhint kbd {
   padding: 0 var(--space-4);
