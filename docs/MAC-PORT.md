@@ -162,7 +162,11 @@ It also follows the keyboard live: switching layout in the menu-bar input menu m
 changed the preview, OBS and the settings window re-read their layouts (checked on the M1: switched to French with the
 window open, the preview changed by itself; no timer runs). `platform::watch_keyboard_layout` is the hook for the other
 systems. The key editor pans with a two-finger scroll, zooms with a pinch (or ⌘ + scroll), and Space + drag pans everywhere
-(`editor/view-gestures.js`); the gesture logic is tested, but it is not yet tried on the M1 trackpad.
+(`editor/view-gestures.js`); the gesture logic is unit-tested, and the wiring was driven in a real browser page through the UI sandbox
+(`?platform=macos&tab=keys`) with synthetic events: a pinch, a two-finger scroll, Command + scroll, Space + drag (pans by
+the pointer's distance, selects nothing, ignored in a text box), middle-button drag, a plain drag not panning, a
+simulated Safari pinch, and the Windows mode (the wheel zooms, a sideways scroll does nothing). Not yet tried with
+real trackpad fingers in the Mac window.
 
 ## Things to double-check before relying on them
 

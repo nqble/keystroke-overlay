@@ -60,7 +60,9 @@ export function attachViewGestures(box, editor) {
   };
   addEventListener('keydown', (keyEvent) => {
     if (keyEvent.code !== SPACE_CODE || isTypingTarget(keyEvent.target)) return;
-    if (state.pointerInside && (keyEvent.target === document.body || box.contains(keyEvent.target))) {
+    const onPage =
+      keyEvent.target === document.body || (keyEvent.target instanceof Node && box.contains(keyEvent.target));
+    if (state.pointerInside && onPage) {
       keyEvent.preventDefault(); // the page must not scroll while the person is about to drag
     }
     showSpace(true);
