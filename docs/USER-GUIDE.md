@@ -251,7 +251,7 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
 - **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
   Launchpad. While the settings window is open, the app also shows in the Dock.
 - **Closing and quitting.** ⌘W, the red button and the yellow button all close the window to the menu bar; the app keeps
-  running. ⌘Q quits it. ⌘, opens Settings.
+  running. ⌘Q quits it.
 - **First launch: allow keyboard access.** macOS won't give an app your key presses until you say yes. In the settings
   window, click **Allow keyboard access** (the blue bar under the header). In System Settings → Privacy & Security →
   **Input Monitoring**, switch on Keystroke Overlay. Come back to the app and click **Restart now**. Your keys now light

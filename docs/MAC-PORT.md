@@ -192,10 +192,16 @@ connected.
 
 Read from the `auto-launch` crate source (the autostart plugin uses `MacosLauncher::LaunchAgent`): turning it on writes
 `~/Library/LaunchAgents/<app name>.plist` pointing at the running app and its `--autostart` argument; turning it off removes
-that file. Not toggled on the M1 (the control tool could not scroll the General tab down to the switch). To check by hand: open
+that file. Jordan turned it on in the real app: the app then appeared in System Settings under the background items ("Allow in the Background"), not in the "Open at Login" list at the top, which is how macOS lists a LaunchAgent; whether it starts after a real log in was not tried. To check by hand: open
 General, scroll to Startup, turn **Open at login** on, look for the file with `ls ~/Library/LaunchAgents | grep -i keystroke`,
 turn it off, and look again (it should be gone). A login item points at the app's current location, so it breaks if the app is
 moved or rebuilt elsewhere.
+
+## Why there is no Command+, shortcut
+
+A Settings item with Command+, was tried and removed: the app only has a menu bar while its settings window is open (otherwise it
+is a menu-bar app with no menus), and then Command+, could only bring the window that is already open forward, so it looked
+broken. Opening Settings is the menu-bar icon's **Open settings**, or opening the app again from Finder or Launchpad.
 
 ## Bundle and the minimum macOS version
 
@@ -208,8 +214,8 @@ one Apple Silicon Mac has been tried.
 
 Jordan's decisions: Command+Q quits the app; Command+W, the red button and the yellow button all close the settings window to
 the menu bar (the app keeps running, the Dock icon goes away); the green button keeps its default. How it works:
-- `platform::install_app_menu` gives the app its own menu bar while the window is open (the app name menu with Settings…
-  (⌘,), Hide, Hide Others and Quit Keystroke Overlay (⌘Q); Edit, so copy and paste work in the settings fields; Window with
+- `platform::install_app_menu` gives the app its own menu bar while the window is open (the app name menu with Hide, Hide Others and Quit
+  Keystroke Overlay (⌘Q); Edit, so copy and paste work in the settings fields; Window with
   Close Window (⌘W)). Quit has to be our own item: the default one asks the app to exit without a code, which the app
   refuses so that closing the last window leaves it in the tray (`RunEvent::ExitRequested` in `main.rs`).
 - The yellow button: macOS sends no resize event when a window is minimized, so `window.rs` checks 400 ms after the window
@@ -220,7 +226,7 @@ the menu bar (the app keeps running, the Dock icon goes away); the green button 
 - Checked on the M1 with the built app, clicking the real buttons and the menu items (not by pressing keys): Window → Close
   Window, the red button and the yellow button (with the app in front) each close the window, keep the process running and
   hide the Dock icon; opening the app again brings a window back with the same process; Quit ends the process with no helper
-  left. The key presses ⌘W, ⌘Q and ⌘, themselves were not pressed (no way to send keys from here): try them by hand.
+  left. The key presses ⌘W and ⌘Q themselves were not pressed (no way to send keys from here): try them by hand.
   A closed window can still show in tools that list windows as a lingering off-screen window; it is not on screen.
 
 ## Checked on the M1: Secure Input and the update dot
