@@ -79,8 +79,8 @@ over the board, and holding stops when the window loses focus.
 ### Zoom
 - Mouse wheel anywhere inside the editor box (grid on or off) zooms **toward the cursor**: the point under the cursor stays
   still (on a Mac the plain wheel pans instead, see the table above).
-- Speed: factor = e^(−deltaY × 0.0012), about 12% per wheel notch. Smoothed by a 110ms ease-out transition on the board
-  layer's `transform`, so it feels soft but never laggy.
+- Speed: factor = e^(−deltaY × 0.0012), about 12% per wheel notch. Smoothed by a 150ms ease-out transition on the board
+  layer's `transform` (`--duration-medium`; a trackpad stream skips it, see view-gestures.js), so it feels soft but never laggy.
 - Range: from "the board just fills the box" (cover) up to 200%. You can never zoom out far enough to see outside the board.
 - Zoom control in the box's bottom-right corner: [−] [100%] [+]. Clicking the percentage resets to 100% and centres the board.
   The ± buttons zoom about the box centre by ×1.2.
@@ -92,9 +92,10 @@ over the board, and holding stops when the window loses focus.
   key (it never selects or moves the key). A Mac's two-finger scroll pans too, moving the view by the scroll's distance and
   staying inside the board. The cursor shows "grabbing" while panning, and the browser's middle-click autoscroll is
   prevented.
-- **Limits:** the view may only show the board. While the middle button is held and the user pulls past an edge, the view
-  stretches at 30% of the pointer's movement (rubber band). On release it eases back (the same 110ms ease-out) so the board's
-  edge sits exactly at the box's edge, and nothing outside the board shows at rest.
+- **Limits:** the view may show the board and at most 120px of room past its edge (`OVERSCAN` in editor.js), so a small
+  layout can sit in the middle of the box. While the middle button is held and the user pulls past an edge, the view
+  stretches at 30% of the pointer's movement (rubber band). On release it eases back (the same 150ms ease-out) to within
+  those limits.
 - No transition while actively panning or dragging a key (it would lag).
 
 ## 4. Keys: states and interaction
