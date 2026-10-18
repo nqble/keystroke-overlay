@@ -80,7 +80,8 @@ plain, additive changes:
 ```json
 "inputs":  { "mouse": { "enabled": false }, "gamepad": { "enabled": false } },
 "games":   { "enabled": false, "rules": [ { "program": "VALORANT.exe", "layout": "wasd", "preset": "" } ] },
-"hotkeys": { "enabled": false, "pause": "", "nextLayout": "" },
+"hotkeys": { "enabled": false, "pause": "" },   // built (hotkeys.rs); add "nextLayout": "" when that is built, and make
+                                                //   set_pause_hotkey merge into this object instead of replacing it
 "window":  { "enabled": false, "x": 0, "y": 0, "clickThrough": true, "alwaysOnTop": true }
 ```
 

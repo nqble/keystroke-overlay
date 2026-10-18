@@ -56,7 +56,7 @@ scrollbar and the window buttons. Spacing, radius, type size and weight are toke
 ## 4. Building blocks
 
 Built as Preact components in `ui/settings/blocks.js` (look in `blocks.css`): `Section`, `Switch`, `Segmented`,
-`GalleryCard` (with an optional "⋯" menu beside it) and `MenuButton`. Popups use `dialog()` in `popup.js`. See them all,
+`GalleryCard` (with an optional "⋯" menu beside it), `MenuButton`, `Note`, `Detail` and `ConfirmButton`. Popups use `dialog()` in `popup.js`. See them all,
 in every state, in the UI sandbox at `/__sandbox__/blocks.html`. A screen uses these, never a one-off copy.
 
 - **Heading row** on every tab: a title and a one-line subtitle on the left, the tab's main switch or action on the right.
@@ -173,7 +173,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 | Tab | v2.0 | State |
 |---|---|---|
 | **Layout** | Cards with a mini picture of the layout, the "⋯" menu, drag to reorder, Hide, "Other layouts". See below. | built (Preact; Rename and Duplicate wait for app commands that don't exist yet) |
-| **Keys** | The key editor ([key-editor.md](key-editor.md)). | designed |
+| **Keys** | The key editor ([key-editor.md](key-editor.md)). | built (M4.1–M4.3); not yet Preact |
 | **Style** | A theme gallery, My presets as cards with a "Save current look" card, then short sections: Colors, Shape, Text (font picker, **Add font file…**, **Your fonts**), Size. **Reset ▾**. | built (Preact; Reset ▾ has \"Back to the default look\"; the app doesn't record which theme was chosen, so \"Back to the chosen theme\" waits for that) |
 | **Animation** | A gallery of animation cards that demo only while hovered or focused; then Speed, Strength (only for animations that use it) and Easing as a segmented switch. | built (Preact; cards demo at the default speed and strength so they compare like for like) |
 | **Fonts** | Removed as a tab: now Style → Text. | built |
@@ -234,7 +234,7 @@ Design A, "Keycap K". Sources in `assets/logo/`: `logo.svg`, `logo-tray.svg`, an
 ## 14. Trying it
 
 `npm run ui-sandbox` opens the real settings window in a browser at http://127.0.0.1:7882/ with a stand-in app. Pick a
-screen with `?state=live|off|paused|paused-no-obs|port-in-use|update|whats-new|whats-new-long|mac-allow|mac-restart|mac-secure`, `&tab=…` and
+screen with `?state=live|off|paused|paused-no-obs|port-in-use|first-run|update|whats-new|whats-new-long|mac-allow|mac-restart|mac-secure`, `&tab=…` and
 `&devbuild` (list in `tools/sandbox/fake-app.js`). Check visual changes with `npm run test:visual` on Windows.
 
 ## Not in v2.0

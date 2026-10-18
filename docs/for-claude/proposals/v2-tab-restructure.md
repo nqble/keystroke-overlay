@@ -1,14 +1,14 @@
 # Plan: v2.0 tab restructure (approved by Jordan, from the Advisory Session)
 
-Status: Approved; steps 1–10 done, 11 next. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
-lifecycle, `docs/proposals/ui-foundation.md` and `loading-and-lifetime.md` §A). Starts after that lands on v1.4.0-dev
+Status: Approved; steps 1–11 done (step 11, the key editor, built as M4.1–M4.3), apart from converting the Keys tab to Preact. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
+lifecycle, `docs/for-claude/proposals/done/ui-foundation.md` and `loading-and-lifetime.md` §A). Starts after that lands on v1.4.0-dev
 and is merged into `advisor/v2.0`, so the two never edit the same files at once.
 
 Goal: the file layout the v2.0 design needs (`docs/design/ui-design-v2.md`), with no behaviour change in the moving
 steps. Each step is its own commit, with `npm test`, clippy, `check:types`, `check:format`, `check:privacy`, the UI
 sandbox and (on Windows) the screenshot tests between steps. Stop and report on any failure.
 
-The settings window moves to Preact with htm as these steps happen: see [v2-preact.md](v2-preact.md) (proposed).
+The settings window moves to Preact with htm as these steps happen: see [v2-preact.md](v2-preact.md) (approved, in progress).
 
 ## Where things go
 
@@ -18,7 +18,7 @@ The settings window moves to Preact with htm as these steps happen: see [v2-prea
 | `popups.js` (three popups, menu, notes, update) | Done (step 1): `popup.js` the shared popup (focus, `dialog()`), `dialogs.js` New layout and Reset, `notes.js` the release-notes reader, `update-popup.js` the update flow, `menu.js` the "⋯" menu. |
 | Header bits in `preview.js`, `messages.js`, `index.html` | `header.js`: logo, name, DEV badge, OBS status, Copy OBS link when needed, Update ready chip, window buttons (from `windowbar.js`). |
 | `controls.js` (rows, sliders, colours) | Kept, plus the building blocks from step 4: section card, switch, segmented choice, gallery card. |
-| `tabs/general.js` (317 lines, one column) | `tabs/general.js` with section cards; the OBS link card moves to `general-obs-link.js`. |
+| `tabs/general.js` (317 lines, one column) | `tabs/general.js` with section cards; the OBS link card moves to `general-connection.js` (planned as `general-obs-link.js`). |
 | `debug.js` (618 lines) | `debug/` folder: `index.js` (the tab), one file per card, `debug-report.js` stays. |
 
 Every new file starts with the header comment CLAUDE.md asks for, stays under about 400 lines, and has tests for its
@@ -32,7 +32,7 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
 3. ~~**refactor: move the header into `header.js`**~~ and
 4. ~~**feat: new header**~~ Done together: `header.js` has the status and chip buttons, `windowbar.js` keeps the window
    buttons (now drawn icons), and the link box lives only in General.
-5. ~~**refactor: one list of tabs.**~~ Done (with the Preact tab bar, docs/proposals/v2-preact.md step 4). Each tab file exports `{ id, name, render }` (and the lifecycle), and one list in
+5. ~~**refactor: one list of tabs.**~~ Done (with the Preact tab bar, docs/for-claude/proposals/v2-preact.md step 4). Each tab file exports `{ id, name, render }` (and the lifecycle), and one list in
    `tabs/index.js` holds them in order. `TABS` in `settings.js` and `TAB_NAMES` in `state.js` go. Adding or removing a
    tab is then one file and one line, and a unit test checks every listed tab has an id, a name and a render. Removing
    the Fonts tab (step 8) becomes deleting one line.

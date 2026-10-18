@@ -6,15 +6,15 @@ The layers, from quick to thorough:
 |---|---|---|---|
 | `npm run check:privacy` | The privacy promises in [PRIVACY.md](../PRIVACY.md): network code only in one file, server on 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests | 1 s | none |
 | `npm run check:style` | Code style basics: no tabs or trailing spaces, a final newline, and no raw colours in `settings.css` outside its `:root` design tokens | 1 s | none |
-| `npm run test:ui` | JS unit tests in `tests/ui/` for the settings window's plain logic (key arrange, history, board, view, guides, bug report, release-note sections, devbuild title) | 1 s | none |
-| `npm test` | Rust unit tests (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + `npm run test:ui` + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
+| `npm run test:ui` | JS unit tests in `tests/ui/` for the settings window's plain logic (every file in `tests/ui/`: the key editor's maths, gestures, the bug report, release notes, system words, themes, layout order, and more) | 1 s | none |
+| `npm test` | Rust unit tests + `test:ui` + the privacy and every-system checks. The Rust tests cover (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + `npm run test:ui` + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
 | `npm run test:e2e` | **End to end:** builds a throwaway copy of the app, drives its real settings window, injects real key presses, runs a real signed update download | ~5–8 min | ~4 GB **temporary, deleted when it finishes** |
 
 ## End-to-end tests
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | ui-sweep | csp | soak | whats-new | debug (and the optional visual)
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -29,7 +29,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
 - `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay).
-- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Tidy up (keeps the shape, closes gaps), Reset positions, that the preview and overlay size follow, and that junk positions are cleaned.
+- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape), the Reset ▾ menu, the History / View / Tidy toolbar, that the preview and overlay size follow, and that junk positions are cleaned.
 - `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
 - `csp` — the settings window's content-security policy: normal use (every tab, dialogs, the live preview) causes no policy violations,
   while injected scripts, scripts or frames from other websites, outside fetches and object embeds are blocked.
@@ -95,14 +95,14 @@ Rules:
 
 | Hook | What it is |
 |---|---|
-| `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge |
+| `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge, added by `tools/devbuild-title.mjs` |
 | `keyboard-access-banner`, `keyboard-access-text`, `keyboard-access-button` | macOS only: the notice under the header that asks for keyboard access, asks for a restart, or explains Secure Input |
 | `keys-mac-fn-hint` | macOS only: the note under the keyboard editor that the F row needs Fn |
 | `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS link button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
 | `preview-frame` | The live preview frame |
-| `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `fonts`, `general`, `debug`) | The tab bar and its buttons |
+| `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `general`, `debug`) | The tab bar and its buttons |
 | `pane` | The area that shows the current tab |
 | `section-heading` | Every heading made by `heading()` inside a tab |
 | `toast` | The message at the bottom |
@@ -135,7 +135,9 @@ Rules:
 | `key-snap`, `key-grid` | The Snap and Grid switches (buttons with `aria-pressed`) |
 | `key-status`, `key-readout` | The moved / hidden / overlap line at the right of the toolbar, the label shown while dragging or resizing |
 | `keys-shortcut-hint` | The one-line hint and shortcut key caps under the editor |
-| `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the editor |
+| `keys-tidy` | The toolbar's Close gaps button |
+| `keys-reset-menu`, `keys-put-selected-back`, `keys-reset-positions`, `keys-enable-all`, `keys-reset-labels`, `keys-revert`, `dialog-reset-layout-confirm` | The Reset ▾ menu: its button, its items in order, and the confirm button of "Reset this layout completely" |
+| `layout-style`, `layout-style-shape`, `layout-style-grid` | The Layout style switch (Keyboard shape \| Even grid) |
 | `key-inspector-empty` | The inspector while nothing is selected |
 | `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-width`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back`, `key-clear-selection` | The inspector to the right of the editor (one key or several) |
 | `theme-card-<id>` (for example `theme-card-neon`), `style-themes` | Style's theme gallery: one card per theme file (`aria-pressed` on the one in use) |

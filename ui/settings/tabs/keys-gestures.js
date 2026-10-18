@@ -30,7 +30,7 @@ function pixelsOf(wheelEvent) {
 /**
  * What one wheel event does over the board: { type: 'zoom', factor } or { type: 'pan', dx, dy } (screen pixels to move the
  * view by). A pinch is also `continuous: true`, and so is every pan: a stream of many small events, which must not slide
- * (the board's 110 ms transition would restart on every event and lag behind the fingers). `platform` is "windows", "macos" or "linux" (state.js).
+ * (the board's 150 ms transition would restart on every event and lag behind the fingers). `platform` is "windows", "macos" or "linux" (state.js).
  */
 export function wheelAction(wheelEvent, platform) {
   const { x, y } = pixelsOf(wheelEvent);

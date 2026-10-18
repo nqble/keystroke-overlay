@@ -1,15 +1,28 @@
 # Key editor: design spec (makeover planned for v1.4, reference for the v2.0 redesign)
 
-Status: approved by Jordan, designed in the Advisory Session. **Being built in three parts** (M4.1 to M4.3). Part 1 (M4.1) is in
-on `v1.4.0-dev` (2026-10-17): the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use,
-the board with zoom and pan, the preview hidden on the Keys tab, and everything the 1.3 editor did. Part 3 (M4.3) is in as well: the layout style switch, Close gaps, the Reset menu, and the Even grid tip. Part 2 (M4.2) is in too: resize handles, smart guides, the held-key fade, the arrange bar that floats above
-selected keys, the inspector to the right of the editor, and the toolbar with undo, redo, Snap and Grid. Still to come (M4.3): the
-layout style switch, "Close gaps" and the Reset menu (the old buttons under the editor stay until then), the hint about Even
-grid, the accessibility pass and the release notes. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
+Status: approved by Jordan, designed in the Advisory Session. **Built** in three parts (M4.1 to M4.3) on `v1.4.0-dev`, and
+merged into v2.0: the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use, the
+board with zoom and pan, selected keys, the inspector to the right of the editor, the toolbar with undo, redo, Snap and Grid,
+the layout style switch, Close gaps, the Reset menu and the Even grid tip. On v2.0 the zoom and pan gestures also cover
+trackpads (section 3). Still to do: the accessibility pass, the Preact conversion of the Keys tab (v2.0), and the
+differences listed under "Spec and code differ" below. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
 https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE. Where this file and the prototype disagree, this file wins.
 
-Build it AFTER UI foundation steps 1–5 (1–3 are done) (test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
+Built after the UI foundation (done: test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
 tokens and shared building blocks only. The colours below are today's values; map each one to its purpose token.
+
+## Spec and code differ (to decide)
+
+Found in the docs check of 2026-10-18. Each is either a spec to update or code to change; Jordan decides.
+- Heading: the spec has "Keys" with the layout name under it; the code shows one heading "Keys — <layout name>".
+- Undo and Redo: the spec has icon buttons; the code has the words "Undo" and "Redo", in toolbar groups labelled History,
+  View and Tidy.
+- Key states (section 8): the code uses the tokens `--color-key-fill` and `--color-key-line`, has no hover style, draws the
+  selection as a 2px accent outline (no fill, no ring), uses `--shadow-lift` for a held key, and shows a hidden key at 0.28
+  opacity with a dashed border.
+- One key: the title shows the key's code ("Key: KeyW"), and the Width row says only "Width in keys".
+- Several keys: the Show box is on only when all of them are shown (the spec says: when any are).
+- The 150ms resize timer in settings.js is still there (section 9).
 
 ## 1. Goal
 
@@ -134,12 +147,12 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 
 - **Undo / Redo:** icon buttons, disabled when there's nothing to undo or redo. Undo covers every change on this tab
   (move, resize, hide or show, label, align, space, close gaps, reset, layout-style switch). Keep about 50 steps.
-- **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to close the empty space left by hidden or moved
-  keys. The shape stays the same." Behaviour: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
+- **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to close the space left by hidden or moved keys.
+  The shape stays the same." Behaviour: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
   closed to ¼ key, along both axes, keeping every key's relative order; then the result is centred on the board.
 - **Reset ▾** (Jordan keeps all five): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
-  a divider · **Reset this layout completely** (danger colour, asks "Reset this layout? Positions, sizes, hidden keys and labels go
-  back to the layout file. You can undo this."). Every item is undoable.
+  a divider · **Reset this layout completely** (danger colour, asks "Reset this layout?" with "Positions, sizes, hidden keys and labels go back to the layout file, and
+  the style to Keyboard shape. You can undo this." and a **Reset layout** button). Every item is undoable.
 
 ## 6. Layout style: Keyboard shape | Even grid
 
@@ -151,13 +164,13 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 
 ## 7. Inspector panel (right of the editor)
 
-- **Nothing selected:** "No key selected" + three short lines, one tip each: "Click a key to edit it.", "Drag keys
-  to move them." and "Same-size keys? Try **Even grid**."
+- **Nothing selected:** "No key selected" + two notes (`TEXT.inspectorTip` and `TEXT.inspectorTipGrid` in
+  ui/settings/text.js): how to label, hide and drag keys, and a pointer to Layout style → Even grid.
 - **One key:** "Key: W" title with a "Show" checkbox on the right; Label field; Width field ("Width in keys · or drag the blue
   handles"); Position X / Y fields (step 0.25); when it overlaps: a danger-tinted note "This key overlaps another. Drag it to a
   free spot, or press Close gaps."; when moved or resized: "Put back where it was".
 - **Several keys:** "N keys selected" + Show checkbox (on if any are shown); one line "Drag any of them to move them together.
-  Use the bar above them to line them up or space them evenly."; buttons "Put these back" and "Clear selection".
+  The bar above them lines them up or spaces them."; buttons "Put these back" and "Clear selection".
 
 ## 8. Wording
 
@@ -189,7 +202,7 @@ Plain, short, friendly; sentence case; all text in `TEXT` (CLAUDE.md). Use "key"
   inspector. A full rebuild of the key elements happens only when the layout itself changes (another layout picked, layout
   style switched, import, or "Reset this layout completely"). No editor action calls the global `render()`.
 - **No rebuild on resize.** A `ResizeObserver` on the editor box updates the view limits and zoom bounds. Remove the 150ms
-  resize timer that re-renders the Keys tab.
+  resize timer that re-renders the Keys tab (not done yet: it is still in ui/settings/settings.js).
 - **Measure.** Add to the benchmark: settings-window open time (no slower than before), first Keys-tab open, and switching
   back to Keys (target under 50ms), plus memory with the editor kept alive versus not. Report before/after numbers to Jordan.
 - **Tests.** Switching Keys → Style → Keys keeps zoom, pan and selection. The editor module is not loaded until the Keys tab

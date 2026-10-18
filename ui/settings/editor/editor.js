@@ -32,7 +32,7 @@ import {
 import { placeKeys, selectedBoxes } from './places.js';
 import { attachViewGestures } from './view-gestures.js';
 
-const UNIT = 40; // pixels per key at 100% zoom (keep in step with --unit in settings.css)
+const UNIT = 40; // pixels per key at 100% zoom (keep in step with --unit in tabs.css)
 const KEY_GAP = 3; // pixels between neighbouring keys at 100% zoom (keep in step with the .kmk size in settings.css)
 const DRAG_START_DISTANCE = 3; // pixels the pointer must move before a press counts as a drag, not a click
 const MIN_DOT_SPACING = 6; // pixels: grid dots closer together than this are thinned out so the grid stays readable

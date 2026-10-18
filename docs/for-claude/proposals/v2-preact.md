@@ -1,6 +1,6 @@
 # Plan: Preact + htm for the settings window (v2.0)
 
-Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: Debug, General, Style, Layout and Animation done; the key editor is being rebuilt in v1.4 (M4.1 merged) and converted once it is finished**, on `advisor/v2.0`. It is
+Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: General, Style, Layout and Animation done; Debug split into one file per tool but not converted yet; the key editor is built (M4.1–M4.3, merged) and the Keys tab is converted next**, on `advisor/v2.0`. It is
 v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor/` because the window only serves
 `ui/settings/`.
 
@@ -50,7 +50,7 @@ a build step.
 Section 4 today: "**No framework, no bundler, no build step for the UI.** Plain JavaScript ES modules and CSS."
 
 Applied in step 1 (CLAUDE.md now reads): "**No bundler, no build step for the UI.** Plain JavaScript ES modules and CSS. The settings window uses
-**Preact with htm** (copied into `ui/settings/vendor/`, pinned and hash-checked, see `docs/proposals/v2-preact.md`); write new
+**Preact with htm** (copied into `ui/settings/vendor/`, pinned and hash-checked, see `docs/for-claude/proposals/v2-preact.md`); write new
 screens as Preact components with `html` from `ui/settings/html.js`. The overlay OBS shows stays plain JavaScript, with no
 library."
 
@@ -79,7 +79,7 @@ library."
 5. **Each tab as it is redesigned** (steps 6–11 of the tab plan): Debug, General, Style with Fonts, Layout, Animation, then
    the key editor. A tab is written once, in the new style.
 6. **Tidy up** when the last tab is converted: remove the wrapper and any helper nothing uses any more. Helpers and
-   styles nothing uses are gone (2026-10-17); the wrapper stays until the Keys tab is converted after the key editor's
+   styles nothing uses are gone (2026-10-17); the wrapper stays until the Keys and Debug tabs are converted after the key editor's
    last part (M4.3).
 
 ## Step 2 results (the header trial)

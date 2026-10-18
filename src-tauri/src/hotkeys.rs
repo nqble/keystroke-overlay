@@ -12,7 +12,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 /// The longest shortcut text accepted ("CommandOrControl+Shift+Alt+NumpadSubtract" fits). Must match
-/// MAX_SHORTCUT_LENGTH in ui/settings/tabs/general-hotkey.js.
+/// MAX_SHORTCUT_LENGTH in ui/settings/shortcut.js.
 pub const MAX_SHORTCUT_LENGTH: usize = 48;
 
 /// True for text that can be a shortcut: key names joined by "+" ("Ctrl+Shift+KeyP"), or empty for none.
