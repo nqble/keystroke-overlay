@@ -5,7 +5,7 @@
 // =====================================================================================================================
 
 const TEXT = {
-  ask: 'Allow keyboard access so the overlay can see your keys. macOS asks you to switch on Keystroke Overlay in Input Monitoring.',
+  ask: 'Allow keyboard access so the overlay can see your keys. macOS asks you to switch on Keystroke Overlay in Input Monitoring. If it is already listed, remove it with the minus button first, then add it again.',
   allow: 'Allow keyboard access',
   restart: 'Access is on. Restart Keystroke Overlay once so macOS starts sending it your keys.',
   restartAfterAllow:

@@ -123,6 +123,14 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   remembers only that a key arrived, never which). Also seen: a build re-signed as a whole (new identity) lost its
   Input Monitoring permission until the old record was removed and the app allowed again.
 
+- **The permission belongs to one exact build.** macOS's log says "Failed to match existing code requirement" after a
+  rebuild: an ad-hoc signed app's identity is its code hash (`designated => cdhash ...`), which changes with every build.
+  The old Input Monitoring entry then still looks on but does nothing, until it is removed (minus button) and added
+  again. (One earlier rebuild kept working; the log says why it normally does not.) So Mac users must re-allow after
+  every update. Ways around it, none done: a signing certificate that stays the same between builds (a self-signed one
+  kept as a secret in CI, or Apple's paid Developer ID), or signing with a rule that matches on the identifier alone,
+  which would let any program with the same identifier inherit the keyboard permission, a real weakening for this app.
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:
