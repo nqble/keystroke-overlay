@@ -67,6 +67,11 @@ attaches it to the box. A pinch reaches the page as a Ctrl + wheel event in Chro
 Safari's engine (the Mac window); both zoom toward the pointer. A wheel event with Ctrl held and a small `deltaY` (under 30)
 is a pinch; a larger one is a Ctrl + wheel notch and zooms like a plain wheel.
 
+**Streams don't slide.** A two-finger scroll or a pinch is a stream of small events, so the board's smooth sliding
+(its short ease-out transition) is switched off while the stream lasts, by the same `panning` class a drag uses, and comes
+back 150 ms after the last event. A single mouse-wheel notch or ⌘ + scroll keeps its smooth slide. Without this the
+board lagged behind the fingers and then caught up.
+
 **Space + drag:** Space only starts a pan when the pointer goes down on the board while Space is held, so a tap of Space on a
 focused key still selects it. It is ignored while typing in a text box or dropdown, the cursor shows "grab" while it is held
 over the board, and holding stops when the window loses focus.

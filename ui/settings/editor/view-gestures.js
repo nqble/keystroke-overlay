@@ -9,6 +9,8 @@ import { clampView, panBy, stretchPan, zoomAt } from '../tabs/keys-view.js';
 import { platform } from '../state.js';
 
 const SPACE_CODE = 'Space';
+/** How long after the last scroll or pinch event the board is given back its smooth sliding. */
+const STREAM_IDLE_MS = 150;
 const NO_PAN_AREAS = '.zoom-controls, .arrange-bar'; // controls on top of the board keep their own clicks
 
 /**
@@ -17,7 +19,17 @@ const NO_PAN_AREAS = '.zoom-controls, .arrange-bar'; // controls on top of the b
  * `markTouched()` to say the view is now the user's (it stops following the box on its own).
  */
 export function attachViewGestures(box, editor) {
-  const state = { spaceHeld: false, pointerInside: false, lastScale: 1 };
+  const state = { spaceHeld: false, pointerInside: false, lastScale: 1, idleTimer: 0 };
+
+  /**
+   * A trackpad scroll or pinch is a stream of small events. The board slides smoothly between a notch of the wheel and
+   * the next, but it must follow a stream exactly, so sliding is off while the stream lasts and back a moment after.
+   */
+  const followExactly = () => {
+    box.classList.add('panning');
+    clearTimeout(state.idleTimer);
+    state.idleTimer = setTimeout(() => box.classList.remove('panning'), STREAM_IDLE_MS);
+  };
 
   // ---- Wheel and pinch ----------------------------------------------------------------------------------------------
   // Not passive on purpose: the board zooms or pans, the window does not scroll.
@@ -27,6 +39,7 @@ export function attachViewGestures(box, editor) {
       wheelEvent.preventDefault();
       editor.markTouched();
       const action = wheelAction(wheelEvent, platform);
+      if (action.type === 'pan' || action.continuous) followExactly();
       if (action.type === 'pan') {
         editor.setView(panBy(editor.view(), action.dx, action.dy, editor.boxSize(), editor.content()));
         return;
@@ -46,6 +59,7 @@ export function attachViewGestures(box, editor) {
   box.addEventListener('gesturechange', (gestureEvent) => {
     gestureEvent.preventDefault();
     editor.markTouched();
+    followExactly();
     const factor = gestureFactor(gestureEvent.scale, state.lastScale);
     state.lastScale = gestureEvent.scale;
     editor.setView(zoomAt(editor.view(), factor, editor.insideBox(gestureEvent), editor.boxSize(), editor.content()));
