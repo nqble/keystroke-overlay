@@ -5,7 +5,7 @@
 // =====================================================================================================================
 
 const TEXT = {
-  ask: 'Allow keyboard access so the overlay can see your keys. macOS asks you to switch on Keystroke Overlay in Input Monitoring. If keys still don't light up after an update, see "On a Mac" in the user guide.',
+  ask: 'Allow keyboard access so the overlay can see your keys. macOS asks you to switch on Keystroke Overlay in Input Monitoring. If keys still do not light up after an update, see "On a Mac" in the user guide.',
   allow: 'Allow keyboard access',
   restart: 'Access is on. Restart Keystroke Overlay once so macOS starts sending it your keys.',
   restartAfterAllow:
