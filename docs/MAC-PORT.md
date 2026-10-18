@@ -64,8 +64,12 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
    icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: the tray icon, the native
    window and header fit. The Dock icon (shown only while the settings window is open) is not yet seen. Not yet seen: the Allow / restart / Secure Input notices on screen, the
    update badge on the template icon, and a visual pass over every tab.
-3. **Phase 3 — it ships.** Apple Developer ID, signing + notarization in a GitHub Actions release workflow, universal
-   build, `darwin-*` entries in `latest.json`/`stable.json`, README install steps.
+3. **Phase 3 — it ships (decided by Jordan: the free route only).** No Apple Developer account, no signing certificate and no
+   notarization. Every release from `main` gets an Apple Silicon download (`mac-app.yml`, attached by `release.yml`); it is signed
+   ad hoc, so a first launch needs **Open Anyway**, and the keyboard permission must be allowed again after every update
+   (the user guide says how). The Mac port is for v2.0 and later. The Advisory Session owns the download workflow and its
+   first real run, which needs Jordan's OK for a pull request or a release. Intel Macs, in-app updates on a Mac and
+   a Homebrew cask are not part of this.
 4. **Phase 4 — polish.** Mac-specific docs, Homebrew cask, community testers.
 
 Rough effort: about **3–5 working days** of development plus the Apple account setup, most of it in steps 1–2.
