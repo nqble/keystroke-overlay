@@ -57,6 +57,10 @@ fn main() {
             Some(vec!["--autostart"]),
         ))
         .setup(|app| {
+            // macOS: a menu-bar app has no Dock icon and no app menu bar of its own (the settings window and the tray
+            // are all there is).
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             let paths = Paths {
                 root: app.path().app_data_dir()?,
             };

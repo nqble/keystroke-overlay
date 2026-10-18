@@ -43,6 +43,16 @@ pub fn set_layout_inner(app: &AppHandle, id: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// The tray icon when there is nothing to report. On macOS a monochrome "template" picture that the menu bar tints for
+/// light and dark; everywhere else the app icon. Windows and Linux keep their colour icon.
+fn resting_icon(app_icon: &Image<'_>) -> Image<'static> {
+    #[cfg(target_os = "macos")]
+    if let Ok(template) = Image::from_bytes(include_bytes!("../icons/tray-template.png")) {
+        return template;
+    }
+    Image::new_owned(app_icon.rgba().to_vec(), app_icon.width(), app_icon.height())
+}
+
 /// Draws a small orange dot (with a dark ring so it stays visible on any taskbar) in the top right corner of an RGBA
 /// icon.
 pub fn badge_rgba(rgba: &[u8], w: u32, h: u32) -> Vec<u8> {
@@ -100,7 +110,9 @@ pub fn set_update_badge(app: &AppHandle, available: bool) {
         "tray update indicator {}",
         if available { "shown" } else { "hidden" }
     ));
-    let _ = tray.set_icon(Some(icon));
+    let _ = tray.set_icon(Some(if available { icon } else { resting_icon(&icon) }));
+    #[cfg(target_os = "macos")]
+    let _ = tray.set_icon_as_template(!available); // the orange dot needs colour, so the badged icon is not a template
     let _ = tray.set_tooltip(Some(if available {
         "Keystroke Overlay: update available"
     } else {
@@ -223,7 +235,8 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
     let update_item = MenuItemBuilder::with_id("update", "Update available").build(app)?;
 
     let tray = TrayIconBuilder::new()
-        .icon(icon.clone())
+        .icon(resting_icon(&icon))
+        .icon_as_template(cfg!(target_os = "macos"))
         .tooltip("Keystroke Overlay")
         .menu(&menu)
         .show_menu_on_left_click(false)
