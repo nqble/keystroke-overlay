@@ -8,7 +8,7 @@ loads, and the settings window). No framework, no bundler.
 ```
 keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md  app.config.json (the app's name, repository, identifiers)
-├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
+├── .github/            workflows: CI, one-click Release, E2E (Windows), Mac app build, CodeQL, security scan; issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
 │                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
 │                       (plans in for-claude/proposals/, finished ones in proposals/done/, the cleanup audit, release drafts;
@@ -17,7 +17,7 @@ keystroke-overlay/
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
-│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
+│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-systems.mjs (settings-window text must not name Windows-only things), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
 │                       ui-sandbox.mjs + sandbox/ (the settings window in a browser, docs/DEBUGGING.md), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app
@@ -31,13 +31,15 @@ keystroke-overlay/
 │       │   ├── windows_labels.rs Windows: what each typing key prints on the layout in front, and its watcher
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
-│       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
-│       │   ├── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
+│       │   ├── x11.rs        Linux: X11 key capture with XInput2 raw events
+│       │   ├── linux_keys.rs Linux: X11 key numbers -> the same DOM "code" names, plus the repeat filter
 │       │   ├── x11_labels.rs Linux: what each typing key prints (XKB), and a watcher for layout switches
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
 │       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
+│       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
+│       ├── app_info.rs     the app's name, repository and identifiers (must match app.config.json; npm run check:config)
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
 │       ├── sanitize.rs     cleaning settings from outside: types, ranges and rules, one table line per setting
@@ -54,6 +56,7 @@ keystroke-overlay/
 │           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
+│           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
 │           ├── actions.rs    pause / layout / restart wrappers
 │           └── updates.rs    update check + install, release notes, "What's new"
 └── ui/
@@ -67,7 +70,7 @@ keystroke-overlay/
         ├── index.html     the window's page; logo.png
         ├── settings.css   the shared look: design tokens (its :root), the page, scrollbar, scroll fade; scripts only
         │                  hand it CSS variables, never inline styles (tools/check-style.mjs enforces both)
-        ├── tabs.css, header.css, pause-button.css, popups.css, debug.css, keys.css   one file per part of the window
+        ├── tabs.css, header.css, pause-button.css, popups.css, debug.css, keys.css, keyboard-access.css   one file per part of the window
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
@@ -93,12 +96,14 @@ keystroke-overlay/
         ├── header.js      the header's status, Copy OBS link and Update ready, drawn with Preact (paintHeader)
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── keyboard-access.js  macOS: the notice that asks for keyboard access (logic in access-notice.js)
+        ├── shortcut.js    the pause shortcut's text: a key press -> "Ctrl+Shift+KeyP" and back to a friendly name (tested)
+        ├── themes.js      plain logic for the Style tab's theme cards (tested)
         ├── system-fonts.js  the font list for this system (Windows fonts or Mac fonts)
         ├── system-words.js  words that differ per system (what starting with the computer is called, which inspector)
         ├── text.js        the longer explanations the user reads
         ├── debug/         the optional Debug tab, one file per tool; index.js draws it (docs/DEBUGGING.md)
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
-        └── tabs/          one file per tab (layout, keys, style, animation, general; layout-card.js, style-*.js and general-*.js are
+        └── tabs/          one file per tab (layout, keys, style, animation, general; the Debug-only tab is debug/; layout-card.js, style-*.js and general-*.js are
                            parts of those); index.js lists them in order
             The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-toolbar.js (selection, nudge,
             align, history, snap and grid controls), keys-arrange.js (the movement maths, plain functions with unit tests)
@@ -106,7 +111,7 @@ keystroke-overlay/
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
             places.js says where the keys are. The geometry is in keys-board.js (board size and limits), keys-view.js (zoom and
-            pan) and keys-guides.js (snapping guides, used from the next step) and keys-mac.js (the macOS note that the F row needs Fn), keys-gestures.js (what a wheel, pinch or press over the board means, per system) and editor/view-gestures.js (attaches those gestures to the board), plain functions with unit tests.
+            pan) and keys-guides.js (smart snapping guides while dragging, used by editor/editor.js) and keys-mac.js (the macOS note that the F row needs Fn), keys-gestures.js (what a wheel, pinch or press over the board means, per system) and editor/view-gestures.js (attaches those gestures to the board), plain functions with unit tests.
 ```
 
 ## How a key press travels
@@ -176,10 +181,10 @@ rule (`x.Y.0` = Stable, `x.y.Z` = Latest) and the one-click GitHub release workf
 `npm run check:privacy` (also in CI) fails the build if network code appears outside `commands/updates.rs`, a server binds
 anything but `127.0.0.1`, the keyboard/server code writes files, anything logs or prints, or the UI calls an external address.
 Its patterns live in `tools/privacy-patterns.mjs` with their own tests; it is a line-by-line tripwire, not a proof.
-`npm test` runs it together with the Rust unit tests and the JS unit tests in `tests/ui/` (settings migration/validation, key naming and tracking, Raw Input decoding,
+`npm test` runs it together with the every-system check (tools/check-systems.mjs), the Rust unit tests and the JS unit tests in `tests/ui/` (settings migration/validation, key naming and tracking, Raw Input decoding,
 update URLs, release notes). `npm run test:e2e` builds a throwaway copy of the app and drives it for real (settings window, injected
 key presses through both input methods, a signed update download); it cleans up after itself — see [tests/README.md](../tests/README.md).
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs`, in development and in no release yet ([LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs`, in development and in no release yet ([MAC-PORT.md](MAC-PORT.md)).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4, not released yet; Wayland is next: [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, not released yet; [MAC-PORT.md](MAC-PORT.md)).
