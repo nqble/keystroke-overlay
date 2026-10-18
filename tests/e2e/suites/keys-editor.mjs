@@ -728,15 +728,36 @@ await sleep(400);
 await clearSelection();
 const board0 = await boardInfo();
 check(
-  'the board is drawn in key units, at least 24 x 12 keys, and fills the box (nothing outside it shows)',
+  'the board is drawn in key units, at least 24 x 12 keys, with no more than a margin of empty room around it',
   board0.boardW >= 24 &&
     board0.boardH >= 12 &&
-    board0.left <= 1 &&
-    board0.top <= 1 &&
-    board0.right <= 1 &&
-    board0.bottom <= 1,
+    board0.left <= 121 &&
+    board0.top <= 121 &&
+    board0.right <= 121 &&
+    board0.bottom <= 121,
   JSON.stringify(board0),
 );
+
+// the default view of the editor: the keyboard is centred in the box with space around it, and the zoom buttons are clear of the keys
+const defaultView = await p.ev(`
+  const m = document.querySelector('${byTest('keymap')}').getBoundingClientRect();
+  const keys = [...document.querySelectorAll('${byTest('key-cell')}')].map((k) => k.getBoundingClientRect());
+  const left = Math.min(...keys.map((r) => r.left)) - m.left, right = m.right - Math.max(...keys.map((r) => r.right));
+  const top = Math.min(...keys.map((r) => r.top)) - m.top, bottom = m.bottom - Math.max(...keys.map((r) => r.bottom));
+  const z = document.querySelector('.zoom-controls').getBoundingClientRect();
+  const touchesKeys = keys.some((r) => r.left < z.right && r.right > z.left && r.top < z.bottom && r.bottom > z.top);
+  return { left, right, top, bottom, touchesKeys };`);
+check(
+  'in the default view the keyboard is centred left to right, with space on both sides',
+  Math.abs(defaultView.left - defaultView.right) < 3 && defaultView.left >= 12,
+  JSON.stringify(defaultView),
+);
+check(
+  'in the default view there is space above and below the keyboard, and more below for the zoom buttons',
+  defaultView.top >= 12 && defaultView.bottom >= defaultView.top,
+  JSON.stringify(defaultView),
+);
+check('the zoom buttons are not on top of any key', !defaultView.touchesKeys, JSON.stringify(defaultView));
 const centreOfW = await p.ev(
   `const r = document.querySelector('${keyCell('KeyW')}').getBoundingClientRect(), b = document.querySelector('${byTest('keymap')}').getBoundingClientRect(); return { x: r.left + r.width / 2 - b.left, y: r.top + r.height / 2 - b.top }`,
 );
@@ -760,11 +781,11 @@ for (let i = 0; i < 20; i++) await wheel(centreOfW.x, centreOfW.y, 400);
 await sleep(300);
 const minZoom = await boardInfo();
 check(
-  'zooming out stops when the board just fills the box (nothing outside the board can show)',
-  minZoom.left <= 1 &&
-    minZoom.top <= 1 &&
-    minZoom.right <= 1 &&
-    minZoom.bottom <= 1 &&
+  'zooming out stops when the board just fills the box (only a margin of empty room shows past its edge)',
+  minZoom.left <= 121 &&
+    minZoom.top <= 121 &&
+    minZoom.right <= 121 &&
+    minZoom.bottom <= 121 &&
     (minZoom.w <= minZoom.boxW + 2 || minZoom.h <= minZoom.boxH + 2),
   JSON.stringify(minZoom),
 );
@@ -816,8 +837,8 @@ check(
     JSON.stringify(shapeEdits(await profile(id)).positions ?? {}) === positionsBeforePan,
 );
 check(
-  'after the pan the board still covers the box',
-  pannedTo.left <= 1 && pannedTo.top <= 1 && pannedTo.right <= 1 && pannedTo.bottom <= 1,
+  'after the pan the board has not left the box (only a margin of empty room shows)',
+  pannedTo.left <= 121 && pannedTo.top <= 121 && pannedTo.right <= 121 && pannedTo.bottom <= 121,
   JSON.stringify(pannedTo),
 );
 

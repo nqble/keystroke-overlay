@@ -38,6 +38,9 @@ const KEY_GAP = 3; // pixels between neighbouring keys at 100% zoom (keep in ste
 const DRAG_START_DISTANCE = 3; // pixels the pointer must move before a press counts as a drag, not a click
 const MIN_DOT_SPACING = 6; // pixels: grid dots closer together than this are thinned out so the grid stays readable
 const MIDDLE_BUTTON = 1;
+const OVERSCAN = 120; // pixels of empty room that may show beyond the board's edge (so the keys can sit in the middle)
+const FIRST_VIEW_PADDING = 28; // pixels of space between the keyboard and the editor box in the first view
+const FIRST_VIEW_BOTTOM = 44; // extra room kept under the keyboard for the zoom buttons
 const ARRANGE_GAP = 10; // pixels between the arrange bar and the selected keys
 
 // The arrange bar: [hook name, label, tooltip, kind, how many keys it needs]. It floats above two or more selected keys.
@@ -81,7 +84,7 @@ function createEditor() {
     '100%',
     () => {
       viewTouched = true;
-      setView(centredView(boxSize, content(), 1));
+      setView(centredView(boxSize, content(), 1, OVERSCAN));
     },
     'zoom-percent',
     'editor-zoom-reset',
@@ -89,7 +92,7 @@ function createEditor() {
   zoomLabel.title = 'Zoom to 100% and centre the board';
   const zoomBy = (factor) => () => {
     viewTouched = true;
-    setView(zoomAt(view, factor, { x: boxSize.w / 2, y: boxSize.h / 2 }, boxSize, content()));
+    setView(zoomAt(view, factor, { x: boxSize.w / 2, y: boxSize.h / 2 }, boxSize, content(), OVERSCAN));
   };
   const zoomOut = button('−', zoomBy(1 / BUTTON_ZOOM), 'zoom-step', 'editor-zoom-out');
   zoomOut.title = 'Zoom out';
@@ -138,19 +141,23 @@ function createEditor() {
   function refit() {
     if (!boxSize.w) return;
     const zoom = Math.max(view.zoom, coverZoom(boxSize, content()));
-    setView(clampView({ ...view, zoom: Math.min(ZOOM_MAX, zoom) }, boxSize, content()));
+    setView(clampView({ ...view, zoom: Math.min(ZOOM_MAX, zoom) }, boxSize, content(), OVERSCAN));
   }
 
   /** The first view of a layout: its keys centred in the box, as large as fits (never more than 100%). */
   function firstView() {
-    const spanX = layoutBounds.maxX - layoutBounds.minX + 2;
-    const spanY = layoutBounds.maxY - layoutBounds.minY + 2;
-    const fit = Math.min(1, boxSize.w / (spanX * UNIT), boxSize.h / (spanY * UNIT));
+    // The keyboard goes in the middle of the box with FIRST_VIEW_PADDING of space around it, and the zoom buttons get their own
+    // strip underneath (FIRST_VIEW_BOTTOM), so nothing sits on top of the keys.
+    const spanX = layoutBounds.maxX - layoutBounds.minX;
+    const spanY = layoutBounds.maxY - layoutBounds.minY;
+    const availableW = boxSize.w - FIRST_VIEW_PADDING * 2;
+    const availableH = boxSize.h - FIRST_VIEW_PADDING * 2 - FIRST_VIEW_BOTTOM;
+    const fit = Math.min(1, availableW / (spanX * UNIT), availableH / (spanY * UNIT));
     const zoom = Math.min(ZOOM_MAX, Math.max(fit, coverZoom(boxSize, content())));
-    const middleX = ((layoutBounds.minX + layoutBounds.maxX) / 2) * UNIT * zoom;
-    const middleY = ((layoutBounds.minY + layoutBounds.maxY) / 2) * UNIT * zoom;
+    const panX = FIRST_VIEW_PADDING + (availableW - spanX * UNIT * zoom) / 2 - layoutBounds.minX * UNIT * zoom;
+    const panY = FIRST_VIEW_PADDING + (availableH - spanY * UNIT * zoom) / 2 - layoutBounds.minY * UNIT * zoom;
     box.classList.add('instant'); // no sliding into the first view
-    setView(clampView({ zoom, panX: boxSize.w / 2 - middleX, panY: boxSize.h / 2 - middleY }, boxSize, content()));
+    setView(clampView({ zoom, panX, panY }, boxSize, content(), OVERSCAN));
     requestAnimationFrame(() => box.classList.remove('instant'));
     needsFirstView = false;
   }
@@ -171,7 +178,7 @@ function createEditor() {
     (wheelEvent) => {
       wheelEvent.preventDefault(); // zoom the board, not the window (this listener is not passive on purpose)
       viewTouched = true;
-      setView(zoomAt(view, wheelFactor(wheelEvent.deltaY), insideBox(wheelEvent), boxSize, content()));
+      setView(zoomAt(view, wheelFactor(wheelEvent.deltaY), insideBox(wheelEvent), boxSize, content(), OVERSCAN));
     },
     { passive: false },
   );
@@ -197,8 +204,8 @@ function createEditor() {
         const panY = start.panY + moveEvent.clientY - start.y;
         setView({
           zoom: view.zoom,
-          panX: stretchPan(panX, view.zoom, boxSize.w, content().w),
-          panY: stretchPan(panY, view.zoom, boxSize.h, content().h),
+          panX: stretchPan(panX, view.zoom, boxSize.w, content().w, OVERSCAN),
+          panY: stretchPan(panY, view.zoom, boxSize.h, content().h, OVERSCAN),
         });
       };
       const done = () => {
@@ -206,7 +213,7 @@ function createEditor() {
         box.removeEventListener('pointerup', done);
         box.removeEventListener('pointercancel', done);
         box.classList.remove('panning');
-        setView(clampView(view, boxSize, content())); // springs back with the board's transition
+        setView(clampView(view, boxSize, content(), OVERSCAN)); // springs back with the board's transition
       };
       box.addEventListener('pointermove', move);
       box.addEventListener('pointerup', done);

@@ -26,31 +26,33 @@ export const wheelFactor = (deltaY) => Math.exp(-deltaY * WHEEL_SPEED);
 
 /**
  * The pan for one axis, kept so only the board shows: the board's near edge never moves inside the box, and neither
- * does its far edge. `viewSize` and `contentSize` are that axis's sizes; `zoom` is the current zoom.
+ * does its far edge. `viewSize` and `contentSize` are that axis's sizes; `zoom` is the current zoom. `overscan` (pixels,
+ * 0 by default) is how much empty room beyond the board's edge may show, so a layout can sit in the middle of the box
+ * with space around it.
  */
-export function clampPan(pan, zoom, viewSize, contentSize) {
+export function clampPan(pan, zoom, viewSize, contentSize, overscan = 0) {
   const scaled = contentSize * zoom;
-  if (scaled <= viewSize) return (viewSize - scaled) / 2;
-  return Math.min(0, Math.max(viewSize - scaled, pan));
+  if (scaled + overscan * 2 <= viewSize) return (viewSize - scaled) / 2;
+  return Math.min(overscan, Math.max(viewSize - scaled - overscan, pan));
 }
 
 /** Like clampPan, but lets the view go past the limit at STRETCH speed while the user is still dragging. */
-export function stretchPan(pan, zoom, viewSize, contentSize) {
-  const limit = clampPan(pan, zoom, viewSize, contentSize);
+export function stretchPan(pan, zoom, viewSize, contentSize, overscan = 0) {
+  const limit = clampPan(pan, zoom, viewSize, contentSize, overscan);
   return limit + (pan - limit) * STRETCH;
 }
 
 /** A view state with both axes clamped: where the view springs back to when a pan ends. */
-export function clampView(state, view, content) {
+export function clampView(state, view, content, overscan = 0) {
   return {
     zoom: state.zoom,
-    panX: clampPan(state.panX, state.zoom, view.w, content.w),
-    panY: clampPan(state.panY, state.zoom, view.h, content.h),
+    panX: clampPan(state.panX, state.zoom, view.w, content.w, overscan),
+    panY: clampPan(state.panY, state.zoom, view.h, content.h, overscan),
   };
 }
 
 /** The board centred in the box at `zoom` (100% by default): the starting view, and what clicking "100%" gives. */
-export function centredView(view, content, zoom = 1) {
+export function centredView(view, content, zoom = 1, overscan = 0) {
   const fitted = Math.max(zoom, coverZoom(view, content));
   return clampView(
     {
@@ -60,6 +62,7 @@ export function centredView(view, content, zoom = 1) {
     },
     view,
     content,
+    overscan,
   );
 }
 
@@ -67,7 +70,7 @@ export function centredView(view, content, zoom = 1) {
  * Zoom by `factor` around `point` ({ x, y } inside the box), so the spot under the cursor stays still. The zoom stays
  * between coverZoom and ZOOM_MAX, and the result is clamped so only the board shows.
  */
-export function zoomAt(state, factor, point, view, content) {
+export function zoomAt(state, factor, point, view, content, overscan = 0) {
   const zoom = Math.min(ZOOM_MAX, Math.max(coverZoom(view, content), state.zoom * factor));
   const ratio = zoom / state.zoom;
   return clampView(
@@ -78,6 +81,7 @@ export function zoomAt(state, factor, point, view, content) {
     },
     view,
     content,
+    overscan,
   );
 }
 
