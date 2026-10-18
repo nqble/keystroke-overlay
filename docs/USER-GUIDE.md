@@ -23,7 +23,7 @@ The first time the app opens, it walks you through these steps (to see them agai
 
 1. In the app, click **Copy OBS link** (default: `http://localhost:7878/`).
 2. In OBS: **Sources → + → Browser**, then paste the link.
-3. Set **Width** and **Height** to the size the app shows (General → Connection, for example 1085 × 403 for the TKL layout). It changes with your layout and scale.
+3. Set **Width** and **Height** to the size the app shows (General → Connection, for example 1085 × 403 for the TKL layout). It changes with your layout and scale. If the box is a different size, the keyboard scales itself to fit inside it and stays centred, so nothing is cut off.
 4. Leave Custom CSS empty — the page is already transparent.
 
 If you change the port in settings, update the URL in OBS too.
@@ -248,7 +248,8 @@ use updates you can block the app in your firewall and everything else keeps wor
   Microsoft as a false positive when needed (docs/RELEASING.md).
 - **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
-- **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
+- **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size the app
+  shows. The keyboard always fits inside the box, so a box of another shape leaves space at the sides.
 
 ## Requirements
 

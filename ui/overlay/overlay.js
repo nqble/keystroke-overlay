@@ -2,6 +2,7 @@
 // toggles a `down` class per key. No timers or polling while connected - CSS
 // transitions do all the animation work on the compositor.
 import { animations, themes, easings } from '/overlay/registry.js';
+import { fitInBox } from '/overlay/fit.js';
 
 const PAD = 16; // room around the keys so glows aren't clipped
 const params = new URLSearchParams(location.search);
@@ -202,12 +203,26 @@ function build(nextSettings) {
 
 function reportSize(width, height) {
   const sc = settings.style.scale;
-  stage.style.left = stage.style.top = PAD + 'px';
-  stage.style.transform = `scale(${sc})`;
   const size = { w: Math.ceil(width * sc + PAD * 2), h: Math.ceil(height * sc + PAD * 2) };
   window.__size = size;
+  placeStage();
   if (PREVIEW) parent.postMessage({ type: 'size', ...size }, '*');
 }
+
+/**
+ * Scale the keyboard to fit the OBS source's box and centre it, so a box that doesn't match the suggested size (or a
+ * layout wider than the box) still shows the whole keyboard. In the settings window's preview the frame is already
+ * the suggested size, so nothing changes there. Runs only when the keys are rebuilt or the box is resized.
+ */
+function placeStage() {
+  const size = window.__size;
+  if (!size) return;
+  const box = PREVIEW ? size : { w: innerWidth, h: innerHeight };
+  const { fit, x, y } = fitInBox(size, box);
+  stage.style.left = stage.style.top = '0px';
+  stage.style.transform = `translate(${x + PAD * fit}px, ${y + PAD * fit}px) scale(${settings.style.scale * fit})`;
+}
+addEventListener('resize', placeStage);
 
 // the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
 let reloadedFor = '';
