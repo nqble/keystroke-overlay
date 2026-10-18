@@ -7,7 +7,7 @@ import { Note, Section, Switch } from '../blocks.js';
 import { invoke, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
 import { platform, settings } from '../state.js';
-import { shortcutFromKey, shortcutName } from '../shortcut.js';
+import { shortcutFromKey, shortcutName, toggleListening } from '../shortcut.js';
 import { systemWord } from '../system-words.js';
 
 const WORDS = {
@@ -74,7 +74,7 @@ function ShortcutPicker({ shortcut, listening, setListening, onKeyDown, save }) 
       type="button"
       aria-label=${listening ? WORDS.listening : `${WORDS.choose}: ${shown}`}
       data-test="hotkey-pause-record"
-      onClick=${() => setListening(true)}
+      onClick=${(event) => toggleListening(event, listening, setListening)}
       onKeyDown=${listening ? onKeyDown : null}
       onBlur=${() => setListening(false)}
     >
