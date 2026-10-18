@@ -2,6 +2,83 @@
 //! (plus the keyboard capture methods in `keyboard/`).
 
 use std::path::Path;
+use tauri::image::Image;
+use tauri::tray::TrayIcon;
+use tauri::{AppHandle, WebviewWindowBuilder};
+
+/// macOS: where the red / yellow / green window buttons sit (from the window's top left), so they line up with the
+/// page's header row. The page leaves room for them: `--mac-window-buttons-width` in settings.css.
+#[cfg(target_os = "macos")]
+const WINDOW_BUTTONS_X: f64 = 16.0;
+#[cfg(target_os = "macos")]
+const WINDOW_BUTTONS_Y: f64 = 24.0;
+
+/// Which system the app runs on: "windows", "macos" or "linux". The settings window uses it to show each person their own
+/// keyboard's names (Command on a Mac, Win on Windows) and to show notices that only one system needs.
+pub fn name() -> &'static str {
+    if cfg!(windows) {
+        "windows"
+    } else if cfg!(target_os = "macos") {
+        "macos"
+    } else {
+        "linux"
+    }
+}
+
+type WindowBuilder<'a> = WebviewWindowBuilder<'a, tauri::Wry, AppHandle>;
+
+/// The look of the settings window's frame. Windows and Linux: no native title bar, the page draws its own minimize /
+/// maximize / close buttons in the top right of its header row (windowbar.js).
+#[cfg(not(target_os = "macos"))]
+pub fn style_settings_window(builder: WindowBuilder<'_>) -> WindowBuilder<'_> {
+    builder.decorations(false)
+}
+
+/// macOS: the real window frame, with its rounded corners and red / yellow / green buttons. The title bar is see-through
+/// (Overlay) so the page's own header shows through it, and the page hides its drawn buttons and leaves room for the
+/// real ones (the `mac` class, header.css).
+#[cfg(target_os = "macos")]
+pub fn style_settings_window(builder: WindowBuilder<'_>) -> WindowBuilder<'_> {
+    builder
+        .decorations(true)
+        .title_bar_style(tauri::TitleBarStyle::Overlay)
+        .hidden_title(true)
+        .traffic_light_position(tauri::LogicalPosition::new(WINDOW_BUTTONS_X, WINDOW_BUTTONS_Y))
+        .initialization_script("document.documentElement.classList.add('mac')")
+}
+
+/// The tray icon when there is nothing to report. On macOS a monochrome "template" picture that the menu bar tints for
+/// light and dark; everywhere else the app icon, which keeps its colours.
+pub fn tray_icon(app_icon: &Image<'_>) -> Image<'static> {
+    #[cfg(target_os = "macos")]
+    if let Ok(template) = Image::from_bytes(include_bytes!("../icons/tray-template.png")) {
+        return template;
+    }
+    Image::new_owned(app_icon.rgba().to_vec(), app_icon.width(), app_icon.height())
+}
+
+/// Is the resting tray icon a template (see `tray_icon`)? Only macOS has them.
+pub fn tray_icon_is_template() -> bool {
+    cfg!(target_os = "macos")
+}
+
+/// Switch the tray icon between template and coloured: the orange update dot needs colour, so while it shows the icon
+/// is not a template. Does nothing off macOS.
+pub fn set_tray_icon_template(tray: &TrayIcon, template: bool) {
+    #[cfg(target_os = "macos")]
+    let _ = tray.set_icon_as_template(template);
+    #[cfg(not(target_os = "macos"))]
+    let _ = (tray, template);
+}
+
+/// macOS: a menu-bar app has no Dock icon and no app menu bar of its own (the settings window and the tray are all there
+/// is). Does nothing elsewhere.
+pub fn hide_dock_icon(app: &mut tauri::App) {
+    #[cfg(target_os = "macos")]
+    app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+    #[cfg(not(target_os = "macos"))]
+    let _ = app;
+}
 
 /// Hand freed memory pages back to the OS so the tray-only footprint drops after the settings window closes.
 #[cfg(windows)]

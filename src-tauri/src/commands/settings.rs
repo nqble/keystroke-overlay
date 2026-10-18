@@ -22,6 +22,7 @@ pub fn get_state(st: State<AppState>) -> Value {
         "firstRun": st.first_run.load(Ordering::Relaxed),
         "inputError": st.shared.bus.error(),
         "inputActive": st.shared.bus.method().id(),
+        "platform": crate::platform::name(),
         "keyboardAccess": super::keyboard_access::status(),
         "secureLink": st.shared.settings.read().unwrap()["general"]["secureLink"],
         "gotoTab": st.pending_tab.lock().unwrap().take(),

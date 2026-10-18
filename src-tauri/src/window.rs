@@ -7,13 +7,6 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Windo
 /// to take back the memory the window used.
 const TRIM_MEMORY_AFTER_MS: u64 = 1500;
 
-/// macOS: where the red / yellow / green buttons sit (from the window's top left), so they line up with the page's
-/// header row. The page leaves room for them: `--mac-window-buttons-width` in settings.css.
-#[cfg(target_os = "macos")]
-const WINDOW_BUTTONS_X: f64 = 16.0;
-#[cfg(target_os = "macos")]
-const WINDOW_BUTTONS_Y: f64 = 24.0;
-
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
         let _ = settings_window.unminimize();
@@ -34,31 +27,7 @@ pub fn open_settings(app: &AppHandle) {
         // while the window is open, measured). Both pages are our own local content. The first flag keeps
         // Tauri's default WebView2 flags.
         .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1");
-    let _ = with_window_chrome(builder).build();
-}
-
-/// Windows and Linux: no native title bar, the page draws its own minimize / maximize / close buttons in the top right
-/// of its header row (windowbar.js).
-#[cfg(not(target_os = "macos"))]
-fn with_window_chrome<'a>(
-    builder: WebviewWindowBuilder<'a, tauri::Wry, AppHandle>,
-) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
-    builder.decorations(false)
-}
-
-/// macOS: the real window frame, with its rounded corners and red / yellow / green buttons. The title bar is see-through
-/// (Overlay) so the page's own header shows through it, and the page hides its drawn buttons and leaves room for the
-/// real ones (the `mac` class, header.css).
-#[cfg(target_os = "macos")]
-fn with_window_chrome<'a>(
-    builder: WebviewWindowBuilder<'a, tauri::Wry, AppHandle>,
-) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle> {
-    builder
-        .decorations(true)
-        .title_bar_style(tauri::TitleBarStyle::Overlay)
-        .hidden_title(true)
-        .traffic_light_position(tauri::LogicalPosition::new(WINDOW_BUTTONS_X, WINDOW_BUTTONS_Y))
-        .initialization_script("document.documentElement.classList.add('mac')")
+    let _ = crate::platform::style_settings_window(builder).build();
 }
 
 /// Opens the settings window on a specific tab (used by the tray's "Update available" entry).

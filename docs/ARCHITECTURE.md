@@ -44,7 +44,7 @@ keystroke-overlay/
 │       ├── debug.rs        the in-memory event log (important events always, details in Debug mode), health snapshot, test switches (docs/DEBUGGING.md)
 │       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
 │       ├── hotkeys.rs      the optional global pause shortcut (registers only the one the user set)
-│       ├── key_labels.rs   key labels that follow the user's keyboard language (style.keyLabels)
+│       ├── key_labels.rs   key labels that follow the user's keyboard language and the system's own key names (style.keyLabels)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
 │           ├── mod.rs        lists the command files
@@ -100,7 +100,7 @@ keystroke-overlay/
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
             places.js says where the keys are. The geometry is in keys-board.js (board size and limits), keys-view.js (zoom and
-            pan) and keys-guides.js (snapping guides, used from the next step), plain functions with unit tests.
+            pan) and keys-guides.js (snapping guides, used from the next step) and keys-mac.js (the macOS note that the F row needs Fn), plain functions with unit tests.
 ```
 
 ## How a key press travels

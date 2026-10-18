@@ -11,7 +11,7 @@ use tauri::AppHandle;
 pub fn status() -> Value {
     let access = keyboard::access();
     json!({
-        "applies": cfg!(target_os = "macos"),
+        "applies": crate::platform::name() == "macos",
         "allowed": access.allowed,
         "secureInput": access.secure_input,
     })

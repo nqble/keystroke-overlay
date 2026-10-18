@@ -23,7 +23,7 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
              "borderWidth": 2, "radius": 8, "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
              "textColor": "#e6e9f0ff", "textColorPressed": "#ffffffff", "glowColor": "#4f8cffff", "glowSize": 18,
              "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0,
-             "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language; "layout": the files' labels
+             "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language and Win/Alt/Ctrl follow the system (⌘ ⌥ ⌃ on a Mac); "layout": the files' labels
   "hotkeys": { "enabled": false, "pause": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP"; registered only when on and set
   "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
 }

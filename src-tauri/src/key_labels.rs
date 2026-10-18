@@ -6,12 +6,36 @@
 //!
 //! What each key types is asked from Windows once, at start-up (platform::keyboard_labels). Nothing about what the
 //! user types is read.
+//!
+//! The same setting also makes the keys that are named differently on each system follow the system the app runs on:
+//! Command and Option on a Mac, Super on Linux, Win and Alt on Windows (the layout files' own words). So nobody has to
+//! pick a Mac layout: they open the app and see their own keyboard. The names are in `SYSTEM_NAMES` below.
 
 use crate::server;
 use crate::settings::Paths;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::OnceLock;
+
+/// What the keys that differ between systems are called, per system (`platform::name()`). Windows is the layout files'
+/// own words, so it has no entry. A symbol is used where the key is small (one key wide). A new system, or a key whose
+/// name differs, is one line here.
+const SYSTEM_NAMES: [(&str, &[(&str, &str)]); 2] = [
+    (
+        "macos",
+        &[
+            ("MetaLeft", "⌘"),
+            ("MetaRight", "⌘"),
+            ("AltLeft", "⌥"),
+            ("AltRight", "⌥"),
+            ("ControlLeft", "⌃"),
+            ("ControlRight", "⌃"),
+            ("Backspace", "delete"),
+            ("Enter", "return"),
+        ],
+    ),
+    ("linux", &[("MetaLeft", "Super"), ("MetaRight", "Super")]),
+];
 
 static KEYBOARD: OnceLock<HashMap<&'static str, String>> = OnceLock::new();
 
@@ -29,6 +53,16 @@ pub fn label_for(utf16: u16) -> Option<String> {
         return None;
     }
     Some(typed.to_uppercase().collect())
+}
+
+/// The names of the keys that differ on this system (see `SYSTEM_NAMES`); empty where the layout files' words are right.
+pub fn system_labels(system: &str) -> HashMap<&'static str, String> {
+    let names = SYSTEM_NAMES
+        .iter()
+        .find(|(name, _)| *name == system)
+        .map(|(_, names)| *names);
+    let names = names.unwrap_or(&[]);
+    names.iter().map(|&(code, label)| (code, label.to_string())).collect()
 }
 
 /// Put the keyboard's own labels on every layout key that has one.
@@ -49,6 +83,7 @@ pub fn apply(layouts: &mut [Value], labels: &HashMap<&'static str, String>) {
 pub fn layouts_to_show(paths: &Paths, settings: &Value) -> Vec<Value> {
     let mut layouts = server::layouts(paths);
     if settings["style"]["keyLabels"].as_str() != Some("layout") {
+        apply(&mut layouts, &system_labels(crate::platform::name()));
         apply(&mut layouts, KEYBOARD.get_or_init(crate::platform::keyboard_labels));
     }
     layouts
@@ -66,6 +101,46 @@ mod tests {
         assert_eq!(label_for(';' as u16), Some(";".into()));
         assert_eq!(label_for(' ' as u16), None);
         assert_eq!(label_for(0x1B), None, "a control code keeps the layout's label");
+    }
+
+    #[test]
+    fn a_mac_names_its_modifier_keys_the_mac_way() {
+        let mac = system_labels("macos");
+        assert_eq!(mac.get("MetaLeft").map(String::as_str), Some("⌘"));
+        assert_eq!(mac.get("AltRight").map(String::as_str), Some("⌥"));
+        assert_eq!(mac.get("Backspace").map(String::as_str), Some("delete"));
+    }
+
+    #[test]
+    fn windows_keeps_the_layout_files_words_and_unknown_systems_change_nothing() {
+        assert!(system_labels("windows").is_empty());
+        assert!(system_labels("something-else").is_empty());
+    }
+
+    #[test]
+    fn linux_calls_the_windows_key_super() {
+        assert_eq!(
+            system_labels("linux").get("MetaLeft").map(String::as_str),
+            Some("Super")
+        );
+    }
+
+    #[test]
+    fn every_system_name_is_a_key_the_layouts_know() {
+        let known = include_str!("keyboard/keymap.rs");
+        for (_, names) in SYSTEM_NAMES {
+            for (code, _) in names {
+                assert!(known.contains(&format!("\"{code}\"")), "{code} is not in keymap.rs");
+            }
+        }
+    }
+
+    #[test]
+    fn the_systems_names_fit_a_key_label() {
+        const LONGEST_LABEL: usize = 16; // docs/FILE-FORMATS.md: labels of at most 16 characters
+        for (_, names) in SYSTEM_NAMES {
+            assert!(names.iter().all(|(_, label)| label.chars().count() <= LONGEST_LABEL));
+        }
     }
 
     #[test]

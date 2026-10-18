@@ -24,6 +24,7 @@ export let overlays = 0; // OBS overlay pages connected right now (the preview i
 export let lastUpdate = null; // the latest "is there an update?" answer
 export let updateProgress = null; // download progress while an update installs
 export let inputActive = 'hook'; // the keyboard input method in use: "hook" or "rawinput"
+export let platform = 'windows'; // the system the app runs on: "windows", "macos" or "linux" (platform.rs)
 export let inputError = null; // why the chosen input method could not start, if it could not
 
 export function setSettings(value) {
@@ -87,6 +88,9 @@ export function setUpdateProgress(value) {
 }
 export function setInputActive(value) {
   inputActive = value;
+}
+export function setPlatform(value) {
+  platform = value;
 }
 export function setInputError(value) {
   inputError = value;

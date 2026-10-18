@@ -12,23 +12,6 @@
   border-bottom: 1px solid var(--color-error-line);
 }
 
-/* macOS: ask for keyboard access, or say what to do next (keyboard-access.js). Friendly, not an error: blue. */
-#accessBanner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-12);
-  background: var(--color-panel-raised);
-  color: var(--color-text);
-  padding: var(--space-8) var(--space-16);
-  border-bottom: 1px solid var(--color-accent);
-}
-#accessBanner[hidden] {
-  display: none;
-}
-#accessBanner button {
-  flex: none;
-}
-
 .preview {
   position: relative;
   height: 230px;
