@@ -11,6 +11,11 @@ export const WRITE =
   /\b(fs::write|fs::copy|fs::rename|fs::create_dir(?:_all)?|File::create|File::options|OpenOptions|tokio::fs|write_all)\b/;
 
 /** Logging and printing: a log line is how keystrokes usually leak. Never allowed. */
+// macOS key capture must only listen. These are the ways to do more: an active (not listen-only) tap, or sending key
+// events (the C names and the Rust crate's own methods). The tap's own options are matched in any spelling, not just
+// `CGEventTapOptions::Default`.
+export const MAC_ACTIVE =
+  /CGEventTapOptions\s*::\s*Default|CGEventPost|CGEventTapCreate|CGEventTapPostEvent|\.post\s*\(|\.post_to_pid\s*\(|CGEventTapOptions\s*\(\s*0|\bCGEventTapOptions\b(?!\s*::\s*ListenOnly)(?!\s*,)(?!\s*\})/;
 export const LOG = /\b(println!|eprintln!|print!|eprint!|dbg!|log::|tracing::|env_logger)/;
 
 /** Joins a path that rustfmt or a person split over lines ("std::fs\n    ::write"), so the line-by-line patterns see it. */

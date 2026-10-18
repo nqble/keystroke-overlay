@@ -10,7 +10,7 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { LOG, NET, WRITE, joinSplitPaths, withoutTestModules } from './privacy-patterns.mjs';
+import { LOG, MAC_ACTIVE, NET, WRITE, joinSplitPaths, withoutTestModules } from './privacy-patterns.mjs';
 
 const walk = (dir, exts, out = []) => {
   for (const f of readdirSync(dir)) {
@@ -49,7 +49,7 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
     const allowed = ['src-tauri/src/hotkeys.rs', 'src-tauri/src/main.rs']; // main.rs only loads the plugin
     if (!allowed.includes(file)) bad(file, n, 'global shortcuts outside hotkeys.rs');
   });
-  scan(file, text, /CGEventTapOptions::Default|CGEventPost|CGEventTapCreate/, (n) =>
+  scan(file, text, MAC_ACTIVE, (n) =>
     bad(file, n, 'macOS key capture must be a listen-only tap made with CGEventTap::new(..ListenOnly..)'),
   );
   scan(file, text, LOG, (n) => bad(file, n, 'logging/printing is not allowed (keystrokes could leak)'));
