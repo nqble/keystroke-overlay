@@ -4,7 +4,7 @@ Keystroke Overlay shows your key presses on stream, so it has to watch your keyb
 thing for software to do, so this page says **exactly** what the app does with that access, what it never does,
 and how you can check every claim yourself instead of trusting it.
 
-*Applies to v1.1 and later. Last reviewed: 2026-10-14.*
+*Applies to v1.1 and later; parts marked with a version apply from that version. Last reviewed: 2026-10-18.*
 
 ## The short version
 
@@ -19,8 +19,8 @@ and how you can check every claim yourself instead of trusting it.
 ## What the app can see
 
 While it is running, the app can see **every key you press or release on this computer, in any program** — including
-games, password boxes and private chats. That is unavoidable: the Windows keyboard hook (or, if you choose the Compatibility input method, Windows Raw Input) that makes the overlay work in
-games sees all keys, exactly like any other keystroke-display tool.
+games, password boxes and private chats. That is unavoidable: the way the app reads keys so the overlay works in games (the keyboard hook or Raw Input on
+Windows, XInput2 on Linux X11, a listen-only event tap on a Mac) sees all keys, exactly like any other keystroke-display tool.
 
 What it records about each event is only *which physical key* and *down or up* (for example `KeyW`, down). It does not
 build up the text you type, and it keeps no history: it remembers only which keys are held **right now** so a key can
@@ -33,9 +33,9 @@ front, or just after you let go of Shift, Alt, Ctrl or Win (on Windows, where a 
 announced). For that last one it only notes that a modifier key was released, never which other keys you typed. The
 layout is a fact about the keyboard, not about anything you type, and it stays in memory.
 
-From v2.0 you can also set a **pause shortcut** (General → Pause shortcut, off by default). The app then asks Windows
-to tell it about that one key combination only; it sees no other key that way, and registers nothing while the
-shortcut is off. The check in `tools/check-privacy.mjs` makes sure shortcuts are registered only in `hotkeys.rs`.
+From v2.0 you can also set a **pause shortcut** (General → Pause shortcut, off by default). The app then asks the system (Windows,
+macOS or Linux) to tell it about that one key combination only; it sees no other key that way, and registers nothing while the
+shortcut is off. The check in `tools/check-privacy.mjs` makes sure shortcuts are registered only in `hotkeys.rs` (`main.rs` only loads the plugin).
 
 Use **Pause overlay** (tray menu) whenever you are about to type something private on stream. While paused, the app
 forwards nothing at all.
@@ -43,7 +43,7 @@ forwards nothing at all.
 ## Where keystrokes go
 
 ```
-keyboard  ->  Windows keyboard hook (or Raw Input)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
+keyboard  ->  hook / Raw Input (Windows), XInput2 (Linux), event tap (macOS)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
 ```
 
 Every step happens on your PC, in memory. When the key is released the event is gone. There is no step that writes
@@ -55,7 +55,7 @@ to disk and no step that uses the network.
 - They differ only in *how Windows hands the key events to the app*. Both see the same keys, record the same two facts
   (which key, down or up), keep nothing, and send nothing anywhere except the local overlay page. Choosing one over the other
   changes nothing about your privacy.
-- **On Linux** (X11 desktops, still in development), Standard reads keys through X11's *XInput2 raw key events* instead. It
+- **On Linux** (X11 desktops, from v1.4; not released yet), Standard reads keys through X11's *XInput2 raw key events* instead. It
   works the same way: listen-only, the same two facts per key, kept only in memory, sent only to the local overlay page. Any
   program on an X11 desktop can listen this way; the app doesn't gain a power others don't already have
   ([docs/LINUX-PORT.md](docs/LINUX-PORT.md)).
@@ -72,7 +72,9 @@ to disk and no step that uses the network.
 
 ## What is stored on disk
 
-Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's normal cache in `%LOCALAPPDATA%`):
+Only things you chose, plus two recovery files (below), in the app's data folder: `%APPDATA%\com.keyoverlay.app\` on
+Windows (and the web view's normal cache in `%LOCALAPPDATA%`), `~/Library/Application Support/com.keyoverlay.app` on a Mac,
+`~/.local/share/com.keyoverlay.app` on Linux:
 
 - `settings.json` (+ `settings.json.bak`, the previous copy): your style, layout choices, hidden keys, custom labels, port, preferences
 - from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app (you went back
@@ -107,7 +109,7 @@ Exactly three things, all with `github.com` / `api.github.com`, and all visible 
    `api.github.com`.
 
 What GitHub can see in those requests is what any website can see: your **IP address**, the time, and a user-agent
-that names the app and its version (for example `tauri-plugin-updater/2.x`). The app sends **no** user ID, device ID,
+that names the app and its version (`KeystrokeOverlay/<version>` for release notes; the updater's own for update checks). The app sends **no** user ID, device ID,
 settings or keystrokes, and sets no cookies. GitHub's own privacy statement governs what GitHub does with its logs.
 
 If you never use updates, you can block the app in your firewall and everything else keeps working.
@@ -120,11 +122,11 @@ authenticate** other *programs* on the same computer. So:
 
 - A program already running on your PC, as you, could connect to the overlay port and receive key events. (Such a
   program could also install its own keyboard hook, so this does not give it a power it did not already have.)
-- On a PC where **other people are logged in at the same time** (Windows fast user switching, shared or terminal
-  servers), their programs could connect to your port too.
+- On a PC where **other people are logged in at the same time** (fast user switching, shared or terminal
+  servers, on any system), their programs could connect to your port too.
 
-If that matters to you: use *Pause overlay*, use the app only on a PC you alone use, or turn on the optional **Secure link** (General → Secure link). With it on, your OBS link carries a private key and the
-server refuses every data request and the key-press stream without it, so other programs and other Windows users can't listen in.
+If that matters to you: use *Pause overlay*, use the app only on a PC you alone use, or turn on the optional **Secure link** (General → Connection → Secure my OBS link). With it on, your OBS link carries a private key and the
+server refuses every data request and the key-press stream without it, so other programs and other users of the PC can't listen in.
 It is off by default (the link stays simple); turning it on means pasting the new link into OBS once, and "Make a new key"
 cuts off old links. The overlay's own public page and scripts stay open because they contain nothing private, and the key itself is
 never sent to the overlay. The key is part of the link, so it is stored wherever the link is: in OBS's scene files, and
@@ -132,10 +134,10 @@ anywhere you paste it. Treat the link like a password, keep it off your stream, 
 
 ## Things outside this app's control
 
-- **Microsoft Edge WebView2** draws the settings window. It is a Microsoft component; Microsoft's diagnostic-data
-  settings in Windows apply to it. The settings window only ever loads this app's own local pages.
+- **The system's web view** draws the settings window: Microsoft Edge WebView2 on Windows (a Microsoft component;
+  Microsoft's diagnostic-data settings in Windows apply to it), WKWebView on a Mac, WebKitGTK on Linux. The settings window only ever loads this app's own local pages.
 - **OBS Studio** (or whatever browser source you use) renders the overlay. Its behaviour is its own.
-- **Windows** itself, and any other software on your PC.
+- **The operating system** itself, and any other software on your computer.
 
 ## How to check it yourself
 
@@ -144,13 +146,14 @@ You do not have to take our word for any of this.
 1. **Read the code.** It is small. These searches in `src-tauri/src/` show everything:
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
-   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), and the Debug self-test's empty
+   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), the crash note and the downgrade copy (`crash.rs`, `downgrade.rs`), and the Debug self-test's empty
      `.write-test` file, created and deleted at once
      (never the keyboard or server code)
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
-2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on
-   `127.0.0.1` and nothing else (the process id is in Task Manager). The only outward connections are the update check and download
-   above: with *Check for updates automatically* on (the default), the first one comes about 45 seconds after start.
+2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` on Windows (the process id is in
+   Task Manager), `lsof -iTCP -a -p <pid>` on a Mac or `ss -tlnp` on Linux shows one listening socket on `127.0.0.1` and
+   nothing else. The only outward connections are the update check and download
+   above: with *Check automatically* on (the default), the first one comes about 45 seconds after start.
 3. **Block it.** Add a firewall rule blocking the app's outbound traffic: the overlay keeps working, only updates stop.
 4. **Watch the disk.** Process Monitor (Microsoft Sysinternals) filtered to the app shows writes only inside its data folder.
 5. **Build it yourself.** See [CONTRIBUTING.md](CONTRIBUTING.md) — compile from source and compare behaviour.
