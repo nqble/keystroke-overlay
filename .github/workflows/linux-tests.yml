@@ -104,14 +104,27 @@ jobs:
         run: |
           RUNTIME=/tmp/runtime-$TEST_USER
           sudo install -d -m 700 -o "$TEST_USER" "$RUNTIME"
-          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" weston --backend=headless-backend.so --socket=wayland-1 --idle-time=0 &
+          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" weston --backend=headless-backend.so --socket=wayland-1 --idle-time=0 > /tmp/weston.log 2>&1 &
           sleep 3
           # The helper makes its keyboard before the app starts: the app finds keyboards when capture starts.
-          KO_TYPE_WHEN=/tmp/type-now sudo -E -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::type_for_the_app_test &
+          KO_TYPE_WHEN=/tmp/type-now sudo -E -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::type_for_the_app_test > /tmp/typer.log 2>&1 &
           sleep 2
-          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" WAYLAND_DISPLAY=wayland-1 keyoverlay &
+          # Headless Weston has no GPU: WebKitGTK's GPU buffer path is switched off so the window can open.
+          sudo -u "$TEST_USER" XDG_RUNTIME_DIR="$RUNTIME" WAYLAND_DISPLAY=wayland-1 WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+            keyoverlay > /tmp/app.log 2>&1 &
       - name: Keys reach the overlay
         run: node tests/linux/overlay-check.mjs keys -- touch /tmp/type-now
+      # GitHub's logs are the only way to see why a step failed here, so print what the background programs said.
+      - name: What Weston, the typing helper and the app printed (only when something failed)
+        if: failure()
+        run: |
+          for log in /tmp/weston.log /tmp/typer.log /tmp/app.log; do echo "== $log"; tail -n 40 "$log" || true; done
+          echo "== running"; pgrep -a 'keyoverlay|weston|device-tests' || true
+          echo "== keyboards"; ls -l /dev/input/ || true
+          # The same, as annotations on the run page (readable where the full log can't be downloaded).
+          for log in /tmp/weston.log /tmp/typer.log /tmp/app.log; do
+            echo "::warning title=$log::$(tail -n 15 "$log" 2>/dev/null | tr '\n' '|' | cut -c1-900)"
+          done
       - name: The AppImage starts
         run: |
           chmod +x downloads/*.AppImage

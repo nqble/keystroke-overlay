@@ -99,4 +99,5 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install -y xvfb
-          xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored
+          # Only the X11 tests: the keyboard-device tests need /dev/uinput and run in linux-tests.yml.
+          xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored x11
