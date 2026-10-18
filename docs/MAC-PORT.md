@@ -165,8 +165,10 @@ systems. The key editor pans with a two-finger scroll, zooms with a pinch (or ‚å
 (`editor/view-gestures.js`); the gesture logic is unit-tested, and the wiring was driven in a real browser page through the UI sandbox
 (`?platform=macos&tab=keys`) with synthetic events: a pinch, a two-finger scroll, Command + scroll, Space + drag (pans by
 the pointer's distance, selects nothing, ignored in a text box), middle-button drag, a plain drag not panning, a
-simulated Safari pinch, and the Windows mode (the wheel zooms, a sideways scroll does nothing). Not yet tried with
-real trackpad fingers in the Mac window.
+simulated Safari pinch, and the Windows mode (the wheel zooms, a sideways scroll does nothing). Then tried with
+real fingers on the M1 trackpad in the Mac window: the pinch zooms around the pointer, and the two-finger scroll pans
+(it lagged until sliding was switched off during the scroll, then felt right). The Windows precision-touchpad pinch
+(Ctrl + a small wheel delta) is not yet tried on a PC.
 
 ## Things to double-check before relying on them
 
