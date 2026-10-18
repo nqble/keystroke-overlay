@@ -45,8 +45,6 @@ run of `tests/bench/run.mjs` on one PC; numbers from different entries come from
 - Third-party licence notices ship with the installer, the release workflow is pinned and hardened, and the app's name, repository and identifiers are kept in one place.
 - Type checking for the interface code, a benchmark for key-press delay, and key capture on Linux X11 desktops (for developers; there is no Linux release yet).
 
-Your settings, presets and fonts are kept.
-
 ## v1.3.0 — free key placement
 
 ### ✨ New
