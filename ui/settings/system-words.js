@@ -7,11 +7,42 @@
 const WORDS = {
   // what starting the app with the computer is called
   startup: { windows: 'start-with-Windows', macos: 'open-at-login', linux: 'start-at-login' },
+  // the General -> Startup switches: starting with the computer, and what minimizing does
+  autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' },
+  minimize: { windows: 'Minimize to tray', macos: 'Minimize to the menu bar', linux: 'Minimize to tray' },
+  // the modifiers a shortcut needs, in words, for the pause shortcut's hint
+  modifiers: { windows: 'Ctrl, Alt or Win', macos: '⌘, ⌥ or ⌃', linux: 'Ctrl, Alt or Super' },
+  // the Keys tab's hint line: how to add a key to the selection, and the key that hides keys (a Mac calls it "delete")
+  dragHint: {
+    windows: 'Drag a key to move it. Ctrl-click to add.',
+    macos: 'Drag a key to move it. ⌘-click to add.',
+    linux: 'Drag a key to move it. Ctrl-click to add.',
+  },
+  deleteKey: { windows: 'Del', macos: 'delete', linux: 'Del' },
+  deleteKeyTip: {
+    windows: 'Delete or Backspace hides the selected keys',
+    macos: 'The delete key hides the selected keys',
+    linux: 'Delete or Backspace hides the selected keys',
+  },
+  // how the Standard keyboard method reads keys, for the technical line shown in Debug mode
+  standardDetail: {
+    windows: 'Standard = WH_KEYBOARD_LL hook',
+    macos: 'Standard = listen-only event tap (CGEventTap)',
+    linux: 'Standard = XInput2 raw events',
+  },
 };
 
 /** Which browser's inspector shows this window: Safari's on a Mac (the window is a WKWebView), Edge's elsewhere. */
 export function inspectorTool(platform) {
   return platform === 'macos' ? 'safari' : 'edge';
+}
+
+/**
+ * The keyboard input methods this system has, as the ids the app uses. Only Windows has the Compatibility method (Raw
+ * Input); on a Mac or Linux choosing it only gives an error, so it is not offered there.
+ */
+export function inputMethods(platform) {
+  return platform === 'windows' || platform === undefined ? ['hook', 'rawinput'] : ['hook'];
 }
 
 const DEFAULT_SYSTEM = 'windows'; // the layout files' and the original words
