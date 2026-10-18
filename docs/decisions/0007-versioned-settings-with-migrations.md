@@ -10,7 +10,8 @@ Users update the app across many versions and expect their settings, layouts and
 (`MIGRATIONS` in `src-tauri/src/settings.rs`), merged on top of the defaults so new options always have a value, then
 sanitised (wrong types fall back to defaults, numbers are clamped to ranges, colours and ids are validated). A corrupted
 file falls back to the last good `.bak` copy. From v1.4.0, a file written by a newer version is copied aside
-(`settings.vN.json`) before it is rewritten, so going back a version never loses settings.
+(`settings.vN.json`) before it is rewritten, so going back a version never loses settings, and the copy is put back (and
+deleted) when the newer version runs again.
 
 ## Why
 - Additive changes (a new option) need no migration; renames and restructures bump the version and add one migration step.
