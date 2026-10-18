@@ -12,8 +12,9 @@ export const TEXT = {
   selfTestHelp:
     'Checks that the server, the overlay page, key capture, your settings, the data folder and every ' +
     'layout are healthy.',
-  eventLogHelp:
-    'What the app itself did: server restarts, layout changes, update checks, tray actions. Kept in ' +
+  // `trayName` is the system's name for where the app's icon lives (system-words.js), here and in fakeUpdateHelp
+  eventLogHelp: (trayName) =>
+    `What the app itself did: server restarts, layout changes, update checks, ${trayName} actions. Kept in ` +
     'memory only (last 300 lines). Never records key presses.',
   keyMonitorHelp:
     'Shows each key the app sees, with the time since the previous event. Use it to check that a key ' +
@@ -25,9 +26,9 @@ export const TEXT = {
     'app validates them like a hand-edited settings file and shows what it corrected. Port, ' +
     `${startup}, keyboard method and secure link have their own controls, so they are not ` +
     'changed here.',
-  fakeUpdateHelp:
-    '“Fake update available” shows the update button, the orange tray dot and the “Update available” ' +
-    'tray entry without needing a real release.',
+  fakeUpdateHelp: (trayName) =>
+    `“Fake update available” shows the update button, the orange ${trayName} dot and the “Update available” ` +
+    `${trayName} entry without needing a real release.`,
   // The Mac window is a WKWebView, inspected with Safari. Only a development build allows it: a built or downloaded app
   // does not switch the inspector on.
   inspectorMacSteps: [

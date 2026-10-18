@@ -67,6 +67,7 @@ when it takes more than one, a check or test catches a forgotten one.
 |---|---|---|
 | A layout, theme or animation | one file in `ui/overlay/layouts/`, `themes/` or `animations/` | 1 |
 | Words the user reads | the `TEXT` block of the file that shows them (shared ones: `ui/settings/text.js`) | 1 |
+| Words that differ per system (Windows / Mac / Linux) | one entry in `ui/settings/system-words.js` (`npm run check:systems` catches a Windows word left elsewhere) | 1 |
 | The look of one part of the window | its own CSS file next to `settings.css` (`header.css`, `popups.css`, ...; a new part gets a new file and a `<link>` in `index.html`) | 1–2 |
 | A colour, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colours) | 1 |
 | A header status | one rule in `obsStatus()`, `ui/settings/obs-status.js`, plus its test | 1 |

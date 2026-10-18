@@ -10,6 +10,8 @@ const WORDS = {
   // the General -> Startup switches: starting with the computer, and what minimizing does
   autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' },
   minimize: { windows: 'Minimize to tray', macos: 'Minimize to the menu bar', linux: 'Minimize to tray' },
+  // where the app's icon lives while its window is closed
+  trayName: { windows: 'tray', macos: 'menu bar', linux: 'tray' },
   // the modifiers a shortcut needs, in words, for the pause shortcut's hint
   modifiers: { windows: 'Ctrl, Alt or Win', macos: '⌘, ⌥ or ⌃', linux: 'Ctrl, Alt or Super' },
   // the Keys tab's hint line: how to add a key to the selection, and the key that hides keys (a Mac calls it "delete")

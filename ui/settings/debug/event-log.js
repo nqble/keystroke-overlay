@@ -4,6 +4,8 @@
 // =====================================================================================================================
 import { scrub } from '../debug-report.js';
 import { button, call, el, invoke, note, toast } from '../helpers.js';
+import { platform } from '../state.js';
+import { systemWord } from '../system-words.js';
 import { TEXT, clock, every } from './shared.js';
 
 export const eventLog = {
@@ -21,7 +23,7 @@ export const eventLog = {
       );
       if (atEnd) box.scrollTop = box.scrollHeight;
     };
-    const root = el('div', {}, note(TEXT.eventLogHelp), box);
+    const root = el('div', {}, note(TEXT.eventLogHelp(systemWord('trayName', platform))), box);
     root.append(
       el(
         'div',

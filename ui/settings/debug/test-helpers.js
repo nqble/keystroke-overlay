@@ -5,7 +5,8 @@
 import { addLayoutDialog } from '../dialogs.js';
 import { showNotes } from '../notes.js';
 import { button, call, el, invoke, note, toast } from '../helpers.js';
-import { appVersion } from '../state.js';
+import { appVersion, platform } from '../state.js';
+import { systemWord } from '../system-words.js';
 import { TEXT } from './shared.js';
 
 export const testHelpers = {
@@ -48,7 +49,7 @@ export const testHelpers = {
         ),
         button('Reload this window', () => location.reload(), '', 'debug-reload-window'),
       ),
-      note(TEXT.fakeUpdateHelp),
+      note(TEXT.fakeUpdateHelp(systemWord('trayName', platform))),
     ];
   },
 };
