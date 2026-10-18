@@ -174,6 +174,16 @@ real fingers on the M1 trackpad in the Mac window: the pinch zooms around the po
 (it lagged until sliding was switched off during the scroll, then felt right). The Windows precision-touchpad pinch
 (Ctrl + a small wheel delta) is not yet tried on a PC.
 
+## Checked on the M1: Secure Input and the update dot
+
+- **Secure Input:** a macOS-only test (`secure_input_on_follows_the_system` in `keyboard/macos.rs`) turns Secure Input on and
+  off the way a password box does and checks `secure_input_on` follows it, so the window's hint and the bug report's
+  row have a working source.
+- **Update dot on the tray icon:** a development copy run with `KEYOVERLAY_TEST_UPDATE_BASE` pointing at a local mock
+  update file (a newer version with a `darwin-aarch64` entry) found the "update"; Jordan saw the coloured icon with the
+  orange dot, and "Update available" at the top of the tray menu. Since v2.0 the in-window update button is the
+  "Update ready" button in the header's top right.
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:
