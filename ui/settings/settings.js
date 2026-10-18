@@ -9,6 +9,7 @@
 // =====================================================================================================================
 import { $, call, invoke } from './helpers.js';
 import { openFirstRun } from './first-run.js';
+import { paintAccess, setKeyboardAccess } from './keyboard-access.js';
 import { paintHeader } from './header.js';
 import { html, render as draw } from './html.js';
 import { paintPause, showServerError, resync } from './messages.js';
@@ -132,6 +133,8 @@ addEventListener('resize', () => {
   setCustomFonts(fonts);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
+  setKeyboardAccess(state.keyboardAccess);
+  paintAccess();
   // e.g. the tray's "Update available" opens General
   if (state.gotoTab && findTab(state.gotoTab, !!state.settings.general?.debugMode)) setTab(state.gotoTab);
   paintPause();

@@ -2,6 +2,7 @@
 //   * uses the network anywhere except src-tauri/src/commands/updates.rs
 //   * listens on anything but 127.0.0.1, or listens outside server.rs
 //   * writes files from the keyboard hook or the overlay server
+//   * does more than listen on macOS: a key-event tap that is not listen-only, or injected key events
 //   * logs/prints anything (a log line is how keystrokes usually leak)
 //   * makes the UI call an external address
 //   * registers global shortcuts anywhere but hotkeys.rs (which registers only the one the user chose)
@@ -48,6 +49,9 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
     const allowed = ['src-tauri/src/hotkeys.rs', 'src-tauri/src/main.rs']; // main.rs only loads the plugin
     if (!allowed.includes(file)) bad(file, n, 'global shortcuts outside hotkeys.rs');
   });
+  scan(file, text, /CGEventTapOptions::Default|CGEventPost|CGEventTapCreate/, (n) =>
+    bad(file, n, 'macOS key capture must be a listen-only tap made with CGEventTap::new(..ListenOnly..)'),
+  );
   scan(file, text, LOG, (n) => bad(file, n, 'logging/printing is not allowed (keystrokes could leak)'));
 }
 
@@ -117,5 +121,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, macOS capture listen-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
 );

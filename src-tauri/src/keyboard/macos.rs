@@ -30,10 +30,41 @@ const TEXT_THREAD_STOPPED: &str = "the keyboard capture thread stopped unexpecte
 /// `kCGEventSourceStateHIDSystemState`: the state of the keyboard hardware itself, as opposed to what apps were told.
 const HID_SYSTEM_STATE: i32 = 1;
 
+/// Where System Settings lists the apps allowed to read the keyboard (Privacy & Security > Input Monitoring).
+const INPUT_MONITORING_PANE: &str = "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent";
+
 #[link(name = "CoreGraphics", kind = "framework")]
 extern "C" {
     fn CGEventSourceKeyState(state_id: i32, key: u16) -> bool;
     fn CGEventTapEnable(tap: *mut c_void, enable: bool);
+    fn CGPreflightListenEventAccess() -> bool;
+    fn CGRequestListenEventAccess() -> bool;
+}
+
+#[link(name = "Carbon", kind = "framework")]
+extern "C" {
+    fn IsSecureEventInputEnabled() -> bool;
+}
+
+/// Is this app allowed to read the keyboard (Input Monitoring)? Only asks macOS; never shows a prompt.
+pub fn input_monitoring_allowed() -> bool {
+    // SAFETY: plain query that takes no arguments and touches no memory of ours.
+    unsafe { CGPreflightListenEventAccess() }
+}
+
+/// Is "Secure Event Input" on? macOS turns it on while a password field has focus, and then stops every event tap, so
+/// no key reaches the overlay. Some apps leave it stuck on by mistake.
+pub fn secure_input_on() -> bool {
+    // SAFETY: plain query that takes no arguments and touches no memory of ours.
+    unsafe { IsSecureEventInputEnabled() }
+}
+
+/// Ask macOS for Input Monitoring (it shows its own prompt the first time, which also puts this app in the list) and
+/// open the System Settings page where the person ticks it. macOS never asks twice, so the page is opened every time.
+pub fn request_input_monitoring() {
+    // SAFETY: plain request that takes no arguments and touches no memory of ours.
+    unsafe { CGRequestListenEventAccess() };
+    let _ = crate::platform::open_url(INPUT_MONITORING_PANE);
 }
 
 /// Wraps the capture thread's run loop so `stop` can wake it from another thread. Stopping a run loop from another

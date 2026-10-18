@@ -1,4 +1,4 @@
-# Porting to macOS — plan and status (Phase 1 code written on `mac/port`; key capture not yet seen working on a Mac)
+# Porting to macOS — plan and status (Phases 1 and 2 on `mac/port`; Phase 1 seen working on a Mac, Phase 2 partly)
 
 **Verdict: yes, and the best route is to keep Tauri.** Roughly 80% of the app is already cross-platform
 (overlay, settings window, local server, settings storage, tray, updater, autostart). What is Windows-only is key capture (the hook and Raw
@@ -59,8 +59,11 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
    `other-systems` job). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
    release) are written and unit-tested; it still has to be seen working on a real Mac. Still to do: make CI upload an
    unsigned `.app`.
-2. **Phase 2 — it behaves.** Permission screen, Secure Input hint, menu-bar icon, Dock icon hidden, visual pass over
-   the settings window in WKWebView.
+2. **Phase 2 — it behaves.** Written on `mac/port`: a notice under the header (Allow keyboard access / restart / Secure
+   Input hint, `ui/settings/keyboard-access.js`), menu-bar-only app (accessory policy) with a monochrome template tray
+   icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: tray icon, no Dock
+   icon, the native window and header fit. Not yet seen: the Allow / restart / Secure Input notices on screen, the
+   update badge on the template icon, and a visual pass over every tab.
 3. **Phase 3 — it ships.** Apple Developer ID, signing + notarization in a GitHub Actions release workflow, universal
    build, `darwin-*` entries in `latest.json`/`stable.json`, README install steps.
 4. **Phase 4 — polish.** Mac-specific docs, Homebrew cask, community testers.
@@ -80,6 +83,14 @@ where signing rules are strictest). Borrow one, use a hosted Mac, or recruit a t
 There is no good shortcut: a Windows VM or Wine cannot see keystrokes on the Mac host, and a browser-only version
 cannot see keys while a game has focus. The realistic alternatives are (a) a Mac-only companion written separately, or
 (b) telling Mac users to use another tool. A native Tauri port is the least work for the most reliable result.
+
+## Seen on a real Mac (M1 MacBook Air, macOS 26)
+
+- **Key capture works** with a listen-only tap once Input Monitoring is allowed. A dev build started *before* the
+  permission was granted showed nothing; after a restart it captured normally, so the restart hint is needed.
+- **F keys:** all of F1 to F12 arrive when Fn is held. Without Fn only some of them arrive as F keys: on a Mac laptop
+  the top row is brightness, volume and media keys by default, which are not ordinary key events. A test pressing
+  F1 to F12 with and without Fn gave F1, F2, F3 and F11 twice and the other eight once.
 
 ## Things to double-check before relying on them
 

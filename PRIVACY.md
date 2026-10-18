@@ -56,6 +56,16 @@ to disk and no step that uses the network.
   works the same way: listen-only, the same two facts per key, kept only in memory, sent only to the local overlay page. Any
   program on an X11 desktop can listen this way; the app doesn't gain a power others don't already have
   ([docs/LINUX-PORT.md](docs/LINUX-PORT.md)).
+- **On macOS** (in development), Standard reads keys through a *listen-only event tap*. It gets a copy of each key event and
+  can never change, block or send keys. It records the same two facts per key (which key, down or up), keeps them only in
+  memory, and sends them only to the local overlay page. Because it is listen-only, macOS asks for **Input Monitoring**
+  and nothing broader: the app is not given the Accessibility permission, which would allow controlling other apps.
+  You switch it on yourself in System Settings > Privacy & Security > Input Monitoring, and can switch it off there at any
+  time. `npm run check:privacy` fails if the code ever creates a tap that is not listen-only.
+- **Passwords on macOS can't reach the overlay.** While a password field has focus, macOS turns on *Secure Event Input*,
+  which stops every event tap, this app's included. The overlay simply shows nothing during that time. The app only asks
+  macOS whether Secure Input is on, to explain why keys are missing; it never sees what is typed
+  ([docs/MAC-PORT.md](docs/MAC-PORT.md)).
 
 ## What is stored on disk
 
