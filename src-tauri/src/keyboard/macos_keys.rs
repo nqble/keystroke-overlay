@@ -115,6 +115,13 @@ pub fn code_name(mac_keycode: u16) -> Option<&'static str> {
     })
 }
 
+/// The macOS virtual key code of the key with this DOM-style name ("KeyQ"), the reverse of `code_name`. None for a name
+/// no Mac key has.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))] // used by macos_labels.rs, and by the tests
+pub fn keycode_for(name: &str) -> Option<u16> {
+    (0..=u8::MAX as u16).find(|&keycode| code_name(keycode) == Some(name))
+}
+
 /// Modifier keys don't send key-down and key-up events on macOS, only "flags changed" events. The flags carry one bit
 /// per physical modifier key (the "device-dependent" bits, `NX_DEVICE*KEYMASK` in IOKit/hidsystem/IOLLEvent.h), so the
 /// bit for this key tells whether it went down or up. Returns that bit, or None for a key that is not a modifier.
@@ -297,6 +304,18 @@ mod tests {
                     windows_names.contains(&format!("\"{name}\"")),
                     "{name} is not in keymap.rs"
                 );
+            }
+        }
+    }
+
+    #[test]
+    fn a_name_finds_its_key_code_and_back() {
+        assert_eq!(keycode_for("KeyQ"), Some(12));
+        assert_eq!(keycode_for("Space"), Some(49));
+        assert_eq!(keycode_for("NoSuchKey"), None);
+        for keycode in 0..=u8::MAX as u16 {
+            if let Some(name) = code_name(keycode) {
+                assert_eq!(keycode_for(name), Some(keycode), "{name}");
             }
         }
     }

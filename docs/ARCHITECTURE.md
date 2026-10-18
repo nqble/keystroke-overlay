@@ -32,7 +32,8 @@ keystroke-overlay/
 │       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
 │       │   ├── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
-│       │   └── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
+│       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
+│       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
@@ -89,6 +90,7 @@ keystroke-overlay/
         ├── header.js      the header's status, Copy OBS link and Update ready, drawn with Preact (paintHeader)
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── keyboard-access.js  macOS: the notice that asks for keyboard access (logic in access-notice.js)
+        ├── system-fonts.js  the font list for this system (Windows fonts or Mac fonts)
         ├── system-words.js  words that differ per system (what starting with the computer is called, which inspector)
         ├── text.js        the longer explanations the user reads
         ├── debug/         the optional Debug tab, one file per tool; index.js draws it (docs/DEBUGGING.md)

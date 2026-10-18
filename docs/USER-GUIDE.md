@@ -79,6 +79,10 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
   Your key presses travel only through the encrypted tunnel you started, between your own two PCs.
 - **Safety of the tunnel is your job.** Use a normal SSH login (a key or password) and let only your own devices reach the SSH port, for
   example with Tailscale access rules. **Pause overlay** still works, because the pause happens in the app on PC A.
+- **Fonts come from the computer that shows the overlay.** OBS draws the overlay with the fonts installed on PC B. If the
+  font you picked isn't there, it falls back to Segoe UI, then to that computer's own system font (San Francisco on a
+  Mac). Pick a font both PCs have, or add a font file in **Style → Add font file**: the app hands its own fonts to OBS, so
+  they look the same everywhere.
 - Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
@@ -260,6 +264,11 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
 - **Passwords.** While a password box has focus, macOS blocks key capture on purpose, so passwords can never reach the
   overlay. If the app says capture is blocked and it doesn't clear, lock and unlock the screen, or quit the app that is
   holding it.
+- **Where your settings live.** In `~/Library/Application Support/com.keyoverlay.app` (settings, layouts, presets and
+  fonts). **General → Advanced → Open data folder** opens it.
+- **Uninstall.** Turn off **Open at login** first if you turned it on. Quit the app from its menu-bar icon, delete
+  Keystroke Overlay, and delete the data folder above if you want your settings gone too. To remove its keyboard
+  permission, run `tccutil reset ListenEvent com.keyoverlay.app` in Terminal.
 - **Updates.** The app can't install updates on a Mac yet. **Check for updates** points you to the Releases page.
 - **If the build stops** with a linker error that says "malformed file" or "unknown architecture", your Xcode Command Line
   Tools are older than your newest macOS SDK. Update them in System Settings → Software Update, then build again.

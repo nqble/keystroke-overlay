@@ -4,7 +4,8 @@
 //! punctuation instead (the digit row keeps its digits, see keyboard/keymap.rs TYPING_KEYS). A user's own label for a
 //! key always wins, because it is applied on top of these by the overlay and the key editor.
 //!
-//! What each key types is asked from Windows once, at start-up (platform::keyboard_labels). Nothing about what the
+//! What each key types is asked from the system once, at start-up (platform::keyboard_labels; Windows, and macOS in
+//! keyboard/macos_labels.rs). Nothing about what the
 //! user types is read.
 //!
 //! The same setting also makes the keys that are named differently on each system follow the system the app runs on:
@@ -46,7 +47,7 @@ pub fn init() {
 
 /// The label for one character a key types: upper case, as on a keycap. None for anything that isn't a visible
 /// character (a control code or a space), so that key keeps its layout's label.
-#[cfg_attr(not(windows), allow(dead_code))] // used by platform::keyboard_labels on Windows, and by the tests
+#[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))] // used by platform::keyboard_labels on Windows and macOS, and by the tests
 pub fn label_for(utf16: u16) -> Option<String> {
     let typed = char::from_u32(u32::from(utf16))?;
     if typed.is_control() || typed.is_whitespace() {

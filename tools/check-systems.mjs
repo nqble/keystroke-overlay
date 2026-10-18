@@ -18,7 +18,7 @@ const EXEMPT = /\/\/ per-system: /;
 const COMMENT_LINE = /^\s*(\/\/|\/?\*)/;
 
 // Waiting for a change already planned. Remove a line when that change lands (it then has to pass like the rest).
-const PENDING = new Map([['ui/settings/controls.js', 'the Mac font list (macOS port, item 10, on mac/port)']]);
+const PENDING = new Map();
 
 /** The Windows-only words in quoted text on one line of code, or [] when there are none or the line is exempt. */
 export function windowsWordsIn(line) {

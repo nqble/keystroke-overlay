@@ -5,34 +5,8 @@ import { Segmented } from './blocks.js';
 import { html, render as drawPreact, useLayoutEffect, useRef } from './html.js';
 import { el, get, put, row } from './helpers.js';
 import { changed } from './preview.js';
-import { settings, customFonts, registry } from './state.js';
-
-const WINDOWS_FONTS = [
-  // all of these come with Windows 10 and 11
-  'Segoe UI',
-  'Segoe UI Semibold',
-  'Segoe UI Black',
-  'Bahnschrift',
-  'Arial',
-  'Arial Black',
-  'Calibri',
-  'Candara',
-  'Cascadia Code',
-  'Cascadia Mono',
-  'Consolas',
-  'Corbel',
-  'Courier New',
-  'Franklin Gothic Medium',
-  'Georgia',
-  'Impact',
-  'Lucida Console',
-  'Palatino Linotype',
-  'Tahoma',
-  'Times New Roman',
-  'Trebuchet MS',
-  'Verdana',
-  'Comic Sans MS',
-];
+import { settings, customFonts, platform, registry } from './state.js';
+import { DEFAULT_FONT, systemFonts } from './system-fonts.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 5. Style / Animation controls
@@ -288,16 +262,19 @@ function segmentedCtl(control) {
 }
 
 /**
- * The font picker: the user's own fonts, the Windows fonts (each shown in its own font), or "Other" to type any name.
+ * The font picker: the user's own fonts, this system's fonts (each shown in its own font; Windows or Mac fonts, from
+ * system-fonts.js), or "Other" to type any name.
  */
 function fontCtl(control) {
+  const system = systemFonts(platform);
   const current = get(settings, control.path);
   const mine = customFonts.map((file) => file.replace(/\.[^.]+$/, '')); // "My Font.ttf" -> "My Font"
-  const known = new Set([...mine, ...WINDOWS_FONTS]);
+  const known = new Set([...mine, ...system.fonts.map((font) => font.value)]);
   const option = (font) => {
-    const item = el('option', { value: font, textContent: font });
-    item.dataset.font = font;
-    item.style.setProperty('--option-font', `"${font}", "Segoe UI", sans-serif`); // the list shows each name in its own font
+    const { value, label } = typeof font === 'string' ? { value: font, label: font } : font;
+    const item = el('option', { value, textContent: label });
+    item.dataset.font = value;
+    item.style.setProperty('--option-font', `"${value}", "${DEFAULT_FONT}", system-ui, sans-serif`); // the list shows each name in its own font
     return item;
   };
   const select = el(
@@ -305,7 +282,7 @@ function fontCtl(control) {
     { test: testName('control', control.path) },
     [
       mine.length ? el('optgroup', { label: 'Your fonts' }, mine.map(option)) : null,
-      el('optgroup', { label: 'Windows fonts' }, WINDOWS_FONTS.map(option)),
+      el('optgroup', { label: system.group }, system.fonts.map(option)),
       el('option', { value: '__custom', textContent: 'Other (type a name)…' }),
     ].filter(Boolean),
   );
