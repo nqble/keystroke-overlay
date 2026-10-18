@@ -182,6 +182,34 @@ impl Drop for WatchGuard<'_> {
     }
 }
 
+/// What the operating system lets the app do with the keyboard. Only macOS asks the person first (Input Monitoring) and
+/// can switch capture off while a password is typed (Secure Input); everywhere else both are fine.
+pub struct Access {
+    pub allowed: bool,
+    pub secure_input: bool,
+}
+
+#[cfg(target_os = "macos")]
+pub fn access() -> Access {
+    Access {
+        allowed: macos::input_monitoring_allowed(),
+        secure_input: macos::secure_input_on(),
+    }
+}
+#[cfg(not(target_os = "macos"))]
+pub fn access() -> Access {
+    Access {
+        allowed: true,
+        secure_input: false,
+    }
+}
+
+/// Ask for keyboard access and open the page where it is granted (macOS only; nothing to do elsewhere).
+pub fn request_access() {
+    #[cfg(target_os = "macos")]
+    macos::request_input_monitoring();
+}
+
 struct Capture {
     method: Method,
     source: Option<Source>,

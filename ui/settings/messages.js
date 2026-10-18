@@ -6,6 +6,7 @@ import { paintProgress, showUpdateResult } from './update-popup.js';
 import { flushPendingSave, push } from './preview.js';
 import { noticeObs } from './first-run.js';
 import { paintHeader } from './header.js';
+import { paintAccess, setKeyboardAccess } from './keyboard-access.js';
 import { findTab } from './tabs/index.js';
 import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
@@ -112,6 +113,8 @@ export async function resync() {
   setOverlays(state.overlays);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
+  setKeyboardAccess(state.keyboardAccess);
+  paintAccess();
   paintPause();
   showServerError(state.serverError);
   push();
