@@ -31,6 +31,7 @@ keystroke-overlay/
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
 │       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
 │       │   ├── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
+│       │   ├── x11_labels.rs Linux: what each typing key prints (XKB), and a watcher for layout switches
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
 │       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)

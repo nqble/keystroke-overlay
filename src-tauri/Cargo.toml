@@ -29,7 +29,7 @@ reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"
 # Linux only: keyboard capture on X11 desktops (keyboard/x11.rs). Pure Rust, talks to the X server directly
 # (docs/LINUX-PORT.md).
 [target.'cfg(target_os = "linux")'.dependencies]
-x11rb = { version = "0.13", features = ["xinput"] }
+x11rb = { version = "0.13", features = ["xinput", "xkb"] }
 
 # macOS only: keyboard capture with a listen-only event tap (keyboard/macos.rs, docs/MAC-PORT.md). core-graphics wraps
 # Apple's CGEventTap; core-foundation gives it the run loop the tap needs. Both are already built into the app by the

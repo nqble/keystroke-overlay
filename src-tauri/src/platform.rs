@@ -266,11 +266,17 @@ pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
 pub fn watch_keyboard_layout(on_change: impl Fn() + Send + Sync + 'static) {
     #[cfg(target_os = "macos")]
     crate::keyboard::macos_labels::watch(Box::new(on_change));
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "linux")]
+    crate::keyboard::x11_labels::watch(Box::new(on_change));
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     let _ = on_change;
 }
 
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(target_os = "linux")]
+pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
+    crate::keyboard::x11_labels::keyboard_labels()
+}
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     std::collections::HashMap::new()
 }

@@ -35,6 +35,8 @@ mod rawinput;
 mod tracker;
 #[cfg(target_os = "linux")]
 mod x11;
+#[cfg(target_os = "linux")]
+pub mod x11_labels;
 
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};

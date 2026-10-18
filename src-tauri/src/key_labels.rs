@@ -79,7 +79,7 @@ fn current_labels() -> HashMap<&'static str, String> {
 
 /// The label for one character a key types: upper case, as on a keycap. None for anything that isn't a visible
 /// character (a control code or a space), so that key keeps its layout's label.
-#[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))] // used by platform::keyboard_labels on Windows and macOS, and by the tests
+#[cfg_attr(not(any(windows, target_os = "macos", target_os = "linux")), allow(dead_code))] // used by platform::keyboard_labels, and by the tests
 pub fn label_for(utf16: u16) -> Option<String> {
     let typed = char::from_u32(u32::from(utf16))?;
     if typed.is_control() || typed.is_whitespace() {
