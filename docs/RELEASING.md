@@ -209,6 +209,15 @@ Signed releases (Code signing above) build reputation much faster, so these repo
 ## Checks before publishing a public release
 
 - `npm run check:privacy` passes
+- **Five minutes on the Mac** (the M1), with the Mac download from the draft or the **Mac app** workflow's artifact:
+  1. Install it over the previous version and open it (first time: **Open Anyway** in System Settings → Privacy &
+     Security).
+  2. Re-allow keyboard access: `tccutil reset ListenEvent com.keyoverlay.app`, then **Allow keyboard access**, switch it
+     on, **Restart now** (macOS ties the permission to one build).
+  3. In OBS, press a few keys, including a modifier and an F key with Fn: they light up and let go.
+  4. Click through every tab of the settings window: Mac words (⌘, menu bar, Open at login), nothing cut off, no
+     Windows-only option.
+  5. If something is wrong, don't publish: note it in docs/MAC-PORT.md and fix it first.
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
 - The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
 - Dependency licences still compatible with MIT: checked automatically (see Third-party notices)
