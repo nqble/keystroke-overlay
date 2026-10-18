@@ -1,0 +1,64 @@
+name: Linux app
+
+# Builds the Linux downloads (x86-64): an AppImage, which runs on most distributions as one file, and a .deb for Debian and
+# Ubuntu, each zipped with the third-party notices and handed on as the workflow artifact "linux-app". Key capture works on
+# X11 desktops; Wayland support is being built (docs/LINUX-PORT.md). The app does not update itself on Linux yet: the
+# update manifests have no Linux entry, so Linux users download each new version (docs/RELEASING.md, Linux download).
+#
+# Two callers, like mac-app.yml: ci.yml builds it on every change, so a break shows up before release day, and
+# release.yml builds it after the Windows release is published and attaches the files to that release. It uses no secrets
+# and no shared build cache, so nothing another workflow wrote can end up in the downloads. Every action is pinned to an
+# exact commit, like the others. Run by hand: Actions -> "Linux app" -> Run workflow.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04 # the oldest supported Ubuntu, so the AppImage also runs on older distributions
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - name: Linux build tools (the window's web view, the tray, the AppImage)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev patchelf
+      - run: npm ci
+
+      - name: Privacy promises (see PRIVACY.md)
+        run: npm run check:privacy
+
+      # The licences of the libraries inside the Linux app, which go with it. Stops the build if a library uses a licence
+      # not accepted in src-tauri/about.toml.
+      - name: Write the third-party notices
+        run: |
+          cargo install cargo-about --version 0.9.2 --locked --features cli
+          node tools/notices.mjs --target x86_64-unknown-linux-gnu --out build/THIRD-PARTY-NOTICES.html
+
+      # The update signing key is not given to this job: Linux updates are not installed by the app yet.
+      - name: Build the AppImage and the .deb
+        run: npx tauri build --bundles appimage,deb --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Name and zip the downloads with the notices
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          BUNDLE=src-tauri/target/release/bundle
+          mkdir -p out
+          cp "$BUNDLE"/appimage/*.AppImage "out/Keystroke-Overlay_${VERSION}_linux-x86_64.AppImage"
+          cp "$BUNDLE"/deb/*.deb "out/Keystroke-Overlay_${VERSION}_linux-amd64.deb"
+          cp build/THIRD-PARTY-NOTICES.html out/
+          ls -l out
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-app
+          path: out/*
+          if-no-files-found: error
+          retention-days: 14
