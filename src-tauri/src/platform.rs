@@ -125,10 +125,10 @@ pub fn trim_memory() {
 #[cfg(not(windows))]
 pub fn trim_memory() {}
 
-/// This process's memory (MB, the part resident in RAM) and open handle count, for the Debug tab. Zeros where
-/// unsupported.
+/// This process's memory (MB, the part resident in RAM) and open handle count, for the Debug tab. Each is 0 / None
+/// where it is not measured on this system, and the Debug tab then says so instead of showing a zero.
 #[cfg(windows)]
-pub fn process_stats() -> (f64, u32) {
+pub fn process_stats() -> (f64, Option<u32>) {
     use windows::Win32::System::{
         ProcessStatus::{GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS},
         Threading::{GetCurrentProcess, GetProcessHandleCount},
@@ -142,12 +142,73 @@ pub fn process_stats() -> (f64, u32) {
         let _ = GetProcessMemoryInfo(process, &mut counters, counters.cb);
         let mut handles = 0u32;
         let _ = GetProcessHandleCount(process, &mut handles);
-        (counters.WorkingSetSize as f64 / 1_048_576.0, handles)
+        (counters.WorkingSetSize as f64 / 1_048_576.0, Some(handles))
     }
 }
-#[cfg(not(windows))]
-pub fn process_stats() -> (f64, u32) {
-    (0.0, 0)
+/// macOS: the resident size from the Mach task, and the open files counted in /dev/fd.
+#[cfg(target_os = "macos")]
+pub fn process_stats() -> (f64, Option<u32>) {
+    (macos_resident_mb(), count_entries(Path::new("/dev/fd")))
+}
+/// Linux: the resident size from /proc/self/status, and the open files counted in /proc/self/fd.
+#[cfg(target_os = "linux")]
+pub fn process_stats() -> (f64, Option<u32>) {
+    let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
+    (
+        vm_rss_mb(&status).unwrap_or(0.0),
+        count_entries(Path::new("/proc/self/fd")),
+    )
+}
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
+pub fn process_stats() -> (f64, Option<u32>) {
+    (0.0, None)
+}
+
+/// How many entries a folder of open files has (the folder's own open file is not counted). None if it can't be read.
+#[cfg_attr(not(any(target_os = "macos", target_os = "linux")), allow(dead_code))]
+fn count_entries(folder: &Path) -> Option<u32> {
+    let entries = std::fs::read_dir(folder).ok()?;
+    Some(entries.count().saturating_sub(1) as u32)
+}
+
+/// The "VmRSS: 12345 kB" line of a Linux /proc/self/status file, in MB.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))] // used by process_stats on Linux, and by the tests
+fn vm_rss_mb(status: &str) -> Option<f64> {
+    let line = status.lines().find(|line| line.starts_with("VmRSS:"))?;
+    let kilobytes: f64 = line.split_whitespace().nth(1)?.parse().ok()?;
+    Some(kilobytes / 1024.0)
+}
+
+/// macOS: the memory this program holds in RAM, in MB, from the Mach kernel (`task_info`, flavour MACH_TASK_BASIC_INFO).
+/// 0 if the kernel does not answer.
+#[cfg(target_os = "macos")]
+fn macos_resident_mb() -> f64 {
+    /// `mach_task_basic_info` in mach/task_info.h.
+    #[repr(C)]
+    #[derive(Default)]
+    struct MachTaskBasicInfo {
+        virtual_size: u64,
+        resident_size: u64,
+        resident_size_max: u64,
+        user_time: [i32; 2],
+        system_time: [i32; 2],
+        policy: i32,
+        suspend_count: i32,
+    }
+    const MACH_TASK_BASIC_INFO: u32 = 20;
+    extern "C" {
+        static mach_task_self_: u32;
+        fn task_info(task: u32, flavor: u32, info: *mut MachTaskBasicInfo, count: *mut u32) -> i32;
+    }
+    let mut info = MachTaskBasicInfo::default();
+    let mut count = (std::mem::size_of::<MachTaskBasicInfo>() / std::mem::size_of::<u32>()) as u32;
+    // SAFETY: `info` is a correctly sized, writable MachTaskBasicInfo and `count` its size in 32-bit words, as task_info
+    // asks; `mach_task_self_` is the process's own task port, which the system provides.
+    let status = unsafe { task_info(mach_task_self_, MACH_TASK_BASIC_INFO, &mut info, &mut count) };
+    if status != 0 {
+        return 0.0;
+    }
+    info.resident_size as f64 / 1_048_576.0
 }
 
 /// What each typing key (keyboard/keymap.rs, TYPING_KEYS) prints on the user's own keyboard, as labels for the
@@ -224,6 +285,22 @@ pub fn open_url(url: &str) -> std::io::Result<()> {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+
+    #[test]
+    fn the_resident_size_is_read_from_a_linux_status_file() {
+        let status = "Name:\tkeyoverlay\nVmPeak:\t  900000 kB\nVmRSS:\t   20480 kB\nThreads:\t9\n";
+        assert_eq!(vm_rss_mb(status), Some(20.0));
+        assert_eq!(vm_rss_mb("Name:\tx\n"), None);
+        assert_eq!(vm_rss_mb("VmRSS: lots kB\n"), None);
+    }
+
+    #[cfg(any(windows, target_os = "macos", target_os = "linux"))]
+    #[test]
+    fn this_program_has_memory_and_open_handles_where_they_are_measured() {
+        let (memory_mb, handles) = process_stats();
+        assert!(memory_mb > 0.0, "memory should be measured");
+        assert!(handles.is_some_and(|count| count > 0), "open handles should be counted");
+    }
 
     #[test]
     fn the_app_folder_is_found_from_the_program_inside_it() {
