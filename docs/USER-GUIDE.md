@@ -157,7 +157,7 @@ them in the order you like; the tray menu uses the same order.
 
 **Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (a number is added to the name instead), and they count toward the 20-layout limit.
 
-**By hand (for full control):** a layout is a single JSON file. Put it in the app's `layouts` folder (**General → App → Open data folder → layouts**) and restart the app.
+**By hand (for full control):** a layout is a single JSON file. Put it in the app's `layouts` folder (**General → Advanced → Open data folder → layouts**) and restart the app.
 
 ```json
 {
@@ -285,8 +285,8 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
   [Releases](https://github.com/nqble/keystroke-overlay/releases) page, then
   [open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus. Each release is reported to
   Microsoft as a false positive when needed (docs/RELEASING.md).
-- **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
-- **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
+- **Reporting a bug:** turn on **General → Advanced → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
+- **Something is badly misconfigured:** **General → Advanced → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
 - **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size the app
   shows. The keyboard always fits inside the box, so a box of another shape leaves space at the sides.
 
