@@ -42,10 +42,11 @@ pub fn defaults() -> Value {
         // profiles[layoutId] = { disabledKeys: [...], labels: { code: text }, layoutStyle: "grid" (only when chosen),
         //   styles: { shape: { positions: { code: { x, y } }, sizes: { code: { w } } }, grid: { ... } } }
         // (one per layout, saved automatically; disabledKeys and labels are shared by both layout styles).
-        // editor = the Keys tab's snap step (0 = off, else 0.25, 0.5 or 1 key) and whether it shows the grid.
+        // editor = the Keys tab's snap step (0 = off, else 0.25, 0.5 or 1 key), whether it shows the grid, and whether it
+        // shows the keys that are hidden in the overlay (dimmed).
         // order = the layouts the Layout tab and the tray show, in order (layout_order.rs): a built-in layout shows only
         //   while it is listed (the others wait in "Other layouts"); the user's own always show.
-        "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false }, "order": crate::layout_order::DEFAULT_ORDER },
+        "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false, "showHidden": true }, "order": crate::layout_order::DEFAULT_ORDER },
         "style": {
             "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff",
             "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff", "borderWidth": 2, "radius": 8,
@@ -308,13 +309,19 @@ mod tests {
     }
     #[test]
     fn keys_editor_choices_default_to_quarter_snap_and_no_grid() {
-        assert_eq!(defaults()["layout"]["editor"], json!({ "snap": 0.25, "grid": false }));
+        assert_eq!(
+            defaults()["layout"]["editor"],
+            json!({ "snap": 0.25, "grid": false, "showHidden": true })
+        );
     }
     #[test]
     fn settings_saved_before_the_editor_choices_existed_get_the_defaults() {
         let migrated = migrate(json!({ "version": 2, "layout": { "id": "wasd", "profiles": {} } }));
         assert_eq!(migrated["layout"]["id"], json!("wasd"));
-        assert_eq!(migrated["layout"]["editor"], json!({ "snap": 0.25, "grid": false }));
+        assert_eq!(
+            migrated["layout"]["editor"],
+            json!({ "snap": 0.25, "grid": false, "showHidden": true })
+        );
     }
     #[test]
     fn every_snap_choice_and_the_grid_survive_a_round_trip() {
@@ -340,7 +347,7 @@ mod tests {
             let migrated = migrate(json!({ "version": 2, "layout": { "editor": editor } }));
             assert_eq!(
                 migrated["layout"]["editor"],
-                json!({ "snap": 0.25, "grid": false }),
+                json!({ "snap": 0.25, "grid": false, "showHidden": true }),
                 "{editor}"
             );
         }
@@ -349,7 +356,10 @@ mod tests {
     fn unknown_keys_inside_the_editor_choices_are_dropped() {
         let migrated =
             migrate(json!({ "version": 2, "layout": { "editor": { "snap": 0.5, "grid": true, "evil": 1 } } }));
-        assert_eq!(migrated["layout"]["editor"], json!({ "snap": 0.5, "grid": true }));
+        assert_eq!(
+            migrated["layout"]["editor"],
+            json!({ "snap": 0.5, "grid": true, "showHidden": true })
+        );
     }
     #[test]
     fn v1_settings_migrate_into_a_profile_without_losing_anything() {
@@ -999,11 +1009,13 @@ mod position_tests {
     #[test]
     fn moved_keys_are_kept_clamped_and_junk_is_dropped() {
         let raw = json!({ "wasd": { "styles": { "shape": { "positions": {
-            "KeyW": { "x": 1.256, "y": 0 }, "KeyA": { "x": -5, "y": 1e9 }, "KeyS": { "x": "1", "y": 2 }, "KeyD": { "x": 3 }, "": { "x": 1, "y": 1 } } } } } });
+            "KeyW": { "x": 1.256, "y": 0 }, "KeyA": { "x": -5, "y": 1e9 }, "KeyB": { "x": -1e9, "y": 0 }, "KeyS": { "x": "1", "y": 2 }, "KeyD": { "x": 3 }, "": { "x": 1, "y": 1 } } } } } });
         let out = clean_profiles(&raw);
         let pos = &out["wasd"]["styles"]["shape"]["positions"];
         assert_eq!(pos["KeyW"], json!({ "x": 1.26, "y": 0.0 }));
-        assert_eq!(pos["KeyA"], json!({ "x": 0.0, "y": 100.0 }));
+        // a key may sit left of or above the layout's origin (the board is centred on the layout), down to MIN_POSITION
+        assert_eq!(pos["KeyA"], json!({ "x": -5.0, "y": 100.0 }));
+        assert_eq!(pos["KeyB"], json!({ "x": -100.0, "y": 0.0 }));
         assert!(pos.get("KeyS").is_none() && pos.get("KeyD").is_none() && pos.get("").is_none());
         // A profile without moved keys has no "styles" entry at all (old settings files stay small and byte-identical).
         for empty in [
@@ -1012,6 +1024,30 @@ mod position_tests {
         ] {
             assert!(clean_profiles(&json!({ "x": empty }))["x"].get("styles").is_none());
         }
+    }
+}
+
+#[cfg(test)]
+mod key_height_tests {
+    use super::*;
+    use crate::sanitize::*;
+    #[test]
+    fn a_key_size_may_hold_a_width_a_height_or_both_and_junk_is_dropped() {
+        let raw = json!({ "wasd": { "styles": { "shape": { "sizes": {
+            "KeyW": { "w": 2.456, "h": 3 }, "KeyA": { "h": 1e9 }, "KeyS": { "h": 0.001 }, "KeyD": { "h": "tall" }, "Space": { "w": 4.5 } } } } } });
+        let sizes = &clean_profiles(&raw)["wasd"]["styles"]["shape"]["sizes"];
+        assert_eq!(sizes["KeyW"], json!({ "w": 2.46, "h": 3.0 }));
+        assert_eq!(sizes["KeyA"], json!({ "h": MAX_KEY_WIDTH }));
+        assert_eq!(sizes["KeyS"], json!({ "h": MIN_KEY_WIDTH }));
+        assert!(
+            sizes.get("KeyD").is_none(),
+            "a height that is not a number drops the entry"
+        );
+        assert_eq!(
+            sizes["Space"],
+            json!({ "w": 4.5 }),
+            "width-only entries from before stay as they are"
+        );
     }
 }
 

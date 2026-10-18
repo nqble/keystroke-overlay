@@ -17,6 +17,7 @@ const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {} });
 export const LAYOUT_STYLES = ['shape', 'grid'];
 
 // Limits for positions and widths. Keep in step with MAX_POSITION, MIN_KEY_WIDTH and MAX_KEY_WIDTH in settings.rs.
+export const MIN_POSITION = -100; // a key may sit left of or above the layout's own origin (the board is centred on the layout)
 export const MAX_POSITION = 100;
 export const MIN_KEY_WIDTH = 0.25;
 export const MAX_KEY_WIDTH = 100;
@@ -150,6 +151,9 @@ export function snapStep() {
 
 export const gridShown = () => settings.layout.editor?.grid ?? false;
 
+/** Whether the Keys tab shows the keys that are hidden in the overlay (dimmed). */
+export const showHiddenKeys = () => settings.layout.editor?.showHidden ?? true;
+
 /** How far one press of an arrow button or arrow key moves keys: the snap step, or a fine step when snapping is off. */
 export const nudgeStep = () => snapStep() || FINE_STEP;
 
@@ -170,6 +174,12 @@ export const baseWidth = (key, style) => (style === 'grid' ? 1 : (key.w ?? 1));
 /** Where a key is drawn: its saved position if the user moved it, otherwise where the layout style puts it. */
 export const keyPos = (key, profile) => profile.positions[key.code] ?? basePosition(key, profile.layoutStyle);
 
+/** How tall the layout makes a key before the user resizes it. */
+export const baseHeight = (key) => key.h ?? 1;
+
+/** How tall a key is drawn: its saved height if the user resized it, otherwise the layout's height. */
+export const keyHeight = (key, profile) => profile.sizes[key.code]?.h ?? baseHeight(key);
+
 /** How wide a key is drawn: its saved width if the user resized it, otherwise the layout style's width. */
 export const keyWidth = (key, profile) => profile.sizes[key.code]?.w ?? baseWidth(key, profile.layoutStyle);
 
@@ -184,14 +194,23 @@ export function setKeyPos(key, x, y) {
   tidyProf();
 }
 
-/** Save a key's width (dropping the entry when it is back to the layout style's own width). */
-export function setKeyWidth(key, w) {
-  const style = styleOf(editProf());
-  w = round2(w);
-  if (Math.abs(w - baseWidth(key, style)) < 1e-6) delete editSizes()[key.code];
-  else editSizes()[key.code] = { w };
+/** Save one part ('w' or 'h') of a key's size, dropping it (and the whole entry when empty) once it is back to `base`. */
+function setSize(key, part, value, base) {
+  const sizes = editSizes();
+  const entry = { ...sizes[key.code] };
+  value = round2(value);
+  if (Math.abs(value - base) < 1e-6) delete entry[part];
+  else entry[part] = value;
+  if (Object.keys(entry).length) sizes[key.code] = entry;
+  else delete sizes[key.code];
   tidyProf();
 }
+
+/** Save a key's width (dropping it when it is back to the layout style's own width). */
+export const setKeyWidth = (key, w) => setSize(key, 'w', w, baseWidth(key, styleOf(editProf())));
+
+/** Save a key's height (dropping it when it is back to the layout's own height). */
+export const setKeyHeight = (key, h) => setSize(key, 'h', h, baseHeight(key));
 
 /**
  * "Tidy up": close the dead space left by hidden keys while keeping the keyboard's shape. Every key keeps its place

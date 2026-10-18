@@ -18,7 +18,8 @@
     "profiles": {},
     "editor": {
       "snap": 0.25,
-      "grid": false
+      "grid": false,
+      "showHidden": true
     },
     "order": ["full", "tkl", "gameplay", "wasd"]
   },
