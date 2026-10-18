@@ -106,16 +106,70 @@ pub fn set_update_badge(app: &AppHandle, available: bool) {
         crate::platform::tray_icon(&icon)
     }));
     crate::platform::set_tray_icon_template(&tray, !available);
-    let _ = tray.set_tooltip(Some(if available {
-        format!("{}: update available", crate::app_info::NAME)
-    } else {
-        crate::app_info::NAME.to_string()
-    }));
+    let _ = tray.set_tooltip(Some(tooltip_for(available)));
     if available {
         let _ = menu.insert(&item, 0);
     } else {
         let _ = menu.remove(&item);
     }
+}
+
+/// The tray icon's tooltip, with or without an update waiting.
+fn tooltip_for(update_available: bool) -> String {
+    if update_available {
+        format!("{}: update available", crate::app_info::NAME)
+    } else {
+        crate::app_info::NAME.to_string()
+    }
+}
+
+/// How big the Debug tab's picture of the tray icon is, in pixels (the icon itself may be much larger).
+const PREVIEW_SIZE: u32 = 48;
+
+/// What the tray shows right now, for the Debug tab and the tests, which can't see the real tray: whether the update
+/// indicator is on, the tooltip, the menu's first entry, and the icon itself as a small RGBA picture.
+pub fn indicator_state(app: &AppHandle) -> serde_json::Value {
+    let st = app.state::<AppState>();
+    // Copy what is needed and let go of the lock before asking the menu (same lock rule as set_update_badge).
+    let (shown, menu, preview) = {
+        let guard = st.tray.lock().unwrap();
+        let Some(tray_items) = guard.as_ref() else {
+            return json!({ "ready": false });
+        };
+        let shown = tray_items.update_shown;
+        // The same picture set_update_badge gives the tray (a Mac shows its own template icon without the dot).
+        let icon = if shown {
+            tray_items.icon_badged.clone()
+        } else {
+            crate::platform::tray_icon(&tray_items.icon)
+        };
+        let preview = shrink_rgba(icon.rgba(), icon.width(), icon.height(), PREVIEW_SIZE);
+        (shown, tray_items.menu.clone(), preview)
+    };
+    let first_entry = menu.items().ok().and_then(|items| {
+        items
+            .first()
+            .and_then(|item| item.as_menuitem().and_then(|entry| entry.text().ok()))
+    });
+    json!({
+        "ready": true,
+        "updateShown": shown,
+        "tooltip": tooltip_for(shown),
+        "firstMenuEntry": first_entry,
+        "preview": { "size": PREVIEW_SIZE, "rgba": preview },
+    })
+}
+
+/// A square RGBA picture shrunk to `size` × `size` by picking the nearest pixel (enough to see the dot).
+fn shrink_rgba(rgba: &[u8], w: u32, h: u32, size: u32) -> Vec<u8> {
+    let mut out = Vec::with_capacity((size * size * 4) as usize);
+    for y in 0..size {
+        for x in 0..size {
+            let from = (((y * h / size) * w + x * w / size) * 4) as usize;
+            out.extend_from_slice(&rgba[from..from + 4]);
+        }
+    }
+    out
 }
 
 /// Rebuilds the tray's Layout list after a layout was created or deleted (same lock rule as above).
@@ -287,7 +341,21 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::badge_rgba;
+    use super::{badge_rgba, shrink_rgba};
+
+    #[test]
+    fn a_shrunk_picture_keeps_the_corner_it_came_from() {
+        let mut rgba = vec![0u8; 4 * 4 * 4];
+        for (x, y) in [(2, 0), (3, 0), (2, 1), (3, 1)] {
+            let at = (y * 4 + x) * 4;
+            rgba[at..at + 4].copy_from_slice(&[255, 138, 0, 255]); // the top right quarter is orange
+        }
+        let small = shrink_rgba(&rgba, 4, 4, 2);
+        assert_eq!(small.len(), 2 * 2 * 4);
+        assert_eq!(&small[4..8], &[255, 138, 0, 255], "the top right stays top right");
+        assert_eq!(&small[0..4], &[0, 0, 0, 0]);
+    }
+
     #[test]
     fn badge_paints_an_orange_dot_top_right_and_leaves_the_rest() {
         let (w, h) = (64u32, 64u32);

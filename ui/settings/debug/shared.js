@@ -28,7 +28,13 @@ export const TEXT = {
     'changed here.',
   fakeUpdateHelp: (trayName) =>
     `“Fake update available” shows the update button, the orange ${trayName} dot and the “Update available” ` +
-    `${trayName} entry without needing a real release.`,
+    `${trayName} entry without needing a real release. It stays until you clear it: update checks answer with it ` +
+    `meanwhile. The picture shows the ${trayName} icon exactly as it is now.`,
+  trayNow: (trayName) => `The ${trayName} icon now:`,
+  trayState: (state) =>
+    `update dot ${state.updateShown ? 'on' : 'off'} · first menu entry: ${state.firstMenuEntry ?? '?'} · ` +
+    `tooltip: ${state.tooltip}`,
+  trayNotReady: (trayName) => `The ${trayName} icon is not there yet.`,
   // The Mac window is a WKWebView, inspected with Safari. Only a development build allows it: a built or downloaded app
   // does not switch the inspector on.
   inspectorMacSteps: [

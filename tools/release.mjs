@@ -13,9 +13,10 @@ import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, copyFileSync, mkdirSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { APP } from './app-config.mjs';
 
-const REPO = 'nqble/keystroke-overlay';
-const KEY = join(homedir(), '.keystroke-overlay-keys', 'updater.key'); // keep OUT of the project/OneDrive
+const REPO = APP.repo;
+const KEY = join(homedir(), APP.updaterKeyFolder, 'updater.key'); // keep OUT of the project/OneDrive
 // build output (large, not synced)
 const TARGET = process.env.CARGO_TARGET_DIR ?? join(homedir(), 'keyoverlay-target');
 const STAGES = ['app', 'installer', 'finish'];
@@ -44,8 +45,8 @@ const version = JSON.parse(readFileSync('src-tauri/tauri.conf.json', 'utf8')).ve
 // Versioning rule: x.Y.0 releases (the middle number went up) are STABLE; x.y.Z patch releases are Latest-only.
 // --stable / --latest-only override the rule for the rare exception.
 const stable = args.includes('--stable') || (!args.includes('--latest-only') && /^\d+\.\d+\.0$/.test(version));
-const builtInstaller = join(TARGET, 'release', 'bundle', 'nsis', `Keystroke Overlay_${version}_x64-setup.exe`);
-const name = `Keystroke-Overlay_${version}_x64-setup.exe`; // no spaces: GitHub rewrites spaces in asset names
+const builtInstaller = join(TARGET, 'release', 'bundle', 'nsis', `${APP.name}_${version}_x64-setup.exe`);
+const name = `${APP.name.replaceAll(' ', '-')}_${version}_x64-setup.exe`; // no spaces: GitHub rewrites spaces in asset names
 const out = join('release', version); // release/<version>/ so older versions are never overwritten
 
 const tauriEnv = {

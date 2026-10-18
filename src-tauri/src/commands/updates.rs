@@ -59,6 +59,10 @@ fn check_failed_text(system: &str, channel: &str, error: &str) -> String {
 }
 
 async fn do_check(app: &AppHandle) -> Result<Value, String> {
+    if let Some(fake) = crate::debug::fake_update() {
+        crate::debug::log("update check skipped: a fake update is showing (Debug tab)");
+        return Ok(fake);
+    }
     let channel = channel_of(app);
     let upd = updater_for(app, &channel)?;
     let result = match upd.check().await {
@@ -152,6 +156,9 @@ pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
     {
         return Ok(Value::Null);
     }
+    if let Some(fake) = crate::debug::fake_update() {
+        return Ok(fake);
+    }
     let channel = channel_of(&app);
     if let Some((checked_at, cached_channel, cached_result)) = st.update_cache.lock().unwrap().as_ref() {
         if *cached_channel == channel && checked_at.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) {
@@ -174,6 +181,9 @@ pub fn open_release_page(url: String) -> Result<(), String> {
 /// Only ever called from the user clicking "Update now".
 #[tauri::command]
 pub async fn install_update(app: AppHandle) -> Result<(), String> {
+    if crate::debug::fake_update().is_some() {
+        return Err("This is a fake update from the Debug tab: there is nothing to install.".into());
+    }
     let channel = channel_of(&app);
     let upd = updater_for(&app, &channel)?;
     let Some(update) = upd.check().await.map_err(|e| e.to_string())? else {

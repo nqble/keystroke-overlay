@@ -47,10 +47,11 @@ const SUITES = [
   'smoke',
 ];
 const WORK = process.env.E2E_WORK ?? join(tmpdir(), 'keystroke-overlay-e2e');
-const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
-const EXE = join(WORK, 'kotest-e2e.exe');
+const DATA = join(process.env.APPDATA, APP.identifiers.test);
+const EXE = join(WORK, `${APP.testApps.e2eExe}.exe`);
 const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
 import { acquire } from '../lib/lock.mjs';
+import { APP } from '../../tools/app-config.mjs';
 let lock; // the shared test lock (see tests/lib/lock.mjs)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (m) => console.log(`\n\x1b[36m▶ ${m}\x1b[0m`);
@@ -65,7 +66,7 @@ const portBusy = (port) =>
     s.on('error', () => res(false));
   });
 const run = (cmd, cmdArgs, opts = {}) => spawnSync(cmd, cmdArgs, { cwd: ROOT, shell: true, stdio: 'inherit', ...opts });
-const killApp = () => spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
+const killApp = () => spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
 const dirSize = (d) => {
   let n = 0;
   try {
@@ -99,7 +100,7 @@ async function main() {
     join(WORK, 'cfg.json'),
     JSON.stringify({
       // pretend to be old so the mock's 1.1.4 counts as an update
-      identifier: 'com.keyoverlay.test',
+      identifier: APP.identifiers.test,
       version: '1.1.0',
       plugins: {
         updater: {

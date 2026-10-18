@@ -21,6 +21,7 @@ import { join, dirname, resolve, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { addDevbuildLabel } from './devbuild-title.mjs';
+import { APP } from './app-config.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const version = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
@@ -45,9 +46,9 @@ const fwd = (p) => p.replace(/\\/g, '/');
 async function verifyBuild(baseCfg, target, icons) {
   const { acquire } = await import('../tests/lib/lock.mjs');
   const lock = await acquire('devbuild verification (test copy)', { expectedMinutes: 6 });
-  const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
+  const DATA = join(process.env.APPDATA, APP.identifiers.test);
   const dir = join(WORK, 'verify'),
-    exe = join(dir, 'kotest-e2e.exe');
+    exe = join(dir, `${APP.testApps.e2eExe}.exe`);
   try {
     console.log('> Verifying: building a throwaway test copy with the same page and logo');
     const cfg = join(WORK, 'cfg-verify.json');
@@ -55,7 +56,7 @@ async function verifyBuild(baseCfg, target, icons) {
       cfg,
       JSON.stringify({
         ...baseCfg,
-        identifier: 'com.keyoverlay.test',
+        identifier: APP.identifiers.test,
         bundle: { ...baseCfg.bundle, createUpdaterArtifacts: false },
       }),
     );
@@ -64,12 +65,12 @@ async function verifyBuild(baseCfg, target, icons) {
     });
     mkdirSync(dir, { recursive: true });
     // the program is renamed by mainBinaryName
-    const built = ['keystroke-overlay-devbuild.exe', 'keyoverlay.exe']
+    const built = [`${APP.devbuild.binary}.exe`, 'keyoverlay.exe']
       .map((n) => join(target, 'release', n))
       .find(existsSync);
     if (!built) throw new Error('could not find the built program in ' + join(target, 'release'));
     copyFileSync(built, exe);
-    spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
+    spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
     rmSync(DATA, { recursive: true, force: true });
     mkdirSync(DATA, { recursive: true });
     writeFileSync(
@@ -119,7 +120,7 @@ async function verifyBuild(baseCfg, target, icons) {
     if (!v?.ok) throw new Error('VERIFICATION FAILED: ' + JSON.stringify(v));
     console.log('  OK: the settings window loads and the logo is purple');
   } finally {
-    spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
+    spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
     rmSync(DATA, { recursive: true, force: true });
     lock.release?.();
   }
@@ -144,9 +145,9 @@ try {
   // 3. build the installer with those icons and that page
   console.log('> Building the installer (about 5 minutes)');
   const baseCfg = {
-    identifier: 'com.keyoverlay.devbuild',
-    productName: 'Keystroke Overlay Devbuild',
-    mainBinaryName: 'keystroke-overlay-devbuild',
+    identifier: APP.identifiers.devbuild,
+    productName: APP.devbuild.productName,
+    mainBinaryName: APP.devbuild.binary,
     build: { frontendDist: fwd(relative(join(ROOT, 'src-tauri'), ui)) }, // relative to src-tauri (see UI_TMP above)
     bundle: {
       createUpdaterArtifacts: false,

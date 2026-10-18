@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { acquire } from '../lib/lock.mjs';
 import { measureKeyLatency, summariseRounds } from './latency.mjs';
+import { APP } from '../../tools/app-config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)),
   ROOT = resolve(HERE, '../..'),
@@ -19,7 +20,7 @@ const HERE = dirname(fileURLToPath(import.meta.url)),
 const args = process.argv.slice(2);
 const RUNS = +(args[args.indexOf('--runs') + 1] || 5);
 const WORK = process.env.BENCH_WORK ?? join(tmpdir(), 'keyoverlay-bench');
-const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
+const DATA = join(process.env.APPDATA, APP.identifiers.test);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const VERSIONS = [
   { name: 'v1.2.1', ref: '37eb19b' },
@@ -30,7 +31,7 @@ const VERSIONS = [
 const PORT = 7879; // the test copy's server port (the same one tests/e2e uses)
 const LATENCY_PRESSES = 120; // real key presses timed per round (single taps, fast taps and two keys 10 ms apart)
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
-const kill = () => spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
+const kill = () => spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
 const ps = (file, ...a) =>
   execSync(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${file}" ${a.join(' ')}`)
     .toString()
@@ -47,11 +48,11 @@ const median = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
 const lock = await acquire('performance comparison', { expectedMinutes: 25 });
 mkdirSync(WORK, { recursive: true });
 const cfg = join(WORK, 'cfg.json');
-writeFileSync(cfg, JSON.stringify({ identifier: 'com.keyoverlay.test' }));
+writeFileSync(cfg, JSON.stringify({ identifier: APP.identifiers.test }));
 
 // ---------------------------------------------------------------- build every version once
 for (const v of VERSIONS) {
-  v.exe = join(WORK, v.name, 'kotest-e2e.exe');
+  v.exe = join(WORK, v.name, `${APP.testApps.e2eExe}.exe`);
   mkdirSync(join(WORK, v.name), { recursive: true });
   if (existsSync(v.exe)) continue;
   console.log(`\n> Building ${v.name}`);

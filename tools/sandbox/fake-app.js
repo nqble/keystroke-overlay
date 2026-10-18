@@ -87,6 +87,18 @@
     };
   }
 
+  let fakeUpdate = false; // Debug tab → Fake update available
+  const SANDBOX_TRAY_SIZE = 48;
+  const sandboxTrayPicture = (dot) => {
+    const rgba = [];
+    for (let y = 0; y < SANDBOX_TRAY_SIZE; y++) {
+      for (let x = 0; x < SANDBOX_TRAY_SIZE; x++) {
+        const inDot = dot && (x - 36) ** 2 + (y - 12) ** 2 < 100;
+        rgba.push(...(inDot ? [255, 138, 0, 255] : [70, 76, 92, 255]));
+      }
+    }
+    return rgba;
+  };
   const COMMANDS = {
     get_state: getState,
     get_keyboard_access: async () => (await getState()).keyboardAccess,
@@ -137,6 +149,18 @@
     get_release_notes: () => ({ body: SHOWN_NOTES }),
     auto_check_update: () => (chosen.update ? UPDATE : NO_UPDATE),
     check_update: () => (chosen.update ? UPDATE : NO_UPDATE),
+    // The tray can't be seen here, so the sandbox draws a stand-in: a grey square, with the orange dot while a fake
+    // update is showing (the real picture comes from tray.rs indicator_state).
+    debug_simulate_update: ({ on }) => {
+      fakeUpdate = on;
+    },
+    debug_tray_state: () => ({
+      ready: true,
+      updateShown: fakeUpdate,
+      tooltip: fakeUpdate ? 'Keystroke Overlay: update available' : 'Keystroke Overlay',
+      firstMenuEntry: fakeUpdate ? 'Update available' : 'Open settings',
+      preview: { size: SANDBOX_TRAY_SIZE, rgba: sandboxTrayPicture(fakeUpdate) },
+    }),
     debug_info: () => ({
       version: '1.4.0',
       build: 'sandbox',

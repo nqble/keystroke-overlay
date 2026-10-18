@@ -11,8 +11,9 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { APP } from './app-config.mjs';
 
-const DEV_ID = 'com.keyoverlay.dev';
+const DEV_ID = APP.identifiers.dev;
 const DEV_PORT = 7880;
 // Where the app keeps its data on each system (Tauri's app data folder), so the dev copy gets its own port everywhere.
 const appData =
