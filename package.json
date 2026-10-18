@@ -19,6 +19,7 @@
     "test:ui": "node --test \"tests/ui/*.test.mjs\"",
     "check:privacy": "node tools/check-privacy.mjs",
     "check:style": "node tools/check-style.mjs",
+    "check:docs": "node tools/check-docs.mjs",
     "check:types": "tsc -p jsconfig.json",
     "test:lock": "node tests/lib/lock.mjs",
     "test:e2e": "node tests/e2e/run.mjs",

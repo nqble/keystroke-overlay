@@ -43,7 +43,7 @@ in Performance (RELEASING.md requires them). Do not copy this into CHANGELOG.md 
 ```
 
 ## Still to do before v1.4 is released
-The key editor makeover ([design/key-editor.md](design/key-editor.md)) is built (M4.1 to M4.3). What remains is the release
+The key editor makeover ([design/key-editor.md](../design/key-editor.md)) is built (M4.1 to M4.3). What remains is the release
 preparation: the advisor's pending fixes (settings backup restore, code signing, keyboard-hook watch, overlay fit in OBS), the five
 version files, the CHANGELOG entry from the notes above with real benchmark numbers, the install and upgrade test, and Jordan's go. The saved-data format for sizes and
 the grid style already shipped in 1.3.0, so 1.4 needs no further migration for them.
@@ -51,4 +51,4 @@ the grid style already shipped in 1.3.0, so 1.4 needs no further migration for t
 ## How a release is made
 Raise the versions in `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml` and
 `src-tauri/Cargo.lock`, add the CHANGELOG entry, merge into `main`, then GitHub → Actions → **Release** → Run workflow → type the
-version → approve the deployment. The steps are in [RELEASING.md](RELEASING.md).
+version → approve the deployment. The steps are in [RELEASING.md](../RELEASING.md).

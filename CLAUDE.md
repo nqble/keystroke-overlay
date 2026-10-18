@@ -42,8 +42,13 @@ When two principles conflict, the higher one wins.
 - **Explain why, not what.** The code already says what it does; the comment says why it has to be this way.
 - **Each file starts with a short header:** what the file is for, and where to look for related code.
 - **Keep comments true.** If you change the code, fix the comment in the same commit.
+- **Where a document goes.** Public reference for users and contributors: `docs/` (listed in `docs/README.md`).
+  Choices already made: `docs/decisions/`. Approved designs: `docs/design/`. Everything a session writes for itself or the
+  maintainer (plans, audits, release drafts, handoff notes): `docs/for-claude/` (listed in its README, with a **Status** line at
+  the top of each plan; finished plans move to `docs/for-claude/proposals/done/`). No new markdown files at the root or
+  elsewhere. `npm run check:docs` enforces this and checks the links.
 - **Keep docs true.** If a change makes a doc wrong (README, `docs/`, a design spec, PRIVACY.md, a plan's status), fix the
-  doc in the same commit. When a plan in `docs/proposals/` is done or dropped, mark it so or delete it, so no stale plan
+  doc in the same commit. When a plan in `docs/for-claude/proposals/` is done or dropped, mark it so or delete it, so no stale plan
   misleads the next person.
 
 ## 4. Structure

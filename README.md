@@ -94,7 +94,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
-  [docs/proposals/tailscale-dual-pc.md](docs/proposals/tailscale-dual-pc.md).
+  [docs/for-claude/proposals/tailscale-dual-pc.md](docs/for-claude/proposals/tailscale-dual-pc.md).
 
 ## Settings
 
@@ -282,6 +282,11 @@ npm run build        # installer in src-tauri/target/release/bundle/nsis/
 Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organised:
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). A Mac port has been researched: [docs/MAC-PORT.md](docs/MAC-PORT.md).
 Maintaining the project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).
+
+## For Claude sessions
+
+`CLAUDE.md` and the [docs/for-claude/](docs/for-claude/README.md) folder hold the rules and working notes of the Claude sessions
+that help build this project. They are public on purpose and written for those sessions, so contributors can ignore them.
 
 ## Requirements
 

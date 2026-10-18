@@ -6,7 +6,7 @@ now keeps inline styles out of the scripts), and the UI rules in CLAUDE.md. The 
 the new editor (M4.1), which sets only CSS variables, so no file is exempt any more apart from the Debug tab.
 
 This plan **replaces the `ui/settings/` part (area 2)** of the queued cleanup phase: the cleanup audit
-(`docs/CLEANUP.md`) lists these items for `ui/settings` instead of a separate pass. The key editor **redesign** comes after this
+(`docs/for-claude/CLEANUP.md`) lists these items for `ui/settings` instead of a separate pass. The key editor **redesign** comes after this
 plan and is designed in the Advisory Session.
 
 Goal: make a future redesign cheap and safe. Step 3 must change nothing visually; the screenshots prove it.

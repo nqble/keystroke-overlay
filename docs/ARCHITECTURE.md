@@ -10,13 +10,13 @@ keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
 ├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
-│                       design/ holds approved designs; proposals/ holds plans (queued, in progress or just proposed;
-│                       finished ones in proposals/done/); schemas/ holds the JSON schemas for layout and preset files
+│                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
+│                       (plans, the cleanup audit, release drafts; public on purpose); schemas/ holds the JSON schemas for layout and preset files
 ├── assets/             icon source image
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
-│                       check-privacy.mjs, check-style.mjs, gen-layouts.mjs, make-icon.ps1 (the icon source image),
+│                       check-privacy.mjs, check-style.mjs, check-docs.mjs (where docs live, the indexes, links), gen-layouts.mjs, make-icon.ps1 (the icon source image),
 │                       preview.mjs (the overlay in a browser), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app
