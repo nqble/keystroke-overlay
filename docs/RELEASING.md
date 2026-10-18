@@ -72,8 +72,8 @@ The repository has a **Release** workflow (`.github/workflows/release.yml`) that
 
 One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): add the repository secret `TAURI_SIGNING_PRIVATE_KEY`
 (the text of your `updater.key`), and an environment named `release` with yourself as a **required reviewer** (every
-release then waits for your approval before the signing key is used). Once the key has a password (see "Signing key
-password" below), add it as the secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+release then waits for your approval before the signing key is used), and the secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
+(the key's password; see "Signing key password" below).
 
 **Safety rules the workflow enforces:** it only releases a commit that is already on `main` (merge first); every GitHub
 Action it uses is pinned to an exact commit, and Dependabot (`.github/dependabot.yml`) opens a pull request each month when
@@ -93,17 +93,25 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## Signing key password
 
-Today the key may have no password, which means anyone who gets a copy of the file can sign updates. Adding a password to
-the **same** key keeps the public key, so every installed copy keeps updating. Never generate a new key for this: a new
-key would cut off every existing install from updates.
+The update key has a password (since October 2026), kept in Jordan's password manager and in the GitHub secret
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Without it the key can't sign anything, and nobody can recover it.
+
+To change the password, change it on the **same** key: that keeps the public key, so every installed copy keeps
+updating. Never generate a new key for this: a new key would cut off every existing install from updates. On Windows,
+in PowerShell, with [minisign](https://github.com/jedisct1/minisign/releases) downloaded (`$minisign` = the full path
+of its `x86_64\minisign.exe`):
 
 1. Back up `~/.keystroke-overlay-keys/updater.key` somewhere private and offline first.
-2. Add the password to that key with the signing tool on your PC (`npx tauri signer --help` lists what this Tauri
-   version can do; the key is a base64-encoded minisign key, so `minisign -C` on the decoded file also works). Ask
-   Claude to walk you through it on your PC. The key never leaves your PC.
-3. Check it before relying on it: sign a test file with the new password (`npx tauri signer sign`), then confirm the public
-   key printed for it still matches `plugins.updater.pubkey` in `src-tauri/tauri.conf.json`.
-4. Update the GitHub secret `TAURI_SIGNING_PRIVATE_KEY` if the file's text changed, and add `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+2. Unpack it (the file is a base64-encoded minisign key), change the password, and pack it again:
+   `[IO.File]::WriteAllBytes("$PWD\updater.minisign", [Convert]::FromBase64String((Get-Content updater.key -Raw)))`,
+   then `& $minisign -C -s .\updater.minisign` (it asks for the current password, then the new one twice), then
+   `[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\updater.minisign")) | Set-Content updater.key -NoNewline`
+   and delete `updater.minisign`.
+3. Check it before relying on it: sign a test file with `npx --yes @tauri-apps/cli@<the project's version> signer sign
+   -f updater.key test.txt` (the password in `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`), decode `test.txt.sig` and
+   `plugins.updater.pubkey` (in `src-tauri/tauri.conf.json`) from base64, and run `minisign -V` on them. It must say
+   "Signature and comment signature verified".
+4. Update both GitHub secrets, and replace every backup of the old file.
 
 ## Release notes format
 
