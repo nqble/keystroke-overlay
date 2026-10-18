@@ -249,9 +249,10 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
   **Input Monitoring**, switch on Keystroke Overlay. Come back to the app and click **Restart now**. Your keys now light
   up. The blue bar only shows while keys are not being captured.
 - **After you update or rebuild the app.** macOS ties the permission to the exact build, so a new build needs it again,
-  even though the old entry still looks switched on. If keys stop lighting up: in Input Monitoring select Keystroke
-  Overlay, click the minus button to remove it, then click **Allow keyboard access** in the app, switch it on, and
-  restart the app.
+  even though the old entry still looks switched on. If keys stop lighting up, clear the old entry in Terminal:
+  `tccutil reset ListenEvent com.keyoverlay.app`. Then click **Allow keyboard access** in the app, switch Keystroke
+  Overlay on in the list that opens, and click **Restart now**. (Switching the old entry off and on, or removing it
+  with the minus button, was not enough in testing.)
 - **The F row.** On a Mac laptop, F1 to F12 only light up while you hold **Fn**. Without it they are brightness and volume
   keys, which macOS doesn't send as F keys.
 - **Key names.** The overlay shows your own keyboard's names: ⌘ ⌥ ⌃, **delete** and **return**. To use the layout file's

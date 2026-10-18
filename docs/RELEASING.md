@@ -69,7 +69,7 @@ What to know:
   Security. Signing and notarizing need an Apple Developer account (US$99 a year) and are not set up.
 - **No in-app updates on a Mac.** `latest.json` and `stable.json` have no `darwin` entries, on purpose, and the app says
   so when a Mac checks. Mac users download the new zip.
-- After every update the person must allow keyboard access again (remove the old entry in Input Monitoring first): the
+- After every update the person must allow keyboard access again (clear the old entry first, with `tccutil reset ListenEvent com.keyoverlay.app`): the
   permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
   are in docs/MAC-PORT.md.
 - If the Mac job fails, the Windows release is already published. Fix the cause, then re-run only the failed jobs; the
