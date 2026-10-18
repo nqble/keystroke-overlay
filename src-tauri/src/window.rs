@@ -12,7 +12,7 @@ const TRIM_MEMORY_AFTER_MS: u64 = 1500;
 #[cfg(target_os = "macos")]
 const WINDOW_BUTTONS_X: f64 = 16.0;
 #[cfg(target_os = "macos")]
-const WINDOW_BUTTONS_Y: f64 = 20.0;
+const WINDOW_BUTTONS_Y: f64 = 24.0;
 
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
