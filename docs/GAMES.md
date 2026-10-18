@@ -10,9 +10,9 @@ Keystroke Overlay will never try to get around an anti-cheat.
 
 | Game | Anti-cheat | System | App version | Result | Notes |
 |---|---|---|---|---|---|
-| Valorant | Riot Vanguard | Windows | 1.3 | ✅ Works | |
-| osu! | osu! (its own) | Windows | 1.3 | ✅ Works | |
-| Apex Legends (Steam) | Easy Anti-Cheat | Windows | 1.3 | ❌ Blocked, being looked into | With the app running, in both Standard and Compatibility, Apex stopped at "anti-cheat authentication failed". Not yet known whether the app being open is enough, or only while it reads keys. |
+| Valorant | Riot Vanguard | Windows | 1.3 | ✅ Works | Standard, app not run as administrator |
+| osu! | osu! (its own) | Windows | 1.3 | ✅ Works | Standard, app not run as administrator |
+| Apex Legends (Steam) | Easy Anti-Cheat | Windows | 1.3 | ❌ Blocked, being looked into | With the app running (not as administrator), in both Standard and Compatibility, Apex stopped at "anti-cheat authentication failed". Not yet known whether the app being open is enough, or only while it reads keys. |
 
 **Results:** ✅ works · ⚠️ works with a tip (say which, for example "Compatibility") · ❌ blocked.
 
