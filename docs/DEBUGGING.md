@@ -97,6 +97,7 @@ sessions can open it directly:
 | `?state=live` (default) / `off` | OBS connected / not connected |
 | `?state=paused` / `paused-no-obs` | paused, with and without OBS |
 | `?state=port-in-use` | the server could not start |
+| `?state=mac-allow`, `mac-restart`, `mac-secure` | the macOS keyboard access notice: not allowed yet, allowed but restart needed, Secure Input on |
 | `?state=update` / `whats-new` / `whats-new-long` | the update button and popup / the What's new popup / with notes long enough to scroll |
 | `?tab=debug` | Debug mode on, Debug tab open (any tab name works) |
 

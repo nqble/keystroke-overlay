@@ -1,0 +1,17 @@
+/* The keyboard access notice under the header (macOS only). Code: keyboard-access.js, access-notice.js. Design:
+   docs/design/ui-design-v2.md, Popups and messages. */
+#accessBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  background: var(--color-panel-raised);
+  color: var(--color-text);
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--color-accent);
+}
+#accessBanner[hidden] {
+  display: none;
+}
+#accessBanner button {
+  flex: none;
+}

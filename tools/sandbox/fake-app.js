@@ -3,8 +3,9 @@
 // browser: no Windows, no build, no keyboard hook. Nothing is saved; reloading starts fresh.
 //
 // Pick what to show with the address (several can be combined with &):
-//   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new | whats-new-long | first-run
+//   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new | whats-new-long | first-run | mac-allow | mac-restart | mac-secure
 //   ?tab=layout | keys | style | animation | fonts | general | debug     (debug also turns Debug mode on)
+//   ?platform=macos | linux                                              pretend to be another system (the mac-* states are macOS)
 //   ?devbuild                                                            the DEV badge, as a devbuild shows it
 // Add a state: a line in STATES below, and a line in the list above.
 // Tests and Claude sessions can call window.__sandbox.emit('event-name', payload) to send an app message.
@@ -25,6 +26,18 @@
     'whats-new-long': { overlays: 1, whatsNew: true, longNotes: true },
     // a brand-new install, before OBS is set up: emit('overlays-changed', 1) to play OBS connecting
     'first-run': { overlays: 0, firstRun: true },
+    // macOS keyboard access notice (ui/settings/keyboard-access.js): not allowed yet, allowed but needs a restart, Secure Input on
+    'mac-allow': {
+      overlays: 0,
+      access: { allowed: false, secureInput: false },
+      inputError: 'macOS has not let the app read the keyboard',
+    },
+    'mac-restart': {
+      overlays: 0,
+      access: { allowed: true, secureInput: false },
+      inputError: 'macOS has not let the app read the keyboard',
+    },
+    'mac-secure': { overlays: 1, access: { allowed: true, secureInput: true } },
   };
   const chosen = STATES[stateName] ?? STATES.live;
 
@@ -67,7 +80,9 @@
       overlays: chosen.overlays,
       whatsNew: !!chosen.whatsNew,
       firstRun,
-      inputError: null,
+      inputError: chosen.inputError ?? null,
+      keyboardAccess: { applies: !!chosen.access, ...chosen.access },
+      platform: params.get('platform') || (chosen.access ? 'macos' : 'windows'),
       inputActive: 'hook',
       secureLink: false,
       gotoTab: tab,
@@ -77,6 +92,9 @@
 
   const COMMANDS = {
     get_state: getState,
+    get_keyboard_access: async () => (await getState()).keyboardAccess,
+    request_keyboard_access: () => {},
+    restart_app: () => {},
     list_layouts: async () => [...(await loaded)[1], ...ownLayouts],
     // your own layouts live in memory for the visit too, so making and deleting one can be tried
     create_layout: async ({ name }) => {
