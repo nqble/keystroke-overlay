@@ -19,7 +19,13 @@ Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaS
 
 1. Go to the [**Releases**](../../releases/latest) page.
 2. Download `Keystroke-Overlay_x.y.z_x64-setup.exe` and run it.
-3. Windows may show a SmartScreen warning because the installer isn't code-signed. Click **More info → Run anyway**.
+3. If Windows shows a SmartScreen warning (releases before code signing, or a new release Windows hasn't seen much yet),
+   click **More info → Run anyway**. Signed releases name **SignPath Foundation** as the publisher (see Code signing policy).
+
+**Is it safe?** Antivirus tools are wary of any program that reads the keyboard, and now and then one flags a new
+version by mistake. Keystroke Overlay is open source, official releases come only from this project's Releases page,
+and an automatic check on every change makes sure keystrokes are never saved or sent ([Privacy](#privacy)). If your antivirus warns about an official release,
+please [open an issue](../../issues) so it can be reported as a false positive.
 
 The app starts in your system tray (bottom-right of the taskbar). Click the tray icon to open settings.
 Prefer to build it yourself? See [Building from source](#building-from-source).
@@ -28,7 +34,8 @@ Prefer to build it yourself? See [Building from source](#building-from-source).
 
 1. In the app, click **Copy OBS URL** (default: `http://localhost:7878/`).
 2. In OBS: **Sources → + → Browser**, then paste the URL.
-3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale.
+3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale. If the box is a different size, the keyboard
+   scales itself to fit inside it and stays centred, so nothing is cut off.
 4. Leave Custom CSS empty — the page is already transparent.
 
 If you change the port in settings, update the URL in OBS too.
@@ -37,8 +44,9 @@ If you change the port in settings, update the URL in OBS too.
 
 These OBS settings make the biggest difference to how smooth the overlay looks and how little it costs while you stream:
 
-- **Size the source exactly** as shown in the app's header. To make the keys bigger or smaller, use **Style → Scale** in the app
-  instead of stretching the source in OBS: the keys stay sharp and OBS draws fewer pixels.
+- **Size the source exactly** as shown in the app's header, so there's no empty space around the keys. To make the keys
+  bigger or smaller, use **Style → Scale** in the app and set the new size, instead of stretching the source in OBS: the
+  keys stay sharp and OBS draws fewer pixels.
 - **Frame rate:** leave **Use custom frame rate** off; OBS then matches your stream's frame rate. Only turn it on to match a
   60 fps stream if OBS runs at a different rate.
 - **Shutdown source when not visible:** turn it on if the overlay is only in some of your scenes. It stops using CPU while
@@ -190,7 +198,8 @@ Every step happens on your computer, in memory. The moment a key is released, th
 
 ### What is saved on your PC
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\`: your settings (style, layout, hidden keys, labels, port,
-preferences), presets, fonts, and layouts you added. **Nothing in there contains keystrokes.** Uninstall and delete that folder to
+preferences), presets, fonts, and layouts you added; if the app ever crashes, a one-line note of where (read and deleted
+at the next start). **Nothing in there contains keystrokes.** Uninstall and delete that folder to
 remove everything.
 
 ### What touches the internet
@@ -244,9 +253,13 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **OBS runs on a different PC from the game:** the overlay link only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Open an issue naming the game and its anti-cheat.
+- **Your antivirus flags the app:** check the file came from this project's [Releases](../../releases) page, then
+  [open an issue](../../issues) naming the antivirus. Each release is reported to Microsoft as a false positive when
+  needed (docs/RELEASING.md).
 - **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
-- **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
+- **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size shown in
+  the app's header. The keyboard always fits inside the box, so a box of another shape leaves space at the sides.
 
 ## Building from source
 
@@ -273,6 +286,17 @@ Maintaining the project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SO
 ## Requirements
 
 Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11.
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- **Committers and reviewers:** [Jordan Phoutthavone](https://github.com/nqble) and the contributors whose pull
+  requests Jordan reviews and merges.
+- **Approvers:** [Jordan Phoutthavone](https://github.com/nqble). Every signed release is approved by hand.
+- Only installers built by this repository's release workflow from the `main` branch are signed.
+- **Privacy:** see [PRIVACY.md](PRIVACY.md). The app's only internet contact is GitHub, for updates and release
+  notes; the automatic update check can be turned off. Keystrokes never leave your PC.
 
 ## License
 

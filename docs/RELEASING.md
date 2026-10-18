@@ -15,6 +15,45 @@ Releases are signed so the in-app updater can verify them. The signing key never
    release tagged `channel-stable`, tick *pre-release* (so it never becomes "latest"), title "Stable channel". It only ever
    holds `stable.json`.
 
+## Code signing (Windows, free from SignPath Foundation)
+
+Two different signatures, both needed:
+- **Update signature** (above): lets the app check an update came from us. Users never see it.
+- **Code signing** (Authenticode): Windows shows it as the publisher. Without it, SmartScreen warns on every download
+  and antivirus tools are quicker to flag a program that watches the keyboard. SignPath Foundation signs open-source
+  projects for free; the certificate is in **their** name ("SignPath Foundation"), linked to this repository.
+
+The release workflow is ready for it: until `SIGNPATH_ORGANIZATION_ID` is set it builds unsigned, as before. To turn
+it on (Jordan, once):
+1. **Apply** at signpath.org with this repository. They check it is open source (MIT), public, built on GitHub
+   Actions, and has the "Code signing policy" section in README.md. Approval can take a few weeks.
+2. Turn on **two-factor login** on GitHub and SignPath for everyone who can change the repository (they require it).
+3. In SignPath, once the project exists:
+   - an **artifact configuration** that signs every `.exe` in the uploaded zip (both uploads are one file each):
+     ```xml
+     <?xml version="1.0" encoding="utf-8"?>
+     <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+       <zip-file>
+         <pe-file path="*.exe">
+           <authenticode-sign/>
+         </pe-file>
+       </zip-file>
+     </artifact-configuration>
+     ```
+   - the **release-signing** policy, with GitHub as its trusted build system and Jordan as approver (every signing
+     request then waits for Jordan to approve it in SignPath, like the "release" environment on GitHub);
+   - an **API token** for a CI user that may submit signing requests.
+4. On GitHub → Settings → Secrets and variables → Actions:
+   - secret `SIGNPATH_API_TOKEN`;
+   - variables `SIGNPATH_ORGANIZATION_ID`, `SIGNPATH_PROJECT_SLUG`, `SIGNPATH_SIGNING_POLICY_SLUG` and
+     `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` (the names SignPath shows).
+
+What a release then does (`.github/workflows/release.yml`): build the app's `.exe` → SignPath signs it → pack it into
+the installer → SignPath signs the installer → check both signatures → make the update signature over the signed
+installer → publish. Each SignPath step waits up to an hour for approval. `tools/release.mjs --stage app | installer |
+finish` runs one part each; on your PC it runs all three, unsigned. The uninstaller inside the installer stays
+unsigned (SignPath can't reach inside an NSIS installer); Windows only shows it when someone uninstalls.
+
 ## Versioning rule (decides the channel)
 
 `x.y.z` — **the middle number is Stable, the last number is Latest.**
@@ -33,8 +72,8 @@ The repository has a **Release** workflow (`.github/workflows/release.yml`) that
 
 One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): add the repository secret `TAURI_SIGNING_PRIVATE_KEY`
 (the text of your `updater.key`), and an environment named `release` with yourself as a **required reviewer** (every
-release then waits for your approval before the signing key is used). Once the key has a password (see "Signing key
-password" below), add it as the secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+release then waits for your approval before the signing key is used), and the secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
+(the key's password; see "Signing key password" below).
 
 **Safety rules the workflow enforces:** it only releases a commit that is already on `main` (merge first); every GitHub
 Action it uses is pinned to an exact commit, and Dependabot (`.github/dependabot.yml`) opens a pull request each month when
@@ -54,17 +93,25 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## Signing key password
 
-Today the key may have no password, which means anyone who gets a copy of the file can sign updates. Adding a password to
-the **same** key keeps the public key, so every installed copy keeps updating. Never generate a new key for this: a new
-key would cut off every existing install from updates.
+The update key has a password (since October 2026), kept in Jordan's password manager and in the GitHub secret
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Without it the key can't sign anything, and nobody can recover it.
+
+To change the password, change it on the **same** key: that keeps the public key, so every installed copy keeps
+updating. Never generate a new key for this: a new key would cut off every existing install from updates. On Windows,
+in PowerShell, with [minisign](https://github.com/jedisct1/minisign/releases) downloaded (`$minisign` = the full path
+of its `x86_64\minisign.exe`):
 
 1. Back up `~/.keystroke-overlay-keys/updater.key` somewhere private and offline first.
-2. Add the password to that key with the signing tool on your PC (`npx tauri signer --help` lists what this Tauri
-   version can do; the key is a base64-encoded minisign key, so `minisign -C` on the decoded file also works). Ask
-   Claude to walk you through it on your PC. The key never leaves your PC.
-3. Check it before relying on it: sign a test file with the new password (`npx tauri signer sign`), then confirm the public
-   key printed for it still matches `plugins.updater.pubkey` in `src-tauri/tauri.conf.json`.
-4. Update the GitHub secret `TAURI_SIGNING_PRIVATE_KEY` if the file's text changed, and add `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+2. Unpack it (the file is a base64-encoded minisign key), change the password, and pack it again:
+   `[IO.File]::WriteAllBytes("$PWD\updater.minisign", [Convert]::FromBase64String((Get-Content updater.key -Raw)))`,
+   then `& $minisign -C -s .\updater.minisign` (it asks for the current password, then the new one twice), then
+   `[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\updater.minisign")) | Set-Content updater.key -NoNewline`
+   and delete `updater.minisign`.
+3. Check it before relying on it: sign a test file with `npx --yes @tauri-apps/cli@<the project's version> signer sign
+   -f updater.key test.txt` (the password in `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`), decode `test.txt.sig` and
+   `plugins.updater.pubkey` (in `src-tauri/tauri.conf.json`) from base64, and run `minisign -V` on them. It must say
+   "Signature and comment signature verified".
+4. Update both GitHub secrets, and replace every backup of the old file.
 
 ## Release notes format
 
@@ -113,12 +160,35 @@ A background check runs about once an hour while the app is running, and when th
 If something newer exists, the tray icon gets an orange dot and an "Update available" entry at the top of its menu (it opens
 General), and a button appears in the settings window; the user must click it and confirm. The installer is verified against the public key before it runs.
 
+## Third-party notices
+
+The app is built from open-source libraries whose licences ask that their notices go with the app. The release
+workflow writes them (`npm run notices`, using cargo-about 0.9.2 and `src-tauri/about.toml`), puts the file in the
+installer (it lands next to the app as `THIRD-PARTY-NOTICES.html`) and attaches it to the GitHub release.
+
+If a library update brings a licence that is not listed in `src-tauri/about.toml`, the release stops there. Check that
+the new licence is compatible with MIT (permissive licences like MIT, BSD or Apache are; GPL and AGPL are not), then add
+it to the list. To try it on your PC: `cargo install cargo-about --version 0.9.2 --locked --features cli`, then
+`npm run notices`.
+
+## After publishing: antivirus
+
+A program that reads the keyboard is exactly what antivirus tools watch for, and a new version has no reputation yet.
+After each public release (it takes about five minutes):
+
+1. Download the installer from the release page and scan it on your PC with Windows Security (right-click → Scan).
+2. If Windows Security flags it, submit the installer at microsoft.com/wdsi/filesubmission as a **software
+   developer**, and say it was detected incorrectly. In the notes, link the release page and say it is an open-source
+   keystroke overlay for OBS whose keys never leave the PC. If nothing is flagged, there is nothing to do.
+3. If a user reports another antivirus (Avast, Norton, Kaspersky, …), use that vendor's false-positive form the same way.
+
+Signed releases (Code signing above) build reputation much faster, so these reports become rare.
+
 ## Checks before publishing a public release
 
 - `npm run check:privacy` passes
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
 - The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
-- Dependency licenses still compatible with MIT (`cargo metadata` → no GPL/AGPL; MPL-2.0 is fine)
-- Consider generating a third-party notices file (for example with `cargo about`) and attaching it to the release
+- Dependency licences still compatible with MIT: checked automatically (see Third-party notices)
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`
   (never set it in a real build)

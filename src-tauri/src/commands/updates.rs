@@ -168,6 +168,7 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
     let Some(update) = upd.check().await.map_err(|e| e.to_string())? else {
         return Err("Already up to date".into());
     };
+    crate::debug::log(format!("installing update v{}", update.version));
     let (progress_app, installing_app) = (app.clone(), app.clone());
     let mut done: u64 = 0;
     update
@@ -181,7 +182,10 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
             },
         )
         .await
-        .map_err(|e| format!("Update failed: {e}"))?;
+        .map_err(|e| {
+            crate::debug::log(format!("update failed: {e}"));
+            format!("Update failed: {e}")
+        })?;
     app.restart();
 }
 

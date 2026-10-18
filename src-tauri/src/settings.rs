@@ -443,6 +443,32 @@ mod tests {
         assert_eq!(load(&file)["general"]["autoCheckUpdates"], json!(true));
         std::fs::remove_dir_all(&dir).ok();
     }
+    #[test]
+    fn a_restored_backup_is_not_a_new_install() {
+        let dir = scratch_folder("backup-only");
+        let file = dir.join("settings.json");
+        let old = json!({ "version": CURRENT_VERSION, "general": { "port": 9000, "lastSeenVersion": "1.0.0" } });
+        std::fs::write(dir.join("settings.json.bak"), old.to_string()).unwrap();
+        // a devbuild's first run would move the port: a restored backup keeps its own
+        let (cfg, whats_new) = load_at_startup(&file, "app.devbuild", "9.9.9");
+        assert_eq!(cfg["general"]["port"], json!(9000), "the backup's port is kept");
+        assert_eq!(cfg["general"]["lastSeenVersion"], json!("1.0.0"));
+        assert!(whats_new, "an update over a restored backup still shows What's new");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    #[test]
+    fn an_empty_folder_is_a_new_install() {
+        let dir = scratch_folder("empty-start");
+        let (cfg, whats_new) = load_at_startup(&dir.join("settings.json"), "app", "9.9.9");
+        assert_eq!(
+            cfg["general"]["secureLink"],
+            json!(false),
+            "the secure link stays an optional choice"
+        );
+        assert_eq!(cfg["general"]["lastSeenVersion"], json!("9.9.9"));
+        assert!(!whats_new);
+        std::fs::remove_dir_all(&dir).ok();
+    }
     fn scratch_folder(name: &str) -> std::path::PathBuf {
         let dir = std::env::temp_dir().join(format!("ko-settings-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
@@ -888,10 +914,28 @@ mod robustness_tests {
     }
 }
 
+/// True when this is a brand-new install: no settings file and no backup of one. A missing settings.json with a
+/// backup is not new: load() restores the backup, and first-run changes must not overwrite it.
+pub fn is_first_run(path: &Path) -> bool {
+    !path.exists() && !path.with_extension("json.bak").exists()
+}
+
+/// The settings the app starts with, and whether to show "What's new" (once after an update; a brand-new install has
+/// nothing to show). Only a brand-new install gets the devbuild defaults and today's version as "last seen".
+pub fn load_at_startup(path: &Path, identifier: &str, current_version: &str) -> (Value, bool) {
+    let first_run = is_first_run(path);
+    let mut cfg = load(path);
+    let whats_new = !first_run && cfg["general"]["lastSeenVersion"].as_str() != Some(current_version);
+    if first_run {
+        cfg["general"]["lastSeenVersion"] = json!(current_version);
+        apply_devbuild_defaults(identifier, &mut cfg);
+    }
+    (cfg, whats_new)
+}
+
 /// Devbuilds (tools/devbuild.mjs) have their own app identity ("com.keyoverlay.devbuild") so they can run beside an
-/// installed
-/// copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic update
-/// check off.
+/// installed copy. On their very first start they take port 7881 (the installed copy uses 7878) and leave the automatic
+/// update check off.
 pub fn apply_devbuild_defaults(identifier: &str, cfg: &mut Value) {
     if identifier.ends_with(".devbuild") {
         cfg["general"]["port"] = json!(7881);

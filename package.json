@@ -26,7 +26,8 @@
     "test:visual": "node tests/e2e/run.mjs --suite visual",
     "test:install": "node tests/install/run.mjs",
     "format": "prettier --write . && cargo fmt --manifest-path src-tauri/Cargo.toml",
-    "check:format": "prettier --check . && cargo fmt --manifest-path src-tauri/Cargo.toml --check"
+    "check:format": "prettier --check . && cargo fmt --manifest-path src-tauri/Cargo.toml --check",
+    "notices": "node tools/notices.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

@@ -31,7 +31,7 @@ mod tracker;
 mod x11;
 
 use std::collections::HashSet;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
@@ -106,6 +106,14 @@ impl Source {
     fn start(_method: Method, _tx: Sender<KeyEvent>) -> Result<Self, String> {
         Err(UNSUPPORTED.to_string())
     }
+    /// Only the Windows hook can be dropped by the system, so only it is watched.
+    fn set_watch(&self, on: bool) {
+        #[cfg(windows)]
+        if let Source::Hook(handle) = self {
+            handle.set_watch(on);
+        }
+        let _ = on;
+    }
     fn stop(self) {
         match self {
             #[cfg(windows)]
@@ -114,6 +122,42 @@ impl Source {
             Source::RawInput(handle) => handle.stop(),
             #[cfg(target_os = "linux")]
             Source::X11(handle) => handle.stop(),
+        }
+    }
+}
+
+// ---- The hook watch (docs/DEBUGGING.md). Windows can remove a keyboard hook without telling the app, for example when
+// the PC is overloaded. While at least one overlay page is connected, the hook thread checks every 30 s whether the PC
+// is in use but the hook has heard nothing for over a minute, and then installs it again. With no overlay connected
+// nothing runs (CLAUDE.md: no timers at idle).
+
+/// How often the hook thread checks, while an overlay is connected.
+#[cfg_attr(not(windows), allow(dead_code))] // used by the Windows hook (hook.rs) and the tests
+pub(crate) const WATCH_INTERVAL_MS: u32 = 30_000;
+/// The hook counts as dropped when the PC had input this much later than the hook's last key.
+#[cfg_attr(not(windows), allow(dead_code))] // used by the Windows hook (hook.rs) and the tests
+pub(crate) const SILENT_LIMIT_MS: u32 = 60_000;
+
+/// Has Windows probably dropped the hook? All three are Windows tick counts in milliseconds (they wrap after 49 days,
+/// hence wrapping_sub): `now`, the PC's last input from anyone (mouse included), and the hook's last key. Only when the
+/// PC was used during the last check interval, yet long after the hook last heard a key. A wrong guess only costs a
+/// harmless re-install (a quiet player moving only the mouse for a minute).
+#[cfg_attr(not(windows), allow(dead_code))] // used by the Windows hook (hook.rs) and the tests
+pub(crate) fn hook_looks_dropped(now: u32, last_input: u32, last_key: u32) -> bool {
+    let in_use = now.wrapping_sub(last_input) <= WATCH_INTERVAL_MS;
+    let silent =
+        last_input.wrapping_sub(last_key) > SILENT_LIMIT_MS && last_input.wrapping_sub(last_key) < u32::MAX / 2;
+    in_use && silent
+}
+
+/// Held by each connected overlay page (server.rs); the first one turns the hook watch on, the last one off.
+pub struct WatchGuard<'a> {
+    bus: &'a Bus,
+}
+impl Drop for WatchGuard<'_> {
+    fn drop(&mut self) {
+        if self.bus.watchers.fetch_sub(1, Ordering::Relaxed) == 1 {
+            self.bus.set_watch(false);
         }
     }
 }
@@ -132,6 +176,8 @@ pub struct Bus {
     pub paused: AtomicBool,
     ev_tx: Sender<KeyEvent>,
     capture: Mutex<Capture>,
+    /// How many overlay pages are connected (the hook watch runs while this is above 0).
+    watchers: AtomicUsize,
 }
 
 impl Bus {
@@ -157,6 +203,20 @@ impl Bus {
         self.paused.store(paused, Ordering::Relaxed);
         if paused {
             held.clear();
+        }
+    }
+
+    /// An overlay page connected: keep the returned guard for as long as it stays connected.
+    pub fn watch_guard(&self) -> WatchGuard<'_> {
+        if self.watchers.fetch_add(1, Ordering::Relaxed) == 0 {
+            self.set_watch(true);
+        }
+        WatchGuard { bus: self }
+    }
+
+    fn set_watch(&self, on: bool) {
+        if let Some(source) = &self.capture.lock().unwrap().source {
+            source.set_watch(on);
         }
     }
 
@@ -187,6 +247,7 @@ impl Bus {
         }
         match Source::start(new, self.ev_tx.clone()) {
             Ok(source) => {
+                source.set_watch(self.watchers.load(Ordering::Relaxed) > 0); // a new hook keeps watching
                 capture.method = new;
                 capture.source = Some(source);
                 capture.error = None;
@@ -221,6 +282,7 @@ pub fn start(method: Method) -> Arc<Bus> {
         paused: AtomicBool::new(false),
         ev_tx,
         capture: Mutex::new(Capture { method, source, error }),
+        watchers: AtomicUsize::new(0),
     });
 
     let dispatch_bus = bus.clone();
@@ -251,7 +313,46 @@ mod tests {
                 source: None,
                 error: None,
             }),
+            watchers: AtomicUsize::new(0),
         }
+    }
+
+    #[test]
+    fn the_hook_counts_as_dropped_only_when_the_pc_is_in_use_and_the_hook_long_silent() {
+        let minute = SILENT_LIMIT_MS;
+        assert!(
+            hook_looks_dropped(500_000, 499_000, 499_000 - minute - 1),
+            "in use, silent over a minute"
+        );
+        assert!(
+            !hook_looks_dropped(500_000, 499_000, 499_000 - minute + 1),
+            "a key less than a minute before"
+        );
+        assert!(
+            !hook_looks_dropped(500_000, 400_000, 100),
+            "the PC itself is idle: nothing to compare"
+        );
+        assert!(
+            !hook_looks_dropped(500_000, 499_000, 499_500),
+            "a key after the last input"
+        );
+        // the tick counter wraps after 49 days
+        assert!(hook_looks_dropped(5_000, 4_000, u32::MAX - minute), "across the wrap");
+    }
+
+    #[test]
+    fn the_watch_follows_the_connected_pages() {
+        let bus = test_bus();
+        let first = bus.watch_guard();
+        let second = bus.watch_guard();
+        assert_eq!(bus.watchers.load(Ordering::Relaxed), 2);
+        drop(first);
+        drop(second);
+        assert_eq!(
+            bus.watchers.load(Ordering::Relaxed),
+            0,
+            "the last page leaving turns it off"
+        );
     }
 
     #[test]

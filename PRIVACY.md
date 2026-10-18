@@ -58,11 +58,19 @@ Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's no
   a version). When you go forward to that version again, its settings are put back and the copy is deleted. This works
   between versions from v1.4.0 on; going back to v1.3.0 or earlier still loses the newer settings
 - `presets/`, `fonts/`, `layouts/`: files you created or added
+- from v1.4.0, only if the app crashes: `crash-note.txt`, one line saying which version crashed, where in the app's code
+  and how long after starting (never the crash message, never a key). The next start reads it into the event log and
+  deletes it
 - the app's installed files
 
 Nothing in there contains keystrokes. To remove everything: uninstall, then delete that folder.
 
-**Debug mode** (off by default; General → App) adds a developer tab. While it is on, the app keeps a short event log **in memory only** (what the app did, never which keys were pressed), nothing is written to disk (apart from the self-test's empty test file, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
+**The event log.** The app keeps a short event log **in memory only**, so a bug report can say what happened: what the
+app did (the server started, keyboard input failed, an update check ran), never which keys were pressed. At all times it
+holds the last 100 important events; it is never written to disk, never sent anywhere, and gone when the app closes.
+
+**Debug mode** (off by default; General → App) adds a developer tab, and the event log then also records everyday steps
+(the last 300 lines; turning Debug mode off forgets them). Nothing is written to disk (apart from the self-test's empty test file, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## When the app talks to the internet
 
