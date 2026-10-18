@@ -7,12 +7,14 @@ Users want to hear about updates quickly. Checking in the background costs a net
 would be a surprise (and a risk).
 
 ## Decision
-- While the app runs, it asks GitHub about once an hour whether a newer version exists (and when the settings window
-  opens). General → "Check for updates automatically" turns this off completely.
+- While the app runs, it asks GitHub whether a newer version exists: the first time 45 seconds after start, then about once
+  an hour (and when the settings window opens). General → "Check for updates automatically" turns this off completely, and
+  while it is off no timer runs for it at all.
 - If an update exists, the tray icon gets a small orange dot, the tray menu gets an "Update available" entry that opens
   General, and the settings window shows its update button.
 - **Nothing is ever downloaded or installed until the user clicks the button and confirms.** Downloads are verified
-  against the signing key built into the app.
+  against the signing key built into the app. Once the user has clicked, the installer runs quietly (no installer window)
+  and the app reopens itself on the new version (`installMode: quiet`).
 - Updates are pulled by the app; there is no push channel from a server.
 
 ## Why
