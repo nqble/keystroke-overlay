@@ -7,6 +7,13 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Windo
 /// to take back the memory the window used.
 const TRIM_MEMORY_AFTER_MS: u64 = 1500;
 
+/// macOS: where the red / yellow / green buttons sit (from the window's top left), so they line up with the page's
+/// header row. The page leaves room for them: `--mac-window-buttons-width` in settings.css.
+#[cfg(target_os = "macos")]
+const WINDOW_BUTTONS_X: f64 = 16.0;
+#[cfg(target_os = "macos")]
+const WINDOW_BUTTONS_Y: f64 = 20.0;
+
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
         let _ = settings_window.unminimize();
@@ -50,6 +57,7 @@ fn with_window_chrome<'a>(
         .decorations(true)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .hidden_title(true)
+        .traffic_light_position(tauri::LogicalPosition::new(WINDOW_BUTTONS_X, WINDOW_BUTTONS_Y))
         .initialization_script("document.documentElement.classList.add('mac')")
 }
 
