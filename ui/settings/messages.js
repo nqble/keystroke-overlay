@@ -21,6 +21,7 @@ import {
   setObsUrl,
   setOverlays,
   setPaused,
+  setPlatform,
   setPresets,
   setServerError,
   setSettings,
@@ -113,6 +114,7 @@ export async function resync() {
   setOverlays(state.overlays);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
+  setPlatform(state.platform);
   setKeyboardAccess(state.keyboardAccess);
   paintAccess();
   paintPause();

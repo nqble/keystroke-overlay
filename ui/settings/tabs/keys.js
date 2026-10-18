@@ -31,9 +31,10 @@ import {
 import { render } from '../settings.js';
 import { observe } from './keys-history.js';
 import { overlappingCodes } from './keys-board.js';
+import { macFnHintText } from './keys-mac.js';
 import { hideSelection, keysToolbar, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
 import { placeKeys } from '../editor/places.js';
-import { settings, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
+import { platform, settings, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
 import { TEXT } from '../text.js';
 
 // ---- The tab ------------------------------------------------------------------------------------------------------
@@ -60,12 +61,18 @@ export async function keysTab() {
     el(
       'div',
       { className: 'keys-row' },
-      el('div', { className: 'keys-main' }, editor.element, hintLine()),
+      el('div', { className: 'keys-main' }, editor.element, hintLine(), macFnHint()),
       inspector(layout, profile, overlapping),
     ),
     keyButtons(layout),
   );
   return page;
+}
+
+/** On a Mac laptop: why the F row needs Fn (keys-mac.js). Nothing on other systems. */
+function macFnHint() {
+  const text = macFnHintText(platform);
+  return text && el('p', { className: 'keyhint', test: 'keys-mac-fn-hint', textContent: text });
 }
 
 /** One line under the editor: how to move keys, and the shortcuts as small key caps. */

@@ -97,6 +97,7 @@ Rules:
 |---|---|
 | `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge |
 | `keyboard-access-banner`, `keyboard-access-text`, `keyboard-access-button` | macOS only: the notice under the header that asks for keyboard access, asks for a restart, or explains Secure Input |
+| `keys-mac-fn-hint` | macOS only: the note under the keyboard editor that the F row needs Fn |
 | `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS link button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |

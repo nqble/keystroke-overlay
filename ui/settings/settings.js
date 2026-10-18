@@ -30,6 +30,7 @@ import {
   setLayouts,
   setObsUrl,
   setOverlays,
+  setPlatform,
   setPaused,
   setSettings,
   setTab,
@@ -133,6 +134,7 @@ addEventListener('resize', () => {
   setCustomFonts(fonts);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
+  setPlatform(state.platform);
   setKeyboardAccess(state.keyboardAccess);
   paintAccess();
   // e.g. the tray's "Update available" opens General
