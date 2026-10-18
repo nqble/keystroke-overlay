@@ -40,7 +40,7 @@ const SYSTEM_NAMES: [(&str, &[(&str, &str)]); 2] = [
 
 static KEYBOARD: OnceLock<HashMap<&'static str, String>> = OnceLock::new();
 
-/// Ask the operating system what the user's keyboard prints (once, at start-up).
+/// Ask the operating system what the user's keyboard prints (once, at start-up, on the main thread: macOS needs it).
 pub fn init() {
     KEYBOARD.get_or_init(crate::platform::keyboard_labels);
 }
@@ -85,7 +85,11 @@ pub fn layouts_to_show(paths: &Paths, settings: &Value) -> Vec<Value> {
     let mut layouts = server::layouts(paths);
     if settings["style"]["keyLabels"].as_str() != Some("layout") {
         apply(&mut layouts, &system_labels(crate::platform::name()));
-        apply(&mut layouts, KEYBOARD.get_or_init(crate::platform::keyboard_labels));
+        // Only read here: asking the system must happen in `init`, on the main thread (macOS requires it), and this
+        // runs on the server's threads. Before `init` there are simply no keyboard labels yet.
+        if let Some(keyboard) = KEYBOARD.get() {
+            apply(&mut layouts, keyboard);
+        }
     }
     layouts
 }
