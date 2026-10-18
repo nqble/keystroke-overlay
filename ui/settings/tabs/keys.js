@@ -100,14 +100,15 @@ function layoutStyleSwitch(profile) {
 
 /** One line under the editor: how to move keys, and the shortcuts as small key caps. */
 function hintLine() {
-  const item = (chipText, tooltip, word) =>
-    el(
-      'span',
-      { className: 'hintitem' },
-      el('kbd', { textContent: chipText, title: tooltip }),
-      el('span', { textContent: word }),
-    );
-  const panItems = systemWord('panHints', platform).map(({ chip, tip }) => item(chip, tip, 'pan'));
+  // One pair is its key caps (several are joined by "or") and the word they mean.
+  const item = (chips, word) => {
+    const parts = chips.flatMap(({ chip, tip }, index) => [
+      index ? el('span', { textContent: 'or' }) : null,
+      el('kbd', { textContent: chip, title: tip }),
+    ]);
+    return el('span', { className: 'hintitem' }, ...parts, el('span', { textContent: word }));
+  };
+  const single = (chip, tip) => [{ chip, tip }];
   return el(
     'p',
     { className: 'keyhint', test: 'keys-shortcut-hint' },
@@ -115,11 +116,11 @@ function hintLine() {
     el(
       'span',
       { className: 'chips' },
-      item('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key', 'nudge'),
-      item('Shift', 'Hold Shift with an arrow key to move a whole key', 'whole key'),
-      item(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform), 'hide'),
-      item(systemWord('zoomChip', platform), systemWord('zoomTip', platform), 'zoom'),
-      ...panItems,
+      item(single('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key'), 'nudge'),
+      item(single('Shift', 'Hold Shift with an arrow key to move a whole key'), 'whole key'),
+      item(single(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform)), 'hide'),
+      item(single(systemWord('zoomChip', platform), systemWord('zoomTip', platform)), 'zoom'),
+      item(systemWord('panHints', platform), 'pan'),
     ),
   );
 }
