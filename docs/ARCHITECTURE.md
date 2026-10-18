@@ -7,7 +7,7 @@ loads, and the settings window). No framework, no bundler.
 
 ```
 keystroke-overlay/
-├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
+├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md  app.config.json (the app's name, repository, identifiers)
 ├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
 │                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
@@ -17,7 +17,7 @@ keystroke-overlay/
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
-│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
+│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
 │                       ui-sandbox.mjs + sandbox/ (the settings window in a browser, docs/DEBUGGING.md), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app

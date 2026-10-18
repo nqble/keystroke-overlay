@@ -22,6 +22,7 @@
     "check:style": "node tools/check-style.mjs",
     "check:systems": "node tools/check-systems.mjs",
     "check:docs": "node tools/check-docs.mjs",
+    "check:config": "node tools/check-config.mjs",
     "check:types": "tsc -p jsconfig.json",
     "test:lock": "node tests/lib/lock.mjs",
     "test:e2e": "node tests/e2e/run.mjs",

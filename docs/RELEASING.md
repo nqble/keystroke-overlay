@@ -66,12 +66,17 @@ it without releasing: Actions → **Mac app** → Run workflow, and download the
 What to know:
 - The app is **not signed or notarized by Apple**. The workflow signs the whole app ad hoc (which Apple Silicon needs) and
   checks that signature. On first launch macOS blocks it; the person clicks **Open Anyway** in System Settings → Privacy &
-  Security. Signing and notarizing need an Apple Developer account (US$99 a year) and are not set up.
+  Security. Signing and notarizing would need an Apple Developer account (US$99 a year); Jordan chose the free route,
+  so they are not planned.
 - **No in-app updates on a Mac.** `latest.json` and `stable.json` have no `darwin` entries, on purpose, and the app says
   so when a Mac checks. Mac users download the new zip.
 - After every update the person must allow keyboard access again (clear the old entry first, with `tccutil reset ListenEvent com.keyoverlay.app`): the
   permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
   are in docs/MAC-PORT.md.
+- **The first release that carries the zip (v2.0):** the workflow has never run on GitHub yet, so try it first (Actions →
+  **Mac app** → Run workflow, which counts as posting on GitHub: Jordan's OK). Add one Mac line to the README's "Get
+  started" pointing to the user guide's On a Mac section, and say in that release's CHANGELOG entry that a Mac download
+  (Apple Silicon, Open Anyway on first launch) is attached.
 - If the Mac job fails, the Windows release is already published. Fix the cause, then re-run only the failed jobs; the
   upload replaces any earlier zip (`--clobber`).
 - Intel Macs are not covered yet.
