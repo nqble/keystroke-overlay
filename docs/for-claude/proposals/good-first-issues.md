@@ -336,7 +336,7 @@ Also:
 ### How to test
 1. For each name in your table, search for it in `src-tauri/src/keyboard/keymap.rs` (with your editor's find). Every name must be
    found, and every name that file produces should be in your table.
-2. Write a small hand-made layout using a few names from the table, put it in the app's `layouts` folder (**General → App → Open data
+2. Write a small hand-made layout using a few names from the table, put it in the app's `layouts` folder (**General → Advanced → Open data
    folder → layouts**), restart the app, and check that the keys light up when you press them.
 3. Check that your links work when you view the files on GitHub.
 

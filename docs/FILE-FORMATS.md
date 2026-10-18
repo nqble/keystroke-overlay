@@ -3,7 +3,7 @@
 The files the app reads and writes. All are plain JSON or tiny JavaScript, and everything the app loads from the outside
 is validated and cleaned first. Schemas for the two shareable formats are in [`docs/schemas/`](schemas).
 
-Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows (General → App → Open data folder).
+Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows (General → Advanced → Open data folder).
 
 ## Settings (`settings.json`)
 Versioned (`"version": 3` since v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
