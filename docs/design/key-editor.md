@@ -28,8 +28,9 @@ they are useful and are hidden otherwise.
 3. **Content row.** The editor box (flexible width) and, to its RIGHT, the inspector panel (fixed ~260px, top-aligned).
    Never put the inspector below the editor.
 4. **Hint line under the editor box**, one line: "Drag a key to move it. Ctrl-click to add." on the left. On the right,
-   keycap chips each with one word: [←][↑][↓][→] nudge · [Shift] whole key · [Del] hide · [Scroll] zoom · [Middle-drag] pan.
-   Each chip has a tooltip with the full sentence.
+   keycap chips each with one word: [←][↑][↓][→] nudge · [Shift] whole key · [Del] hide · [Scroll] zoom · [Space-drag] pan.
+   On a Mac the words change: "⌘-click to add", [delete] hide, [Pinch] zoom, [Scroll] pan (two fingers). Each chip has a
+   tooltip with the full sentence. The words per system are in `ui/settings/system-words.js`.
 
 **Removed:** the help paragraph, the on-screen arrow buttons, the "Whole key" tickbox, the Snap-size menu, the always-visible
 Align / Space-evenly groups, the selection summary + Clear selection row, and the old row of reset buttons (Enable all,
@@ -50,9 +51,29 @@ switching Keys → Style → Keys does not reload the preview.
   x ≥ 0, y ≥ 0, x + w ≤ board width and y + 1 ≤ board height.
 - **Editor box height:** fills the space down to the hint line (about 420px at the normal window size), with no page scroll.
 
+### Gestures per system (what each input does over the board)
+
+| Input | Windows and Linux | Mac |
+|---|---|---|
+| Mouse wheel | zoom | pan (a Mac trackpad's two-finger scroll is this; any direction) |
+| Pinch on a trackpad | zoom | zoom |
+| ⌘ (Ctrl elsewhere) + scroll | zoom | zoom, for a Mac with a mouse |
+| Space + drag | pan | pan |
+| Middle button + drag | pan | pan |
+| − / + buttons | zoom | zoom |
+
+What each one means is plain logic in `ui/settings/tabs/keys-gestures.js` (tested); `ui/settings/editor/view-gestures.js`
+attaches it to the box. A pinch reaches the page as a Ctrl + wheel event in Chromium (Windows) and as `gesture` events in
+Safari's engine (the Mac window); both zoom toward the pointer. A wheel event with Ctrl held and a small `deltaY` (under 30)
+is a pinch; a larger one is a Ctrl + wheel notch and zooms like a plain wheel.
+
+**Space + drag:** Space only starts a pan when the pointer goes down on the board while Space is held, so a tap of Space on a
+focused key still selects it. It is ignored while typing in a text box or dropdown, the cursor shows "grab" while it is held
+over the board, and holding stops when the window loses focus.
+
 ### Zoom
 - Mouse wheel anywhere inside the editor box (grid on or off) zooms **toward the cursor**: the point under the cursor stays
-  still.
+  still (on a Mac the plain wheel pans instead, see the table above).
 - Speed: factor = e^(−deltaY × 0.0012), about 12% per wheel notch. Smoothed by a 110ms ease-out transition on the board
   layer's `transform`, so it feels soft but never laggy.
 - Range: from "the board just fills the box" (cover) up to 200%. You can never zoom out far enough to see outside the board.
@@ -62,8 +83,9 @@ switching Keys → Style → Keys does not reload the preview.
   scroll while zooming.
 
 ### Pan
-- **Middle mouse button + drag pans the view from anywhere in the box**, including when pressed on top of a key (it never
-  selects or moves the key). The cursor shows "grabbing" while panning, and the browser's middle-click autoscroll is
+- **Middle mouse button + drag, or Space + drag, pans the view from anywhere in the box**, including when pressed on top of a
+  key (it never selects or moves the key). A Mac's two-finger scroll pans too, moving the view by the scroll's distance and
+  staying inside the board. The cursor shows "grabbing" while panning, and the browser's middle-click autoscroll is
   prevented.
 - **Limits:** the view may only show the board. While the middle button is held and the user pulls past an edge, the view
   stretches at 30% of the pointer's movement (rubber band). On release it eases back (the same 110ms ease-out) so the board's

@@ -7,6 +7,7 @@ import {
   clampPan,
   clampView,
   coverZoom,
+  panBy,
   stretchPan,
   toBoard,
   toScreen,
@@ -77,4 +78,14 @@ test('toBoard and toScreen undo each other', () => {
   const back = toScreen(toBoard(point, state), state);
   close(back.x, point.x, 'x');
   close(back.y, point.y, 'y');
+});
+
+test('panBy moves the view by the scroll and keeps only the board in the box', () => {
+  const view = { w: 400, h: 200 };
+  const content = { w: 800, h: 400 };
+  const start = { zoom: 1, panX: -100, panY: -50 };
+  assert.deepEqual(panBy(start, -30, -20, view, content), { zoom: 1, panX: -130, panY: -70 });
+  // pulling past the board's edge stops at the edge
+  assert.deepEqual(panBy(start, 500, 500, view, content), { zoom: 1, panX: 0, panY: 0 });
+  assert.deepEqual(panBy(start, -9999, -9999, view, content), { zoom: 1, panX: -400, panY: -200 });
 });

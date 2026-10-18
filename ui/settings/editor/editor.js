@@ -25,19 +25,17 @@ import {
   centredView,
   clampView,
   coverZoom,
-  stretchPan,
   toBoard,
   toScreen,
-  wheelFactor,
   zoomAt,
 } from '../tabs/keys-view.js';
 import { placeKeys, selectedBoxes } from './places.js';
+import { attachViewGestures } from './view-gestures.js';
 
 const UNIT = 40; // pixels per key at 100% zoom (keep in step with --unit in settings.css)
 const KEY_GAP = 3; // pixels between neighbouring keys at 100% zoom (keep in step with the .kmk size in settings.css)
 const DRAG_START_DISTANCE = 3; // pixels the pointer must move before a press counts as a drag, not a click
 const MIN_DOT_SPACING = 6; // pixels: grid dots closer together than this are thinned out so the grid stays readable
-const MIDDLE_BUTTON = 1;
 const ARRANGE_GAP = 10; // pixels between the arrange bar and the selected keys
 
 // The arrange bar: [hook name, label, tooltip, kind, how many keys it needs]. It floats above two or more selected keys.
@@ -166,55 +164,17 @@ function createEditor() {
     else refit();
   }).observe(box);
 
-  box.addEventListener(
-    'wheel',
-    (wheelEvent) => {
-      wheelEvent.preventDefault(); // zoom the board, not the window (this listener is not passive on purpose)
+  // Wheel, pinch, Space + drag and middle-button drag: view-gestures.js (what each means: tabs/keys-gestures.js).
+  attachViewGestures(box, {
+    view: () => view,
+    setView,
+    boxSize: () => boxSize,
+    content,
+    insideBox,
+    markTouched: () => {
       viewTouched = true;
-      setView(zoomAt(view, wheelFactor(wheelEvent.deltaY), insideBox(wheelEvent), boxSize, content()));
     },
-    { passive: false },
-  );
-
-  // Middle button + drag pans the view from anywhere in the box, even from on top of a key. Pulling past an edge stretches
-  // the view, and it springs back when the button is released.
-  box.addEventListener(
-    'pointerdown',
-    (pointerEvent) => {
-      if (pointerEvent.button !== MIDDLE_BUTTON) return;
-      pointerEvent.preventDefault(); // no browser autoscroll
-      pointerEvent.stopPropagation(); // never selects or moves the key under the pointer
-      viewTouched = true;
-      const start = { x: pointerEvent.clientX, y: pointerEvent.clientY, panX: view.panX, panY: view.panY };
-      box.classList.add('panning');
-      try {
-        box.setPointerCapture(pointerEvent.pointerId);
-      } catch {
-        /* not a real pointer (tests) */
-      }
-      const move = (moveEvent) => {
-        const panX = start.panX + moveEvent.clientX - start.x;
-        const panY = start.panY + moveEvent.clientY - start.y;
-        setView({
-          zoom: view.zoom,
-          panX: stretchPan(panX, view.zoom, boxSize.w, content().w),
-          panY: stretchPan(panY, view.zoom, boxSize.h, content().h),
-        });
-      };
-      const done = () => {
-        box.removeEventListener('pointermove', move);
-        box.removeEventListener('pointerup', done);
-        box.removeEventListener('pointercancel', done);
-        box.classList.remove('panning');
-        setView(clampView(view, boxSize, content())); // springs back with the board's transition
-      };
-      box.addEventListener('pointermove', move);
-      box.addEventListener('pointerup', done);
-      box.addEventListener('pointercancel', done);
-    },
-    true,
-  );
-  box.addEventListener('auxclick', (clickEvent) => clickEvent.preventDefault());
+  });
 
   /** A pointer position as a point inside the box, measured from the inside of its border (where the board starts). */
   function insideBox(pointerEvent) {

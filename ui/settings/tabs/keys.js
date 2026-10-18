@@ -92,9 +92,9 @@ function hintLine() {
       ' whole key · ',
       chip(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform)),
       ' hide · ',
-      chip('Scroll', 'Scroll the mouse wheel over the keyboard to zoom'),
+      chip(systemWord('zoomChip', platform), systemWord('zoomTip', platform)),
       ' zoom · ',
-      chip('Middle-drag', 'Drag with the middle mouse button to move the view'),
+      chip(systemWord('panChip', platform), systemWord('panTip', platform)),
       ' pan',
     ),
   );

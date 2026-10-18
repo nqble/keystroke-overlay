@@ -26,6 +26,19 @@ const WORDS = {
     macos: 'The delete key hides the selected keys',
     linux: 'Delete or Backspace hides the selected keys',
   },
+  // the Keys tab's hint chips for the view: what zooms and what pans (a Mac trackpad pans with two fingers and pinches)
+  zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' },
+  zoomTip: {
+    windows: 'Scroll the mouse wheel over the keyboard to zoom',
+    macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',
+    linux: 'Scroll the mouse wheel over the keyboard to zoom',
+  },
+  panChip: { windows: 'Space-drag', macos: 'Scroll', linux: 'Space-drag' },
+  panTip: {
+    windows: 'Hold Space and drag, or drag with the middle mouse button, to move the view',
+    macos: 'Scroll with two fingers, or hold Space and drag, to move the view',
+    linux: 'Hold Space and drag, or drag with the middle mouse button, to move the view',
+  },
   // how the Standard keyboard method reads keys, for the technical line shown in Debug mode
   standardDetail: {
     windows: 'Standard = WH_KEYBOARD_LL hook',
