@@ -109,9 +109,13 @@ npm run dev          # run it
 npm run dev:debug    # run a separate development copy with Debug mode on (see docs/DEBUGGING.md)
 npm test             # unit tests (including hostile-input tests) + privacy and every-system checks
 npm run format       # format the code (Prettier + rustfmt); CI checks it
-npm run check:style  # tabs, trailing spaces, final newline
+npm run check:style  # tabs, trailing spaces, final newline, no inline styles in the settings scripts
+npm run check:docs   # where each document lives, the indexes, working links
+npm run check:config # the app's name, repository and identifiers agree everywhere
 npm run test:e2e     # end-to-end tests (builds a throwaway copy, cleans up after itself)
 npm run test:install # clean install + upgrade + uninstall with real installers (throwaway identity)
+npm run test:quiet-update # a real in-app update: no installer window, the app reopens by itself
+npm run test:visual  # a picture of every settings screen and of the overlay in each theme, compared with the saved ones
 npm run build        # installer in src-tauri/target/release/bundle/nsis/
 ```
 

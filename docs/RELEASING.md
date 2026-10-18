@@ -243,7 +243,7 @@ Signed releases (Code signing above) build reputation much faster, so these repo
      Windows-only option.
   5. If something is wrong, don't publish: note it in docs/MAC-PORT.md and fix it first.
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
-- The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
+- The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub for every pull request and on demand, and becomes a required release step once it has passed reliably there
 - Dependency licences still compatible with MIT: checked automatically (see Third-party notices)
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`
   (never set it in a real build)

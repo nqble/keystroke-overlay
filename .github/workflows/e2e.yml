@@ -1,12 +1,13 @@
 name: E2E (Windows)
 
-# Manual only, for now: GitHub -> Actions -> "E2E (Windows)" -> Run workflow. It runs the full end-to-end suite
+# Runs on every pull request, and by hand: GitHub -> Actions -> "E2E (Windows)" -> Run workflow. It runs the full end-to-end suite
 # (npm run test:e2e) on one of GitHub's Windows machines: it builds a throwaway test copy of the app and drives it for
 # real (see tests/e2e/run.mjs). About 15-25 minutes. It does not block anything yet. Once a few runs pass reliably, it can
 # become a required step of the Release workflow (docs/RELEASING.md). If a run fails, open the log: a real bug and a
 # limitation of GitHub's machines (no real desktop, no injected key presses) look different there.
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       suite:
@@ -34,6 +35,6 @@ jobs:
       - name: End-to-end tests
         shell: bash
         env:
-          SUITE: ${{ inputs.suite }} # through the environment, never pasted into the script
+          SUITE: ${{ inputs.suite || 'all' }} # through the environment, never pasted into the script; a pull request runs all
         run: |
           if [ "$SUITE" = "all" ]; then npm run test:e2e; else npm run test:e2e -- --suite "$SUITE"; fi

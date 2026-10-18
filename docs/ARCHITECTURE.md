@@ -8,7 +8,7 @@ loads, and the settings window). No framework, no bundler.
 ```
 keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md  app.config.json (the app's name, repository, identifiers)
-├── .github/            workflows: CI, one-click Release, E2E (Windows), Mac app build, CodeQL, security scan; issue + PR templates, dependabot
+├── .github/            workflows: CI, one-click Release, E2E (Windows), Mac app build, Linux app build and Linux tests, CodeQL, security scan; issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
 │                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
 │                       (plans in for-claude/proposals/, finished ones in proposals/done/, the cleanup audit, release drafts;
