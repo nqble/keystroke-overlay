@@ -22,7 +22,7 @@ serde_json = "1"
 tokio = { version = "1", features = ["sync", "net", "macros", "rt", "rt-multi-thread", "time"] }
 axum = { version = "0.8", default-features = false, features = ["http1", "tokio", "ws", "json"] }
 include_dir = "0.7"
-getrandom = "0.3"
+getrandom = "0.4"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 
 # Linux only: keyboard capture on X11 desktops (keyboard/x11.rs). Pure Rust, talks to the X server directly
