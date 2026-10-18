@@ -34,7 +34,8 @@ Prefer to build it yourself? See [Building from source](#building-from-source).
 
 1. In the app, click **Copy OBS URL** (default: `http://localhost:7878/`).
 2. In OBS: **Sources → + → Browser**, then paste the URL.
-3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale.
+3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale. If the box is a different size, the keyboard
+   scales itself to fit inside it and stays centred, so nothing is cut off.
 4. Leave Custom CSS empty — the page is already transparent.
 
 If you change the port in settings, update the URL in OBS too.
@@ -43,8 +44,9 @@ If you change the port in settings, update the URL in OBS too.
 
 These OBS settings make the biggest difference to how smooth the overlay looks and how little it costs while you stream:
 
-- **Size the source exactly** as shown in the app's header. To make the keys bigger or smaller, use **Style → Scale** in the app
-  instead of stretching the source in OBS: the keys stay sharp and OBS draws fewer pixels.
+- **Size the source exactly** as shown in the app's header, so there's no empty space around the keys. To make the keys
+  bigger or smaller, use **Style → Scale** in the app and set the new size, instead of stretching the source in OBS: the
+  keys stay sharp and OBS draws fewer pixels.
 - **Frame rate:** leave **Use custom frame rate** off; OBS then matches your stream's frame rate. Only turn it on to match a
   60 fps stream if OBS runs at a different rate.
 - **Shutdown source when not visible:** turn it on if the overlay is only in some of your scenes. It stops using CPU while
@@ -256,7 +258,8 @@ use updates you can block the app in your firewall and everything else keeps wor
   needed (docs/RELEASING.md).
 - **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
-- **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
+- **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size shown in
+  the app's header. The keyboard always fits inside the box, so a box of another shape leaves space at the sides.
 
 ## Building from source
 
