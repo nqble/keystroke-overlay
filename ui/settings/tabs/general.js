@@ -51,7 +51,7 @@ function serverSection() {
     min: 1024,
     max: 65535,
     value: settings.general.port,
-    style: 'width:100px',
+    className: 'short-field',
     test: 'server-port',
   });
   const applyPort = async () => {
@@ -227,7 +227,7 @@ function updatesSection() {
     if (update.available && update.manual) {
       status.textContent = `Version ${update.version} is available — this update needs a manual install`;
       details.textContent = (update.notes ? update.notes + '\n\n' : '') + TEXT.manualInstallNote;
-      details.style.whiteSpace = 'pre-line';
+      details.classList.add('pre-line');
       details.hidden = false;
       installBtn.textContent = 'Open GitHub installer';
       installBtn.hidden = false;
@@ -290,7 +290,7 @@ function updatesSection() {
     el('label'),
     el(
       'div',
-      { className: 'ctl', style: 'flex-direction:column;align-items:stretch;gap:6px' },
+      { className: 'ctl stacked' },
       status,
       progressBar,
       el('span', { className: 'hint', id: 'upText', test: 'general-update-progress-text' }),
@@ -303,7 +303,7 @@ function updatesSection() {
     heading('Program updates'),
     row(
       'Current version',
-      el('b', { textContent: 'v' + appVersion }),
+      el('b', { textContent: 'v' + appVersion, test: 'app-version' }),
       button('View release notes', () => showNotes(appVersion), '', 'update-release-notes'),
     ),
     row('Update channel', channel),

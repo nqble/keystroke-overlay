@@ -1,5 +1,5 @@
 // Suite: Debug mode (General -> App -> Debug mode): the Debug tab appears and disappears, every tool works,
-// and the privacy rules hold (nothing recorded while off, no key presses in the log or the bug report).
+// and the privacy rules hold (only important events while off, no key presses in the log or the bug report).
 import { execSync } from 'node:child_process';
 import { connect, byTest, inject, check, finish, sleep } from '../lib/cdp.mjs';
 
@@ -23,11 +23,27 @@ check(
     !(await navNames()).includes('debug') &&
     (await state()).settings.general.debugMode === false,
 );
-check('while it is off nothing is recorded', (await p.invoke('debug_log')).ok.length === 0);
+check(
+  'while Debug mode is off the Debug tab code is not even loaded',
+  await p.q(`!performance.getEntriesByType('resource').some((entry) => /debug\.js/.test(entry.name))`),
+);
+// With Debug mode off the log keeps only the important events (docs/DEBUGGING.md): the app starting, yes; the
+// settings window opening (a Debug-mode detail), no.
+const offLog = (await p.invoke('debug_log')).ok.map((line) => line[1]);
+check(
+  'while it is off only important events are kept: "app started" is there, "settings window opened" is not',
+  offLog.some((text) => /^app started/.test(text)) && !offLog.some((text) => /settings window opened/.test(text)),
+  JSON.stringify(offLog),
+);
 await p.invoke('create_layout', { name: 'Quiet' });
-const quiet = (await p.invoke('debug_log')).ok.length;
 await p.invoke('delete_layout', { id: 'quiet' });
-check('...even when the app does things (create / delete a layout)', quiet === 0);
+const quiet = (await p.invoke('debug_log')).ok.map((line) => line[1]);
+check(
+  '...creating and deleting a layout is recorded as important, and no line ever names a key',
+  quiet.some((text) => /layout created/.test(text)) &&
+    !quiet.some((text) => /\bKey[A-Z]\b|Digit\d|Control(Left|Right)/.test(text)),
+  JSON.stringify(quiet.slice(-5)),
+);
 
 // ---- switch it on through the real toggle
 await tab('general');
@@ -152,11 +168,32 @@ check(
   '"Fake update available" shows the update button and the tray indicator',
   (await p.q(`!document.querySelector('${byTest('update-button')}').hidden`)) && (await state()).updateBadge === true,
 );
+const trayWithFake = (await p.invoke('debug_tray_state')).ok;
+check(
+  'the tray itself shows the update: the dot, "Update available" first in its menu, and the tooltip',
+  trayWithFake?.updateShown === true &&
+    trayWithFake.firstMenuEntry === 'Update available' &&
+    /update available/.test(trayWithFake.tooltip),
+);
+check(
+  'the Debug tab draws the tray icon with the dot',
+  (await p.q(`document.querySelector('${byTest('debug-tray')}').dataset.updateShown`)) === 'true',
+);
+// A real check must not take the fake update away in the middle of a test (it answers with the fake one).
+const checkedDuringFake = (await p.invoke('check_update')).ok;
+check(
+  '"Check for updates" keeps the fake update showing',
+  checkedDuringFake?.version === '9.9.9' && (await state()).updateBadge === true,
+);
 await click('debug-clear-fake-update');
 await sleep(800);
+const trayCleared = (await p.invoke('debug_tray_state')).ok;
 check(
   '"Clear fake update" removes both',
-  (await p.q(`document.querySelector('${byTest('update-button')}').hidden`)) && (await state()).updateBadge === false,
+  (await p.q(`document.querySelector('${byTest('update-button')}').hidden`)) &&
+    (await state()).updateBadge === false &&
+    trayCleared?.updateShown === false &&
+    trayCleared.firstMenuEntry === 'Open settings',
 );
 
 // ---- bug report (read the real clipboard)
@@ -164,8 +201,14 @@ await click('debug-bug-report');
 await sleep(900);
 const report = execSync('powershell.exe -NoProfile -Command "Get-Clipboard -Raw"').toString();
 check(
-  'the bug report has version, self-test, settings and log sections',
-  /Keystroke Overlay v/.test(report) && /SELF-TEST/.test(report) && /SETTINGS/.test(report) && /EVENT LOG/.test(report),
+  'the bug report has its summary sections and the JSON (ui/settings/debug-report.js)',
+  /## Keystroke Overlay bug report/.test(report) &&
+    /### Problems found/.test(report) &&
+    /### Recent events/.test(report) &&
+    /"format":2/.test(report) &&
+    /"selfTest"/.test(report) &&
+    /"settingsDiff"/.test(report) &&
+    /"log"/.test(report),
 );
 check(
   'the bug report contains no key presses, no private key and no Windows user name',
@@ -183,9 +226,9 @@ await tab('general');
 await p.ev(`${debugToggle}.click()`);
 await sleep(900);
 check(
-  'switching it off removes the tab and forgets the log',
+  'switching it off removes the tab and forgets the details (only important lines stay)',
   !(await navNames()).includes('debug') &&
-    (await p.invoke('debug_log')).ok.length === 0 &&
+    !(await p.invoke('debug_log')).ok.some((line) => /settings window opened|layout set to/.test(line[1])) &&
     (await state()).settings.general.debugMode === false,
 );
 finish();

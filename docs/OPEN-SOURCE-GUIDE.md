@@ -18,11 +18,11 @@ You don't need to write code to run an open-source project. Claude (or any contr
 |---|---|
 | License | MIT is in place. Change it only if you want a different rule (for example, GPL forces copies to stay open). Tell Claude. |
 | Name on the license | It says "Jordan Phoutthavone". Edit `LICENSE` if you'd rather use another name or a handle. |
-| Your name and email in the history | Every saved change carries your name and your Proton email, and they become public. Fine if you accept that; otherwise ask Claude to switch the history to GitHub's "noreply" address *before* publishing (it's much harder afterwards). |
-| Secrets | Checked: no keys or passwords in the files or history. The update-signing key lives outside the project — **never** put it in the repo. |
+| Your name and email in the history | Every saved change carries your name and GitHub's private "noreply" address (checked on 2026-10-16: all 187 of your commits use it; your personal email is not in the history). Keep it that way: git is set up in this project to use the noreply address. |
+| Secrets | Checked on 2026-10-16: a scan of the history (main, v1.4.0-dev and the advisor branches, 190 commits) found no private keys, signing keys, tokens or key files. The update-signing key lives outside the project — **never** put it in the repo. Repeat the check before making new branches public. |
 | Privacy claims | Written and checked against the code ([PRIVACY.md](../PRIVACY.md)); an automatic check keeps them true. |
 
-## 3. Publish it (about 15 minutes)
+## 3. Publish it (done: the repository is public and has releases since v1.1.0; kept for reference)
 
 You already created the repository `nqble/keystroke-overlay` on GitHub (it holds only a placeholder README).
 
@@ -65,7 +65,9 @@ Because the repo already has your placeholder README, GitHub Desktop may ask you
 ### The easiest way: just ask Claude
 
 Say **"release v1.2.0"**. Claude starts the Release workflow for you (this is the "Run workflow" step) and tells you it's running.
-After a minute or two GitHub **asks for your approval** (see "Approving" below). You tap **Approve**, and about 8–12 minutes later the release is live.
+After a minute or two GitHub **asks for your approval** (if you set up the `release` environment with yourself as reviewer;
+see "Approving" below). You tap **Approve**, and the release is live a few minutes later (v1.2.0, v1.2.1 and v1.3.0 each
+took 8 to 10 minutes from start to finish).
 
 ### Doing the "Run workflow" step yourself
 
@@ -91,14 +93,16 @@ Until you approve, nothing is built or published, and your key stays locked. If 
 
 ### What happens next
 
-1. The robot runs the tests, builds the installer, signs it, and publishes the release (about 8–12 minutes). You can watch it on the same page.
+1. The robot runs the tests, builds the installer, signs it, and publishes the release (about 8 to 10 minutes so far). You can watch it on the same page.
 2. A new release appears under **Releases** on GitHub with the installer and the changelog text as the notes.
-3. If the version ends in `.0` (like 1.2.0), it also updates the **Stable** channel automatically.
-4. People using the app see the blue update button the next time they open settings.
+3. If the version ends in `.0` (like 1.2.0), or you ticked **"Also make this the Stable version"**, it also updates the **Stable** channel.
+4. People using the app see the update button the next time they open settings.
 
 ### If something goes wrong
 
-- A red ✗ on the run means it stopped. **Nothing was published**, because the publishing step comes last. Click the run to see which step failed and show it to Claude.
+- A red ✗ on the run means it stopped. Click the run to see which step failed and show it to Claude. If it stopped before
+  **"Publish the GitHub release"**, nothing was published. If only the last step, **"Promote to the Stable channel"**, failed,
+  the release is live for Latest but Stable still offers the old version: ask Claude to finish the Stable step.
 - Typed the wrong version? The run stops immediately with a message. Run it again.
 - Changed your mind mid-run? On the run page click **Cancel workflow**.
 - Published something you shouldn't have? A release can be deleted from the Releases page; ask Claude to help clean up.

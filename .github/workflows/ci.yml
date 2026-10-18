@@ -13,13 +13,13 @@ jobs:
   test:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
         with:
           workspaces: src-tauri
       - run: npm ci
@@ -29,6 +29,12 @@ jobs:
         run: npm run check:format
       - name: Code style (tabs, trailing spaces, final newline)
         run: npm run check:style
+      - name: Documentation (where files live, the indexes, working links)
+        run: npm run check:docs
+      - name: App name, repository and identifiers agree everywhere
+        run: npm run check:config
+      - name: JavaScript types (loose; see jsconfig.json)
+        run: npm run check:types
       - name: JavaScript syntax
         shell: bash
         run: for f in ui/overlay/*.js ui/overlay/*/*.js ui/settings/*.js tools/*.mjs; do node --check "$f"; done
@@ -38,3 +44,45 @@ jobs:
         run: cargo test --manifest-path src-tauri/Cargo.toml
       - name: Build the app (no installer)
         run: npx tauri build --no-bundle
+
+  # The app is Windows-first, but everything except keyboard capture builds and runs elsewhere (docs/CROSS-PLATFORM.md).
+  # This job keeps it that way, so people on Linux and macOS can work on the code and run the tests.
+  other-systems:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    # macOS has not had a first green run yet. Remove this line once it passes, so it counts like the others.
+    continue-on-error: ${{ matrix.os == 'macos-latest' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: src-tauri
+      - name: Linux libraries for the app window and tray
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev
+      - run: npm ci
+      - name: Privacy promises (see PRIVACY.md)
+        run: npm run check:privacy
+      - name: UI unit tests
+        run: npm run test:ui
+      - name: JavaScript types (loose; see jsconfig.json)
+        run: npm run check:types
+      - name: Rust lints (clippy, warnings are errors)
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Rust tests that need a display (X11 keyboard capture)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y xvfb
+          xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored

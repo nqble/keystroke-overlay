@@ -9,9 +9,6 @@ use tauri::menu::{CheckMenuItem, Menu, MenuItem, Submenu};
 use tauri::tray::TrayIcon;
 use tauri::{AppHandle, Emitter, Manager};
 
-/// GitHub repository that hosts releases and update manifests.
-pub const REPO: &str = "nqble/keystroke-overlay";
-
 /// Tray menu items we need to re-check when settings change from elsewhere.
 pub struct TrayItems {
     pub pause: CheckMenuItem<tauri::Wry>,
@@ -38,6 +35,8 @@ pub struct AppState {
     /// A settings tab to open as soon as a freshly created settings window is ready (set by the tray's "Update
     /// available").
     pub pending_tab: Mutex<Option<String>>,
+    /// Wakes the background update check after a settings change, so it can wait without a timer while it is off.
+    pub auto_check_changed: tokio::sync::Notify,
 }
 
 pub fn port_of(shared: &Shared) -> u16 {

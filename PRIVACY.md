@@ -44,26 +44,42 @@ to disk and no step that uses the network.
 - They differ only in *how Windows hands the key events to the app*. Both see the same keys, record the same two facts
   (which key, down or up), keep nothing, and send nothing anywhere except the local overlay page. Choosing one over the other
   changes nothing about your privacy.
+- **On Linux** (X11 desktops, still in development), Standard reads keys through X11's *XInput2 raw key events* instead. It
+  works the same way: listen-only, the same two facts per key, kept only in memory, sent only to the local overlay page. Any
+  program on an X11 desktop can listen this way; the app doesn't gain a power others don't already have
+  ([docs/LINUX-PORT.md](docs/LINUX-PORT.md)).
 
 ## What is stored on disk
 
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's normal cache in `%LOCALAPPDATA%`):
 
 - `settings.json` (+ `settings.json.bak`, the previous copy): your style, layout choices, hidden keys, custom labels, port, preferences
+- from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app (you went back
+  a version). When you go forward to that version again, its settings are put back and the copy is deleted. This works
+  between versions from v1.4.0 on; going back to v1.3.0 or earlier still loses the newer settings
 - `presets/`, `fonts/`, `layouts/`: files you created or added
+- from v1.4.0, only if the app crashes: `crash-note.txt`, one line saying which version crashed, where in the app's code
+  and how long after starting (never the crash message, never a key). The next start reads it into the event log and
+  deletes it
 - the app's installed files
 
 Nothing in there contains keystrokes. To remove everything: uninstall, then delete that folder.
 
-**Debug mode** (off by default; General → App) adds a developer tab. While it is on, the app keeps a short event log **in memory only** (what the app did, never which keys were pressed), nothing is written to disk, and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
+**The event log.** The app keeps a short event log **in memory only**, so a bug report can say what happened: what the
+app did (the server started, keyboard input failed, an update check ran), never which keys were pressed. At all times it
+holds the last 100 important events; it is never written to disk, never sent anywhere, and gone when the app closes.
+
+**Debug mode** (off by default; General → App) adds a developer tab, and the event log then also records everyday steps
+(the last 300 lines; turning Debug mode off forgets them). Nothing is written to disk (apart from the self-test's empty test file, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## When the app talks to the internet
 
 Exactly three things, all with `github.com` / `api.github.com`, and all visible in the settings window:
 
 1. **Update check** — fetches a small manifest file (`latest.json` or `stable.json`) from this project's GitHub releases.
-   Runs when you click *Check for updates*, and — if you leave *Check for updates automatically* on — about once an hour
-   while the app is running (and when the settings window opens). Turn the setting off and the app **never** checks by itself.
+   Runs when you click *Check for updates*, and — if you leave *Check for updates automatically* on — 45 seconds after the app
+   starts, then about once an hour while it runs (and when the settings window opens). The setting is on by default;
+   turn it off and the app **never** checks by itself.
 2. **Update download** — only after you click *Update now*. The download is verified against a signing key built into
    the app; a file that does not match is rejected and never run.
 3. **Release notes** — the "What's new" window / *View release notes* fetches the notes for one version from
@@ -90,7 +106,8 @@ If that matters to you: use *Pause overlay*, use the app only on a PC you alone 
 server refuses every data request and the key-press stream without it, so other programs and other Windows users can't listen in.
 It is off by default (the link stays simple); turning it on means pasting the new link into OBS once, and "Make a new key"
 cuts off old links. The overlay's own public page and scripts stay open because they contain nothing private, and the key itself is
-never sent to the overlay.
+never sent to the overlay. The key is part of the link, so it is stored wherever the link is: in OBS's scene files, and
+anywhere you paste it. Treat the link like a password, keep it off your stream, and use "Make a new key" if it got out.
 
 ## Things outside this app's control
 
@@ -106,10 +123,13 @@ You do not have to take our word for any of this.
 1. **Read the code.** It is small. These searches in `src-tauri/src/` show everything:
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
-   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts (never the keyboard or server code)
+   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), and the Debug self-test's empty
+     `.write-test` file, created and deleted at once
+     (never the keyboard or server code)
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on
-   `127.0.0.1` and nothing else (the process id is in Task Manager). Nothing connects outward until you check for updates.
+   `127.0.0.1` and nothing else (the process id is in Task Manager). The only outward connections are the update check and download
+   above: with *Check for updates automatically* on (the default), the first one comes about 45 seconds after start.
 3. **Block it.** Add a firewall rule blocking the app's outbound traffic: the overlay keeps working, only updates stop.
 4. **Watch the disk.** Process Monitor (Microsoft Sysinternals) filtered to the app shows writes only inside its data folder.
 5. **Build it yourself.** See [CONTRIBUTING.md](CONTRIBUTING.md) — compile from source and compare behaviour.

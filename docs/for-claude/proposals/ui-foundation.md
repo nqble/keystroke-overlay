@@ -1,10 +1,12 @@
-# Plan: UI foundation (queued, from the Advisory Session)
+# Plan: UI foundation (in progress, from the Advisory Session)
 
-Status: Queued. Not started. Written down so a fresh session can pick it up.
+Status: **Done on `v1.4.0-dev`** (2026-10-17). Steps 1 to 7 are in: test hooks, screenshot
+baselines (now also the overlay in every built-in theme), design tokens, shared building blocks, looks moved to CSS (a style check
+now keeps inline styles out of the scripts), and the UI rules in CLAUDE.md. The old key picture (`keys-map.js`), the last place that set inline styles, was replaced by
+the new editor (M4.1), which sets only CSS variables, so no file is exempt any more apart from the Debug tab.
 
-When it starts: only after (a) the key editor's features are finished, committed and screenshotted for Jordan, and (b) the readability
-steps already queued are done. This plan **replaces the `ui/settings/` part (area 2)** of the queued cleanup phase: the cleanup audit
-(`docs/CLEANUP.md`) lists these items for `ui/settings` instead of a separate pass. The key editor **redesign** comes after this
+This plan **replaces the `ui/settings/` part (area 2)** of the queued cleanup phase: the cleanup audit
+(`docs/for-claude/CLEANUP.md`) lists these items for `ui/settings` instead of a separate pass. The key editor **redesign** comes after this
 plan and is designed in the Advisory Session.
 
 Goal: make a future redesign cheap and safe. Step 3 must change nothing visually; the screenshots prove it.
@@ -20,7 +22,7 @@ Goal: make a future redesign cheap and safe. Step 3 must change nothing visually
 - The window stays dark only, but token-ready, so a light theme would later be one added block.
 - The Advisory Session builds the Claude Design system right after the tokens land, from the real token list.
 
-**Before acting on two of these the master session asks Jordan to confirm in chat:** adding the dependencies (CLAUDE.md section 6
+**Before acting on two of these the master session asks Jordan to confirm in chat:** adding the dependencies (CLAUDE.md section 7
 requires asking, even for development-only ones) and editing CLAUDE.md (step 7).
 
 ## Order (each step its own commit or commits; run `npm test`, clippy, `check:format`, `check:privacy` and the full e2e suite between steps; stop and report on any failure)

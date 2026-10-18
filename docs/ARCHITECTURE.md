@@ -7,33 +7,45 @@ loads, and the settings window). No framework, no bundler.
 
 ```
 keystroke-overlay/
-├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md
+├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md  app.config.json (the app's name, repository, identifiers)
 ├── .github/            CI + one-click Release workflows, issue + PR templates, dependabot
-├── docs/               you are here (ARCHITECTURE, PROTOCOL, FILE-FORMATS, EXTENDING, DEBUGGING, RELEASING, OPEN-SOURCE-GUIDE, MAC-PORT, NEXT-RELEASE; decisions/ explains why things are the way they are; proposals/ holds larger ideas that are not decided yet)
+├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
+│                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
+│                       (plans, the cleanup audit, release drafts; public on purpose); schemas/ holds the JSON schemas for layout and preset files
 ├── assets/             icon source image
-├── tests/              end-to-end suites + runner (see tests/README.md); Rust unit tests live next to the code
-├── tools/              release.mjs (build + sign + manifests), changelog-section.mjs (release notes), check-privacy.mjs,
-│                       gen-layouts.mjs, make-icon.ps1
+├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
+│                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
+├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
+│                       check-privacy.mjs, check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), gen-layouts.mjs, make-icon.ps1 (the icon source image),
+│                       preview.mjs (the overlay in a browser), devbuild.mjs + devbuild-title.mjs (a test installer),
+│                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app
 │   ├── tauri.conf.json   app + updater configuration
 │   └── src/
-│       ├── main.rs         entry point: starts everything (≈90 lines)
+│       ├── main.rs         entry point: starts everything
 │       ├── keyboard/       key capture: two interchangeable methods feeding one pipeline
 │       │   ├── mod.rs        controller (switch methods live), key bus, dispatcher thread
 │       │   ├── hook.rs       Standard method: Windows low-level keyboard hook (WH_KEYBOARD_LL)
 │       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
-│       │   └── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
+│       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
+│       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
+│       │   └── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
-│       ├── settings.rs     settings file: defaults, versioned migrations, validation, backup
+│       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
+│       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
+│       ├── sanitize.rs     cleaning settings from outside: types, ranges and rules, one table line per setting
+│       ├── downgrade.rs    going back a version and forward again without losing settings (settings.vN.json)
 │       ├── state.rs        shared app state + small helpers
 │       ├── window.rs       the settings window (created on demand, destroyed on close)
 │       ├── tray.rs         tray icon/menu + quick actions (pause, layout, restart server)
-│       ├── debug.rs        optional Debug mode: in-memory event log, health snapshot, test switches (docs/DEBUGGING.md)
+│       ├── debug.rs        the in-memory event log (important events always, details in Debug mode), health snapshot, test switches (docs/DEBUGGING.md)
+│       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
+│           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart
-│           ├── assets.rs     fonts, presets, opening folders
+│           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
 │           ├── actions.rs    pause / layout / restart wrappers
 │           └── updates.rs    update check + install, release notes, "What's new"
 └── ui/
@@ -42,7 +54,10 @@ keystroke-overlay/
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
     │   └── registry.js, overlay.js, overlay.css, index.html
+    ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
+        ├── index.html     the window's page; settings.css its look (design tokens in its :root; scripts only hand it
+        │                  CSS variables, never inline styles: tools/check-style.mjs enforces both); logo.png
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
@@ -50,15 +65,20 @@ keystroke-overlay/
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
         ├── popups.js      dialogs, right-click menu, release notes, update dialog
+        ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── text.js        the longer explanations the user reads
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
+        ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
         └── tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
-            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-map.js (the keyboard picture:
-            drawing, selecting, dragging), keys-toolbar.js (selection, nudge, align, history, snap and grid controls),
-            keys-arrange.js (the movement maths, plain functions with unit tests) and keys-history.js (undo and redo).
-            The approved design for the coming makeover of this tab is in [design/key-editor.md](design/key-editor.md)
+            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-toolbar.js (selection, nudge,
+            align, history, snap and grid controls), keys-arrange.js (the movement maths, plain functions with unit tests)
+            and keys-history.js (undo and redo). The keyboard itself is the editor in editor/ ([design/key-editor.md](design/key-editor.md)):
+            editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
+            key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
+            places.js says where the keys are. The geometry is in keys-board.js (board size and limits), keys-view.js (zoom and
+            pan) and keys-guides.js (snapping guides, used from the next step), plain functions with unit tests.
 ```
 
 ## How a key press travels
@@ -96,7 +116,8 @@ the app trims its working set.
 `settings.json` is versioned (`version`). On load it is migrated one step at a time (`MIGRATIONS` in `settings.rs`),
 merged over `defaults()`, then **sanitized** (wrong types → defaults, numbers clamped, ids/colors validated) so a hand-edited
 file or imported preset can never break the overlay. The previous good file is kept as `settings.json.bak` and used if the
-main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
+main file is corrupt. A file from a newer version is copied aside before it is cleaned, and put back when that version
+returns (`downgrade.rs`). Per-layout key edits live in `layout.profiles[layoutId]`.
 
 ## Extending it
 
@@ -111,7 +132,7 @@ main file is corrupt. Per-layout key edits live in `layout.profiles[layoutId]`.
       press: { ms: ms * 0.5, ease: 'ease-out' }, release: { ms: ms * 2, ease: 'cubic-bezier(.34,1.9,.64,1)' }, glow: 0 }) });
   ```
   Use only `transform`/`opacity`. It shows up in the Animation tab automatically. Themes work the same with `registerTheme`.
-- **Setting:** (1) default in `settings.rs` (sanitizer range/rule if needed), (2) a descriptor in `CONTROLS` in
+- **Setting:** (1) default in `settings.rs` (a range or rule line in `sanitize.rs` if needed), (2) a descriptor in `CONTROLS` in
   `ui/settings/controls.js`, (3) use it in `ui/overlay/overlay.js`. Renaming or restructuring needs a migration + test.
 - **Command for the settings window:** a `#[tauri::command]` in the matching `commands/*.rs`, registered in
   `main.rs` (`generate_handler!`).
@@ -125,10 +146,11 @@ rule (`x.Y.0` = Stable, `x.y.Z` = Latest) and the one-click GitHub release workf
 
 `npm run check:privacy` (also in CI) fails the build if network code appears outside `commands/updates.rs`, a server binds
 anything but `127.0.0.1`, the keyboard/server code writes files, anything logs or prints, or the UI calls an external address.
-`npm test` runs it together with the Rust unit tests (settings migration/validation, key naming and tracking, Raw Input decoding,
+Its patterns live in `tools/privacy-patterns.mjs` with their own tests; it is a line-by-line tripwire, not a proof.
+`npm test` runs it together with the Rust unit tests and the JS unit tests in `tests/ui/` (settings migration/validation, key naming and tracking, Raw Input decoding,
 update URLs, release notes). `npm run test:e2e` builds a throwaway copy of the app and drives it for real (settings window, injected
 key presses through both input methods, a signed update download); it cleans up after itself — see [tests/README.md](../tests/README.md).
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. See [MAC-PORT.md](MAC-PORT.md).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs`, in development and in no release yet ([LINUX-PORT.md](LINUX-PORT.md)); for macOS, see [MAC-PORT.md](MAC-PORT.md).

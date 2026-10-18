@@ -1,18 +1,31 @@
 // =====================================================================================================================
-//  The toolbar above the keyboard picture in the Keys tab: what is selected, Clear selection, the nudge pad, and the
-//  Align and Space evenly buttons. keys.js puts it on the page. The maths is in keys-arrange.js.
+//  The toolbar above the keyboard in the Keys tab: undo and redo, the Snap and Grid switches, and a status line. keys.js puts
+//  it on the page. Moving, aligning and spacing keys is done in editor/editor.js (the bar that floats above the selection);
+//  the maths is in keys-arrange.js.
 // =====================================================================================================================
-import { button, el } from '../helpers.js';
+import { button, el, plural, toast } from '../helpers.js';
 import { changed } from '../preview.js';
-import { SNAP_CHOICES, editProf, gridShown, nudgeStep, restoreProfile, setKeyPos, snapStep } from '../profiles.js';
-import { render } from '../settings.js';
-import { selectedKey, selectedKeys, setSelectedKey, settings } from '../state.js';
+import {
+  SNAP,
+  editProf,
+  forgetKeyEdits,
+  forgetStyleEdits,
+  gridShown,
+  isCustom,
+  restoreProfile,
+  setKeyPos,
+  snapStep,
+  tidyProf,
+  viewProf,
+} from '../profiles.js';
+import { confirmDialog, showMenu } from '../popups.js';
+import { selectedKeys, setSelectedKey, settings } from '../state.js';
 import { TEXT } from '../text.js';
-import { alignPositions, clampMove, distributePositions, movedPositions } from './keys-arrange.js';
+import { clampMove, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
-import { selectedBoxes } from './keys-map.js';
+import { boardFor, placedBoxesFor, selectedBoxes } from '../editor/places.js';
+import { CLOSED_GAP, closeGapsPositions } from './keys-board.js';
 
-let nudgeByWholeKey = false; // the "Whole key" tickbox next to the nudge buttons (kept while the tab redraws)
 const MAX_POSITION = 100; // a key's position is limited to 0–100 key units (keep in step with settings.rs)
 
 /** Save new positions ({ code: { x, y } }) for keys of this layout, then redraw. */
@@ -33,122 +46,111 @@ export function nudgeSelection(layout, dx, dy) {
   applyPositions(layout, movedPositions(boxes, allowed.dx, allowed.dy));
 }
 
-/** A small labelled group of controls in the toolbar above the picture. */
-function toolGroup(label, ...controls) {
-  const group = el(
-    'div',
-    { className: 'toolgroup', test: 'key-tool-group' },
-    el('span', { className: 'toolgroup-label', textContent: label }),
-    el('div', { className: 'btns' }, controls),
-  );
-  group.setAttribute('role', 'group');
-  group.setAttribute('aria-label', label);
-  return group;
-}
-
-/** The four arrow buttons that move the selection by one step (a quarter key, or a whole key when ticked). */
-function nudgePad(layout) {
-  const wholeKey = el('input', {
-    type: 'checkbox',
-    id: 'nudgeWhole',
-    checked: nudgeByWholeKey,
-    test: 'key-nudge-whole',
-  });
-  wholeKey.onchange = () => {
-    nudgeByWholeKey = wholeKey.checked;
-  };
-  const move = (dx, dy) => () => {
-    const step = nudgeByWholeKey ? 1 : nudgeStep();
-    nudgeSelection(layout, dx * step, dy * step);
-  };
-  const arrows = [
-    ['←', 'Move left', 'left', -1, 0],
-    ['↑', 'Move up', 'up', 0, -1],
-    ['↓', 'Move down', 'down', 0, 1],
-    ['→', 'Move right', 'right', 1, 0],
-  ];
-  const buttons = arrows.map(([arrow, title, direction, dx, dy]) => {
-    const arrowButton = button(arrow, move(dx, dy), 'nudge', 'key-nudge');
-    arrowButton.dataset.direction = direction;
-    arrowButton.title = title + (selectedKeys.size ? '' : ' (select a key first)');
-    arrowButton.disabled = selectedKeys.size === 0;
-    return arrowButton;
-  });
-  const wholeLabel = el(
-    'label',
-    { className: 'inline', title: 'Move by a whole key instead of a quarter key' },
-    wholeKey,
-  );
-  wholeLabel.append(' Whole key');
-  return [...buttons, wholeLabel];
-}
-
-const ALIGN_BUTTONS = [
-  ['left', 'Left', 'Line the keys up along their left edge'],
-  ['center', 'Centre', 'Line the keys up along their vertical middle'],
-  ['right', 'Right', 'Line the keys up along their right edge'],
-  ['top', 'Top', 'Line the keys up along their top edge'],
-  ['middle', 'Middle', 'Line the keys up along their horizontal middle'],
-  ['bottom', 'Bottom', 'Line the keys up along their bottom edge'],
-];
-const DISTRIBUTE_BUTTONS = [
-  ['across', 'Across', 'Make the gaps between the keys equal, left to right'],
-  ['down', 'Down', 'Make the gaps between the keys equal, top to bottom'],
-];
-const MIN_KEYS_TO_ALIGN = 2;
-const MIN_KEYS_TO_DISTRIBUTE = 3;
-
-/** A button that needs at least `needed` selected keys; when it cannot be used, its tooltip says why. */
-function arrangeButton(label, tooltip, needed, onclick, test) {
-  const arrangeButton = button(label, onclick, '', test);
-  const enough = selectedKeys.size >= needed;
-  arrangeButton.disabled = !enough;
-  arrangeButton.title = enough ? tooltip : `Select at least ${needed} keys first`;
-  return arrangeButton;
-}
-
-function alignButtons(layout) {
-  return ALIGN_BUTTONS.map(([alignment, label, tooltip]) =>
-    arrangeButton(
-      label,
-      tooltip,
-      MIN_KEYS_TO_ALIGN,
-      () => applyPositions(layout, alignPositions(selectedBoxes(layout), alignment)),
-      'key-align-' + alignment,
-    ),
-  );
-}
-
-function distributeButtons(layout) {
-  return DISTRIBUTE_BUTTONS.map(([direction, label, tooltip]) =>
-    arrangeButton(
-      label,
-      tooltip,
-      MIN_KEYS_TO_DISTRIBUTE,
-      () => applyPositions(layout, distributePositions(selectedBoxes(layout), direction)),
-      'key-distribute-' + direction,
-    ),
-  );
-}
-
 /** Save one of the Keys tab's remembered choices (settings.layout.editor) and redraw. */
 function setEditorChoice(name, value) {
   settings.layout.editor = { ...settings.layout.editor, [name]: value };
   changed(true);
 }
 
-/** The Snap menu and the Show grid tickbox. Both are remembered between sessions. */
-function viewControls() {
-  const menu = el('select', { id: 'snapMenu', title: TEXT.snapMenuHelp, test: 'key-snap' });
-  for (const [step, label] of SNAP_CHOICES) menu.append(el('option', { value: String(step), textContent: label }));
-  menu.value = String(snapStep());
-  menu.onchange = () => setEditorChoice('snap', Number(menu.value));
-  const snapLabel = el('label', { className: 'inline', title: TEXT.snapMenuHelp }, 'Snap ', menu);
-  const grid = el('input', { type: 'checkbox', id: 'showGrid', checked: gridShown(), test: 'key-grid' });
-  grid.onchange = () => setEditorChoice('grid', grid.checked);
-  const gridLabel = el('label', { className: 'inline', title: TEXT.gridHelp }, grid);
-  gridLabel.append(' Show grid');
-  return [snapLabel, gridLabel];
+/** A switch in the toolbar: a button that stays pressed while it is on (aria-pressed tells screen readers). */
+function toggleButton(label, on, tooltip, test, onclick) {
+  const toggle = button(label, onclick, 'toggle' + (on ? ' on' : ''), test);
+  toggle.title = tooltip;
+  toggle.setAttribute('aria-pressed', String(on));
+  return toggle;
+}
+
+/** "Close gaps": slide the shown keys together, keeping their order, then centre them on the board. */
+function closeGaps(layout) {
+  const profile = viewProf();
+  const hidden = new Set(profile.disabledKeys);
+  const boxes = placedBoxesFor(layout, profile).filter((box) => !hidden.has(box.code));
+  if (!boxes.length) return;
+  const evenGrid = profile.layoutStyle === 'grid';
+  const positions = closeGapsPositions(
+    boxes,
+    boardFor(layout, profile),
+    evenGrid ? 0 : CLOSED_GAP, // the Even grid closes gaps completely
+    snapStep() || CLOSED_GAP,
+  );
+  applyPositions(layout, positions);
+  toast('Gaps closed');
+}
+
+/** The Reset menu: put selected keys, all keys, hidden keys or labels back, or reset the whole layout. */
+function resetMenu(layout, profile, event) {
+  const selectedCodes = [...selectedKeys];
+  const isEdited = (code) => !!(profile.positions[code] || profile.sizes[code]);
+  const items = [
+    {
+      label: 'Put selected keys back',
+      test: 'keys-put-selected-back',
+      disabled: !selectedCodes.some(isEdited),
+      run: () => {
+        forgetKeyEdits(selectedCodes);
+        changed(true);
+      },
+    },
+    {
+      label: 'Put all keys back',
+      test: 'keys-reset-positions',
+      disabled: !Object.keys(profile.positions).length && !Object.keys(profile.sizes).length,
+      run: () => {
+        forgetStyleEdits();
+        changed(true);
+      },
+    },
+    {
+      label: 'Show all hidden keys',
+      test: 'keys-enable-all',
+      disabled: !profile.disabledKeys.length,
+      run: () => {
+        editProf().disabledKeys = [];
+        tidyProf();
+        changed(true);
+      },
+    },
+    {
+      label: 'Reset all labels',
+      test: 'keys-reset-labels',
+      disabled: !Object.keys(profile.labels).length,
+      run: () => {
+        editProf().labels = {};
+        tidyProf();
+        changed(true);
+      },
+    },
+    { separator: true },
+    {
+      label: 'Reset this layout completely',
+      test: 'keys-revert',
+      danger: true,
+      disabled: !isCustom(layout.id),
+      run: () =>
+        confirmDialog({
+          title: 'Reset this layout?',
+          body: TEXT.resetLayoutBody,
+          confirmLabel: 'Reset layout',
+          test: 'dialog-reset-layout-confirm',
+          onConfirm: () => {
+            delete settings.layout.profiles[layout.id];
+            setSelectedKey(null);
+            changed(true);
+            toast(layout.name + ' reset');
+            return true;
+          },
+        }),
+    },
+  ];
+  showMenu(event, items);
+}
+
+/** A small named group of controls in the toolbar (screen readers announce its name). */
+function toolGroup(label, ...controls) {
+  const group = el('div', { className: 'toolgroup', test: 'key-tool-group' }, ...controls);
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', label);
+  return group;
 }
 
 /** Undo the last change to this layout's keys (same as the Undo button). */
@@ -184,34 +186,49 @@ function historyButtons(layout) {
   return [undoButton, redoButton];
 }
 
-/** The toolbar above the picture: what is selected, clear it, and the nudge pad. */
-export function selectionTools(layout) {
-  const count = selectedKeys.size;
-  const summary =
-    count === 0 ? TEXT.nothingSelected : count === 1 ? `${selectedKey} selected` : `${count} keys selected`;
-  const clear = button(
-    'Clear selection',
-    () => {
-      setSelectedKey(null);
-      render();
-    },
-    '',
-    'key-clear-selection',
-  );
-  clear.disabled = count === 0;
-  clear.title = count === 0 ? 'Nothing is selected' : 'Deselect every key';
+/** The line at the far right of the toolbar: how many keys are moved or hidden, and how many overlap. */
+function statusLine(profile, overlapCount) {
+  const moved = new Set([...Object.keys(profile.positions), ...Object.keys(profile.sizes)]).size;
+  const status = el('p', {
+    className: 'keystatus',
+    textContent: `${moved} moved · ${profile.disabledKeys.length} hidden`,
+    test: 'key-status',
+  });
+  if (overlapCount > 0)
+    status.append(
+      ' · ',
+      el('span', { className: 'danger-text', textContent: `${plural(overlapCount, 'key')} overlap` }),
+    );
+  status.setAttribute('aria-live', 'polite'); // read out after a change
+  return status;
+}
+
+/** The toolbar above the keyboard: undo and redo, the Snap and Grid switches, and the status line. */
+export function keysToolbar(layout, profile, overlapCount) {
+  const snapOn = snapStep() > 0;
+  const gridOn = gridShown();
   return el(
     'div',
     { className: 'keytools', test: 'key-toolbar' },
-    toolGroup(
-      'Selection',
-      el('span', { className: 'sel-summary', textContent: summary, test: 'key-selection-summary' }),
-      clear,
-    ),
-    toolGroup('Move selection', ...nudgePad(layout)),
-    toolGroup('Align', ...alignButtons(layout)),
-    toolGroup('Space evenly', ...distributeButtons(layout)),
     toolGroup('History', ...historyButtons(layout)),
-    toolGroup('View', ...viewControls()),
+    toolGroup(
+      'View',
+      toggleButton('Snap', snapOn, TEXT.snapHelp, 'key-snap', () => setEditorChoice('snap', snapOn ? 0 : SNAP)),
+      toggleButton('Grid', gridOn, TEXT.gridHelp, 'key-grid', () => setEditorChoice('grid', !gridOn)),
+    ),
+    toolGroup(
+      'Tidy',
+      Object.assign(
+        button('Close gaps', () => closeGaps(layout), '', 'keys-tidy'),
+        { title: TEXT.closeGapsHelp },
+      ),
+      Object.assign(
+        button('Reset ▾', (event) => resetMenu(layout, profile, event), '', 'keys-reset-menu'),
+        {
+          title: TEXT.resetMenuHelp,
+        },
+      ),
+    ),
+    statusLine(profile, overlapCount),
   );
 }

@@ -3,15 +3,19 @@
 use crate::state::AppState;
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
+/// After the settings window closes, wait this long (so its web view has really been torn down) before asking Windows
+/// to take back the memory the window used.
+const TRIM_MEMORY_AFTER_MS: u64 = 1500;
+
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
         let _ = settings_window.unminimize();
         let _ = settings_window.set_focus();
         return;
     }
-    crate::debug::log("settings window opened");
+    crate::debug::detail("settings window opened");
     let _ = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
-        .title("Keystroke Overlay")   // still used by the taskbar and Alt+Tab
+        .title(crate::app_info::NAME)   // still used by the taskbar and Alt+Tab
         // No native title bar: the page draws its own minimize / maximize / close buttons in the top right of its
         // header row.
         .decorations(false)
@@ -54,7 +58,7 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
     }
     if let WindowEvent::Destroyed = ev {
         std::thread::spawn(|| {
-            std::thread::sleep(std::time::Duration::from_millis(1500));
+            std::thread::sleep(std::time::Duration::from_millis(TRIM_MEMORY_AFTER_MS));
             crate::platform::trim_memory();
         });
     }

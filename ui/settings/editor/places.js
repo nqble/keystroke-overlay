@@ -1,0 +1,35 @@
+// =====================================================================================================================
+//  Where the keys of the current layout are, as the Keys tab edits them: every key with its place and size in keys, and the
+//  selected ones as boxes the arrange maths (tabs/keys-arrange.js) understands.
+// =====================================================================================================================
+import { keyPos, keyWidth, viewProf } from '../profiles.js';
+import { selectedKeys } from '../state.js';
+import { boardSize, evenGridBoxes } from '../tabs/keys-board.js';
+
+/** Every key of the layout with its current place and size in key units: [{ key, x, y, w, h }]. */
+export function placeKeys(layout, profile) {
+  return layout.keys.map((key) => ({ key, ...keyPos(key, profile), w: keyWidth(key, profile), h: key.h ?? 1 }));
+}
+
+/** The layout's keys as the layout style puts them before any edit: [{ code, x, y, w, h }]. */
+export function layoutBoxesFor(layout, profile) {
+  return profile.layoutStyle === 'grid'
+    ? evenGridBoxes(layout)
+    : layout.keys.map((key) => ({ code: key.code, x: key.x, y: key.y, w: key.w ?? 1, h: key.h ?? 1 }));
+}
+
+/** The keys as they are now, as boxes: [{ code, x, y, w, h }]. */
+export const placedBoxesFor = (layout, profile) =>
+  placeKeys(layout, profile).map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
+
+/** The board for the layout: { w, h } in keys. */
+export const boardFor = (layout, profile) =>
+  boardSize(layoutBoxesFor(layout, profile), placedBoxesFor(layout, profile));
+
+/** The selected keys as boxes: [{ code, x, y, w, h }]. */
+export function selectedBoxes(layout) {
+  const profile = viewProf();
+  return placeKeys(layout, profile)
+    .filter((item) => selectedKeys.has(item.key.code))
+    .map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
+}

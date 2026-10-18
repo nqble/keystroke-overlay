@@ -28,6 +28,9 @@ const ROOT = resolve(HERE, '../..');
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
 const only = args.includes('--suite') ? args[args.indexOf('--suite') + 1] : 'all';
+// Optional suites run only when asked for by name (never in "all"): the visual test's baselines are from one PC, not shared.
+const OPTIONAL_SUITES = ['visual', 'tab-speed', 'overlay-speed'];
+if (args.includes('--update')) process.env.VISUAL_UPDATE = '1';
 // smoke LAST: it ends by installing an update, which exits the app
 const SUITES = [
   'input-methods',
@@ -44,10 +47,11 @@ const SUITES = [
   'smoke',
 ];
 const WORK = process.env.E2E_WORK ?? join(tmpdir(), 'keystroke-overlay-e2e');
-const DATA = join(process.env.APPDATA, 'com.keyoverlay.test');
-const EXE = join(WORK, 'kotest-e2e.exe');
+const DATA = join(process.env.APPDATA, APP.identifiers.test);
+const EXE = join(WORK, `${APP.testApps.e2eExe}.exe`);
 const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
 import { acquire } from '../lib/lock.mjs';
+import { APP } from '../../tools/app-config.mjs';
 let lock; // the shared test lock (see tests/lib/lock.mjs)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (m) => console.log(`\n\x1b[36m▶ ${m}\x1b[0m`);
@@ -62,7 +66,7 @@ const portBusy = (port) =>
     s.on('error', () => res(false));
   });
 const run = (cmd, cmdArgs, opts = {}) => spawnSync(cmd, cmdArgs, { cwd: ROOT, shell: true, stdio: 'inherit', ...opts });
-const killApp = () => spawnSync('taskkill', ['/F', '/IM', 'kotest-e2e.exe'], { stdio: 'ignore' });
+const killApp = () => spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
 const dirSize = (d) => {
   let n = 0;
   try {
@@ -96,14 +100,14 @@ async function main() {
     join(WORK, 'cfg.json'),
     JSON.stringify({
       // pretend to be old so the mock's 1.1.4 counts as an update
-      identifier: 'com.keyoverlay.test',
+      identifier: APP.identifiers.test,
       version: '1.1.0',
       plugins: {
         updater: {
           pubkey: readFileSync(key + '.pub', 'utf8').trim(),
           endpoints: ['http://localhost:7999/latest.json'],
           dangerousInsecureTransportProtocol: true,
-          windows: { installMode: 'passive' },
+          windows: { installMode: 'quiet' }, // the same as the real app (tauri.conf.json)
         },
       },
     }),
@@ -125,7 +129,9 @@ async function main() {
 
   // ---- run the suites
   const failed = [];
-  for (const name of SUITES.filter((s) => only === 'all' || only === s)) {
+  for (const name of [...SUITES, ...OPTIONAL_SUITES].filter(
+    (s) => only === s || (only === 'all' && !OPTIONAL_SUITES.includes(s)),
+  )) {
     log(`Suite: ${name}`);
     lock?.stage(`suite ${name}`);
     killApp();
@@ -159,11 +165,15 @@ async function main() {
         break;
       await sleep(250);
     }
-    const r = spawnSync(process.execPath, [join(HERE, 'suites', `${name}.mjs`)], {
-      cwd: ROOT,
-      stdio: 'inherit',
-      env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA },
-    });
+    const r = spawnSync(
+      process.execPath,
+      [name === 'visual' ? join(ROOT, 'tests/visual/visual.mjs') : join(HERE, 'suites', `${name}.mjs`)],
+      {
+        cwd: ROOT,
+        stdio: 'inherit',
+        env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA },
+      },
+    );
     if (r.status !== 0) failed.push(name);
   }
   return failed;

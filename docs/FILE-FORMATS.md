@@ -1,12 +1,12 @@
 # File formats
 
 The files the app reads and writes. All are plain JSON or tiny JavaScript, and everything the app loads from the outside
-is validated and cleaned first. Schemas for the two shareable formats are in [`docs/schemas/`](schemas/).
+is validated and cleaned first. Schemas for the two shareable formats are in [`docs/schemas/`](schemas).
 
-Where user files live: `%APPDATA%\com.keyoverlay.app\` (General → App → Open data folder).
+Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows (General → App → Open data folder).
 
 ## Settings (`settings.json`)
-Versioned (`"version": 3` on the `v1.3.0-dev` branch; 2 in the released v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
+Versioned (`"version": 3` since v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
 The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the single source of truth. Shape:
 
 ```jsonc
@@ -27,7 +27,7 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
 }
 ```
 
-**Key edits (unreleased; `v1.3.0-dev` only).** Besides `disabledKeys` and `labels`, a profile can remember where the user moved
+**Key edits (since v1.3.0).** Besides `disabledKeys` and `labels`, a profile can remember where the user moved
 keys to and how wide they made them. These belong to a *layout style*: `"shape"` (keys as the layout file draws them, the
 default) or `"grid"` (every key one key wide in neat columns). A profile picks its style with `"layoutStyle": "grid"` (written only
 when chosen), and keeps each style's edits under `styles`:
@@ -50,7 +50,7 @@ entries that are not finite numbers are dropped, positions are limited to 0–10
 written (so older settings files stay small). Files saved by version 2 kept `positions` directly on the profile; version 3 moves
 them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
 
-**`layout.editor` (unreleased; `v1.3.0-dev` only).** The Keys tab remembers two choices between sessions: `snap`, how far a
+**`layout.editor` (since v1.3.0).** The Keys tab remembers two choices between sessions: `snap`, how far a
 dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1` are accepted), and `grid`, whether the faint
 grid dots are shown (`true` or `false`). Anything else, or a settings file saved before these existed, gets the defaults
 (`0.25` and `false`). The overlay ignores them.

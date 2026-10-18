@@ -8,23 +8,22 @@
 //
 //  PRIVACY: nothing here is saved to disk or sent anywhere. The event log is the app's own memory and records what the
 //  app did, never which keys you pressed. The Key monitor shows key presses, so it only runs when you press Start, and
-//  it
-//  stops by itself after 60 seconds or when you leave this tab.
+//  it stops by itself after 60 seconds or when you leave this tab.
 //
 //  HOW TO ADD A DEBUG TOOL (takes about ten lines):
 //    1. Add an object to SECTIONS below:   { id: 'my-tool', title: 'My tool', build() { return [ ...page elements... ]; } }
 //    2. Need data from the app?  Add a #[tauri::command] in src-tauri/src/debug.rs, list it in main.rs, then call it
-//    here
-//       with   await invoke('my_command', { arg })
+//       here with   await invoke('my_command', { arg })
 //    3. Need something to refresh by itself?   every(root, 2000, () => { ...update the page... })
 //  Helpers from settings.js you can use: el(), heading(), note(), button(), row(), toast(), call(), invoke(), settings,
 //  layouts, size, showNotes(), resync(), render().   Full guide: docs/DEBUGGING.md
 // =====================================================================================================================
+import { REPORT_LOG_LINES, bugReport, flatten, redactSettings, scrub, settingsDiff } from './debug-report.js';
 import { addLayoutDialog, showNotes } from './popups.js';
 import { button, call, el, tauriEvent, heading, invoke, note, toast } from './helpers.js';
 import { resync } from './messages.js';
 import { render } from './settings.js';
-import { settings, appVersion, layouts, setTab, size } from './state.js';
+import { settings, appVersion, lastUpdate, layouts, paused, setTab, size } from './state.js';
 
 // -------------------------------------------------------------------------------------------------------------------
 // Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
@@ -48,7 +47,13 @@ const TEXT = {
     'changed here.',
   fakeUpdateHelp:
     '“Fake update available” shows the update button, the orange tray dot and the “Update available” ' +
-    'tray entry without needing a real release.',
+    'tray entry without needing a real release. It stays until you clear it: update checks answer with it meanwhile. ' +
+    'The picture shows the tray icon exactly as the tray has it now.',
+  trayNow: 'Tray icon now:',
+  trayState: (state) =>
+    `update dot ${state.updateShown ? 'on' : 'off'} · first menu entry: ${state.firstMenuEntry ?? '?'} · ` +
+    `tooltip: ${state.tooltip}`,
+  trayNotReady: 'The tray icon is not there yet.',
   inspectorStepEdge:
     'In Microsoft Edge open edge://inspect, add localhost:9222 under “Configure…”, then click ' +
     '“inspect” under Keystroke Overlay.',
@@ -57,9 +62,9 @@ const TEXT = {
     'Debug mode on. In the inspector’s console, the object “ko” has shortcuts: ko.info(), ko.log(), ' +
     "ko.settings(), ko.goto('style').",
   bugReportHelp:
-    'Copies one block of text for a GitHub issue: version, system, self-test results, your settings ' +
-    '(without the private link key) and the recent event log. It contains no key presses, and your ' +
-    'Windows user name is removed.',
+    'Copies one block of text for a GitHub issue, or to paste to an AI assistant such as Claude: a short summary, then ' +
+    'the details (version, system, self-test, the settings you changed and the recent event log). It contains no key ' +
+    'presses and no private link key, and your user name is removed.',
   debugToolsIntro:
     'Developer tools. Switch them off in General → App → Debug mode. Nothing here is saved to disk or ' +
     'sent anywhere.',
@@ -102,30 +107,11 @@ function facts() {
   return box;
 }
 
-/** The settings without the private link key (for showing on screen or copying into a bug report). */
-function redactedSettings() {
-  const copy = JSON.parse(JSON.stringify(settings));
-  if (copy.general?.linkKey) copy.general.linkKey = '(hidden)';
-  return copy;
-}
-
-/** Remove personal details (your Windows user name) from text that is going to be pasted somewhere. */
-const scrub = (text) => String(text).replace(/([A-Za-z]:\\Users\\)[^\\\s"']+/gi, '$1<you>');
-
 const seconds = (s) => (s < 90 ? `${s} s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
 const clock = (ms) => {
   const pad = (n, width = 2) => String(n).padStart(width, '0');
   return `${pad(Math.floor(ms / 60000))}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`;
 };
-
-/** Flatten nested settings into { 'style.radius': 8, ... } so two copies can be compared. */
-function flatten(value, path = '', out = {}) {
-  if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length) {
-    for (const [childKey, childValue] of Object.entries(value))
-      flatten(childValue, path ? `${path}.${childKey}` : childKey, out);
-  } else out[path] = JSON.stringify(value);
-  return out;
-}
 
 // -------------------------------------------------------------------------------------------------------------------
 // Self-test: quick yes/no checks of everything that has to work for the overlay to work
@@ -159,30 +145,49 @@ async function runSelfTest() {
   ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail }));
 }
 
-/** One report a developer can paste into a GitHub issue. Contains no key presses and no personal paths. */
+/** The facts for "Copy bug report" (debug-report.js formats them). No key presses, no personal paths. */
 async function buildReport() {
-  const info = await invoke('debug_info'),
-    tests = await runSelfTest(),
-    log = await invoke('debug_log');
-  return scrub(
-    [
-      `Keystroke Overlay v${info.version} (${info.build}) on ${info.os}`,
-      `Browser engine: ${navigator.userAgent}`,
-      `Screen: ${screen.width}x${screen.height} at ${devicePixelRatio}x, window ${innerWidth}x${innerHeight}`,
-      `Running for ${seconds(info.uptimeSecs)}; memory ${info.memoryMb} MB; ` +
-        `${info.handles} handles; port ${info.port}`,
-      `Keyboard: ${info.inputActive}${info.inputError ? ' (error: ' + info.inputError + ')' : ''}`,
-      '',
-      'SELF-TEST',
-      ...tests.map((t) => `${t.ok ? 'PASS' : 'FAIL'}  ${t.name}${t.detail ? ' — ' + t.detail : ''}`),
-      '',
-      'SETTINGS',
-      JSON.stringify(redactedSettings()),
-      '',
-      `EVENT LOG (last ${Math.min(60, log.length)} of ${log.length})`,
-      ...log.slice(-60).map(([ms, text]) => `${clock(ms)}  ${text}`),
-    ].join('\n'),
-  );
+  const [info, selfTest, log, defaults] = await Promise.all([
+    invoke('debug_info'),
+    runSelfTest(),
+    invoke('debug_log'),
+    invoke('debug_defaults'),
+  ]);
+  const engine = (navigator.userAgent.match(/Edg\/[\d.]+/) || [navigator.userAgent])[0];
+  const state = {
+    paused,
+    port: info.port,
+    serverError: info.serverError,
+    inputMethod: info.inputActive,
+    inputError: info.inputError,
+    secureLink: !!settings.general?.secureLink,
+    layout: settings.layout?.id,
+    settingsValid: info.settingsValid,
+    dataDir: info.dataDir,
+    dataWritable: info.dataWritable,
+    uptimeSecs: info.uptimeSecs,
+    memoryMb: info.memoryMb,
+    handles: info.handles,
+    window: `${innerWidth}x${innerHeight} at ${devicePixelRatio}x`,
+    overlaySize: size ? `${size.w}x${size.h}` : null,
+  };
+  return bugReport({
+    version: info.version,
+    build: info.build,
+    os: info.os,
+    engine,
+    state,
+    selfTest,
+    settingsDiff: settingsDiff(redactSettings(settings), defaults),
+    lastUpdate: lastUpdate && {
+      available: !!lastUpdate.available,
+      version: lastUpdate.version,
+      channel: lastUpdate.channel,
+    },
+    detailSinceMs: info.detailSinceMs,
+    lastCrash: info.lastCrash,
+    log: log.slice(-REPORT_LOG_LINES),
+  });
 }
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -200,6 +205,37 @@ function listenForKeys() {
 // -------------------------------------------------------------------------------------------------------------------
 // The sections. Add yours here.
 // -------------------------------------------------------------------------------------------------------------------
+/**
+ * A picture of the tray icon exactly as the tray has it now, with the update dot, the first menu entry and the
+ * tooltip (debug_tray_state, tray.rs indicator_state), so the update indicator can be checked without finding the tray.
+ */
+function trayPreview() {
+  const canvas = el('canvas', { test: 'debug-tray-icon' });
+  const line = el('span', { test: 'debug-tray-state' });
+  const element = el(
+    'div',
+    { className: 'btns', test: 'debug-tray' },
+    el('span', { textContent: TEXT.trayNow }),
+    canvas,
+    line,
+  );
+  const refresh = async () => {
+    const state = await invoke('debug_tray_state');
+    if (!state?.ready) {
+      line.textContent = TEXT.trayNotReady;
+      return;
+    }
+    line.textContent = TEXT.trayState(state);
+    element.dataset.updateShown = String(state.updateShown);
+    const { size, rgba } = state.preview;
+    canvas.width = size;
+    canvas.height = size;
+    canvas.getContext('2d')?.putImageData(new ImageData(new Uint8ClampedArray(rgba), size, size), 0, 0);
+  };
+  tauriEvent.listen('update-result', refresh); // a real or fake check changes the tray too
+  return { element, refresh };
+}
+
 const SECTIONS = [
   {
     id: 'this-app',
@@ -413,7 +449,7 @@ const SECTIONS = [
         className: 'dbg-json',
         test: 'debug-json',
         spellcheck: false,
-        value: JSON.stringify(redactedSettings(), null, 2),
+        value: JSON.stringify(redactSettings(settings), null, 2),
       });
       const result = el('div', { className: 'dbg-tests', test: 'debug-raw-result' });
       const apply = async () => {
@@ -435,7 +471,7 @@ const SECTIONS = [
           after = flatten(kept);
         const changes = Object.keys(after).filter((k) => before[k] !== after[k] && k !== 'general.linkKey');
         await resync();
-        box.value = JSON.stringify(redactedSettings(), null, 2);
+        box.value = JSON.stringify(redactSettings(settings), null, 2);
         result.replaceChildren(
           el(
             'div',
@@ -471,7 +507,7 @@ const SECTIONS = [
             'Reload from app',
             async () => {
               await resync();
-              box.value = JSON.stringify(redactedSettings(), null, 2);
+              box.value = JSON.stringify(redactSettings(settings), null, 2);
               result.replaceChildren();
             },
             '',
@@ -495,18 +531,19 @@ const SECTIONS = [
     id: 'test-helpers',
     title: 'Test helpers',
     build() {
+      const tray = trayPreview();
+      const fake = async (on) => {
+        await invoke('debug_simulate_update', { on });
+        tray.refresh();
+      };
+      tray.refresh();
       return [
         note('Shortcuts for trying things that are hard to trigger on demand.'),
         el(
           'div',
           { className: 'btns' },
-          button('Fake update available', () => invoke('debug_simulate_update', { on: true }), '', 'debug-fake-update'),
-          button(
-            'Clear fake update',
-            () => invoke('debug_simulate_update', { on: false }),
-            '',
-            'debug-clear-fake-update',
-          ),
+          button('Fake update available', () => fake(true), '', 'debug-fake-update'),
+          button('Clear fake update', () => fake(false), '', 'debug-clear-fake-update'),
           button(
             'Show “What’s new” popup',
             () => showNotes(appVersion, `What's new in v${appVersion}`),
@@ -531,6 +568,7 @@ const SECTIONS = [
           ),
           button('Reload this window', () => location.reload(), '', 'debug-reload-window'),
         ),
+        tray.element,
         note(TEXT.fakeUpdateHelp),
       ];
     },

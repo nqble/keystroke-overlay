@@ -4,11 +4,15 @@
 //! Keystroke Overlay — entry point: builds the app, starts the keyboard hook + local server, shows the tray.
 //! See docs/ARCHITECTURE.md for how the pieces fit together.
 
+mod app_info;
 mod commands;
+mod crash;
 mod debug;
+mod downgrade;
 mod grid;
 mod keyboard;
 mod platform;
+mod sanitize;
 mod server;
 mod settings;
 mod state;
@@ -54,15 +58,8 @@ fn main() {
                 root: app.path().app_data_dir()?,
             };
             paths.ensure();
-            let existed = paths.settings().exists();
-            let mut cfg = settings::load(&paths.settings());
-            // "What's new" is shown once after an update. A fresh install has nothing to show.
             let current = env!("CARGO_PKG_VERSION");
-            let pending = existed && cfg["general"]["lastSeenVersion"].as_str() != Some(current);
-            if !existed {
-                cfg["general"]["lastSeenVersion"] = json!(current);
-                settings::apply_devbuild_defaults(&app.config().identifier, &mut cfg);
-            }
+            let (mut cfg, pending) = settings::load_at_startup(&paths.settings(), &app.config().identifier, current);
             // A layout that no longer exists (for example the retired TSB layout) falls back to Tenkeyless.
             if !server::layouts(&paths).iter().any(|l| l["id"] == cfg["layout"]["id"]) {
                 cfg["layout"]["id"] = json!("tkl");
@@ -80,6 +77,11 @@ fn main() {
             }
             debug::init(cfg["general"]["debugMode"].as_bool().unwrap_or(false));
             debug::log(format!("app started (v{current})"));
+            if let Some(note) = crash::take_last(&paths.root) {
+                debug::log(format!("the last run crashed: {note}"));
+                debug::set_last_crash(note);
+            }
+            crash::install(&paths.root);
 
             let (cfg_tx, _) = broadcast::channel(8);
             let shared = Arc::new(Shared {
@@ -88,6 +90,10 @@ fn main() {
                 paths,
                 cfg_tx,
             });
+            match shared.bus.error() {
+                Some(e) => debug::log(format!("keyboard input ({}) could not start: {e}", method.id())),
+                None => debug::log(format!("keyboard input: {}", method.id())),
+            }
             let (srv, err) = match server::start(shared.clone(), port) {
                 Ok(handle) => (Some(handle), None),
                 Err(e) => (None, Some(e)),
@@ -100,6 +106,7 @@ fn main() {
                 update_cache: Mutex::new(None),
                 whats_new: AtomicBool::new(pending),
                 pending_tab: Mutex::new(None),
+                auto_check_changed: tokio::sync::Notify::new(),
             });
 
             tray::build(app, shared)?;
@@ -148,9 +155,11 @@ fn main() {
             commands::updates::auto_check_update,
             commands::updates::install_update,
             debug::debug_info,
+            debug::debug_defaults,
             debug::debug_log,
             debug::debug_log_clear,
             debug::debug_simulate_update,
+            debug::debug_tray_state,
             debug::debug_key_monitor,
             commands::updates::open_release_page,
             commands::updates::ack_whats_new,

@@ -253,8 +253,12 @@ function fontCtl(control) {
   const current = get(settings, control.path);
   const mine = customFonts.map((file) => file.replace(/\.[^.]+$/, '')); // "My Font.ttf" -> "My Font"
   const known = new Set([...mine, ...WINDOWS_FONTS]);
-  const option = (font) =>
-    el('option', { value: font, textContent: font, style: `font-family:"${font}", "Segoe UI", sans-serif` });
+  const option = (font) => {
+    const item = el('option', { value: font, textContent: font });
+    item.dataset.font = font;
+    item.style.setProperty('--option-font', `"${font}", "Segoe UI", sans-serif`); // the list shows each name in its own font
+    return item;
+  };
   const select = el(
     'select',
     { test: testName('control', control.path) },

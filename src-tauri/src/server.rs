@@ -13,11 +13,13 @@ use axum::http::{header, HeaderValue, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
+use axum::serve::{Listener, ListenerExt, TapIo};
 use axum::{Json, Router};
 use include_dir::{include_dir, Dir};
 use serde_json::{json, Value};
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, RwLock};
+use tokio::net::TcpListener;
 use tokio::sync::{broadcast, watch};
 
 /// The overlay web app, embedded in the binary. Anything dropped into
@@ -81,7 +83,7 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
 
     let mut shutdown_rx = sd_rx;
     tauri::async_runtime::spawn(async move {
-        let listener = tokio::net::TcpListener::from_std(std_listener).unwrap();
+        let listener = without_send_delay(TcpListener::from_std(std_listener).unwrap());
         let _ = axum::serve(listener, app)
             .with_graceful_shutdown(async move {
                 let _ = shutdown_rx.changed().await;
@@ -91,28 +93,43 @@ pub fn start(shared: Arc<Shared>, port: u16) -> Result<ServerHandle, String> {
     Ok(ServerHandle { port, shutdown: sd_tx })
 }
 
+/// A connection the server accepted from the overlay (incoming only: this module never opens connections itself).
+type Connection = <TcpListener as Listener>::Io;
+
+/// Turns off Nagle's algorithm on one accepted connection. Each key press is a tiny WebSocket message; with Nagle on,
+/// the system may hold one back until the previous one is acknowledged, which can delay a key lighting up in OBS.
+fn send_without_delay(connection: &mut Connection) {
+    let _ = connection.set_nodelay(true);
+}
+
+/// The server's listener with Nagle's algorithm turned off on every connection it accepts (axum leaves it on).
+fn without_send_delay(listener: TcpListener) -> TapIo<TcpListener, fn(&mut Connection)> {
+    listener.tap_io(send_without_delay as fn(&mut Connection))
+}
+
 /// Reject requests whose Host/Origin isn't this server on localhost.
 async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
-    let port = st.port;
-    let host_ok = req
-        .headers()
-        .get(header::HOST)
-        .and_then(|h| h.to_str().ok())
-        .is_some_and(|h| h == format!("localhost:{port}") || h == format!("127.0.0.1:{port}"));
-    let origin_ok = req.headers().get(header::ORIGIN).is_none_or(|o| {
-        o.to_str()
-            .is_ok_and(|o| o == format!("http://localhost:{port}") || o == format!("http://127.0.0.1:{port}"))
-    });
-    if !host_ok || !origin_ok {
+    let headers = req.headers();
+    let host = headers.get(header::HOST).map(|value| value.to_str().unwrap_or(""));
+    let origin = headers.get(header::ORIGIN).map(|value| value.to_str().unwrap_or(""));
+    // Two Host headers are an attempt to confuse the check (HTTP says to answer 400): only the first would be read below.
+    if headers.get_all(header::HOST).iter().count() > 1 {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    // A request line can carry its own address ("GET http://evil.example/ ..."); that address must also be this server.
+    let target = req.uri().authority().map(|authority| authority.as_str());
+    if !from_this_server(host, origin, st.port) || !target_is_this_server(target, st.port) {
         return StatusCode::FORBIDDEN.into_response();
     }
-    // Optional secure link: the data endpoints and the key-press stream need the private key. The overlay's own page
-    // and
+    // Optional secure link: the data endpoints and the key-press stream need the private key. The overlay's own page and
     // scripts (/ and /overlay/*) are open-source code with nothing private in them, so they stay open.
     if is_protected(req.uri().path()) && !key_ok(&st.shared.settings.read().unwrap(), req.uri().query()) {
         return (
             StatusCode::UNAUTHORIZED,
-            "This overlay link is secured. Copy the current link from Keystroke Overlay (General > Secure link).",
+            format!(
+                "This overlay link is secured. Copy the current link from {} (General > Secure link).",
+                crate::app_info::NAME
+            ),
         )
             .into_response();
     }
@@ -121,6 +138,24 @@ async fn guard(State(st): State<St>, req: Request, next: Next) -> Response {
         .headers_mut()
         .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     response
+}
+
+/// The main defence against websites reading key presses: a web page the user visits can make the browser call
+/// 127.0.0.1, but the browser then sends that page's Origin (and, after a DNS-rebinding trick, its own Host name). So
+/// the Host must be this server, and an Origin, when there is one, must be this server too. OBS and the settings window
+/// send no foreign Origin. (This stops browsers only; other programs on the PC are what the secure link is for.)
+fn from_this_server(host: Option<&str>, origin: Option<&str>, port: u16) -> bool {
+    let host_ok = host.is_some_and(|host| host == format!("localhost:{port}") || host == format!("127.0.0.1:{port}"));
+    let origin_ok = origin.is_none_or(|origin| {
+        origin == format!("http://localhost:{port}") || origin == format!("http://127.0.0.1:{port}")
+    });
+    host_ok && origin_ok
+}
+
+/// True when the request line has no address of its own, or its address is this server.
+fn target_is_this_server(authority: Option<&str>, port: u16) -> bool {
+    authority
+        .is_none_or(|authority| authority == format!("localhost:{port}") || authority == format!("127.0.0.1:{port}"))
 }
 
 /// Paths that need the key when the secure link is on.
@@ -160,7 +195,9 @@ fn mime(name: &str) -> &'static str {
 fn bytes_resp(name: &str, body: Vec<u8>) -> Response {
     ([(header::CONTENT_TYPE, mime(name))], body).into_response()
 }
-fn safe(name: &str) -> bool {
+/// A plain file name: no folder parts, no drive letter, no "..". Every name from outside (a web request, the settings
+/// window) passes this before it touches the disk (also used by commands/assets.rs).
+pub(crate) fn is_plain_file_name(name: &str) -> bool {
     !name.is_empty() && !name.contains(['/', '\\', ':']) && !name.contains("..")
 }
 
@@ -174,7 +211,7 @@ async fn serve_overlay(Path(file_path): Path<String>) -> Response {
     }
 }
 async fn serve_user(State(st): State<St>, Path((kind, file)): Path<(String, String)>) -> Response {
-    if !["layouts", "animations", "themes"].contains(&kind.as_str()) || !safe(&file) {
+    if !["layouts", "animations", "themes"].contains(&kind.as_str()) || !is_plain_file_name(&file) {
         return StatusCode::NOT_FOUND.into_response();
     }
     match std::fs::read(st.shared.paths.user(&kind).join(&file)) {
@@ -183,7 +220,7 @@ async fn serve_user(State(st): State<St>, Path((kind, file)): Path<(String, Stri
     }
 }
 async fn serve_font(State(st): State<St>, Path(file): Path<String>) -> Response {
-    if !safe(&file) {
+    if !is_plain_file_name(&file) {
         return StatusCode::NOT_FOUND.into_response();
     }
     match std::fs::read(st.shared.paths.fonts().join(&file)) {
@@ -317,6 +354,7 @@ fn snapshot(st: &St) -> Message {
 
 /// One task per connected overlay. Sleeps until a key event/config change.
 async fn client(mut sock: WebSocket, st: St) {
+    let _watch = st.shared.bus.watch_guard(); // the keyboard-hook watch runs while a page is connected
     let mut keys = st.shared.bus.tx.subscribe();
     let mut cfg = st.shared.cfg_tx.subscribe();
     let mut shutdown = st.sd.clone();
@@ -348,8 +386,71 @@ async fn client(mut sock: WebSocket, st: St) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn accepted_connections_send_without_delay() {
+        let std_listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        std_listener.set_nonblocking(true).unwrap();
+        let address = std_listener.local_addr().unwrap();
+        let mut listener = without_send_delay(TcpListener::from_std(std_listener).unwrap());
+        // Test only: a client on this machine connecting to the server's own 127.0.0.1 listener.
+        let _client = tokio::net::TcpSocket::new_v4().unwrap().connect(address).await.unwrap();
+        let (connection, _) = listener.accept().await;
+        assert!(connection.nodelay().unwrap());
+    }
+
     fn cfg(on: bool, key: &str) -> Value {
         json!({ "general": { "secureLink": on, "linkKey": key } })
+    }
+    #[test]
+    fn only_plain_file_names_are_accepted() {
+        assert!(is_plain_file_name("Pixel Operator.ttf"));
+        for bad in ["", "..", "../x.ttf", "a/b.ttf", "a\\b.ttf", "C:x.ttf", "x..ttf"] {
+            assert!(!is_plain_file_name(bad), "{bad}");
+        }
+    }
+    #[test]
+    fn only_requests_from_this_server_get_through_the_guard() {
+        let port = 7878;
+        assert!(from_this_server(Some("localhost:7878"), None, port)); // OBS
+        assert!(from_this_server(
+            Some("127.0.0.1:7878"),
+            Some("http://127.0.0.1:7878"),
+            port
+        ));
+        assert!(from_this_server(
+            Some("localhost:7878"),
+            Some("http://localhost:7878"),
+            port
+        ));
+        let refused = [
+            (None, None),                                             // no Host at all
+            (Some("evil.example:7878"), None),                        // DNS rebinding: a foreign name for 127.0.0.1
+            (Some("localhost:7879"), None),                           // another port
+            (Some("localhost:7878"), Some("http://evil.example")),    // a website calling 127.0.0.1
+            (Some("localhost:7878"), Some("null")),                   // a sandboxed page or a local file
+            (Some("localhost:7878"), Some("https://localhost:7878")), // not this server's address
+            (Some("localhost:7878"), Some("http://localhost:7878.evil.example")),
+            (Some("localhost:7878"), Some("")), // a header that isn't text
+        ];
+        for (host, origin) in refused {
+            assert!(!from_this_server(host, origin, port), "{host:?} {origin:?}");
+        }
+    }
+    #[test]
+    fn a_request_line_with_its_own_address_must_name_this_server() {
+        let port = 7878;
+        for ok in [None, Some("localhost:7878"), Some("127.0.0.1:7878")] {
+            assert!(target_is_this_server(ok, port), "{ok:?}");
+        }
+        for bad in [
+            "evil.example:7878",
+            "localhost:7879",
+            "localhost",
+            "127.0.0.1:7878.evil.example",
+        ] {
+            assert!(!target_is_this_server(Some(bad), port), "{bad}");
+        }
     }
     #[test]
     fn open_when_secure_link_is_off() {

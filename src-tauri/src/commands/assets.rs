@@ -36,7 +36,7 @@ pub async fn add_font(app: AppHandle, st: State<'_, AppState>) -> Result<Option<
 
 #[tauri::command]
 pub fn remove_font(st: State<AppState>, name: String) -> Result<(), String> {
-    if name.contains(['/', '\\']) {
+    if !crate::server::is_plain_file_name(&name) {
         return Err("bad name".into());
     }
     std::fs::remove_file(st.shared.paths.fonts().join(name)).map_err(|e| e.to_string())?;
@@ -219,7 +219,7 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
 }
 
 // ---------------------------------------------------------------- export / import of the layouts the user made
-const FILE_TAG: &str = "keystroke-overlay-layouts";
+use crate::app_info::LAYOUTS_FILE_TAG as FILE_TAG;
 const MAX_USER_LAYOUTS: usize = 20;
 
 fn slug(name: &str) -> String {
@@ -332,7 +332,7 @@ pub fn import_doc(
         )
         .map_err(|e| e.to_string())?;
         let old_id = item["id"].as_str().unwrap_or("");
-        let prof = crate::settings::clean_profiles(
+        let prof = crate::sanitize::clean_profiles(
             &serde_json::json!({ "x": top["profiles"].get(old_id).cloned().unwrap_or(Value::Null) }),
         );
         out.push((id.clone(), prof["x"].clone()));
@@ -349,7 +349,7 @@ pub async fn export_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
     let Some(picked_file) = app
         .dialog()
         .file()
-        .add_filter("Keystroke Overlay layouts", &["json"])
+        .add_filter(format!("{} layouts", crate::app_info::NAME), &["json"])
         .set_file_name("my-layouts.json")
         .blocking_save_file()
     else {
@@ -366,7 +366,7 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
     let Some(picked_file) = app
         .dialog()
         .file()
-        .add_filter("Keystroke Overlay layouts", &["json"])
+        .add_filter(format!("{} layouts", crate::app_info::NAME), &["json"])
         .blocking_pick_file()
     else {
         return Ok(None);

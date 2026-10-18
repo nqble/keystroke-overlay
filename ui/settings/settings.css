@@ -1,13 +1,134 @@
 :root {
-  --bg: #12141a;
-  --panel: #1a1d26;
-  --panel2: #222632;
-  --line: #2c3140;
-  --text: #e6e9f0;
-  --dim: #8b93a7;
-  --accent: #4f8cff;
-  --accent2: #3a6fd8;
-  --danger: #ff5d6c;
+  /* ===================================================================================================================
+     Design tokens: every colour and shadow of the settings window lives here, named by PURPOSE, with today's exact
+     values. Use these names in the rules below; do not write raw colours anywhere else (tools/check-style.mjs checks).
+     =================================================================================================================== */
+
+  /* Surfaces */
+  --color-bg: #12141a; /* the window */
+  --color-panel: #1a1d26; /* panels, cards, the key picture */
+  --color-panel-raised: #222632; /* controls sitting on a panel (buttons, fields) */
+  --color-well: #0d0f14; /* recessed areas: the live preview, logs, code boxes */
+  --color-scrim: rgba(5, 7, 12, 0.66); /* the dim layer behind a popup */
+
+  /* Lines */
+  --color-line: #2c3140; /* ordinary borders */
+  --color-line-hover: #46506a; /* a card's border while hovered */
+  --color-control-line: #68708a; /* the border of anything you can use (fields, dropdowns, buttons, cards): 3:1 or more on every surface */
+  --color-line-dashed: #353c50; /* the dashed "add" card */
+  --color-line-dashed-hover: #5a6482; /* ...while hovered */
+
+  /* Text */
+  --color-text: #e6e9f0;
+  --color-guide: #ff9f43; /* the smart-guide lines shown while a key is dragged */
+  --color-text-dim: #8b93a7; /* secondary text, hints */
+  --color-on-fill: #fff; /* text on a strong fill (active tab, primary button, close button) */
+
+  /* Accent (the blue) */
+  --color-accent: #4f8cff;
+  --color-accent-strong: #3a6fd8; /* blue fills under white text (active tab, primary button): 4.7:1 */
+  --color-accent-pressed: #2f5cb8; /* a blue fill while hovered or pressed (white text on it: 6.3:1) */
+  --color-selected-bg: #1c2438; /* a selected card */
+  --color-selection-fill: rgba(79, 140, 255, 0.16); /* the box drawn to select keys */
+  --color-focus: #fff; /* the keyboard focus outline */
+
+  /* Status */
+  --color-danger: #ff5d6c;
+  --color-error-bg: #4a1f27; /* the error banner and the error message at the bottom */
+  --color-error-bg-soft: #3a1b21; /* an error note inside a panel */
+  --color-error-text: #ffc9cf;
+  --color-error-line: #7a2c38;
+  --color-warning-bg: #3a3320; /* the "paused" bar */
+  --color-warning-text: #ffe9a8;
+  --color-warning-line: #6b5a22;
+  --color-good: #5fd38d; /* a passed self-test */
+  --color-bad: #ff7a85; /* a failed self-test */
+
+  /* Keys in the Keys tab picture */
+  --color-key-fill: #2a3042;
+  --color-key-line: #50597a;
+
+  /* Release-note sections (release-notes.js): one colour each, on the heading and the line beside its list */
+  --color-notes-new: #7aa8ff;
+  --color-notes-improved: #b79cff;
+  --color-notes-fixed: #ffd27a;
+  --color-notes-perf: #8fe3a8;
+  --color-notes-hood: #8b93a7;
+
+  /* Messages and menus */
+  --color-toast-bg: #263050;
+  --color-menu-hover: #2d3345;
+
+  /* Scrollbars */
+  --color-scrollbar-thumb: #343a4c;
+  --color-scrollbar-thumb-soft: #3a4156;
+
+  /* The window's own buttons */
+  --color-hover-soft: rgba(255, 255, 255, 0.09);
+  --color-press-soft: rgba(255, 255, 255, 0.05);
+  --color-hover-faint: rgba(255, 255, 255, 0.02);
+  --color-close-hover: #e81123;
+  --color-close-active: #f1707a;
+
+  /* Shadows (whole values) */
+  --shadow-popup: 0 20px 60px rgba(0, 0, 0, 0.55);
+  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lift: 0 6px 16px rgba(0, 0, 0, 0.5); /* a key being dragged */
+  --shadow-glow: 0 2px 10px rgba(79, 140, 255, 0.38); /* the update button */
+
+  /* Font families */
+  --font-ui: 'Segoe UI', system-ui, sans-serif;
+  --font-mono: Consolas, 'Cascadia Mono', monospace;
+  --font-mono-plain: Consolas, monospace; /* same look as --font-mono (Consolas comes first); merge candidate */
+  --font-icons: 'Segoe Fluent Icons', 'Segoe MDL2 Assets', 'Segoe UI Symbol', sans-serif; /* the window buttons */
+
+  /* Text sizes. 11, 12 and 13 are close together: merge candidates for the redesign. */
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 17px;
+  --text-display: 26px;
+
+  /* Font weights */
+  --weight-light: 300;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Corner radii. 5, 6, 7 and 8 are close together: merge candidates for the redesign. */
+  --radius-xs: 4px;
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 7px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-3xl: 14px;
+  --radius-round: 50%;
+
+  /* Transition times */
+  --duration-fast: 0.12s;
+  --duration-medium: 0.15s;
+
+  /* Spacing (margins, padding, gaps): the number is the size in pixels. Many sizes sit close together: merge candidates. */
+  --space-1: 1px;
+  --space-2: 2px;
+  --space-3: 3px;
+  --space-4: 4px;
+  --space-5: 5px;
+  --space-6: 6px;
+  --space-7: 7px;
+  --space-8: 8px;
+  --space-9: 9px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-22: 22px;
+  --space-26: 26px;
+  --space-48: 48px;
 }
 * {
   box-sizing: border-box;
@@ -16,12 +137,9 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font:
-    13px/1.4 'Segoe UI',
-    system-ui,
-    sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: var(--text-md)/1.4 var(--font-ui);
   overflow: hidden;
 }
 body {
@@ -32,65 +150,73 @@ body {
 header {
   display: flex;
   align-items: stretch;
-  padding: 0 0 0 16px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
+  padding: 0 0 0 var(--space-16);
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-line);
 } /* the buttons touch the top right corner, like a native title bar */
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  font-weight: 700;
-  font-size: 15px;
+  gap: var(--space-10);
+  padding: var(--space-10) 0;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
   white-space: nowrap;
 }
 .brand .logo {
   width: 26px;
   height: 26px;
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   flex: none;
 }
 .obs {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   margin-left: auto;
-  margin-right: 16px;
-  padding: 10px 0;
+  margin-right: var(--space-16);
+  padding: var(--space-10) 0;
   min-width: 0;
 }
 .obs .lbl {
-  color: var(--dim);
+  color: var(--color-text-dim);
   white-space: nowrap;
 }
 .obs input {
   width: 230px;
 }
 .hint {
-  color: var(--dim);
-  font-size: 12px;
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
 }
 
 #banner {
-  background: #4a1f27;
-  color: #ffc9cf;
-  padding: 8px 16px;
-  border-bottom: 1px solid #7a2c38;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--color-error-line);
 }
 
 .preview {
   position: relative;
   height: 230px;
   flex: none;
-  background: #0d0f14;
-  border-bottom: 1px solid var(--line);
+  background: var(--color-well);
+  border-bottom: 1px solid var(--color-line);
   overflow: hidden;
+}
+/* The editor on the Keys tab shows the keyboard itself, so the live preview steps aside (it stays loaded, only hidden). */
+.tab-keys .preview {
+  display: none;
 }
 .preview iframe {
   position: absolute;
-  left: 0;
-  top: 0;
+  /* the size and place come from fitPreview() in preview.js, through these variables */
+  width: var(--frame-w, 300px);
+  height: var(--frame-h, 150px);
+  left: var(--frame-x, 0);
+  top: var(--frame-y, 0);
+  transform: scale(var(--frame-scale, 1));
   border: 0;
   transform-origin: 0 0;
   background: transparent;
@@ -105,44 +231,44 @@ main {
 nav {
   width: 150px;
   flex: none;
-  background: var(--panel);
-  border-right: 1px solid var(--line);
-  padding: 10px 8px;
+  background: var(--color-panel);
+  border-right: 1px solid var(--color-line);
+  padding: var(--space-10) var(--space-8);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-2);
 }
 nav button {
   text-align: left;
   background: none;
   border: 0;
-  color: var(--dim);
-  padding: 9px 12px;
-  border-radius: 8px;
+  color: var(--color-text-dim);
+  padding: var(--space-9) var(--space-12);
+  border-radius: var(--radius-xl);
   font: inherit;
   cursor: pointer;
 }
 nav button:hover {
-  background: var(--panel2);
-  color: var(--text);
+  background: var(--color-panel-raised);
+  color: var(--color-text);
 }
 nav button.active {
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-weight: var(--weight-semibold);
 }
 #pane {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 26px 48px;
+  padding: var(--space-20) var(--space-26) var(--space-48);
 }
 
 h2 {
-  font-size: 12px;
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--dim);
-  margin: 26px 0 12px;
+  color: var(--color-text-dim);
+  margin: var(--space-26) 0 var(--space-12);
 }
 h2:first-child {
   margin-top: 0;
@@ -150,32 +276,52 @@ h2:first-child {
 .row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
 }
 .row > label {
   width: 170px;
   flex: none;
-  color: var(--text);
+  color: var(--color-text);
 }
 .row .ctl {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-10);
   min-width: 0;
   max-width: 460px;
+}
+.row .ctl.stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-6);
+}
+.short-field {
+  width: 100px;
+}
+.num-field {
+  width: 84px;
+}
+.pre-line {
+  white-space: pre-line;
+}
+.invisible {
+  visibility: hidden;
+}
+select option[data-font] {
+  font-family: var(--option-font);
 }
 .row .val {
   width: 54px;
   text-align: right;
-  color: var(--dim);
+  color: var(--color-text-dim);
   font-variant-numeric: tabular-nums;
 }
 .note {
-  color: var(--dim);
-  font-size: 12px;
-  margin: 6px 0 10px;
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+  margin: var(--space-6) 0 var(--space-10);
   max-width: 640px;
 }
 
@@ -183,123 +329,271 @@ input,
 select,
 button {
   font: inherit;
-  color: var(--text);
+  color: var(--color-text);
 }
 input[type='text'],
 input[type='number'],
 input:not([type]),
 select {
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 6px 9px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-9);
   min-width: 0;
 }
 input:focus,
 select:focus {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent);
   outline-offset: -1px;
 }
 input[type='range'] {
   flex: 1;
-  accent-color: var(--accent);
+  accent-color: var(--color-accent);
 }
-input[type='range']:focus,
+input[type='range']:focus {
+  outline: none; /* no blue box when a slider is clicked... */
+}
 input[type='range']:focus-visible {
-  outline: none;
-} /* no blue box when a slider is clicked */
+  outline: 2px solid var(--color-accent); /* ...but it shows when the slider is reached with the keyboard */
+  outline-offset: 2px;
+}
+#toast.err {
+  cursor: pointer; /* an error message stays until it is clicked */
+}
 input[type='color'] {
   width: 40px;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--line);
-  background: var(--panel2);
-  border-radius: 6px;
+  border: 1px solid var(--color-control-line);
+  background: var(--color-panel-raised);
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 input[type='checkbox'] {
   width: 18px;
   height: 18px;
-  accent-color: var(--accent);
+  accent-color: var(--color-accent);
 }
 button {
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 6px 12px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-12);
   cursor: pointer;
 }
 button:hover {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
 }
 button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-  font-weight: 600;
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-weight: var(--weight-semibold);
 }
 button.primary:hover {
-  background: var(--accent2);
+  background: var(--color-accent-pressed);
+  border-color: var(--color-accent-pressed);
 }
 button.danger:hover {
-  border-color: var(--danger);
-  color: var(--danger);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+/* anything that cannot be used right now looks dimmed, and does not react to the mouse */
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button:disabled:hover {
+  border-color: var(--color-control-line);
 }
 .btns {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0;
+  gap: var(--space-8);
+  margin: var(--space-8) 0;
   align-items: center;
+}
+/* display: flex above beats the hidden attribute, so say it again (e.g. the secure link's buttons while it is off). */
+.btns[hidden] {
+  display: none;
 }
 
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px;
+  gap: var(--space-12);
   max-width: 760px;
 }
 .card {
-  background: var(--panel);
-  border: 2px solid var(--line);
-  border-radius: 10px;
-  padding: 12px;
+  background: var(--color-panel);
+  border: 2px solid var(--color-control-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-12);
   cursor: pointer;
+  /* a card is a button (so the keyboard can reach it): these make it look like the plain box it used to be */
+  width: 100%;
+  text-align: left;
+  display: flex; /* a button centres its content up and down; this keeps the text at the top, as in the old box */
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.card:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 .card:hover {
-  border-color: #46506a;
+  border-color: var(--color-line-hover);
 }
 .card.sel {
-  border-color: var(--accent);
-  background: #1c2438;
+  border-color: var(--color-accent);
+  background: var(--color-selected-bg);
 }
 .card b {
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: var(--space-2);
 }
 .card span {
-  color: var(--dim);
-  font-size: 12px;
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
 }
 
 .keymap {
   position: relative;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  margin: 8px 0 14px;
+  /* the box has the board's proportions (--board-w by --board-h keys), so a keyboard that fits across also fits down */
+  aspect-ratio: calc(var(--board-w, 24) / var(--board-h, 12));
+  max-height: 62vh;
+  min-height: 200px;
+  /* the same grey as the board, so the room that shows past the board's edge does not look like a darker frame */
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  margin: var(--space-8) 0 var(--space-14);
   overflow: hidden;
+}
+/* The board: a fixed area measured in keys (--board-w, --board-h). Zoom and pan are one transform on this layer. */
+.keymap-canvas {
+  --unit: 40px; /* pixels per key at 100% zoom (UNIT in editor/editor.js) */
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--board-w, 24) * var(--unit));
+  height: calc(var(--board-h, 12) * var(--unit));
+  background-color: var(--color-panel);
+  border-radius: var(--radius-lg);
+  transform-origin: 0 0;
+  transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)) scale(var(--zoom, 1));
+  transition: transform var(--duration-medium) ease-out;
+}
+.keymap.panning .keymap-canvas,
+.keymap.instant .keymap-canvas {
+  transition: none;
+}
+.keymap-canvas.dots {
+  background-image: radial-gradient(circle, var(--color-text-dim) 0.8px, transparent 1.4px);
+  background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
+}
+.keymap-canvas.holding .kmk:not(.drag) {
+  opacity: 0.35;
+}
+.kmk {
+  transition: opacity 160ms ease-out;
+}
+.guide {
+  position: absolute;
+  z-index: 4;
+  background: var(--color-guide);
+  pointer-events: none;
+}
+.guide.vertical {
+  top: 0;
+  bottom: 0;
+  left: calc(var(--at) * var(--unit));
+  width: 1px;
+}
+.guide.horizontal {
+  left: 0;
+  right: 0;
+  top: calc(var(--at) * var(--unit));
+  height: 1px;
+}
+/* The resize handles sit on the selected key; the container only positions them. */
+.handles {
+  position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc(var(--y) * var(--unit));
+  width: calc(var(--w) * var(--unit) - 3px);
+  height: calc(var(--h, 1) * var(--unit) - 3px);
+  z-index: 4;
+  pointer-events: none;
+}
+.handle {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 60%;
+  transform: translateY(-50%);
+  background: var(--color-accent);
+  border: 2px solid var(--color-panel);
+  border-radius: var(--radius-md);
+  box-sizing: content-box;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: ew-resize;
+}
+.handle.left {
+  left: -6px;
+}
+.handle.right {
+  right: -6px;
+}
+.arrange-bar {
+  position: absolute;
+  left: var(--bar-x, 0);
+  top: var(--bar-y, 0);
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-menu);
+}
+.arrange-bar[hidden] {
+  display: none;
+}
+.arrange-bar button {
+  padding: var(--space-2) var(--space-8);
+  font-size: var(--text-sm);
+}
+.zoom-controls {
+  position: absolute;
+  right: var(--space-10);
+  bottom: var(--space-10);
+  z-index: 6;
+  display: flex;
+  gap: var(--space-4);
+}
+.zoom-controls button {
+  padding: var(--space-2) var(--space-8);
 }
 .kmk {
   position: absolute;
-  border: 1px solid #50597a;
-  border-radius: 5px;
-  background: #2a3042;
+  left: calc(var(--x) * var(--unit));
+  top: calc(var(--y) * var(--unit));
+  width: calc(var(--w) * var(--unit) - 3px);
+  height: calc(var(--h, 1) * var(--unit) - 3px);
+  font-size: calc(var(--unit) * 0.28);
+  border: 1px solid var(--color-key-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-key-fill);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  color: var(--text);
+  color: var(--color-text);
   cursor: pointer;
   overflow: hidden;
 }
@@ -309,14 +603,14 @@ button.danger:hover {
   border-style: dashed;
 }
 .kmk.sel {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent);
   outline-offset: 1px;
 }
 .editor {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px 14px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-12) var(--space-14);
   max-width: 560px;
 }
 
@@ -326,12 +620,12 @@ button.danger:hover {
 .fontitem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  margin-bottom: 6px;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
 }
 .fontitem .n {
   flex: 1;
@@ -345,32 +639,32 @@ button.danger:hover {
   bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
-  background: #263050;
-  border: 1px solid var(--accent);
-  padding: 8px 16px;
-  border-radius: 8px;
+  background: var(--color-toast-bg);
+  border: 1px solid var(--color-accent);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-xl);
   z-index: 9;
 }
 #toast.err {
-  background: #4a1f27;
-  border-color: var(--danger);
+  background: var(--color-error-bg);
+  border-color: var(--color-danger);
 }
 ::-webkit-scrollbar {
   width: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #343a4c;
-  border-radius: 6px;
+  background: var(--color-scrollbar-thumb);
+  border-radius: var(--radius-md);
 }
 
 #pausebar {
-  background: #3a3320;
-  color: #ffe9a8;
-  padding: 8px 16px;
-  border-bottom: 1px solid #6b5a22;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--color-warning-line);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-12);
 }
 #pausebar[hidden],
 #banner[hidden],
@@ -380,9 +674,9 @@ button.danger:hover {
 
 .bar {
   height: 10px;
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
   overflow: hidden;
   max-width: 460px;
 }
@@ -391,10 +685,10 @@ button.danger:hover {
 }
 .bar .fill {
   height: 100%;
-  width: 0;
-  background: var(--accent);
-  border-radius: 6px;
-  transition: width 0.15s linear;
+  width: var(--pct, 0%);
+  background: var(--color-accent);
+  border-radius: var(--radius-md);
+  transition: width var(--duration-medium) linear;
 }
 .bar .fill.indet {
   width: 40% !important;
@@ -412,7 +706,7 @@ button.danger:hover {
 #modal {
   position: fixed;
   inset: 0;
-  background: rgba(5, 7, 12, 0.66);
+  background: var(--color-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -424,15 +718,15 @@ button.danger:hover {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-popup);
 }
 .dialog h3 {
   margin: 0;
-  padding: 20px 22px 12px;
-  font-size: 17px;
+  padding: var(--space-20) var(--space-22) var(--space-12);
+  font-size: var(--text-xl);
   overflow-wrap: anywhere;
   flex: none;
 }
@@ -446,40 +740,40 @@ button.danger:hover {
   overflow-y: auto;
   overflow-x: hidden;
   line-height: 1.55;
-  padding: 2px 16px 16px 22px;
-  margin-right: 6px;
+  padding: var(--space-2) var(--space-16) var(--space-16) var(--space-22);
+  margin-right: var(--space-6);
   overflow-wrap: anywhere;
   scrollbar-width: thin;
-  scrollbar-color: #3a4156 transparent;
+  scrollbar-color: var(--color-scrollbar-thumb-soft) transparent;
 }
 #mBody h4 {
-  margin: 14px 0 4px;
-  font-size: 13px;
-  color: var(--accent);
+  margin: var(--space-14) 0 var(--space-4);
+  font-size: var(--text-md);
+  color: var(--color-accent);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 #mBody p {
-  margin: 8px 0;
+  margin: var(--space-8) 0;
 }
 #mBody ul {
-  margin: 6px 0;
-  padding-left: 20px;
+  margin: var(--space-6) 0;
+  padding-left: var(--space-20);
 }
 #mBody li {
-  margin: 3px 0;
+  margin: var(--space-3) 0;
 }
 #mBody code {
-  background: var(--panel2);
-  padding: 1px 5px;
-  border-radius: 4px;
+  background: var(--color-panel-raised);
+  padding: var(--space-1) var(--space-5);
+  border-radius: var(--radius-xs);
 }
 .mfoot {
   flex: none;
-  padding: 12px 22px 18px;
+  padding: var(--space-12) var(--space-22) var(--space-18);
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-line);
 }
 
 #pane {
@@ -496,12 +790,12 @@ button.danger:hover {
 
 /* Loading dots: 0.3s per step, hold the third dot 0.1s, then restart. Opacity only, no JS timers. */
 .dots {
-  margin: 10px 0;
-  font-size: 26px;
+  margin: var(--space-10) 0;
+  font-size: var(--text-display);
   line-height: 1;
   letter-spacing: 3px;
-  color: var(--dim);
-  font-weight: 700;
+  color: var(--color-text-dim);
+  font-weight: var(--weight-bold);
 }
 .dots span {
   opacity: 0;
@@ -552,7 +846,7 @@ button.danger:hover {
 #dlg {
   position: fixed;
   inset: 0;
-  background: rgba(5, 7, 12, 0.66);
+  background: var(--color-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -563,35 +857,62 @@ button.danger:hover {
   display: none;
 }
 #uBody h4 {
-  margin: 12px 0 4px;
-  font-size: 13px;
-  color: var(--accent);
+  margin: var(--space-12) 0 var(--space-4);
+  font-size: var(--text-md);
+  color: var(--color-accent);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+/* Release-note sections in What's new and the update popup. The colour is on the heading and a thin line beside the
+   list; the list text keeps the normal colour, and the icon and word say the same thing for anyone who can't see it. */
+.notes-new {
+  --notes-color: var(--color-notes-new);
+}
+.notes-improved {
+  --notes-color: var(--color-notes-improved);
+}
+.notes-fixed {
+  --notes-color: var(--color-notes-fixed);
+}
+.notes-perf {
+  --notes-color: var(--color-notes-perf);
+}
+.notes-hood {
+  --notes-color: var(--color-notes-hood);
+}
+#mBody h4.notes-section,
+#uBody h4.notes-section {
+  color: var(--notes-color);
+}
+#mBody ul.notes-section,
+#uBody ul.notes-section {
+  border-left: 2px solid var(--notes-color);
+  padding-left: var(--space-20);
+  margin-left: var(--space-2);
+}
 #uBody p {
-  margin: 6px 0;
+  margin: var(--space-6) 0;
 }
 #uBody ul {
-  margin: 6px 0;
-  padding-left: 20px;
+  margin: var(--space-6) 0;
+  padding-left: var(--space-20);
 }
 #uBody code {
-  background: var(--panel2);
-  padding: 1px 5px;
-  border-radius: 4px;
+  background: var(--color-panel-raised);
+  padding: var(--space-1) var(--space-5);
+  border-radius: var(--radius-xs);
 }
 #updModal .bar {
-  margin: 4px 22px 0;
+  margin: var(--space-4) var(--space-22) 0;
   max-width: none;
 }
 #uText {
-  padding: 6px 22px 0;
+  padding: var(--space-6) var(--space-22) 0;
   min-height: 18px;
 }
 #updModal .mfoot,
 #dlg .mfoot {
-  gap: 10px;
+  gap: var(--space-10);
 }
 
 /* Corner update button: white download icon on a circle in the app's accent colour (--accent). Shakes briefly every 7.5 s
@@ -605,23 +926,23 @@ button.danger:hover {
   height: 36px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: var(--accent);
+  border-radius: var(--radius-round);
+  background: var(--color-accent-strong);
   display: grid;
   place-items: center;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(79, 140, 255, 0.38);
+  box-shadow: var(--shadow-glow);
   animation: upd-shake 7.5s ease-in-out infinite;
 }
 .upd[hidden] {
   display: none;
 }
 .upd:hover {
-  background: #6b9eff;
+  background: var(--color-accent-pressed);
   animation-play-state: paused;
 }
 .upd:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 .upd::after {
@@ -631,15 +952,15 @@ button.danger:hover {
   top: 50%;
   transform: translateY(-50%);
   white-space: nowrap;
-  background: #0d0f14;
-  color: #fff;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 12px;
+  background: var(--color-well);
+  color: var(--color-on-fill);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-10);
+  font-size: var(--text-sm);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.12s;
+  transition: opacity var(--duration-fast);
 }
 .upd:hover::after,
 .upd:focus-visible::after {
@@ -674,12 +995,12 @@ button.danger:hover {
 }
 
 .errnote {
-  color: #ffc9cf;
-  background: #3a1b21;
-  border: 1px solid #7a2c38;
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin: 6px 0;
+  color: var(--color-error-text);
+  background: var(--color-error-bg-soft);
+  border: 1px solid var(--color-error-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-12);
+  margin: var(--space-6) 0;
   max-width: 640px;
 }
 .errnote[hidden] {
@@ -717,13 +1038,15 @@ input[type='range'] {
 }
 .ctxmenu {
   position: fixed;
+  left: var(--x);
+  top: var(--y);
   z-index: 100;
   min-width: 170px;
-  background: var(--panel2);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-menu);
   display: flex;
   flex-direction: column;
 }
@@ -731,55 +1054,55 @@ input[type='range'] {
   text-align: left;
   background: none;
   border: 0;
-  color: var(--text);
-  padding: 8px 12px;
-  border-radius: 6px;
+  color: var(--color-text);
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
   font: inherit;
   cursor: pointer;
 }
 .ctxmenu button:hover:not(:disabled) {
-  background: #2d3345;
+  background: var(--color-menu-hover);
 }
 .ctxmenu button.danger {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 .ctxmenu button:disabled {
-  color: var(--dim);
+  color: var(--color-text-dim);
   cursor: default;
 }
 
 /* Dialog contents for the generic dialog (new layout, limit reached) */
 #dBody p {
-  margin: 8px 0;
+  margin: var(--space-8) 0;
 }
 #dBody input[type='text'] {
   width: 100%;
-  margin-top: 6px;
+  margin-top: var(--space-6);
 }
 .card.add {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: var(--space-2);
   background: transparent;
-  border: 2px dashed #353c50;
-  color: var(--dim);
+  border: 2px dashed var(--color-line-dashed);
+  color: var(--color-text-dim);
   min-height: 66px;
 }
 .card.add:hover {
-  border-color: #5a6482;
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--color-line-dashed-hover);
+  color: var(--color-text);
+  background: var(--color-hover-faint);
 }
 .card.add .plus {
-  font-size: 26px;
+  font-size: var(--text-display);
   line-height: 1;
-  font-weight: 300;
+  font-weight: var(--weight-light);
 }
 .card.add small {
-  font-size: 11px;
-  color: var(--dim);
+  font-size: var(--text-xs);
+  color: var(--color-text-dim);
   font-variant-numeric: tabular-nums;
 }
 
@@ -788,63 +1111,60 @@ input[type='range'] {
   max-width: 820px;
 }
 .dbg-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 14px 16px 12px;
-  margin: 0 0 14px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-14) var(--space-16) var(--space-12);
+  margin: 0 0 var(--space-14);
 }
 .dbg-card h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
+  margin: 0 0 var(--space-8);
+  font-size: var(--text-md);
   letter-spacing: 0.02em;
 }
 .dbg-facts {
   display: grid;
   grid-template-columns: 190px 1fr;
-  gap: 5px 14px;
+  gap: var(--space-5) var(--space-14);
 }
 .dbg-facts .k {
-  color: var(--dim);
+  color: var(--color-text-dim);
 }
 .dbg-facts .v {
-  font-family: Consolas, 'Cascadia Mono', monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
   overflow-wrap: anywhere;
   user-select: text;
 }
 .dbg-facts .good,
 .dbg-test.good b {
-  color: #5fd38d;
+  color: var(--color-good);
 }
 .dbg-facts .bad,
 .dbg-test.bad b {
-  color: #ff7a85;
+  color: var(--color-bad);
 }
 .dbg-test {
   display: grid;
   grid-template-columns: 18px auto 1fr;
-  gap: 8px;
+  gap: var(--space-8);
   align-items: baseline;
-  padding: 2px 0;
+  padding: var(--space-2) 0;
 }
 .dbg-test i {
-  color: var(--dim);
+  color: var(--color-text-dim);
   font-style: normal;
-  font-size: 12px;
+  font-size: var(--text-sm);
   overflow-wrap: anywhere;
 }
 .dbg-log {
-  background: #0d0f14;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 10px;
+  background: var(--color-well);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-10);
   max-height: 230px;
   overflow: auto;
-  font:
-    12px/1.5 Consolas,
-    'Cascadia Mono',
-    monospace;
+  font: var(--text-sm)/1.5 var(--font-mono);
   user-select: text;
 }
 .dbg-log.short {
@@ -852,40 +1172,35 @@ input[type='range'] {
   min-height: 60px;
 }
 .dbg-log .ts {
-  color: var(--dim);
-  margin-right: 10px;
+  color: var(--color-text-dim);
+  margin-right: var(--space-10);
 }
 .dbg-json {
   width: 100%;
   height: 240px;
   resize: vertical;
-  background: #0d0f14;
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font:
-    12px/1.5 Consolas,
-    'Cascadia Mono',
-    monospace;
+  background: var(--color-well);
+  color: var(--color-text);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-10);
+  font: var(--text-sm)/1.5 var(--font-mono);
 }
 .dbg-steps {
-  margin: 4px 0 8px;
-  padding-left: 20px;
-  color: var(--text);
+  margin: var(--space-4) 0 var(--space-8);
+  padding-left: var(--space-20);
+  color: var(--color-text);
 }
 .dbg-steps li {
-  margin: 3px 0;
+  margin: var(--space-3) 0;
 }
 .dbg-cmd {
   display: block;
-  background: #0d0f14;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font:
-    12px Consolas,
-    monospace;
+  background: var(--color-well);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-10);
+  font: var(--text-sm) var(--font-mono-plain);
   user-select: text;
   overflow-wrap: anywhere;
 }
@@ -903,27 +1218,23 @@ input[type='range'] {
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--text);
-  font:
-    10px/1 'Segoe Fluent Icons',
-    'Segoe MDL2 Assets',
-    'Segoe UI Symbol',
-    sans-serif;
+  color: var(--color-text);
+  font: var(--text-2xs)/1 var(--font-icons);
   cursor: default;
 }
 .winbtns button:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--color-hover-soft);
 }
 .winbtns button:active {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-press-soft);
 }
 .winbtns #wClose:hover {
-  background: #e81123;
-  color: #fff;
+  background: var(--color-close-hover);
+  color: var(--color-on-fill);
 }
 .winbtns #wClose:active {
-  background: #f1707a;
-  color: #fff;
+  background: var(--color-close-active);
+  color: var(--color-on-fill);
 }
 
 /* Keys tab: keys can be dragged. */
@@ -935,52 +1246,52 @@ input[type='range'] {
 .kmk.drag {
   cursor: grabbing;
   z-index: 3;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-lift);
 }
 .kmk.clash {
-  box-shadow: 0 0 0 2px var(--danger);
+  box-shadow: 0 0 0 2px var(--color-danger);
 }
 .kmk.moved:not(.off) {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
 }
 
 /* Keys tab: the selection toolbar above the keyboard picture, and the selection box. */
 .keytools {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 22px;
-  margin: 8px 0;
+  gap: var(--space-6) var(--space-22);
+  margin: var(--space-8) 0;
 }
 .toolgroup {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-2);
 }
 .toolgroup .btns {
   margin: 0;
 }
 .toolgroup-label {
-  color: var(--dim);
-  font-size: 11px;
+  color: var(--color-text-dim);
+  font-size: var(--text-xs);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .sel-summary {
-  color: var(--dim);
-  font-size: 13px;
+  color: var(--color-text-dim);
+  font-size: var(--text-md);
   min-width: 108px;
 }
 button.nudge {
   min-width: 34px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
 }
 label.inline {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  color: var(--dim);
+  gap: var(--space-4);
+  font-size: var(--text-md);
+  color: var(--color-text-dim);
   cursor: pointer;
 }
 .keymap {
@@ -989,48 +1300,173 @@ label.inline {
 }
 .marquee {
   position: absolute;
+  left: var(--left);
+  top: var(--top);
+  width: var(--width);
+  height: var(--height);
   z-index: 4;
-  border: 1px solid var(--accent);
-  background: rgba(79, 140, 255, 0.16);
+  border: 1px solid var(--color-accent);
+  background: var(--color-selection-fill);
   pointer-events: none;
 }
 
 /* Keys tab: the label that follows a key while it is dragged, and the line under the picture. */
 .readout {
   position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc((var(--y) - 0.7) * var(--unit));
   z-index: 5;
-  padding: 2px 7px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel);
-  color: var(--text);
-  font-size: 11px;
+  padding: var(--space-2) var(--space-7);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-panel);
+  color: var(--color-text);
+  font-size: var(--text-xs);
   white-space: pre;
   pointer-events: none;
 }
 .keystatus {
-  margin: -6px 0 10px;
-  color: var(--dim);
-  font-size: 12px;
+  margin: -6px 0 var(--space-10);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
 }
 .toolgroup select {
-  margin-left: 2px;
+  margin-left: var(--space-2);
 }
 .kmk:focus {
   outline: none;
 }
 .kmk:focus-visible {
-  outline: 2px dashed var(--text);
+  outline: 2px dashed var(--color-text);
   outline-offset: 3px;
 }
 .kmk.sel:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent);
   box-shadow:
-    0 0 0 4px var(--panel),
-    0 0 0 6px var(--text);
+    0 0 0 4px var(--color-panel),
+    0 0 0 6px var(--color-text);
+}
+.keys-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-14);
+}
+.style-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+.segmented {
+  display: flex;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+.segmented .segment {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-4) var(--space-12);
+}
+.segmented .segment.on {
+  background: var(--color-selection-fill);
+  color: var(--color-text);
+}
+.menu-separator {
+  margin: var(--space-4) 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+.keys-row {
+  display: flex;
+  gap: var(--space-14);
+  align-items: flex-start;
+}
+.keys-main {
+  flex: 1;
+  min-width: 0;
+}
+.inspector {
+  flex: none;
+  width: 260px;
+  margin-top: var(--space-8);
+}
+.inspector .editor {
+  max-width: none;
+  margin: 0;
+}
+/* in the narrow inspector each row is a label above its controls */
+.inspector .row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  padding: var(--space-6) 0;
+}
+.inspector .row > label {
+  width: auto;
+}
+.inspector .row .ctl {
+  max-width: none;
+}
+.inspector input[type='text'] {
+  flex: 1;
+  min-width: 0;
+}
+.inspector .num-field {
+  width: 72px;
+}
+.inspector-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-8);
+}
+.danger-note {
+  margin: var(--space-8) 0;
+  padding: var(--space-6) var(--space-8);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+}
+.danger-text {
+  color: var(--color-danger);
+}
+.keytools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-14);
+  margin-bottom: var(--space-8);
+}
+.keytools .keystatus {
+  margin: 0 0 0 auto;
+}
+.toggle.on {
+  background: var(--color-selection-fill);
+  border-color: var(--color-accent);
+}
+.keytools .toolgroup {
+  flex-direction: row;
+  gap: var(--space-6);
 }
 .keyhint {
-  margin: -8px 0 6px;
-  color: var(--dim);
-  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-14);
+}
+.keyhint kbd {
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--color-text);
+}
+.keyhint {
+  margin: -8px 0 var(--space-6);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
 }

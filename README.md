@@ -7,7 +7,8 @@ A Windows app that shows your keyboard presses live in OBS, for streams and reco
 
 Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaScript, with the help of [Claude Code](https://claude.com/claude-code).
 
-- **Lightweight:** about 3 MB of RAM and ~0% CPU while idle. The installer is about 2 MB.
+- **Lightweight:** about 3 MB of RAM and ~0% CPU while idle (measured for each release with `tests/bench/run.mjs`, see
+  the CHANGELOG). The installer is about 2.3 MB.
 - **Works in games:** a global keyboard reader sees your keys even when a game has focus, with a second
   "Compatibility" method for games that block the standard one.
 - **Fully customizable:** pick or build your own layouts, then change colors, fonts, animations and per-key labels.
@@ -18,7 +19,13 @@ Built with [Tauri](https://tauri.app) (Rust + WebView2) and plain HTML/CSS/JavaS
 
 1. Go to the [**Releases**](../../releases/latest) page.
 2. Download `Keystroke-Overlay_x.y.z_x64-setup.exe` and run it.
-3. Windows may show a SmartScreen warning because the installer isn't code-signed. Click **More info → Run anyway**.
+3. If Windows shows a SmartScreen warning (releases before code signing, or a new release Windows hasn't seen much yet),
+   click **More info → Run anyway**. Signed releases name **SignPath Foundation** as the publisher (see Code signing policy).
+
+**Is it safe?** Antivirus tools are wary of any program that reads the keyboard, and now and then one flags a new
+version by mistake. Keystroke Overlay is open source, official releases come only from this project's Releases page,
+and an automatic check on every change makes sure keystrokes are never saved or sent ([Privacy](#privacy)). If your antivirus warns about an official release,
+please [open an issue](../../issues) so it can be reported as a false positive.
 
 The app starts in your system tray (bottom-right of the taskbar). Click the tray icon to open settings.
 Prefer to build it yourself? See [Building from source](#building-from-source).
@@ -27,10 +34,26 @@ Prefer to build it yourself? See [Building from source](#building-from-source).
 
 1. In the app, click **Copy OBS URL** (default: `http://localhost:7878/`).
 2. In OBS: **Sources → + → Browser**, then paste the URL.
-3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale.
+3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale. If the box is a different size, the keyboard
+   scales itself to fit inside it and stays centred, so nothing is cut off.
 4. Leave Custom CSS empty — the page is already transparent.
 
 If you change the port in settings, update the URL in OBS too.
+
+### Keep it smooth and light in OBS
+
+These OBS settings make the biggest difference to how smooth the overlay looks and how little it costs while you stream:
+
+- **Size the source exactly** as shown in the app's header, so there's no empty space around the keys. To make the keys
+  bigger or smaller, use **Style → Scale** in the app and set the new size, instead of stretching the source in OBS: the
+  keys stay sharp and OBS draws fewer pixels.
+- **Frame rate:** leave **Use custom frame rate** off; OBS then matches your stream's frame rate. Only turn it on to match a
+  60 fps stream if OBS runs at a different rate.
+- **Shutdown source when not visible:** turn it on if the overlay is only in some of your scenes. It stops using CPU while
+  hidden and reconnects in a moment when the scene shows again.
+- **Refresh browser when scene becomes active:** leave it off. The overlay updates itself; reloading only adds a short gap.
+- **Hardware acceleration:** in OBS, **Settings → Advanced → Sources → Enable Browser Source Hardware Acceleration** should be
+  on (it is by default). The overlay's animations are designed to run on the graphics card.
 
 ## Using two PCs (game on one, OBS on the other)
 
@@ -71,22 +94,22 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
-  [docs/proposals/tailscale-dual-pc.md](docs/proposals/tailscale-dual-pc.md).
+  [docs/for-claude/proposals/tailscale-dual-pc.md](docs/for-claude/proposals/tailscale-dual-pc.md).
 
 ## Settings
 
 | Tab | What it does |
 |---|---|
 | **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. **Export / Import layouts** share them as a file. |
-| **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click), then move them together, nudge them with the arrow buttons, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Choose how far keys jump with **Snap** (off, quarter, half or whole key) and show a **grid** if you like; both are remembered. X / Y fields give exact spots for a single key. **Tidy up** closes the gaps left by hidden keys while keeping the keyboard's shape. Edits are saved automatically **per layout**, and **Revert to Default** undoes them for the current layout. |
+| **Keys** | The keyboard editor. Click a key to select it (Ctrl-click, or drag a box, to select several) and drag to move it: keys snap to a quarter key and to the edges of nearby keys, and can't leave the board. Scroll to zoom and drag with the middle mouse button to move the view. Drag the blue handles of a selected key to make it wider or narrower. With two or more keys selected, a bar above them **aligns** them or **spaces them evenly**. The inspector on the right sets a key's label, width, place and whether it is shown. **Layout style** switches between **Keyboard shape** and **Even grid** (every key one key wide in neat columns); each style keeps its own moves. **Close gaps** slides keys together, **Reset** puts keys, labels or the whole layout back, **Undo** and **Redo** step through your changes, and **Snap** and **Grid** are switches that are remembered. Edits are saved automatically **per layout**. |
 | **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
 | **Fonts** | Add your own TTF / OTF / WOFF fonts. |
 | **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, program updates (channel, release notes), **Debug mode** and **Reset all settings**. |
 
-A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
+A live preview at the top of the window updates as you change things (the Keys tab hides it, because the editor shows the keyboard itself). You can click keys in the preview to test an animation.
 
-**Debug mode (for developers).** **General → App → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is saved to disk or sent anywhere, and the log never contains key presses. Details in [docs/DEBUGGING.md](docs/DEBUGGING.md).
+**Debug mode (for developers).** **General → App → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one empty test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## Keyboard input method
 
@@ -95,7 +118,7 @@ Under **General → Keyboard input** you choose how the app reads your keys. You
 | | When to use it |
 |---|---|
 | **Standard** (recommended, the default) | Works with nearly every game. |
-| **Compatibility** (Windows Raw Input) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC: both methods use about 0% CPU when idle and only a percent or two of one core even under an unrealistically heavy flood of key presses. |
+| **Compatibility** (Windows Raw Input) | Try it if keys **don't light up in one particular game**. Some games and anti-cheat tools block the standard method but not this one. It is just as light on your PC: both methods use about 0% CPU when idle. |
 
 Both methods read keys the same way and never save or send them. If a game runs **as administrator**, start Keystroke Overlay
 as administrator too — Windows doesn't let normal programs see keys typed into an elevated window, whichever method you pick.
@@ -130,7 +153,7 @@ While the app runs it quietly checks GitHub about once an hour, so a new version
 - **Stable (recommended)** — the main, well-tested releases (the middle number goes up: 1.2.0, 1.3.0, …).
 - **Latest** — every release as soon as it is published, including the small fixes in between (1.2.1, 1.2.2, …).
 
-After an update, a **What's new** window shows the release notes once. You can reopen them anytime with **General → View release notes**.
+After an update, a **What's new** window shows the release notes once. You can reopen them anytime with **General → Program updates → View release notes**.
 
 ## Make your own layout
 
@@ -175,7 +198,8 @@ Every step happens on your computer, in memory. The moment a key is released, th
 
 ### What is saved on your PC
 Only things you chose, in `%APPDATA%\com.keyoverlay.app\`: your settings (style, layout, hidden keys, labels, port,
-preferences), presets, fonts, and layouts you added. **Nothing in there contains keystrokes.** Uninstall and delete that folder to
+preferences), presets, fonts, and layouts you added; if the app ever crashes, a one-line note of where (read and deleted
+at the next start). **Nothing in there contains keystrokes.** Uninstall and delete that folder to
 remove everything.
 
 ### What touches the internet
@@ -210,14 +234,17 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **Watch it.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on `127.0.0.1` and nothing else.
 - **Block it.** Deny the app internet access in your firewall: the overlay keeps working, only updates stop.
 - **Let the computer check.** `npm run check:privacy` (it also runs on every change on GitHub) fails the build if network access,
-  file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. An automated test
+  file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. It is a tripwire
+  that reads the code line by line, not a proof (it can't see inside dependencies), so changes to that code also get a
+  careful review. An automated test
   (`npm run test:e2e`) also confirms every socket the running app holds is loopback-only.
 - **Hostile-input tests.** Thousands of randomly corrupted settings files and imported layout files are thrown at the cleaning code on every
   `npm test`; nothing may crash, escape its folder or get past the limits.
 - **Strict page policy.** The settings window runs under a content-security policy: it can only run its own scripts, talk to the app itself
   and embed the local preview. A test confirms injected scripts and other websites are blocked.
-- **Manual security scans.** On GitHub, **Actions → Security scan → Run workflow** checks the libraries the app is built from against public
-  lists of known vulnerabilities, and **Actions → CodeQL → Run workflow** has GitHub's code scanner read our own code. Neither runs by itself.
+- **Security scans.** Every Monday (and on demand: **Actions → Security scan → Run workflow**) GitHub checks the libraries the
+  app is built from against public lists of known vulnerabilities. **Actions → CodeQL → Run workflow** has GitHub's code
+  scanner read our own code (on demand only).
   More in [SECURITY.md](SECURITY.md).
 
 ## Troubleshooting
@@ -226,9 +253,13 @@ use updates you can block the app in your firewall and everything else keeps wor
 - **OBS runs on a different PC from the game:** the overlay link only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Port**, then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Open an issue naming the game and its anti-cheat.
+- **Your antivirus flags the app:** check the file came from this project's [Releases](../../releases) page, then
+  [open an issue](../../issues) naming the antivirus. Each release is reported to Microsoft as a false positive when
+  needed (docs/RELEASING.md).
 - **Reporting a bug:** turn on **General → App → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
-- **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts and port are kept).
-- **Overlay is cut off in OBS:** raise the source's width and height to the size shown in the app's header.
+- **Something is badly misconfigured:** **General → App → Reset all settings…** puts every option back to its default (your layouts, presets, fonts, port and secure link are kept).
+- **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size shown in
+  the app's header. The keyboard always fits inside the box, so a box of another shape leaves space at the sides.
 
 ## Building from source
 
@@ -242,9 +273,13 @@ npm run dev          # run it
 npm run dev:debug    # run a separate development copy with Debug mode on (see docs/DEBUGGING.md)
 npm test             # unit tests (including hostile-input tests) + privacy check
 npm run format       # format the code (Prettier + rustfmt); CI checks it
-npm run check:style  # tabs, trailing spaces, final newline
+npm run check:style  # tabs, trailing spaces, final newline, no inline styles in the settings scripts
+npm run check:docs   # where each document lives, the indexes, working links
+npm run check:config # the app's name, repository and identifiers agree everywhere
 npm run test:e2e     # end-to-end tests (builds a throwaway copy, cleans up after itself)
 npm run test:install # clean install + upgrade + uninstall with real installers (throwaway identity)
+npm run test:quiet-update # a real in-app update: no installer window, the app reopens by itself
+npm run test:visual  # a picture of every settings screen and of the overlay in each theme, compared with the saved ones
 npm run build        # installer in src-tauri/target/release/bundle/nsis/
 ```
 
@@ -252,9 +287,14 @@ Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). How the co
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). A Mac port has been researched: [docs/MAC-PORT.md](docs/MAC-PORT.md).
 Maintaining the project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).
 
+## For Claude sessions
+
+`CLAUDE.md` and the [docs/for-claude/](docs/for-claude/README.md) folder hold the rules and working notes of the Claude sessions
+that help build this project. They are public on purpose and written for those sessions, so contributors can ignore them.
+
 ## Requirements
 
-Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current versions of Windows.
+Windows 10 or 11 (64-bit) with Microsoft Edge WebView2, which is already included in current Windows 10 and 11.
 
 ## Code signing policy
 

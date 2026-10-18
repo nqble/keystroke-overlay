@@ -8,15 +8,30 @@
 //! (tracks held keys, drops everything while paused) → broadcast to WebSocket clients.
 //! The method can be switched while the app runs (`Bus::set_method`).
 //!
+//! Both methods are Windows only. On Linux, the Standard method uses X11 instead (`x11`, docs/LINUX-PORT.md). On other
+//! systems the app builds and runs without keyboard capture: starting a method fails with a clear message, shown in the
+//! settings window like any other start-up problem (docs/CROSS-PLATFORM.md). A port adds its own method here
+//! (docs/MAC-PORT.md).
+//!
 //! Privacy: events live only in memory and are forwarded to localhost WebSocket clients. Nothing is written to disk.
 
+#[cfg(windows)]
 mod hook;
+// keymap, tracker and linux_keys are plain logic used by the capture methods. They are built on every system so their
+// unit tests run everywhere; on other systems nothing calls them.
+#[cfg_attr(not(windows), allow(dead_code))]
 pub mod keymap;
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+mod linux_keys;
+#[cfg(windows)]
 mod rawinput;
+#[cfg_attr(not(windows), allow(dead_code))]
 mod tracker;
+#[cfg(target_os = "linux")]
+mod x11;
 
 use std::collections::HashSet;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
 use tokio::sync::broadcast;
@@ -49,27 +64,100 @@ impl Method {
     }
     pub fn label(self) -> &'static str {
         match self {
+            Self::Hook if cfg!(target_os = "linux") => "Standard (X11)",
             Self::Hook => "Standard (keyboard hook)",
             Self::RawInput => "Compatibility (Raw Input)",
         }
     }
 }
 
+/// Shown when the app runs on a system that has no keyboard capture method yet.
+#[cfg(not(any(windows, target_os = "linux")))]
+const UNSUPPORTED: &str = "keyboard capture isn't available on this system yet";
+
+/// Shown when Compatibility is chosen on Linux, which only has the Standard method so far.
+#[cfg(target_os = "linux")]
+const LINUX_STANDARD_ONLY: &str = "only the Standard method is available on Linux so far";
+
 enum Source {
+    #[cfg(windows)]
     Hook(hook::Handle),
+    #[cfg(windows)]
     RawInput(rawinput::Handle),
+    #[cfg(target_os = "linux")]
+    X11(x11::Handle),
 }
 impl Source {
+    #[cfg(windows)]
     fn start(method: Method, tx: Sender<KeyEvent>) -> Result<Self, String> {
         match method {
             Method::Hook => hook::start(tx).map(Source::Hook),
             Method::RawInput => rawinput::start(tx).map(Source::RawInput),
         }
     }
+    #[cfg(target_os = "linux")]
+    fn start(method: Method, tx: Sender<KeyEvent>) -> Result<Self, String> {
+        match method {
+            Method::Hook => x11::start(tx).map(Source::X11),
+            Method::RawInput => Err(LINUX_STANDARD_ONLY.to_string()),
+        }
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
+    fn start(_method: Method, _tx: Sender<KeyEvent>) -> Result<Self, String> {
+        Err(UNSUPPORTED.to_string())
+    }
+    /// Only the Windows hook can be dropped by the system, so only it is watched.
+    fn set_watch(&self, on: bool) {
+        #[cfg(windows)]
+        if let Source::Hook(handle) = self {
+            handle.set_watch(on);
+        }
+        let _ = on;
+    }
     fn stop(self) {
         match self {
+            #[cfg(windows)]
             Source::Hook(handle) => handle.stop(),
+            #[cfg(windows)]
             Source::RawInput(handle) => handle.stop(),
+            #[cfg(target_os = "linux")]
+            Source::X11(handle) => handle.stop(),
+        }
+    }
+}
+
+// ---- The hook watch (docs/DEBUGGING.md). Windows can remove a keyboard hook without telling the app, for example when
+// the PC is overloaded. While at least one overlay page is connected, the hook thread checks every 30 s whether the PC
+// is in use but the hook has heard nothing for over a minute, and then installs it again. With no overlay connected
+// nothing runs (CLAUDE.md: no timers at idle).
+
+/// How often the hook thread checks, while an overlay is connected.
+#[cfg_attr(not(windows), allow(dead_code))] // used by the Windows hook (hook.rs) and the tests
+pub(crate) const WATCH_INTERVAL_MS: u32 = 30_000;
+/// The hook counts as dropped when the PC had input this much later than the hook's last key.
+#[cfg_attr(not(windows), allow(dead_code))] // used by the Windows hook (hook.rs) and the tests
+pub(crate) const SILENT_LIMIT_MS: u32 = 60_000;
+
+/// Has Windows probably dropped the hook? All three are Windows tick counts in milliseconds (they wrap after 49 days,
+/// hence wrapping_sub): `now`, the PC's last input from anyone (mouse included), and the hook's last key. Only when the
+/// PC was used during the last check interval, yet long after the hook last heard a key. A wrong guess only costs a
+/// harmless re-install (a quiet player moving only the mouse for a minute).
+#[cfg_attr(not(windows), allow(dead_code))] // used by the Windows hook (hook.rs) and the tests
+pub(crate) fn hook_looks_dropped(now: u32, last_input: u32, last_key: u32) -> bool {
+    let in_use = now.wrapping_sub(last_input) <= WATCH_INTERVAL_MS;
+    let silent =
+        last_input.wrapping_sub(last_key) > SILENT_LIMIT_MS && last_input.wrapping_sub(last_key) < u32::MAX / 2;
+    in_use && silent
+}
+
+/// Held by each connected overlay page (server.rs); the first one turns the hook watch on, the last one off.
+pub struct WatchGuard<'a> {
+    bus: &'a Bus,
+}
+impl Drop for WatchGuard<'_> {
+    fn drop(&mut self) {
+        if self.bus.watchers.fetch_sub(1, Ordering::Relaxed) == 1 {
+            self.bus.set_watch(false);
         }
     }
 }
@@ -88,9 +176,50 @@ pub struct Bus {
     pub paused: AtomicBool,
     ev_tx: Sender<KeyEvent>,
     capture: Mutex<Capture>,
+    /// How many overlay pages are connected (the hook watch runs while this is above 0).
+    watchers: AtomicUsize,
 }
 
 impl Bus {
+    /// Pass one key event on to the overlays, or drop it while paused. The pause check, the held-keys update and the
+    /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
+    /// Pause is pressed can never slip through or leave a stuck key behind.
+    fn forward(&self, event: KeyEvent) {
+        let mut held = self.held.lock().unwrap();
+        if self.paused.load(Ordering::Relaxed) {
+            return;
+        }
+        if event.down {
+            held.insert(event.code);
+        } else {
+            held.remove(event.code);
+        }
+        let _ = self.tx.send(event); // Err = no listeners; fine.
+    }
+
+    /// Pause or resume (tray "Pause overlay" and the pause button). Pausing forgets every held key.
+    pub fn set_paused(&self, paused: bool) {
+        let mut held = self.held.lock().unwrap();
+        self.paused.store(paused, Ordering::Relaxed);
+        if paused {
+            held.clear();
+        }
+    }
+
+    /// An overlay page connected: keep the returned guard for as long as it stays connected.
+    pub fn watch_guard(&self) -> WatchGuard<'_> {
+        if self.watchers.fetch_add(1, Ordering::Relaxed) == 0 {
+            self.set_watch(true);
+        }
+        WatchGuard { bus: self }
+    }
+
+    fn set_watch(&self, on: bool) {
+        if let Some(source) = &self.capture.lock().unwrap().source {
+            source.set_watch(on);
+        }
+    }
+
     pub fn method(&self) -> Method {
         self.capture.lock().unwrap().method
     }
@@ -118,6 +247,7 @@ impl Bus {
         }
         match Source::start(new, self.ev_tx.clone()) {
             Ok(source) => {
+                source.set_watch(self.watchers.load(Ordering::Relaxed) > 0); // a new hook keeps watching
                 capture.method = new;
                 capture.source = Some(source);
                 capture.error = None;
@@ -152,27 +282,115 @@ pub fn start(method: Method) -> Arc<Bus> {
         paused: AtomicBool::new(false),
         ev_tx,
         capture: Mutex::new(Capture { method, source, error }),
+        watchers: AtomicUsize::new(0),
     });
 
     let dispatch_bus = bus.clone();
     std::thread::Builder::new()
         .name("key-dispatch".into())
         .spawn(move || {
-            while let Ok(ev) = rx.recv() {
-                if dispatch_bus.paused.load(Ordering::Relaxed) {
-                    continue;
-                } // paused: forward nothing
-                {
-                    let mut held = dispatch_bus.held.lock().unwrap();
-                    if ev.down {
-                        held.insert(ev.code);
-                    } else {
-                        held.remove(ev.code);
-                    }
-                }
-                let _ = dispatch_bus.tx.send(ev); // Err = no listeners; fine.
+            while let Ok(event) = rx.recv() {
+                dispatch_bus.forward(event);
             }
         })
         .unwrap();
     bus
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_bus() -> Bus {
+        let (ev_tx, _) = channel::<KeyEvent>();
+        Bus {
+            tx: broadcast::channel(256).0,
+            held: Mutex::new(HashSet::new()),
+            paused: AtomicBool::new(false),
+            ev_tx,
+            capture: Mutex::new(Capture {
+                method: Method::Hook,
+                source: None,
+                error: None,
+            }),
+            watchers: AtomicUsize::new(0),
+        }
+    }
+
+    #[test]
+    fn the_hook_counts_as_dropped_only_when_the_pc_is_in_use_and_the_hook_long_silent() {
+        let minute = SILENT_LIMIT_MS;
+        assert!(
+            hook_looks_dropped(500_000, 499_000, 499_000 - minute - 1),
+            "in use, silent over a minute"
+        );
+        assert!(
+            !hook_looks_dropped(500_000, 499_000, 499_000 - minute + 1),
+            "a key less than a minute before"
+        );
+        assert!(
+            !hook_looks_dropped(500_000, 400_000, 100),
+            "the PC itself is idle: nothing to compare"
+        );
+        assert!(
+            !hook_looks_dropped(500_000, 499_000, 499_500),
+            "a key after the last input"
+        );
+        // the tick counter wraps after 49 days
+        assert!(hook_looks_dropped(5_000, 4_000, u32::MAX - minute), "across the wrap");
+    }
+
+    #[test]
+    fn the_watch_follows_the_connected_pages() {
+        let bus = test_bus();
+        let first = bus.watch_guard();
+        let second = bus.watch_guard();
+        assert_eq!(bus.watchers.load(Ordering::Relaxed), 2);
+        drop(first);
+        drop(second);
+        assert_eq!(
+            bus.watchers.load(Ordering::Relaxed),
+            0,
+            "the last page leaving turns it off"
+        );
+    }
+
+    #[test]
+    fn nothing_gets_through_while_paused() {
+        let bus = test_bus();
+        let mut overlay = bus.tx.subscribe();
+        bus.set_paused(true);
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyW",
+        });
+        assert!(overlay.try_recv().is_err());
+        assert!(bus.held.lock().unwrap().is_empty());
+    }
+
+    /// The outside review's race: a key event in flight while Pause is pressed used to be able to land in `held` after
+    /// pausing cleared it, so the overlay showed a stuck key after resuming. Pause while another thread forwards keys,
+    /// many times over; after the forwarding thread stops, nothing may be held.
+    #[test]
+    fn pausing_while_keys_arrive_never_leaves_a_stuck_key() {
+        const ROUNDS: usize = 2000;
+        let bus = Arc::new(test_bus());
+        for _ in 0..ROUNDS {
+            bus.set_paused(false);
+            let typing = {
+                let bus = bus.clone();
+                std::thread::spawn(move || {
+                    for _ in 0..50 {
+                        bus.forward(KeyEvent {
+                            down: true,
+                            code: "KeyA",
+                        });
+                    }
+                })
+            };
+            bus.set_paused(true);
+            typing.join().unwrap();
+            assert!(bus.held.lock().unwrap().is_empty(), "a key stayed held after pausing");
+        }
+    }
 }

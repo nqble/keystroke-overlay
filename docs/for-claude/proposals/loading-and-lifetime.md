@@ -1,7 +1,9 @@
-# Plan: loading and lifetime across the app (queued, from the Advisory Session)
+# Plan: loading and lifetime across the app (in progress, from the Advisory Session)
 
-Status: Queued. Not started. Approved by Jordan in the Advisory Session. It applies the ideas of section 9a of
-[../design/key-editor.md](../design/key-editor.md) to the whole app.
+Status: **In progress** on `v1.4.0-dev` (checked 2026-10-16). Done: A3 for the Debug tab (8d9691e), A2 for presets
+(8d9691e), C8 (no change needed, see docs/for-claude/CLEANUP.md). Not started: A1, A2 for fonts and layouts, A4, A5, B6, B7.
+Approved by Jordan in the Advisory Session. It applies the ideas of section 9a of
+[../design/key-editor.md](../../design/key-editor.md) to the whole app.
 
 Each change is its own commit, with the full tests between them. Benchmark before and after where noted. Stop and report on any
 regression, in plain language, with the before and after numbers.
@@ -36,6 +38,12 @@ tabs mounted versus not. Tests: tab state and scroll kept across switches; Style
 
 ## B. Overlay (OBS) (do this in the cleanup phase, overlay area, benchmarked: the overlay's speed is a core promise)
 
+**Measured 2026-10-17, decided not to do items 6 and 7.** `npm run test:e2e -- --suite overlay-speed` times the overlay's own work
+for one settings change on a full layout (103 keys, the median of 60 changes): a colour change 0.00 ms, a key-size change (every key
+built again) 0.70 ms, hiding one key 0.70 ms. Driving the sizes with CSS variables or updating single keys would save under a
+millisecond per change and risks the look of the overlay in OBS (a core promise), so the code stays as it is. Revisit only if a
+future change makes the rebuild measurably slower.
+
 6. Drive keySize, gap, fontSize and scale with CSS custom properties (positions via, for example,
    `calc(var(--x) * var(--pitch))`) so changing them never rebuilds key elements. Remove them from `structKey`. Rebuild only when
    the layout, the layout style or the set of visible keys changes.
@@ -44,7 +52,7 @@ tabs mounted versus not. Tests: tab state and scroll kept across switches; Style
 Keep animations transform and opacity only. Visual baselines for every built-in theme (UI foundation step 6) must stay
 identical. Measure overlay CPU while dragging a slider in the preview, and while typing, before and after.
 
-## C. Cleanup audit (`docs/CLEANUP.md`)
+## C. Cleanup audit (`docs/for-claude/CLEANUP.md`)
 
 8. Verify the hourly update check is a single sleep or scheduled wake until the next check, not a repeating poll or busy loop,
    and that it does nothing between checks. Report what is found; change nothing unless it is actually wasteful.

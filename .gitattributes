@@ -1,8 +1,11 @@
-# Always check text files out with Unix line endings (LF), on every computer, so formatting checks give the same answer
-# everywhere (the format check in CI runs on Windows, which would otherwise convert files to CRLF).
+# Same line endings for everyone, whatever system they work on (see .editorconfig). This also keeps the format check in CI
+# (which runs on Windows) from seeing Windows line endings.
 * text=auto eol=lf
 
-# Files that are not text: never touch their bytes.
+# PowerShell scripts are checked out with Windows line endings, as PowerShell expects.
+*.ps1 text eol=crlf
+
+# Never touch binary files.
 *.png binary
 *.ico binary
 *.icns binary

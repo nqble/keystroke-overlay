@@ -3,6 +3,7 @@
 // =====================================================================================================================
 import { $, call, el, invoke, toast } from './helpers.js';
 import { frame, previewSrc, saveNow, updateObs } from './preview.js';
+import { headingOf, sectionOf } from './release-notes.js';
 import { render } from './settings.js';
 import {
   MAX_LAYOUTS,
@@ -19,6 +20,62 @@ import {
   updateProgress,
 } from './state.js';
 import { TEXT } from './text.js';
+
+// ---- Keyboard focus for popups ------------------------------------------------------------------------------------------
+// Three popups (the general dialog, the release notes, the update dialog) show and hide themselves by toggling `hidden`.
+// This one place gives all of them proper keyboard behaviour: when a popup opens, focus moves into it; while it is open,
+// Tab and Shift+Tab stay inside it; when it closes, focus goes back to whatever opened it.
+const POPUPS = ['#dlg', '#modal', '#updModal'];
+const FOCUSABLE =
+  'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const openers = new Map(); // popup element -> the element that had focus when it opened, and its test hook
+// The popups move focus into themselves the moment they open, so "what had focus" is tracked as it changes: the last
+// element focused outside every popup.
+let lastFocusOutsidePopups = /** @type {HTMLElement | null} */ (null);
+document.addEventListener('focusin', (focusEvent) => {
+  const target = /** @type {HTMLElement} */ (focusEvent.target);
+  if (!POPUPS.some((selector) => $(selector).contains(target))) lastFocusOutsidePopups = target;
+});
+
+const focusablesIn = (popup) => [...popup.querySelectorAll(FOCUSABLE)].filter((item) => item.offsetParent !== null);
+
+const popupWatcher = new MutationObserver((records) => {
+  for (const record of records) {
+    const popup = /** @type {HTMLElement} */ (record.target);
+    if (!popup.hidden) {
+      const opener = lastFocusOutsidePopups;
+      openers.set(popup, { element: opener, hook: opener?.dataset?.test });
+      focusablesIn(popup)[0]?.focus();
+    } else {
+      const opener = openers.get(popup);
+      openers.delete(popup);
+      if (!opener) continue;
+      // the tab behind the popup may have been redrawn meanwhile: then look for the button's twin by its test hook
+      const target = document.contains(opener.element)
+        ? opener.element
+        : opener.hook && $(`[data-test="${opener.hook}"]`);
+      target?.focus();
+    }
+  }
+});
+for (const selector of POPUPS) popupWatcher.observe($(selector), { attributes: true, attributeFilter: ['hidden'] });
+
+addEventListener('keydown', (keyEvent) => {
+  if (keyEvent.key !== 'Tab') return;
+  const popup = POPUPS.map((selector) => $(selector)).find((item) => !item.hidden);
+  const items = popup ? focusablesIn(popup) : [];
+  if (!items.length) return;
+  const first = items[0];
+  const last = items[items.length - 1];
+  const outside = !popup.contains(document.activeElement);
+  if (outside || (keyEvent.shiftKey && document.activeElement === first)) {
+    keyEvent.preventDefault();
+    (outside || !keyEvent.shiftKey ? first : last).focus();
+  } else if (!keyEvent.shiftKey && document.activeElement === last) {
+    keyEvent.preventDefault();
+    first.focus();
+  }
+});
 
 // ---- 6a. The general-purpose dialog (new layout, limit reached, reset). Same look as the release-notes and update
 // popups.
@@ -98,6 +155,18 @@ export function addLayoutDialog() {
   nameInput.focus();
 }
 
+/** Ask before something that is hard to undo by hand. `onConfirm` runs when the danger button is pressed. */
+export function confirmDialog({ title, body, confirmLabel, test, onConfirm }) {
+  dialog({
+    title,
+    body: [el('p', { textContent: body })],
+    buttons: [
+      { label: 'Cancel', test: 'dialog-cancel' },
+      { label: confirmLabel, test, danger: true, run: onConfirm },
+    ],
+  });
+}
+
 export function resetDialog() {
   const reset = async () => {
     try {
@@ -124,38 +193,62 @@ export function resetDialog() {
 // ---- 6b. Our own right-click menu. The browser's menu never appears; only layout cards show this one.
 let menuEl = null;
 
+let menuOpener = /** @type {HTMLElement | null} */ (null); // what had focus when the menu opened
+
 export function hideMenu() {
   menuEl?.remove();
   menuEl = null;
+  // keyboard users get their place back (a mouse user's menu opener is usually not focused, so nothing visibly changes)
+  if (menuOpener && document.contains(menuOpener)) menuOpener.focus();
+  menuOpener = null;
 }
 
-/** Show a small menu at the mouse. items: [{ label, run?, danger?, disabled? }] */
+/**
+ * Show a small menu at the mouse. items: [{ label, run?, danger?, disabled?, test? }] (`test` is the item's test hook), or
+ * { separator: true } for a dividing line.
+ */
 export function showMenu(event, items) {
   event.preventDefault();
   event.stopPropagation();
   hideMenu();
+  menuOpener = /** @type {HTMLElement | null} */ (document.activeElement);
   menuEl = el(
     'div',
     { className: 'ctxmenu', test: 'context-menu' },
     items.map((item) =>
-      el('button', {
-        test: 'context-menu-item',
-        type: 'button',
-        textContent: item.label,
-        className: item.danger ? 'danger' : '',
-        disabled: !!item.disabled,
-        onclick: () => {
-          hideMenu();
-          item.run?.();
-        },
-      }),
+      item.separator
+        ? el('hr', { className: 'menu-separator' })
+        : el('button', {
+            test: item.test ?? 'context-menu-item',
+            type: 'button',
+            textContent: item.label,
+            className: item.danger ? 'danger' : '',
+            disabled: !!item.disabled,
+            onclick: () => {
+              hideMenu();
+              item.run?.();
+            },
+          }),
     ),
   );
   document.body.append(menuEl);
   const box = menuEl.getBoundingClientRect(); // keep the menu fully inside the window
-  menuEl.style.left = Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px';
-  menuEl.style.top = Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px';
+  menuEl.style.setProperty('--x', Math.max(4, Math.min(event.clientX, innerWidth - box.width - 4)) + 'px');
+  menuEl.style.setProperty('--y', Math.max(4, Math.min(event.clientY, innerHeight - box.height - 4)) + 'px');
+  /** @type {HTMLElement | null} */ (menuEl.querySelector('button:not(:disabled)'))?.focus();
 }
+
+// Up and Down arrows move between the menu's items
+addEventListener('keydown', (keyEvent) => {
+  if (!menuEl || (keyEvent.key !== 'ArrowDown' && keyEvent.key !== 'ArrowUp')) return;
+  const items = /** @type {HTMLElement[]} */ ([...menuEl.querySelectorAll('button:not(:disabled)')]);
+  if (!items.length) return;
+  keyEvent.preventDefault();
+  const step = keyEvent.key === 'ArrowDown' ? 1 : -1;
+  items[
+    (items.indexOf(/** @type {HTMLElement} */ (document.activeElement)) + step + items.length) % items.length
+  ].focus();
+});
 
 // layout cards call showMenu first, which stops this
 addEventListener('contextmenu', (e) => e.preventDefault());
@@ -178,10 +271,15 @@ addEventListener('keydown', (e) => {
 addEventListener('dragstart', (e) => e.preventDefault());
 
 // ---- 6c. Release notes ("What's new"), fetched from GitHub
-/** A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text. */
+/**
+ * A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text.
+ * Release-note sections (release-notes.js) get their colour: the heading and the list under it share a notes-<kind>
+ * class.
+ */
 export function md(source) {
   const fragment = document.createDocumentFragment();
   let list = null;
+  let sectionClass = ''; // e.g. "notes-section notes-fixed" while inside the Fixed section
   const inline = (parent, text) => {
     // turns **bold** and `code` into elements
     const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
@@ -205,14 +303,17 @@ export function md(source) {
       list = null;
       continue;
     }
-    if ((match = /^#{1,6}\s+(.*)$/.exec(line))) {
+    const headingText = headingOf(line);
+    if (headingText !== null) {
       list = null;
-      const heading = el('h4');
-      inline(heading, match[1]);
+      const section = sectionOf(headingText);
+      sectionClass = section ? `notes-section notes-${section.kind}` : '';
+      const heading = el('h4', { className: sectionClass });
+      inline(heading, headingText);
       fragment.append(heading);
     } else if ((match = /^\s*[-*+]\s+(.*)$/.exec(line))) {
       if (!list) {
-        list = el('ul');
+        list = el('ul', { className: sectionClass });
         fragment.append(list);
       }
       const li = el('li');
@@ -254,8 +355,8 @@ function typeIn(root) {
     const full = node.nodeValue,
       typed = document.createTextNode(''),
       rest = el('span', { textContent: full });
-    rest.style.visibility = 'hidden';
-    node.replaceWith(typed, rest);
+    rest.classList.add('invisible');
+    /** @type {ChildNode} */ (node).replaceWith(typed, rest);
     return { full, typed, rest, done: 0 };
   });
   const total = parts.reduce((sum, p) => sum + p.full.length, 0);
@@ -417,7 +518,7 @@ export function paintProgress() {
   const dialogBar = $('#uBar');
   if (dialogBar) {
     dialogBar.hidden = !updateProgress;
-    $('#uFill').style.width = (updateProgress ? Math.max(0, updateProgress.pct) : 0) + '%';
+    $('#uFill').style.setProperty('--pct', (updateProgress ? Math.max(0, updateProgress.pct) : 0) + '%');
     // negative = size unknown, show a moving bar
     $('#uFill').classList.toggle('indet', !!updateProgress && updateProgress.pct < 0);
     if (updateProgress) $('#uText').textContent = updateProgress.text;
@@ -428,7 +529,7 @@ export function paintProgress() {
   if (!bar) return; // General is not showing
   bar.hidden = !updateProgress;
   if (updateProgress) {
-    fill.style.width = updateProgress.pct + '%';
+    fill.style.setProperty('--pct', updateProgress.pct + '%');
     fill.classList.toggle('indet', updateProgress.pct < 0);
     text.textContent = updateProgress.text;
   } else text.textContent = '';

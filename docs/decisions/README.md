@@ -3,7 +3,7 @@
 Short notes on **why** the project is built the way it is today. Read these before changing something that looks odd:
 there is usually a reason, and the reason is written down here. Ideas that are *not* decided live in
 [ideas-not-decided.md](ideas-not-decided.md).
-Larger ideas that need review before anyone builds them are written up in [../proposals/](../proposals/).
+Larger ideas that need review before anyone builds them are written up in [../for-claude/proposals/](../for-claude/proposals).
 
 | # | Decision | Status |
 |---|---|---|
@@ -15,6 +15,9 @@ Larger ideas that need review before anyone builds them are written up in [../pr
 | [0006](0006-layouts-themes-animations-are-data-files.md) | Layouts, themes and animations are plain files, not a free-form plugin system | Accepted |
 | [0007](0007-versioned-settings-with-migrations.md) | Settings are versioned JSON with migrations | Accepted |
 | [0008](0008-update-checks-never-install-on-their-own.md) | Update checks run hourly but never install anything on their own | Accepted |
+| [0009](0009-secure-link-stays-optional.md) | The secure link stays optional, also for new installs | Accepted |
+| [0010](0010-the-apps-identity-lives-in-one-place.md) | The app's name, repository and identifiers live in one place | Accepted |
+| [0011](0011-working-notes-are-public-in-one-folder.md) | The Claude sessions' working notes are public, in one folder, with a placement rule | Accepted |
 
 ## How to add one
 

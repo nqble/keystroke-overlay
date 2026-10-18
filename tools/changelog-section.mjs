@@ -2,8 +2,13 @@
 //   node tools/changelog-section.mjs 1.2.0            full notes ("**v1.2.0 — title**" + the bullets)
 //   node tools/changelog-section.mjs 1.2.0 --title    just the title line text (used as the update manifest's short
 //   note)
-// Fails (exit 1) if the version has no entry, so a release can't go out without notes.
+// Fails (exit 1) if the version has no entry, so a release can't go out without notes, or if the entry's sections
+// break the release notes format (ui/settings/release-notes.js, docs/RELEASING.md), so every release reads the same.
 import { readFileSync } from 'node:fs';
+import { sectionProblems } from '../ui/settings/release-notes.js';
+
+// Added under every release's notes, so the entries in CHANGELOG.md don't repeat it.
+const KEPT_LINE = 'Your settings, layouts, presets and fonts are kept.';
 
 const [version, flag] = process.argv.slice(2);
 if (!version) {
@@ -32,4 +37,10 @@ const body = lines
   .slice(start + 1, end)
   .join('\n')
   .trim();
-console.log(`**${title}**\n\n${body}\n\nYour settings, presets and fonts are kept.`);
+const problems = sectionProblems(body);
+if (problems.length) {
+  console.error(`CHANGELOG.md v${version}: the release notes format is not followed (docs/RELEASING.md):`);
+  for (const problem of problems) console.error(`  - ${problem}`);
+  process.exit(1);
+}
+console.log(`**${title}**\n\n${body}\n\n${KEPT_LINE}`);

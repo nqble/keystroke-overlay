@@ -1,6 +1,6 @@
 [package]
 name = "keyoverlay"
-version = "1.3.0"
+version = "1.4.0"
 description = "Keystroke overlay for streaming (OBS Browser Source)"
 license = "MIT"
 repository = "https://github.com/nqble/keystroke-overlay"
@@ -24,12 +24,22 @@ axum = { version = "0.8", default-features = false, features = ["http1", "tokio"
 include_dir = "0.7"
 getrandom = "0.3"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+
+# Linux only: keyboard capture on X11 desktops (keyboard/x11.rs). Pure Rust, talks to the X server directly
+# (docs/LINUX-PORT.md).
+[target.'cfg(target_os = "linux")'.dependencies]
+x11rb = { version = "0.13", features = ["xinput"] }
+
+# Windows only: keyboard capture (keyboard/hook.rs, keyboard/rawinput.rs) and a few calls in platform.rs. On other systems
+# the app still builds and runs, without keyboard capture (docs/CROSS-PLATFORM.md).
+[target.'cfg(windows)'.dependencies]
 windows = { version = "0.62", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
   "Win32_System_LibraryLoader",
   "Win32_UI_Input",
   "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_System_SystemInformation",
   "Win32_Graphics_Gdi",
   "Win32_System_ProcessStatus",
   "Win32_System_Threading",
