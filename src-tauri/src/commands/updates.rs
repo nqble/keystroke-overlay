@@ -46,6 +46,18 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
         .map_err(|e| e.to_string())
 }
 
+/// What the window says when the update check fails. A Mac gets its own words: the update file on GitHub only has entries
+/// the in-app installer can use (Windows), so on a Mac the check always fails, and the honest advice is to download the
+/// new version from the Releases page.
+fn check_failed_text(system: &str, channel: &str, error: &str) -> String {
+    if system == "macos" {
+        return format!(
+            "Couldn't check for updates. On a Mac the app can't install updates by itself yet: get new versions from the Releases page ({RELEASES_URL})."
+        );
+    }
+    format!("Couldn't check for updates ({error}). You may be offline, or no {channel} release has been published yet.")
+}
+
 async fn do_check(app: &AppHandle) -> Result<Value, String> {
     let channel = channel_of(app);
     let upd = updater_for(app, &channel)?;
@@ -63,9 +75,7 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
         Ok(None) => json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": channel }),
         Err(e) => {
             crate::debug::log(format!("update check ({channel}) failed: {e}"));
-            return Err(format!(
-                "Couldn't check for updates ({e}). You may be offline, or no {channel} release has been published yet."
-            ));
+            return Err(check_failed_text(platform::name(), &channel, &e.to_string()));
         }
     };
     crate::debug::log(format!(
@@ -269,6 +279,22 @@ mod tests {
         assert!(checks.load(Ordering::SeqCst) > 0, "turning it on starts checking");
         looping.abort();
     }
+    #[test]
+    fn a_failed_check_on_a_mac_points_to_the_releases_page() {
+        let text = check_failed_text("macos", "latest", "None of the fallback platforms were found");
+        assert!(text.contains("Releases page"));
+        assert!(
+            !text.contains("fallback platforms"),
+            "no confusing technical error for a Mac user"
+        );
+    }
+
+    #[test]
+    fn a_failed_check_elsewhere_keeps_the_usual_words() {
+        let text = check_failed_text("windows", "stable", "timed out");
+        assert!(text.contains("timed out") && text.contains("no stable release"));
+    }
+
     #[test]
     fn release_notes_parse() {
         let release = json!({ "name": "v1.2.3", "body": "- one\n- two", "html_url": "https://github.com/x/y/releases/tag/v1.2.3" });
