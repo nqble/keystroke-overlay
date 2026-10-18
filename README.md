@@ -143,17 +143,6 @@ Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). How the code 
 [docs/EXTENDING.md](docs/EXTENDING.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). Maintaining the
 project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).
 
-## Code signing policy
-
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
-- **Committers and reviewers:** [Jordan Phoutthavone](https://github.com/nqble) and the contributors whose pull
-  requests Jordan reviews and merges.
-- **Approvers:** [Jordan Phoutthavone](https://github.com/nqble). Every signed release is approved by hand.
-- Only installers built by this repository's release workflow from the `main` branch are signed.
-- **Privacy:** see [PRIVACY.md](PRIVACY.md). The app's only internet contact is GitHub, for updates and release
-  notes; the automatic update check can be turned off. Keystrokes never leave your PC.
-
 ## License
 
 [MIT](LICENSE) © 2026 Jordan Phoutthavone. Third-party components keep their own licenses.
