@@ -88,10 +88,16 @@ export function memoryText(memoryMb, handles) {
   return `${memory} · ${open}`;
 }
 
-/** The macOS rows: is keyboard access on, has a key arrived, is Secure Input blocking capture. None elsewhere. */
+/**
+ * The keyboard access rows. macOS: is keyboard access on, has a key arrived, is Secure Input blocking capture. Linux on
+ * Wayland: can the keyboards be read (the input group). None elsewhere.
+ */
 export function accessRows(access) {
   if (!access?.applies) return [];
   const seen = access.captureSeen ? 'keys are arriving' : 'no key has arrived yet';
+  if (access.system === 'linux') {
+    return [['Keyboard devices (input group)', `${access.allowed ? 'readable' : 'not readable'} (${seen})`]];
+  }
   return [
     ['Input Monitoring', `${access.allowed ? 'allowed' : 'not allowed'} (${seen})`],
     ['Secure Input', access.secureInput ? 'on: macOS is blocking key capture' : 'off'],

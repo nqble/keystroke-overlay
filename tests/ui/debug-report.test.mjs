@@ -167,3 +167,8 @@ test('the engine is named for Edge on Windows and WebKit on a Mac', () => {
   assert.equal(engineName(mac), 'WebKit 605.1.15');
   assert.equal(engineName('SomethingElse/1.0'), 'SomethingElse/1.0');
 });
+
+test('the report says whether Linux on Wayland can read the keyboards', () => {
+  const rows = accessRows({ applies: true, system: 'linux', allowed: false, captureSeen: false });
+  assert.deepEqual(rows, [['Keyboard devices (input group)', 'not readable (no key has arrived yet)']]);
+});

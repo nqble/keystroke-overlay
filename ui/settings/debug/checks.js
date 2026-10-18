@@ -47,10 +47,19 @@ export async function runSelfTest() {
   ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail }));
 }
 
-/** macOS only: self-test lines for Input Monitoring and Secure Input (none elsewhere). */
+/** Self-test lines for keyboard access: Input Monitoring and Secure Input on macOS, the input group on Linux Wayland. */
 function accessTests(access) {
   if (!access?.applies) return [];
   const rows = accessRows(access);
+  if (access.system === 'linux') {
+    return [
+      [
+        'The keyboards can be read (input group), or keys are arriving',
+        access.allowed || access.captureSeen,
+        rows[0][1],
+      ],
+    ];
+  }
   return [
     ['Input Monitoring is on, or keys are arriving', access.allowed || access.captureSeen, rows[0][1]],
     ['Secure Input is off (macOS is not blocking capture)', !access.secureInput, rows[1][1]],

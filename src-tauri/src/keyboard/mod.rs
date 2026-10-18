@@ -211,6 +211,8 @@ impl Drop for WatchGuard<'_> {
 /// switch capture off while a password is typed (Secure Input); a Linux Wayland desktop needs the `input` group to read
 /// the keyboards; everywhere else both are fine.
 pub struct Access {
+    /// Whether this system can need the person's permission at all (macOS, and Linux on Wayland).
+    pub applies: bool,
     pub allowed: bool,
     pub secure_input: bool,
 }
@@ -218,6 +220,7 @@ pub struct Access {
 #[cfg(target_os = "macos")]
 pub fn access() -> Access {
     Access {
+        applies: true,
         allowed: macos::input_monitoring_allowed(),
         secure_input: macos::secure_input_on(),
     }
@@ -225,6 +228,7 @@ pub fn access() -> Access {
 #[cfg(target_os = "linux")]
 pub fn access() -> Access {
     Access {
+        applies: wayland(),
         allowed: !wayland() || linux_devices::can_read_a_keyboard(),
         secure_input: false,
     }
@@ -232,6 +236,7 @@ pub fn access() -> Access {
 #[cfg(not(any(target_os = "macos", target_os = "linux")))]
 pub fn access() -> Access {
     Access {
+        applies: false,
         allowed: true,
         secure_input: false,
     }

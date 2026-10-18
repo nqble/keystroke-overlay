@@ -1,7 +1,7 @@
 // Unit tests for the keyboard access notice (ui/settings/access-notice.js). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { accessNotice } from '../../ui/settings/access-notice.js';
+import { INPUT_GROUP_COMMAND, accessNotice } from '../../ui/settings/access-notice.js';
 
 const allowed = { applies: true, allowed: true, allowedAtStart: true, secureInput: false };
 
@@ -70,4 +70,25 @@ test('once a key has arrived the restart prompt goes away, and only Secure Input
   const working = { applies: true, allowed: true, allowedAtStart: false, secureInput: false, captureSeen: true };
   assert.equal(accessNotice({ access: working, inputError: null, asked: true }), null);
   assert.equal(accessNotice({ access: { ...working, secureInput: true }, inputError: null }).kind, 'secure');
+});
+
+const wayland = { applies: true, system: 'linux', allowed: false, secureInput: false, captureSeen: false };
+
+test('Linux on Wayland without the input group: the command to copy', () => {
+  const notice = accessNotice({ access: wayland, inputError: 'no permission' });
+  assert.equal(notice.kind, 'input-group');
+  assert.equal(notice.action, 'copy');
+  assert.equal(notice.command, INPUT_GROUP_COMMAND);
+  assert.match(notice.text, /every program/); // the privacy warning is part of the notice
+});
+
+test('Linux after copying: says to log out and back in, with no restart button', () => {
+  const notice = accessNotice({ access: wayland, inputError: 'no permission', asked: true });
+  assert.match(notice.text, /log out and back in/);
+  assert.equal(notice.action, 'copy');
+});
+
+test('Linux with the input group, or on X11: no notice', () => {
+  assert.equal(accessNotice({ access: { ...wayland, allowed: true }, inputError: 'other problem' }), null);
+  assert.equal(accessNotice({ access: { ...wayland, applies: false }, inputError: null }), null);
 });

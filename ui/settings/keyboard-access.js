@@ -1,5 +1,6 @@
 // =====================================================================================================================
-//  The keyboard access notice under the header (macOS): "Allow keyboard access", "Restart", or the Secure Input hint.
+//  The keyboard access notice under the header: on macOS "Allow keyboard access", "Restart", or the Secure Input hint;
+//  on Linux Wayland the input-group command with a Copy button.
 //  What it says is plain logic in access-notice.js. It is asked again when the window gets focus, which is when the
 //  person comes back from System Settings, so nothing polls. Rust side: src-tauri/src/commands/keyboard_access.rs.
 // =====================================================================================================================
@@ -9,7 +10,7 @@ import { html, render as draw } from './html.js';
 import { inputError } from './state.js';
 
 let access = null; // { applies, allowed, allowedAtStart, secureInput, captureSeen } from the app; null before the first answer
-let asked = false; // true once Allow keyboard access was pressed: the next step is the restart
+let asked = false; // true once Allow keyboard access (or Copy the command) was pressed: the next step is the restart or log out
 
 export function setKeyboardAccess(value) {
   access = value;
@@ -38,9 +39,12 @@ function Notice({ notice }) {
     if (notice.action === 'restart') return invoke('restart_app');
     asked = true;
     paintAccess();
+    if (notice.action === 'copy') return invoke('copy_text', { text: notice.command });
     return invoke('request_keyboard_access');
   };
   return html`<span data-test="keyboard-access-text">${notice.text}</span> ${
+      notice.command ? html`<code data-test="keyboard-access-command">${notice.command}</code> ` : null
+    }${
       notice.button
         ? html`<button class="primary" type="button" data-test="keyboard-access-button" onClick=${press}>
             ${notice.button}

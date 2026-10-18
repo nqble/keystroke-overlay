@@ -96,7 +96,7 @@ Rules:
 | Hook | What it is |
 |---|---|
 | `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge, added by `tools/devbuild-title.mjs` |
-| `keyboard-access-banner`, `keyboard-access-text`, `keyboard-access-button` | macOS only: the notice under the header that asks for keyboard access, asks for a restart, or explains Secure Input |
+| `keyboard-access-banner`, `keyboard-access-text`, `keyboard-access-button`, `keyboard-access-command` | macOS and Linux Wayland: the notice under the header that asks for keyboard access, asks for a restart, explains Secure Input, or gives the input-group command (Linux) |
 | `keys-mac-fn-hint` | macOS only: the note under the keyboard editor that the F row needs Fn |
 | `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS link button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
