@@ -46,12 +46,15 @@ Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://
 
 ## How the code is split
 
-- **Windows-only code** lives in `src-tauri/src/keyboard/hook.rs`, `src-tauri/src/keyboard/rawinput.rs` and the
-  `#[cfg(windows)]` functions in `src-tauri/src/platform.rs`. The `windows` crate is only a dependency on Windows
+- **Windows-only code** lives in `src-tauri/src/keyboard/hook.rs`, `src-tauri/src/keyboard/rawinput.rs`,
+  `src-tauri/src/keyboard/windows_labels.rs` (key labels for the layout in front), the `#[cfg(windows)]` part of
+  `keyboard/tracker.rs` and the `#[cfg(windows)]` functions in `src-tauri/src/platform.rs`. The `windows` crate is only a dependency on Windows
   (`[target.'cfg(windows)'.dependencies]` in `src-tauri/Cargo.toml`).
 - **Everything else is shared**, including the key naming table (`keyboard/keymap.rs`) and the repeat and stuck-key
   logic (`keyboard/tracker.rs`), so their tests run on every system.
-- **Linux-only code:** `keyboard/x11.rs` (X11 capture), with the `x11rb` crate as a Linux-only dependency. The Linux key
+- **Linux-only code:** `keyboard/x11.rs` (X11 capture), `keyboard/x11_labels.rs` (key labels from XKB, and the layout
+  watcher) and the `#[cfg(target_os = "linux")]` functions in `platform.rs`, with the `x11rb` crate (features `xinput`
+  and `xkb`) as a Linux-only dependency. The Linux key
   names and repeat filter (`keyboard/linux_keys.rs`) are plain logic, built and tested everywhere.
 - **macOS-only code:** the settings window's native frame, the template tray icon and the Dock icon that shows only while the settings window is open are small functions in `platform.rs` (`style_settings_window`, `tray_icon`, `set_dock_icon_visible`, `restart_app`, `watch_keyboard_layout`); the key capture is `keyboard/macos.rs` (the event tap) and the key labels that follow the keyboard layout are `keyboard/macos_labels.rs`, with the `core-graphics` and `core-foundation` crates as macOS-only
   dependencies. The key names and repeat filter (`keyboard/macos_keys.rs`) are plain logic, built and tested everywhere.

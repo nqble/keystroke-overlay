@@ -1,7 +1,7 @@
 # Linux port
 
-Status: **in progress.** Keyboard capture on **X11 desktops works** and is tested, on the `v1.4.0-dev` branch
-(no release has it yet). Wayland capture, Linux packaging and a
+Status: **in progress.** Keyboard capture on **X11 desktops works** and is tested (from v1.4,
+not released yet). Wayland capture, Linux packaging and a
 Linux release are not built yet. This page is the plan, so anyone on Linux can pick up the next step. For working on the
 code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
 

@@ -3,7 +3,8 @@
 The files the app reads and writes. All are plain JSON or tiny JavaScript, and everything the app loads from the outside
 is validated and cleaned first. Schemas for the two shareable formats are in [`docs/schemas/`](schemas).
 
-Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows (General → Advanced → Open data folder).
+Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows, `~/Library/Application Support/com.keyoverlay.app` on a
+Mac, `~/.local/share/com.keyoverlay.app` on Linux (General → Advanced → Open data folder).
 
 ## Settings (`settings.json`)
 Versioned (`"version": 3` since v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
@@ -18,7 +19,8 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
                "debugMode": false, "lastSeenVersion": "" },
   "layout": { "id": "tkl",
               "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } },   // see "Key edits" below
-              "editor": { "snap": 0.25, "grid": false } },   // the Keys tab's choices, see below
+              "editor": { "snap": 0.25, "grid": false },   // the Keys tab's choices, see below
+              "order": ["full", "tkl", "gameplay", "wasd"] },   // the built-in layouts the Layout tab shows, in order (your own always show)
   "style": { "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff", "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff",
              "borderWidth": 2, "radius": 8, "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
              "textColor": "#e6e9f0ff", "textColorPressed": "#ffffffff", "glowColor": "#4f8cffff", "glowSize": 18,
@@ -57,9 +59,12 @@ dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1
 grid dots are shown (`true` or `false`). Anything else, or a settings file saved before these existed, gets the defaults
 (`0.25` and `false`). The overlay ignores them.
 
-Numbers are clamped to these ranges on load: port 1024–65535, borderWidth 0–20, radius 0–100, fontSize 0–120,
+The port must be a whole number from 1024 to 65535, or it goes back to 7878. Other numbers are clamped to these ranges on
+load: borderWidth 0–20, radius 0–100, fontSize 0–120,
 fontWeight 100–900, glowSize 0–100, keySize 16–200, gap 0–60, scale 0.2–4, opacity 0–1, animation speed 0–2000,
-intensity 0–4. Colours are `#rrggbb` or `#rrggbbaa`. Wrong types fall back to the default.
+intensity 0–4. Colours are `#rrggbb` or `#rrggbbaa`. Text with a fixed set of choices (input method, update channel, key labels, the
+pause shortcut, ...) goes back to its default when it isn't one of them; unknown keys are removed. Wrong types fall back to
+the default.
 
 ## Layout (`layouts/<id>.json`)
 Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
