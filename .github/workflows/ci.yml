@@ -49,6 +49,10 @@ jobs:
   mac-app:
     uses: ./.github/workflows/mac-app.yml
 
+  # The Linux downloads too, for the same reason.
+  linux-app:
+    uses: ./.github/workflows/linux-app.yml
+
   # The app is Windows-first, but everything except keyboard capture builds and runs elsewhere (docs/CROSS-PLATFORM.md).
   # This job keeps it that way, so people on Linux and macOS can work on the code and run the tests.
   other-systems:

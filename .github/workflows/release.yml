@@ -18,6 +18,9 @@ name: Release
 # and the last job attaches Keystroke-Overlay_<version>_macOS-arm64.zip to the same release. Mac users are not updated by
 # the app: latest.json has no Mac entry (docs/RELEASING.md, Mac download).
 #
+# The Linux downloads work the same way: linux-app.yml builds the AppImage and the .deb (no secrets) and linux-publish
+# attaches them. latest.json and stable.json have no Linux entry yet (docs/RELEASING.md, Linux download).
+#
 # x.y.0 versions are also promoted to the Stable channel automatically; x.y.z patch releases are Latest-only unless you tick
 # "Also make this the Stable version" (for an important fix that Stable users must get).
 
@@ -201,3 +204,26 @@ jobs:
           ZIP=$(ls Keystroke-Overlay_*_macOS-arm64.zip)
           V=${ZIP#Keystroke-Overlay_}; V=${V%_macOS-arm64.zip}
           gh release upload "v$V" "$ZIP" --clobber --repo "${{ github.repository }}"
+
+  # ---- The Linux downloads. Same rules as the Mac: only after the Windows release succeeded, built with no secrets.
+  linux-app:
+    needs: release
+    uses: ./.github/workflows/linux-app.yml
+
+  linux-publish:
+    needs: linux-app
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the only thing this job does: attach the files to the release
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: linux-app
+      - name: Attach the Linux downloads to the release
+        shell: bash
+        run: |
+          APPIMAGE=$(ls Keystroke-Overlay_*_linux-x86_64.AppImage)
+          V=${APPIMAGE#Keystroke-Overlay_}; V=${V%_linux-x86_64.AppImage}
+          gh release upload "v$V" "$APPIMAGE" "Keystroke-Overlay_${V}_linux-amd64.deb" --clobber --repo "${{ github.repository }}"
