@@ -104,7 +104,12 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   Command Line Tools fixes it for good.
 - [x] **It is signed ad hoc by the build** (`codesign -dv` says `Signature=adhoc`, identifier `keyoverlay-<hash>`), so it
   runs on Apple Silicon. A locally built app is not quarantined, so macOS opens it without the Open Anyway step.
-- [ ] Input Monitoring: does the `.app` appear in the list by name, and does capture start after granting and restarting?
+- [x] **Restart after granting.** The first version of the "Restart now" button made the app vanish: Tauri's restart opens
+  the new copy while the old one still runs, and the single-instance guard sends the new copy away. `platform::restart_app`
+  now waits for the old copy to exit and then opens the app. Checked on the M1 by running that wait-then-open step against
+  the real app (it came back with a new process id); the button itself is not clicked yet.
+- [x] Input Monitoring: the `.app` appears in the list as "Keystroke Overlay" with the keycap logo, and after granting and a
+  restart keys are captured (checked on the M1).
 - [ ] Does the permission survive a rebuild (the open question below)?
 - [ ] README: build-from-source steps for Mac.
 
