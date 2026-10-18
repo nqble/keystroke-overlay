@@ -1,7 +1,7 @@
 # Linux port
 
 Status: **in progress.** Keyboard capture works on **X11 desktops** (from v1.4, not released yet) and, on v2.0, on
-**Wayland desktops** by reading the keyboard devices (built and unit-tested; its CI test has not run on GitHub yet).
+**Wayland desktops** by reading the keyboard devices (built, unit-tested, and passing in CI on a virtual Wayland desktop since 2026-10-18).
 Every release builds an **AppImage and a .deb** ([RELEASING.md](RELEASING.md), Linux download); in-app updates on Linux
 are prepared but off. This page is the state and the plan, so anyone on Linux can pick up the next step. For working on the
 code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
@@ -81,7 +81,7 @@ and pass the signing key like the Windows job), and add a `linux-x86_64` entry t
   error; added to the group, every press and release is captured; then the installed app delivers them to the key stream.
 - Both start the AppImage once.
 
-It has **not run on GitHub yet**: the first run needs a pull request, which is Jordan's call. What it can't cover: a real
+It runs in CI on every push and passed in full on 2026-10-18 (both jobs). What it can't cover: a real
 GNOME or KDE tray, games (Steam through XWayland is untested), and OBS on Linux.
 
 ## Testing on Linux
