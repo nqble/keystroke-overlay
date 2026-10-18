@@ -70,6 +70,23 @@ function runningFor(secs) {
   return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
 }
 
+/** "20.5 MB · 133 handles", saying so for what this system does not measure (macOS has no handle count like Windows). */
+export function memoryText(memoryMb, handles) {
+  const memory = memoryMb > 0 ? `${memoryMb} MB` : 'memory not measured on this system';
+  const open = handles === null || handles === undefined ? 'handles not measured' : `${handles} handles`;
+  return `${memory} · ${open}`;
+}
+
+/** The macOS rows: is keyboard access on, has a key arrived, is Secure Input blocking capture. None elsewhere. */
+export function accessRows(access) {
+  if (!access?.applies) return [];
+  const seen = access.captureSeen ? 'keys are arriving' : 'no key has arrived yet';
+  return [
+    ['Input Monitoring', `${access.allowed ? 'allowed' : 'not allowed'} (${seen})`],
+    ['Secure Input', access.secureInput ? 'on: macOS is blocking key capture' : 'off'],
+  ];
+}
+
 /** The table of the app's state: only the rows a reader needs to understand most problems. */
 function stateRows({ state, lastUpdate }) {
   const update = !lastUpdate
@@ -84,7 +101,8 @@ function stateRows({ state, lastUpdate }) {
     ['Secure link', state.secureLink ? 'on' : 'off'],
     ['Layout', `${state.layout}${state.overlaySize ? ` · overlay ${state.overlaySize}` : ''}`],
     ['Window', state.window],
-    ['Memory', `${state.memoryMb} MB · ${state.handles} handles`],
+    ['Memory', memoryText(state.memoryMb, state.handles)],
+    ...accessRows(state.keyboardAccess),
     ['Updates', update],
   ];
 }
