@@ -27,15 +27,8 @@ function check(file) {
   });
   if (text.length && !text.endsWith('\n')) problems.push(`${file}: missing newline at end of file`);
   if (/^ui[\\/]settings[\\/][^\\/]+\.css$/.test(file)) checkTokens(file, text);
-  if (
-    /^ui[\\/]settings[\\/]((tabs|editor)[\\/])?[^\\/]+\.js$/.test(file) &&
-    !JS_STYLE_EXEMPT.has(file.replace(/\\/g, '/'))
-  )
-    checkJsStyles(file, text);
+  if (/^ui[\\/]settings[\\/]((tabs|editor|debug)[\\/])?[^\\/]+\.js$/.test(file)) checkJsStyles(file, text);
 }
-
-// Files still allowed to set inline styles from JavaScript: debug.js, the developer tab.
-const JS_STYLE_EXEMPT = new Set(['ui/settings/debug.js']);
 
 /** In the settings window's scripts, looks live in CSS. JavaScript may only hand CSS a variable: el.style.setProperty('--x', ...). */
 function checkJsStyles(file, text) {
