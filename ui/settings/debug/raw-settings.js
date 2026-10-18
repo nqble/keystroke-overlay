@@ -5,7 +5,8 @@
 import { flatten, redactSettings } from '../debug-report.js';
 import { button, call, el, invoke, note, toast } from '../helpers.js';
 import { resync } from '../messages.js';
-import { settings } from '../state.js';
+import { platform, settings } from '../state.js';
+import { systemWord } from '../system-words.js';
 import { TEXT } from './shared.js';
 
 export const rawSettings = {
@@ -64,7 +65,7 @@ export const rawSettings = {
       );
     };
     return [
-      note(TEXT.rawSettingsHelp),
+      note(TEXT.rawSettingsHelp(systemWord('startup', platform))),
       box,
       el(
         'div',

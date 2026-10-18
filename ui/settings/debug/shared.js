@@ -19,14 +19,22 @@ export const TEXT = {
     'Shows each key the app sees, with the time since the previous event. Use it to check that a key ' +
     'is detected and for timing problems. Press Start first; it stops by itself. Nothing is stored. ' +
     'Don’t type passwords while it runs.',
-  rawSettingsHelp:
+  // `startup` is the system's name for starting with the computer (system-words.js)
+  rawSettingsHelp: (startup) =>
     'The current settings exactly as the app holds them. Edit and press Apply to try odd values; the ' +
     'app validates them like a hand-edited settings file and shows what it corrected. Port, ' +
-    'start-with-Windows, keyboard method and secure link have their own controls, so they are not ' +
+    `${startup}, keyboard method and secure link have their own controls, so they are not ` +
     'changed here.',
   fakeUpdateHelp:
     '“Fake update available” shows the update button, the orange tray dot and the “Update available” ' +
     'tray entry without needing a real release.',
+  // The Mac window is a WKWebView, inspected with Safari. Only a development build allows it: a built or downloaded app
+  // does not switch the inspector on.
+  inspectorMacSteps: [
+    'Use a development build: quit Keystroke Overlay, then run “npm run dev:debug” in the project folder. A built or downloaded app does not allow the inspector.',
+    'In Safari open Settings → Advanced and tick “Show features for web developers”.',
+    'In Safari’s Develop menu choose this Mac, then “Keystroke Overlay” and its page.',
+  ],
   inspectorStepEdge:
     'In Microsoft Edge open edge://inspect, add localhost:9222 under “Configure…”, then click ' +
     '“inspect” under Keystroke Overlay.',

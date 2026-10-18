@@ -36,6 +36,7 @@
     'mac-secure': { overlays: 1, access: { allowed: true, allowedAtStart: true, secureInput: true } },
   };
   const chosen = STATES[stateName] ?? STATES.live;
+  const systemName = params.get('platform') || (chosen.access ? 'macos' : 'windows');
 
   const NOTES =
     '### ✨ New\n- **Sandbox notes:** made up for the UI sandbox.\n\n### 🐛 Fixed\n- Nothing real was fixed here.';
@@ -78,7 +79,7 @@
       firstRun,
       inputError: chosen.inputError ?? null,
       keyboardAccess: { applies: !!chosen.access, ...chosen.access },
-      platform: params.get('platform') || (chosen.access ? 'macos' : 'windows'),
+      platform: systemName,
       inputActive: 'hook',
       secureLink: false,
       gotoTab: tab,
@@ -141,11 +142,14 @@
       build: 'sandbox',
       os: 'sandbox',
       uptimeSecs: 60,
-      memoryMb: 0,
-      handles: 0,
+      // a Mac measures memory but has no handle count like Windows (null = not measured)
+      memoryMb: systemName === 'macos' ? 31.2 : 0,
+      handles: systemName === 'macos' ? null : 0,
       port: 7878,
       serverError: chosen.serverError ?? null,
       inputActive: 'hook',
+      inputLabel: systemName === 'macos' ? 'Standard (event tap)' : 'Standard (keyboard hook)',
+      keyboardAccess: { applies: !!chosen.access, ...chosen.access },
       inputError: null,
       settingsValid: true,
       dataDir: '(sandbox: no data folder)',

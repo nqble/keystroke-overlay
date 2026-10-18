@@ -89,6 +89,7 @@ keystroke-overlay/
         ├── header.js      the header's status, Copy OBS link and Update ready, drawn with Preact (paintHeader)
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── keyboard-access.js  macOS: the notice that asks for keyboard access (logic in access-notice.js)
+        ├── system-words.js  words that differ per system (what starting with the computer is called, which inspector)
         ├── text.js        the longer explanations the user reads
         ├── debug/         the optional Debug tab, one file per tool; index.js draws it (docs/DEBUGGING.md)
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)

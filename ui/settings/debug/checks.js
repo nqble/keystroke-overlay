@@ -2,7 +2,7 @@
 //  The self-test's checks and the facts for "Copy bug report" (debug-report.js formats them).
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { REPORT_LOG_LINES, bugReport, redactSettings, scrub, settingsDiff } from '../debug-report.js';
+import { REPORT_LOG_LINES, accessRows, bugReport, redactSettings, scrub, settingsDiff } from '../debug-report.js';
 import { invoke } from '../helpers.js';
 import { lastUpdate, layouts, paused, settings, size } from '../state.js';
 import { facts } from './shared.js';
@@ -25,9 +25,9 @@ export async function runSelfTest() {
     [
       'Key capture is working',
       !info.inputError,
-      (info.inputActive === 'hook' ? 'Standard method' : 'Compatibility method') +
-        (info.inputError ? ': ' + info.inputError : ''),
+      (info.inputLabel ?? info.inputActive) + (info.inputError ? ': ' + info.inputError : ''),
     ],
+    ...accessTests(info.keyboardAccess),
     ['Settings are valid (nothing needed correcting)', info.settingsValid, ''],
     ['The data folder can be written to', info.dataWritable, scrub(info.dataDir)],
     [
@@ -37,6 +37,16 @@ export async function runSelfTest() {
     ],
     ['The selected layout exists', layouts.some((l) => l.id === settings.layout.id), settings.layout.id],
   ].map(([name, ok, detail]) => ({ name, ok: !!ok, detail }));
+}
+
+/** macOS only: self-test lines for Input Monitoring and Secure Input (none elsewhere). */
+function accessTests(access) {
+  if (!access?.applies) return [];
+  const rows = accessRows(access);
+  return [
+    ['Input Monitoring is on, or keys are arriving', access.allowed || access.captureSeen, rows[0][1]],
+    ['Secure Input is off (macOS is not blocking capture)', !access.secureInput, rows[1][1]],
+  ];
 }
 
 /** The facts for "Copy bug report" (debug-report.js formats them). No key presses, no personal paths. */
@@ -52,7 +62,7 @@ export async function buildReport() {
     paused,
     port: info.port,
     serverError: info.serverError,
-    inputMethod: info.inputActive,
+    inputMethod: info.inputLabel ?? info.inputActive,
     inputError: info.inputError,
     secureLink: !!settings.general?.secureLink,
     layout: settings.layout?.id,
@@ -62,6 +72,7 @@ export async function buildReport() {
     uptimeSecs: info.uptimeSecs,
     memoryMb: info.memoryMb,
     handles: info.handles,
+    keyboardAccess: info.keyboardAccess,
     window: `${innerWidth}x${innerHeight} at ${devicePixelRatio}x`,
     overlaySize: size ? `${size.w}x${size.h}` : null,
   };

@@ -1,7 +1,14 @@
 // Unit tests for the Debug tab's reports (ui/settings/debug-report.js). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bugReport, redactSettings, scrub, settingsDiff } from '../../ui/settings/debug-report.js';
+import {
+  accessRows,
+  bugReport,
+  memoryText,
+  redactSettings,
+  scrub,
+  settingsDiff,
+} from '../../ui/settings/debug-report.js';
 
 test('scrub removes the user name from home-folder paths on every system', () => {
   assert.equal(scrub('C:\\Users\\jordan\\AppData'), 'C:\\Users\\<you>\\AppData');
@@ -98,4 +105,55 @@ test('a crash in the last run is the first problem listed, and is in the JSON', 
 
 test('the bug report never carries the user name', () => {
   assert.doesNotMatch(bugReport(facts), /jordan/);
+});
+
+test('memory and handles say so when a system does not measure them', () => {
+  assert.equal(memoryText(20.5, 133), '20.5 MB · 133 handles');
+  assert.equal(memoryText(20.5, null), '20.5 MB · handles not measured');
+  assert.equal(memoryText(0, undefined), 'memory not measured on this system · handles not measured');
+});
+
+test('the macOS rows show Input Monitoring and Secure Input, and nothing elsewhere', () => {
+  assert.deepEqual(accessRows({ applies: false, allowed: true }), []);
+  assert.deepEqual(accessRows(null), []);
+  const rows = accessRows({ applies: true, allowed: false, captureSeen: false, secureInput: true });
+  assert.deepEqual(rows, [
+    ['Input Monitoring', 'not allowed (no key has arrived yet)'],
+    ['Secure Input', 'on: macOS is blocking key capture'],
+  ]);
+  const fine = accessRows({ applies: true, allowed: true, captureSeen: true, secureInput: false });
+  assert.deepEqual(fine, [
+    ['Input Monitoring', 'allowed (keys are arriving)'],
+    ['Secure Input', 'off'],
+  ]);
+});
+
+test('the bug report shows the method name, the macOS rows and honest memory', () => {
+  const report = bugReport({
+    version: '2.0.0',
+    build: 'release',
+    os: 'macos aarch64',
+    engine: 'AppleWebKit',
+    state: {
+      paused: false,
+      port: 7878,
+      inputMethod: 'Standard (event tap)',
+      inputError: null,
+      layout: 'tkl',
+      uptimeSecs: 60,
+      dataDir: '/Users/me/Library/Application Support/x',
+      memoryMb: 31.2,
+      handles: 21,
+      keyboardAccess: { applies: true, allowed: true, captureSeen: true, secureInput: false },
+    },
+    lastUpdate: null,
+    selfTest: [],
+    settingsDiff: {},
+    detailSinceMs: null,
+    lastCrash: null,
+    log: [],
+  });
+  assert.match(report, /\| Keyboard input \| Standard \(event tap\) \|/);
+  assert.match(report, /\| Input Monitoring \| allowed \(keys are arriving\) \|/);
+  assert.match(report, /\| Memory \| 31.2 MB · 21 handles \|/);
 });

@@ -135,7 +135,9 @@ pub fn debug_info(st: State<AppState>) -> Value {
         "os": format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
         "uptimeSecs": uptime_ms() / 1000,
         "memoryMb": (memory_mb * 10.0).round() / 10.0,
-        "handles": handles,
+        "handles": handles, // null where the system does not measure it
+        "inputLabel": st.shared.bus.method().label(),
+        "keyboardAccess": crate::commands::keyboard_access::status(&st.shared.bus),
         "dataDir": st.shared.paths.root.to_string_lossy(),
         "settingsFile": st.shared.paths.settings().to_string_lossy(),
         "dataWritable": folder_writable(&st.shared.paths.root),

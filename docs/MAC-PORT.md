@@ -132,6 +132,16 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
   kept as a secret in CI, or Apple's paid Developer ID), or signing with a rule that matches on the identifier alone,
   which would let any program with the same identifier inherit the keyboard permission, a real weakening for this app.
 
+## Debug tab on a Mac (what is done and what is not checked)
+
+- Memory (from the Mach kernel) and open files (counted in /dev/fd) are measured on a Mac; Linux reads /proc/self. A
+  system that does not measure one says "not measured on this system" instead of showing 0.
+- The Debug tab and the bug report name the capture method as the app knows it ("Standard (event tap)") and add Input
+  Monitoring and Secure Input rows and two self-test lines, on a Mac only.
+- The Developer tools steps for a Mac (Safari's Develop menu, a development build only) are not yet tried on the M1;
+  `npm run dev:debug` now finds the Mac data folder, so the development copy gets its own port.
+- The visual suite (`npm run test:visual`) is Windows only: there are no macOS baselines yet.
+
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:

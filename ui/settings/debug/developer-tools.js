@@ -3,12 +3,15 @@
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
 import { button, call, el, note, toast } from '../helpers.js';
+import { platform } from '../state.js';
+import { inspectorTool } from '../system-words.js';
 import { TEXT } from './shared.js';
 
 export const developerTools = {
   id: 'developer-tools',
   title: 'Developer tools (full browser inspector)',
   build() {
+    if (inspectorTool(platform) === 'safari') return macSteps();
     const command = 'set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222';
     return [
       note('To inspect this window like a web page (elements, console, network):'),
@@ -39,3 +42,12 @@ export const developerTools = {
     ];
   },
 };
+
+/** On a Mac the window is a WKWebView: Safari's inspector, in a development build, with no command to copy. */
+function macSteps() {
+  return [
+    note('To inspect this window like a web page (elements, console, network):'),
+    el('ol', { className: 'dbg-steps' }, ...TEXT.inspectorMacSteps.map((step) => el('li', { textContent: step }))),
+    note(TEXT.inspectorDeveloperNote),
+  ];
+}

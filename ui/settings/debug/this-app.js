@@ -2,9 +2,15 @@
 //  "This app": version, system, uptime, memory and the server.
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { scrub } from '../debug-report.js';
+import { accessRows, scrub } from '../debug-report.js';
 import { button, call, el, invoke } from '../helpers.js';
 import { every, facts, seconds } from './shared.js';
+
+const NOT_MEASURED = 'not measured on this system';
+
+/** "20.5 MB  (highest seen here: 21 MB)", or that the system does not measure memory. */
+const memoryLine = (memoryMb, peakMb) =>
+  memoryMb > 0 ? `${memoryMb} MB  (highest seen here: ${peakMb} MB)` : NOT_MEASURED;
 
 export const thisApp = {
   id: 'this-app',
@@ -19,8 +25,9 @@ export const thisApp = {
       table.set([
         ['Version', `v${info.version}  (${info.build})`],
         ['Running for', seconds(info.uptimeSecs)],
-        ['Memory (this program)', `${info.memoryMb} MB  (highest seen here: ${peak.memory} MB)`],
-        ['Open handles', info.handles],
+        ['Memory (this program)', memoryLine(info.memoryMb, peak.memory)],
+        ['Open handles', info.handles ?? NOT_MEASURED],
+        ...accessRows(info.keyboardAccess),
         [
           'Overlay server',
           info.serverError ? `problem: ${info.serverError}` : `running on port ${info.port}`,
@@ -28,8 +35,7 @@ export const thisApp = {
         ],
         [
           'Key capture',
-          `${info.inputActive === 'hook' ? 'Standard (hook)' : 'Compatibility (Raw Input)'}` +
-            `${info.inputError ? ' — ' + info.inputError : ''}`,
+          `${info.inputLabel ?? info.inputActive}` + `${info.inputError ? ' — ' + info.inputError : ''}`,
           info.inputError ? 'bad' : 'good',
         ],
         [
