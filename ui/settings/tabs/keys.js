@@ -2,20 +2,16 @@
 //  The Keys tab: the keyboard editor with its toolbar, and the inspector on its right (show or hide keys, label them, set an
 //  exact width and place). The keyboard itself is the editor in editor/editor.js; this file puts the tab together.
 // =====================================================================================================================
-import { $, button, confirmTwice, el, heading, row, toast } from '../helpers.js';
+import { $, button, el, heading, row } from '../helpers.js';
 import { changed } from '../preview.js';
 import {
   MAX_KEY_WIDTH,
   MAX_POSITION,
   SNAP,
   baseWidth,
-  basePosition,
   curLayout,
-  editPositions,
   editProf,
   forgetKeyEdits,
-  forgetStyleEdits,
-  isCustom,
   keyPos,
   keyWidth,
   nudgeStep,
@@ -23,7 +19,7 @@ import {
   round2,
   setKeyPos,
   setKeyWidth,
-  tidyPositions,
+  setLayoutStyle,
   tidyProf,
   viewProf,
 } from '../profiles.js';
@@ -32,7 +28,7 @@ import { observe } from './keys-history.js';
 import { overlappingCodes } from './keys-board.js';
 import { hideSelection, keysToolbar, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
 import { placeKeys } from '../editor/places.js';
-import { settings, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
+import { selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
 import { TEXT } from '../text.js';
 
 // ---- The tab ------------------------------------------------------------------------------------------------------
@@ -54,7 +50,7 @@ export async function keysTab() {
       .map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h })),
   );
   page.append(
-    heading('Keys — ' + layout.name),
+    el('div', { className: 'keys-head' }, heading('Keys — ' + layout.name), layoutStyleSwitch(profile)),
     keysToolbar(layout, profile, overlapping.size),
     el(
       'div',
@@ -62,9 +58,42 @@ export async function keysTab() {
       el('div', { className: 'keys-main' }, editor.element, hintLine()),
       inspector(layout, profile, overlapping),
     ),
-    keyButtons(layout),
   );
   return page;
+}
+
+/** The switch in the heading row: the keyboard's own shape, or every key one key wide in neat columns. */
+function layoutStyleSwitch(profile) {
+  const group = el('div', { className: 'segmented', test: 'layout-style' });
+  group.setAttribute('role', 'radiogroup');
+  group.setAttribute('aria-label', 'Layout style');
+  const segment = (style, label, test) => {
+    const on = profile.layoutStyle === style;
+    const choice = button(
+      label,
+      () => {
+        if (on) return;
+        setLayoutStyle(style);
+        changed(true);
+      },
+      'segment' + (on ? ' on' : ''),
+      test,
+    );
+    choice.setAttribute('role', 'radio');
+    choice.setAttribute('aria-checked', String(on));
+    return choice;
+  };
+  group.onkeydown = (keyEvent) => {
+    if (keyEvent.key !== 'ArrowLeft' && keyEvent.key !== 'ArrowRight') return;
+    keyEvent.preventDefault();
+    const other = /** @type {HTMLElement | null} */ (group.querySelector('[aria-checked="false"]'));
+    other?.click(); // two choices: either arrow moves to the one that is not chosen
+  };
+  group.append(
+    segment('shape', 'Keyboard shape', 'layout-style-shape'),
+    segment('grid', 'Even grid', 'layout-style-grid'),
+  );
+  return el('div', { className: 'style-switch' }, el('span', { textContent: 'Layout style' }), group);
 }
 
 /** One line under the editor: how to move keys, and the shortcuts as small key caps. */
@@ -131,93 +160,6 @@ addEventListener('keydown', (keyEvent) => {
   keyEvent.preventDefault();
 });
 
-/** Enable all / Disable all / Reset all labels / Tidy up / Reset positions / Revert to Default. */
-function keyButtons(layout) {
-  const revert = el('button', {
-    className: 'danger',
-    textContent: 'Revert to Default',
-    disabled: !isCustom(layout.id),
-    title: 'Undo all key edits (hidden keys, labels and moved keys) for this layout',
-    test: 'keys-revert',
-  });
-  confirmTwice(revert, 'Revert to Default', () => {
-    delete settings.layout.profiles[layout.id];
-    setSelectedKey(null);
-    changed(true);
-    toast(layout.name + ' reverted to default');
-  });
-  const moved = Object.keys(viewProf().positions).length > 0;
-  const tidy = button(
-    'Tidy up',
-    () => {
-      const view = viewProf();
-      const next = tidyPositions(layout, view);
-      // keep only positions that differ from where the layout style puts the key
-      for (const layoutKey of layout.keys) {
-        const newPosition = next[layoutKey.code];
-        if (!newPosition) continue;
-        const base = basePosition(layoutKey, view.layoutStyle);
-        if (Math.abs(newPosition.x - base.x) < 1e-6 && Math.abs(newPosition.y - base.y) < 1e-6)
-          delete editPositions()[layoutKey.code];
-        else editPositions()[layoutKey.code] = { x: round2(newPosition.x), y: round2(newPosition.y) };
-      }
-      tidyProf();
-      changed(true);
-      toast('Gaps closed');
-    },
-    '',
-    'keys-tidy',
-  );
-  tidy.title = 'Close the gaps left by hidden keys, keeping the shape of the keyboard';
-  const reset = button(
-    'Reset positions',
-    () => {
-      forgetStyleEdits();
-      changed(true);
-    },
-    '',
-    'keys-reset-positions',
-  );
-  reset.disabled = !moved;
-  reset.title = 'Put every moved and resized key back where the layout has it';
-  return el(
-    'div',
-    { className: 'btns' },
-    button(
-      'Enable all',
-      () => {
-        editProf().disabledKeys = [];
-        tidyProf();
-        changed(true);
-      },
-      '',
-      'keys-enable-all',
-    ),
-    button(
-      'Disable all',
-      () => {
-        editProf().disabledKeys = layout.keys.map((k) => k.code);
-        changed(true);
-      },
-      '',
-      'keys-disable-all',
-    ),
-    button(
-      'Reset all labels',
-      () => {
-        editProf().labels = {};
-        tidyProf();
-        changed(true);
-      },
-      '',
-      'keys-reset-labels',
-    ),
-    tidy,
-    reset,
-    revert,
-  );
-}
-
 // ---- The inspector --------------------------------------------------------------------------------------------------
 /** The panel to the right of the editor: what is selected, and the controls for it. */
 function inspector(layout, profile, overlapping) {
@@ -233,6 +175,7 @@ function inspector(layout, profile, overlapping) {
         { className: 'editor', test: 'key-inspector-empty' },
         el('b', { textContent: TEXT.noKeySelected }),
         el('p', { className: 'note', textContent: TEXT.inspectorTip }),
+        el('p', { className: 'note', textContent: TEXT.inspectorTipGrid }),
       ),
     );
   return panel;

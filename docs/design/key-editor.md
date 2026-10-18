@@ -2,7 +2,7 @@
 
 Status: approved by Jordan, designed in the Advisory Session. **Being built in three parts** (M4.1 to M4.3). Part 1 (M4.1) is in
 on `v1.4.0-dev` (2026-10-17): the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use,
-the board with zoom and pan, the preview hidden on the Keys tab, and everything the 1.3 editor did. Part 2 (M4.2) is in too: resize handles, smart guides, the held-key fade, the arrange bar that floats above
+the board with zoom and pan, the preview hidden on the Keys tab, and everything the 1.3 editor did. Part 3 (M4.3) is in as well: the layout style switch, Close gaps, the Reset menu, and the Even grid tip. Part 2 (M4.2) is in too: resize handles, smart guides, the held-key fade, the arrange bar that floats above
 selected keys, the inspector to the right of the editor, and the toolbar with undo, redo, Snap and Grid. Still to come (M4.3): the
 layout style switch, "Close gaps" and the Reset menu (the old buttons under the editor stay until then), the hint about Even
 grid, the accessibility pass and the release notes. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):

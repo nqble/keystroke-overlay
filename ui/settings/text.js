@@ -28,7 +28,15 @@ export const TEXT = {
   inspectorTip:
     'Click a key to change its label or hide it. Drag keys anywhere and they line up with their neighbours. ' +
     'Changes are saved automatically for each layout.',
-  overlapNote: 'This key overlaps another. Drag it to a free spot, or press Tidy up.',
+  overlapNote: 'This key overlaps another. Drag it to a free spot, or press Close gaps.',
+  inspectorTipGrid:
+    'Want every key the same size in neat columns? Switch Layout style to Even grid. Each style keeps its own ' +
+    'positions, so you can switch back and forth.',
+  closeGapsHelp: 'Slide keys together to close the empty space left by hidden or moved keys. The shape stays the same.',
+  resetMenuHelp: 'Put keys, labels or the whole layout back the way the layout file has them. You can undo it.',
+  resetLayoutBody:
+    'Positions, sizes, hidden keys and labels go back to the layout file, and the layout style goes back to Keyboard ' +
+    'shape. You can undo this.',
   groupInspectorTip:
     'Drag any of them to move them together. Use the bar above them to line them up or space them evenly.',
   clickToDismiss: 'Click to dismiss',

@@ -1345,6 +1345,40 @@ label.inline {
     0 0 0 4px var(--color-panel),
     0 0 0 6px var(--color-text);
 }
+.keys-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-14);
+}
+.style-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+.segmented {
+  display: flex;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+.segmented .segment {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-4) var(--space-12);
+}
+.segmented .segment.on {
+  background: var(--color-selection-fill);
+  color: var(--color-text);
+}
+.menu-separator {
+  margin: var(--space-4) 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
 .keys-row {
   display: flex;
   gap: var(--space-14);

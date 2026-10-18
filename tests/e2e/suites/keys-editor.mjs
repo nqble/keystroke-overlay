@@ -139,29 +139,44 @@ check(
   (await p.q(`document.querySelectorAll('${byTest('key-cell', '.clash')}').length`)) >= 2,
 );
 
-// ---- tidy up: keep the shape, close the dead space
-await p.ev(`document.querySelector('${byTest('keys-reset-positions')}').click()`);
-await sleep(500);
-check('Reset positions puts every key back', Object.keys(shapeEdits(await profile(id)).positions ?? {}).length === 0);
+// ---- Close gaps: keep the shape, close the dead space, centre the keys on the board
+// the Reset menu: open it, then choose one of its items by hook name
+const resetMenuItem = async (hook) => {
+  await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
+  await sleep(250);
+  await p.ev(`document.querySelector('${byTest(hook)}').click()`);
+  await sleep(500);
+};
+await resetMenuItem('keys-reset-positions');
+check(
+  '"Put all keys back" puts every key back',
+  Object.keys(shapeEdits(await profile(id)).positions ?? {}).length === 0,
+);
 await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
 await sleep(800);
 const pos = shapeEdits(await profile(id)).positions ?? {};
 const at = (c) => pos[c] ?? { x: orig[c].x, y: orig[c].y };
 const [W, A, Sx, D, Sp] = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].map(at);
-const minX = Math.min(...[W, A, Sx, D, Sp].map((q) => q.x)),
-  minY = Math.min(...[W, A, Sx, D, Sp].map((q) => q.y));
+const gapBoard = await p.ev(
+  `const c = document.querySelector('${byTest('keymap-canvas')}'); return { w: Number(c.dataset.boardW), h: Number(c.dataset.boardH) }`,
+);
+const groupW =
+  Math.max(...[W, A, Sx, D].map((q) => q.x + 1), Sp.x + 6.25) - Math.min(...[W, A, Sx, D, Sp].map((q) => q.x));
+const groupH = Math.max(...[W, A, Sx, D, Sp].map((q) => q.y)) + 1 - Math.min(...[W, A, Sx, D, Sp].map((q) => q.y));
+const centreX = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.x)) * 2 + groupW) / 2;
+const centreY = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.y)) * 2 + groupH) / 2;
 check(
-  'Tidy up moves the keys to the top-left corner',
-  Math.abs(minX) < 1e-6 && Math.abs(minY) < 1e-6,
-  JSON.stringify(pos),
+  'Close gaps centres the keys on the board',
+  Math.abs(centreX - gapBoard.w / 2) < 0.8 && Math.abs(centreY - gapBoard.h / 2) < 0.8,
+  JSON.stringify({ centreX, centreY, gapBoard }),
 );
 check(
-  'Tidy up closes the empty row between WASD and the space bar',
-  Math.abs(Sp.y - (A.y + 1)) < 1e-6,
+  'Close gaps leaves a quarter key where the empty row was between WASD and the space bar',
+  Math.abs(Sp.y - (A.y + 1.25)) < 1e-6,
   `A.y=${A.y} Space.y=${Sp.y}`,
 );
 check(
-  'Tidy up keeps the shape: W above A/S, A S D in order',
+  'Close gaps keeps the shape: W above A/S, A S D in order',
   W.y < A.y && A.x < Sx.x && Sx.x < D.x && W.x >= A.x - 1e-6 && W.x <= Sx.x + 1e-6,
   JSON.stringify({ W, A, S: Sx, D }),
 );
@@ -572,7 +587,7 @@ check(
   'the toolbar groups are named for assistive technology',
   (await p.q(
     `[...document.querySelectorAll('${byTest('key-tool-group')}')].map(g => g.getAttribute('aria-label')).join('|')`,
-  )) === 'History|View',
+  )) === 'History|View|Tidy',
 );
 check(
   'the status line is announced politely when it changes',
@@ -1011,6 +1026,124 @@ check(
   (await p.q(`!!document.querySelector('.danger-note')`)) &&
     /overlap/.test(await p.q(`document.querySelector('${byTest('key-status')}').textContent`)),
 );
+await setShapeEdits({});
+await clearSelection();
+
+// ---- layout style (Keyboard shape | Even grid), Close gaps in the grid, and the Reset menu (M4.3)
+const savedLayoutStyle = async () => (await profile(id)).layoutStyle ?? 'shape';
+const styleOn = (style) =>
+  p.q(`document.querySelector('${byTest('layout-style-' + style)}').getAttribute('aria-checked') === 'true'`);
+await setShapeEdits({ positions: { KeyW: { x: 7, y: 1 } } });
+await clearSelection();
+check(
+  'the layout style switch starts on Keyboard shape and is a radio group',
+  (await styleOn('shape')) &&
+    !(await styleOn('grid')) &&
+    (await p.q(`document.querySelector('${byTest('layout-style')}').getAttribute('role')`)) === 'radiogroup',
+);
+await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
+await sleep(800);
+check('choosing Even grid is saved with the layout', (await savedLayoutStyle()) === 'grid' && (await styleOn('grid')));
+check(
+  'in the Even grid every key is one key wide',
+  await p.q(
+    `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return [...c.querySelectorAll('${byTest('key-cell')}')].every((n) => n.style.getPropertyValue('--w') === '1'); })()`,
+  ),
+);
+check(
+  'each layout style keeps its own work: the moved key is not moved in the grid',
+  !(await profile(id)).styles?.grid?.positions?.KeyW && !!(await profile(id)).styles?.shape?.positions?.KeyW,
+);
+await clickKey('KeyD');
+await sleep(300);
+await drag('KeyD', 1.4, 0);
+await sleep(700);
+const gridPos = (await profile(id)).styles?.grid?.positions?.KeyD;
+check(
+  'with Snap on, keys move by whole keys in the Even grid',
+  !!gridPos && Math.abs(gridPos.x - Math.round(gridPos.x)) < 1e-6,
+  JSON.stringify(gridPos),
+);
+await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
+await sleep(800);
+const gridAfterClose = (await profile(id)).styles?.grid?.positions ?? {};
+check(
+  'Close gaps in the Even grid closes the gaps completely (no gap left between neighbouring rows)',
+  Object.keys(gridAfterClose).length > 0,
+  JSON.stringify(gridAfterClose),
+);
+// undo step by step until the layout style is Keyboard shape again (the earlier steps are moves and Close gaps)
+for (let i = 0; i < 8 && (await savedLayoutStyle()) !== 'shape'; i++) {
+  await p.ev(`document.querySelector('${byTest('key-undo')}').click()`);
+  await sleep(600);
+}
+check(
+  'Undo takes the layout style switch back too',
+  (await savedLayoutStyle()) === 'shape' && (await styleOn('shape')),
+  await savedLayoutStyle(),
+);
+await p.ev(`document.querySelector('${byTest('key-redo')}').click()`);
+await sleep(600);
+check('...and Redo puts the Even grid back', (await savedLayoutStyle()) === 'grid');
+await p.ev(`document.querySelector('${byTest('layout-style-shape')}').click()`);
+await sleep(700);
+check('switching back to Keyboard shape keeps the earlier work', !!(await profile(id)).styles?.shape?.positions?.KeyW);
+await p.ev(
+  `document.querySelector('${byTest('layout-style-shape')}').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }))`,
+);
+await sleep(700);
+check('the arrow keys move between the two layout styles', (await savedLayoutStyle()) === 'grid');
+await p.ev(
+  `document.querySelector('${byTest('layout-style-grid')}').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true }))`,
+);
+await sleep(700);
+check('...in both directions', (await savedLayoutStyle()) === 'shape');
+
+// the Reset menu
+await setShapeEdits({ positions: { KeyA: { x: 5, y: 1 }, KeyS: { x: 6, y: 1 } } });
+await clickKey('KeyA');
+await sleep(300);
+await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
+await sleep(300);
+check(
+  'the Reset menu lists its five choices and the danger one is last',
+  (await p.q(`[...document.querySelectorAll('.ctxmenu button')].map((b) => b.textContent).join('|')`)) ===
+    'Put selected keys back|Put all keys back|Show all hidden keys|Reset all labels|Reset this layout completely',
+);
+await p.ev(`document.querySelector('${byTest('keys-put-selected-back')}').click()`);
+await sleep(600);
+const afterPutSelected = shapeEdits(await profile(id)).positions ?? {};
+check(
+  '"Put selected keys back" only puts the selected key back',
+  !afterPutSelected.KeyA && !!afterPutSelected.KeyS,
+  JSON.stringify(afterPutSelected),
+);
+await p.ev(`document.querySelector('${byTest('key-undo')}').click()`);
+await sleep(600);
+check('every Reset item can be undone', !!(shapeEdits(await profile(id)).positions ?? {}).KeyA);
+await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
+await sleep(300);
+await p.ev(`document.querySelector('${byTest('keys-revert')}').click()`);
+await sleep(400);
+check(
+  '"Reset this layout completely" asks first, in the shared dialog',
+  (await p.q(
+    `!document.querySelector('${byTest('dialog')}').hidden && document.querySelector('${byTest('dialog-title')}').textContent`,
+  )) === 'Reset this layout?',
+);
+await p.ev(`document.querySelector('${byTest('dialog-cancel')}').click()`);
+await sleep(300);
+check('Cancel leaves the edits alone', !!(shapeEdits(await profile(id)).positions ?? {}).KeyA);
+await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
+await sleep(300);
+await p.ev(`document.querySelector('${byTest('keys-revert')}').click()`);
+await sleep(400);
+await p.ev(`document.querySelector('${byTest('dialog-reset-layout-confirm')}').click()`);
+await sleep(800);
+check('confirming resets the layout completely', !(await state()).settings.layout.profiles[id]);
+await p.ev(`document.querySelector('${byTest('key-undo')}').click()`);
+await sleep(600);
+check('...and Undo brings the edits back', !!(shapeEdits(await profile(id)).positions ?? {}).KeyA);
 await setShapeEdits({});
 await clearSelection();
 

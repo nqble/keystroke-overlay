@@ -53,6 +53,14 @@ function editStyle() {
   return (profile.styles[styleOf(profile)] ??= {});
 }
 
+/** Switch the current layout between the keyboard's own shape ('shape') and the Even grid ('grid'). Each keeps its own edits. */
+export function setLayoutStyle(style) {
+  const profile = editProf();
+  if (style === 'grid') profile.layoutStyle = 'grid';
+  else delete profile.layoutStyle;
+  tidyProf();
+}
+
 /** The positions of moved keys in the layout style in use, for changing. */
 export const editPositions = () => (editStyle().positions ??= {});
 
@@ -131,8 +139,14 @@ export const SNAP_CHOICES = [
   [1, 'Whole key'],
 ];
 
-/** The snap step chosen in the Keys tab (saved in settings.layout.editor). */
-export const snapStep = () => settings.layout.editor?.snap ?? SNAP;
+/**
+ * The snap step in use: the one chosen in the Keys tab (saved in settings.layout.editor), or a whole key in the Even grid
+ * layout style (when Snap is on). 0 means Snap is off.
+ */
+export function snapStep() {
+  const chosen = settings.layout.editor?.snap ?? SNAP;
+  return chosen > 0 && viewProf().layoutStyle === 'grid' ? 1 : chosen;
+}
 
 export const gridShown = () => settings.layout.editor?.grid ?? false;
 
