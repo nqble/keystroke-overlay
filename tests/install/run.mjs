@@ -39,9 +39,13 @@ const [oName, oRef, oVer] = (process.env.INSTALL_OLD ?? 'v1.1.2:45456a9:1.1.2').
 const OLD = { name: oName, ref: oRef, version: oVer };
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const uninstallEntries = () =>
-  spawnSync('reg', ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall', '/s', '/f', APP.testApps.installProduct], {
-    encoding: 'utf8',
-  })
+  spawnSync(
+    'reg',
+    ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall', '/s', '/f', APP.testApps.installProduct],
+    {
+      encoding: 'utf8',
+    },
+  )
     .stdout.split('\n')
     .filter((l) => l.includes(APP.testApps.installProduct)).length;
 // only our uniquely named test exe
