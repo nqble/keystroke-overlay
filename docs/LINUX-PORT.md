@@ -15,7 +15,9 @@ code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
 | Tray icon | works where the desktop shows tray icons (GNOME needs the "AppIndicator" extension) |
 | **Keyboard capture, X11** | **works**: the Standard method (`keyboard/x11.rs`) |
 | Keyboard capture, Wayland | not yet (see step 2) |
-| Installer, updates, start with Windows (login) | not yet (see step 3) |
+| Key labels that follow the keyboard layout, live | works on X11 (`keyboard/x11_labels.rs`, XKB): tested against Xvfb by changing the key map; switching between two layout groups not yet seen |
+| Linux words in the settings window ("Start at login", Super) and Debug-tab memory | works (`ui/settings/system-words.js`, `platform::process_stats`) |
+| Installer, updates | not yet (see "Linux packaging and release") |
 
 ## How keys are read
 
@@ -52,13 +54,24 @@ devices directly:
 - Crate options: `evdev` (pure Rust). Ask Jordan before adding it (CLAUDE.md §7). Test logic with recorded event streams;
   the real-device test needs a Linux PC (containers usually have no `/dev/input`).
 
-### Linux packaging and release (after Wayland)
+### Linux packaging and release
+
+**Proposed, waiting for Jordan's decision (October 2026):** a download on every release, in two stages like the Mac.
+- **Stage A, X11 desktops:** the release workflow builds an AppImage and a .deb and attaches them. Open question for
+  Jordan: in-app updates for Linux from the start (the updater supports AppImage and uses the same update key, so no
+  extra signing account is needed), or a download only at first. Release notes and the user guide would say "X11 for
+  now; on Wayland, keys only show for some apps".
+- **Stage B, Wayland:** evdev capture (below), which needs the `evdev` crate and the `input` group permission approved.
+- **Real-desktop testing:** a Linux virtual machine (VirtualBox or Hyper-V, Ubuntu) on Jordan's Windows PC is the free
+  option; untested so far is whether Steam games on Wayland (often run through XWayland) already work with X11 capture.
+
+The notes from before:
 
 - Tauri builds an **AppImage** (works everywhere, and the updater supports it) and a **.deb**. Add Linux targets to
   `tools/release.mjs` and the release workflow, signed like the Windows installer, with `linux-x86_64` entries in
   `stable.json` / `latest.json`.
-- "Start with Windows" becomes "Start at login" (the autostart plugin writes an XDG autostart file).
-- `platform.rs`: `trim_memory` and `process_stats` have Linux versions to write (`malloc_trim`, `/proc/self/status`).
+- "Start with Windows" already reads "Start at login" on Linux (the autostart plugin writes an XDG autostart file).
+- `platform.rs`: `process_stats` has its Linux version (`/proc/self`); `trim_memory` still does nothing on Linux.
 - The e2e tests drive Windows with PowerShell. A Linux runner could use `xdotool` for key presses (as the manual test
   below does); that is a separate, optional piece of work.
 
