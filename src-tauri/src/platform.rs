@@ -71,13 +71,13 @@ pub fn set_tray_icon_template(tray: &TrayIcon, template: bool) {
     let _ = (tray, template);
 }
 
-/// macOS: a menu-bar app has no Dock icon and no app menu bar of its own (the settings window and the tray are all there
-/// is). Does nothing elsewhere.
-pub fn hide_dock_icon(app: &mut tauri::App) {
+/// macOS: show the app in the Dock (and the app switcher) while its settings window is open, hide it when the window
+/// closes, so the app is a menu-bar app the rest of the time. Does nothing elsewhere.
+pub fn set_dock_icon_visible(app: &AppHandle, visible: bool) {
     #[cfg(target_os = "macos")]
-    app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+    let _ = app.set_dock_visibility(visible);
     #[cfg(not(target_os = "macos"))]
-    let _ = app;
+    let _ = (app, visible);
 }
 
 /// Hand freed memory pages back to the OS so the tray-only footprint drops after the settings window closes.

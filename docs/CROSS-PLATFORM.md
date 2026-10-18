@@ -53,7 +53,7 @@ Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://
   logic (`keyboard/tracker.rs`), so their tests run on every system.
 - **Linux-only code:** `keyboard/x11.rs` (X11 capture), with the `x11rb` crate as a Linux-only dependency. The Linux key
   names and repeat filter (`keyboard/linux_keys.rs`) are plain logic, built and tested everywhere.
-- **macOS-only code:** the settings window's native frame, the template tray icon and the hidden Dock icon are small functions in `platform.rs` (`style_settings_window`, `tray_icon`, `hide_dock_icon`); the key capture is `keyboard/macos.rs` (the event tap), with the `core-graphics` and `core-foundation` crates as macOS-only
+- **macOS-only code:** the settings window's native frame, the template tray icon and the Dock icon that shows only while the settings window is open are small functions in `platform.rs` (`style_settings_window`, `tray_icon`, `set_dock_icon_visible`); the key capture is `keyboard/macos.rs` (the event tap), with the `core-graphics` and `core-foundation` crates as macOS-only
   dependencies. The key names and repeat filter (`keyboard/macos_keys.rs`) are plain logic, built and tested everywhere.
 - On other systems, starting a capture method returns an error instead of capturing keys (`Source::start` in
   `keyboard/mod.rs`). A port adds its own method there: [LINUX-PORT.md](LINUX-PORT.md) has the next Linux steps,

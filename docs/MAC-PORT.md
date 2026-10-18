@@ -34,7 +34,7 @@ Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`), and t
    apps sometimes leave it stuck on (reports exist for Cursor and 1Password), which silently kills the overlay. The app
    should detect it (`IsSecureEventInputEnabled`) and show a hint ("macOS is blocking key capture; lock/unlock the screen
    or quit the app holding secure input").
-4. **Platform glue (small).** Menu-bar-only app (hide the Dock icon with the *accessory* activation policy), template tray
+4. **Platform glue (small).** Menu-bar app (hide the Dock icon with the *accessory* activation policy, and show it while the settings window is open), template tray
    icon, remove Windows-only WebView2 flags, `trim_memory` already a no-op via `platform.rs`, folder opening already uses `open`.
 5. **Packaging, signing, notarization** (the part that costs money and time) — below.
 
@@ -60,9 +60,9 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
    release) are written and unit-tested; it still has to be seen working on a real Mac. Still to do: make CI upload an
    unsigned `.app`.
 2. **Phase 2 — it behaves.** Written on `mac/port`: a notice under the header (Allow keyboard access / restart / Secure
-   Input hint, `ui/settings/keyboard-access.js`), menu-bar-only app (accessory policy) with a monochrome template tray
-   icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: tray icon, no Dock
-   icon, the native window and header fit. Not yet seen: the Allow / restart / Secure Input notices on screen, the
+   Input hint, `ui/settings/keyboard-access.js`), menu-bar app (in the Dock only while the settings window is open) with a monochrome template tray
+   icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: the tray icon, the native
+   window and header fit. The Dock icon (shown only while the settings window is open) is not yet seen. Not yet seen: the Allow / restart / Secure Input notices on screen, the
    update badge on the template icon, and a visual pass over every tab.
 3. **Phase 3 — it ships.** Apple Developer ID, signing + notarization in a GitHub Actions release workflow, universal
    build, `darwin-*` entries in `latest.json`/`stable.json`, README install steps.
