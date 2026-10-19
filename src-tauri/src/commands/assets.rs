@@ -289,32 +289,7 @@ pub fn import_doc(
             .filter(|c| !c.is_control())
             .take(30)
             .collect();
-        let keys: Vec<Value> = item["keys"]
-            .as_array()
-            .map(|raw_keys| {
-                raw_keys
-                    .iter()
-                    .take(300)
-                    .filter(|key| {
-                        key["code"].as_str().is_some_and(|c| !c.is_empty() && c.len() <= 40)
-                            && key["x"].is_number()
-                            && key["y"].is_number()
-                    })
-                    .map(|key| {
-                        let mut cleaned_key = serde_json::json!({ "code": key["code"], "x": key["x"], "y": key["y"] });
-                        for field in ["w", "h"] {
-                            if key[field].is_number() {
-                                cleaned_key[field] = key[field].clone();
-                            }
-                        }
-                        if let Some(label) = key["label"].as_str() {
-                            cleaned_key["label"] = Value::String(label.chars().take(16).collect());
-                        }
-                        cleaned_key
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+        let keys = crate::sanitize::clean_layout_keys(&item["keys"]);
         if keys.is_empty() || name.is_empty() || count >= MAX_USER_LAYOUTS {
             skipped += 1;
             continue;
@@ -442,6 +417,25 @@ mod layout_file_tests {
     }
 
     #[test]
+    fn imported_keys_are_limited_rounded_and_never_twice() {
+        let dir = tmp("key-limits");
+        let doc = json!({ "id": "far", "name": "Far", "keys": [
+            { "code": "KeyA", "x": 1e9, "y": -1e9, "w": 1e9, "h": 0.001 },
+            { "code": "KeyB", "x": 1.23456, "y": 2, "w": 1.5, "label": "B" },
+            { "code": "KeyA", "x": 3, "y": 3, "label": "second A" } ] });
+        import_doc(&doc, &[], &dir).unwrap();
+        let saved: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("far.json")).unwrap()).unwrap();
+        assert_eq!(
+            saved["keys"],
+            json!([
+                { "code": "KeyA", "x": 100.0, "y": -100.0, "w": 100.0, "h": 0.25 },
+                { "code": "KeyB", "x": 1.23, "y": 2.0, "w": 1.5, "label": "B" }
+            ])
+        );
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
     fn import_stops_at_twenty_layouts() {
         let dir = tmp("cap");
         let existing: Vec<Value> = (0..19).map(|i| layout(&format!("u{i}"), true)).collect();
@@ -508,6 +502,23 @@ mod import_robustness_tests {
         json!({ "id": rand_val(rng), "name": rand_val(rng), "keys": (0..key_count).map(|_| rand_key(rng)).collect::<Vec<_>>() })
     }
 
+    /// Every saved key is inside the limits clean_layout_keys sets, and no code appears twice.
+    fn assert_clean_keys(keys: &Value, seed: u64) {
+        use crate::sanitize::{MAX_KEY_WIDTH, MAX_POSITION, MIN_KEY_WIDTH, MIN_POSITION};
+        let mut codes = std::collections::HashSet::new();
+        for key in keys.as_array().unwrap() {
+            assert!(codes.insert(key["code"].as_str().unwrap()), "seed {seed}: a code twice");
+            for field in ["x", "y"] {
+                let place = key[field].as_f64().unwrap();
+                assert!((MIN_POSITION..=MAX_POSITION).contains(&place), "seed {seed}: {key}");
+            }
+            for field in ["w", "h"] {
+                let length = key[field].as_f64().unwrap_or(1.0);
+                assert!((MIN_KEY_WIDTH..=MAX_KEY_WIDTH).contains(&length), "seed {seed}: {key}");
+            }
+        }
+    }
+
     #[test]
     fn hostile_layout_files_only_produce_clean_layouts_inside_the_folder() {
         let base = std::env::temp_dir().join(format!("ko-fuzz-{}", std::process::id()));
@@ -558,6 +569,7 @@ mod import_robustness_tests {
                 assert!(
                     doc["keys"].as_array().unwrap().len() <= 300 && doc["name"].as_str().unwrap().chars().count() <= 30
                 );
+                assert_clean_keys(&doc["keys"], seed);
                 assert!(
                     existing.iter().all(|l| l["id"] != doc["id"]),
                     "seed {seed}: reused an existing id"

@@ -94,7 +94,9 @@ Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
 
 Import also accepts a single bare layout object. It cleans the data (at most 300 keys of 40-character codes, labels of 16
 characters, names of 30), never overwrites an existing layout (a number is added to the id instead), and stops at the
-20-layout limit.
+20-layout limit. Each key's `x` and `y` are limited to −100 to 100 and its `w` and `h` to 0.25–100, all rounded to 2
+decimals (the same limits as moved and resized keys above), and a key whose `code` an earlier key already has is left out:
+a code appears only once in a layout (`clean_layout_keys` in `src-tauri/src/sanitize.rs`).
 
 ## Preset (exported style, `presets/<name>.json`)
 Schema: [`schemas/preset.schema.json`](schemas/preset.schema.json). It is the `style` and `animation` parts of the
