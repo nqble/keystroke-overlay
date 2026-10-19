@@ -15,7 +15,7 @@ Users want a dependable release, and some want every small fix quickly. Updates 
     when running the Release workflow.
 - Updates are signed with a private key; the public key is built into the app. A download that does not match is
   rejected and never run.
-- Users choose the channel in General → Program updates (Stable is the default and the recommended choice).
+- Users choose the channel in **General → Updates → Update channel** (Stable is the default and the recommended choice).
 
 ## Why
 - Tying the channel to the version number makes the rule mechanical: the version number decides it (in `tools/release.mjs`, and in

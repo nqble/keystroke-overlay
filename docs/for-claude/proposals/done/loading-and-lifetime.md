@@ -4,7 +4,7 @@ Status: **Done in v1.4.0** (checked 2026-10-19). In: A1 (tabs built once and kep
 A5 (the hidden preview keeps only the latest settings) and C8 (no change needed, see docs/for-claude/CLEANUP.md). B6 and B7 were measured and
 left alone (section B). A4 (targeted updates instead of full redraws) was not re-checked for this status.
 Approved by Jordan in the Advisory Session. It applies the ideas of section 9a of
-[../design/key-editor.md](../../design/key-editor.md) to the whole app.
+[../design/key-editor.md](../../../design/key-editor.md) to the whole app.
 
 Each change is its own commit, with the full tests between them. Benchmark before and after where noted. Stop and report on any
 regression, in plain language, with the before and after numbers.

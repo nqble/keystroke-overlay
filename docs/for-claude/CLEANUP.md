@@ -16,8 +16,9 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 - Formatting, file headers and descriptive names are already in good shape almost everywhere. The renames are done
   (no `S`, `reg`, `selKey` or `upProg` left).
-- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **four files over ~400 lines** on
-  2.0 (re-checked 2026-10-19: `settings/tests.rs` 883, `assets.rs` 570, `server.rs` 545, and the e2e suite `keys-editor.mjs`;
+- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **six files over ~400 lines** on
+  2.0 (re-checked 2026-10-19: `settings/tests.rs` 883, `assets.rs` 570, `keyboard/mod.rs` 550, `server.rs` 545,
+  `platform.rs` 516, and the e2e suite `keys-editor.mjs`;
   `popups.js`, `debug.js` and `editor/editor.js` are already split on 2.0),
   **user-facing text still inline** in a few UI files (about 33 long strings), and **unnamed numbers** (mostly sleeps and
   timings in Rust, and timings in the settings UI).
@@ -26,9 +27,9 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
   delay already had one). The `overlay.js` rebuild question was measured and left alone (see the loading plan, section B).
 - **Update check (loading plan item C8): fine, no change needed.** `commands/updates.rs` `start_background_check` waits
   45 s after start-up, then loops with one `tokio::time::sleep(CHECK_EVERY_SECS)` (3600 s) per round, so the app wakes
-  once an hour and does nothing in between. When automatic checks are off it still wakes hourly to read the setting, which
-  costs nothing measurable. Only the 45 s should become a named constant.
-- The `ui/settings/` items are handled by the **UI foundation plan** (tokens, building blocks, tab lifecycle) and the
+  once an hour and does nothing in between. When automatic checks are off it runs no timer: it waits until the setting
+  changes. The 45 s is a named constant (`FIRST_CHECK_AFTER_SECS`).
+- The `ui/settings/` items were handled by the **UI foundation plan** (tokens, building blocks, tab lifecycle) and the
   **key editor makeover**, not by a separate cleanup pass. They are listed here so nothing is missed.
 
 ## Area 1: `ui/overlay/` (do first: contributors copy these files)

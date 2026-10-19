@@ -51,7 +51,7 @@ registerAnimation({
 Animate only `transform` and `opacity`, so the work stays on the graphics card and the overlay stays light.
 
 ## 4. A setting
-1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus one line in a table in `src-tauri/src/sanitize.rs` if it needs a range or a rule: `RANGES`, `NUMBER_CHOICES`, `TEXT_RULES`).
+1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus one line in a table in `src-tauri/src/sanitize.rs` if it needs a range or a rule: `RANGES`, `NUMBER_CHOICES`, `TEXT_RULES`, `LIST_RULES`, or `FREE_FORM` for free-form data).
 2. Add a descriptor for its control to `CONTROLS` in `ui/settings/controls.js`.
 3. Use it in the overlay (`ui/overlay/overlay.js`).
 4. Copy the new default into `tools/sandbox/default-settings.json` (a Rust test fails until you do).

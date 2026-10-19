@@ -37,6 +37,9 @@ issue templates in `.github/ISSUE_TEMPLATE/` already use `bug` and `enhancement`
 
 ## Issue 1: Add an "Arrow keys" layout
 
+> Already built on v2.0 (`ui/overlay/layouts/arrows.json`): pick another layout idea before posting this one. On v2.0 a
+> new layout file waits under "Other layouts" unless its id is added to `DEFAULT_ORDER` in `src-tauri/src/layout_order.rs`.
+
 **Labels:** `good first issue`, `layout`, `enhancement`
 
 **Title:** Add a built-in "Arrow keys" layout (just the four arrow keys)

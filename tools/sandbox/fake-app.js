@@ -4,7 +4,7 @@
 //
 // Pick what to show with the address (several can be combined with &):
 //   ?state=live | off | paused | paused-no-obs | port-in-use | update | whats-new | whats-new-long | first-run | mac-allow | mac-restart | mac-secure
-//   ?tab=layout | keys | style | animation | fonts | general | debug     (debug also turns Debug mode on)
+//   ?tab=layout | keys | style | animation | general | debug     (debug also turns Debug mode on)
 //   ?platform=macos | linux                                              pretend to be another system (the mac-* states are macOS)
 //   ?devbuild                                                            the DEV badge, as a devbuild shows it
 // Add a state: a line in STATES below, and a line in the list above.

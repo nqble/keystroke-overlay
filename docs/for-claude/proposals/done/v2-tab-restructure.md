@@ -1,6 +1,6 @@
 # Plan: v2.0 tab restructure (approved by Jordan, from the Advisory Session)
 
-Status: Approved; steps 1–11 done (step 11, the key editor, built as M4.1–M4.3), apart from converting the Keys tab to Preact. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
+Status: **Done** (2026-10-19): steps 1–11, the key editor built as M4.1–M4.3 and the Keys tab converted to Preact. Builds on the master session's UI foundation step 4 (shared building blocks and the tab
 lifecycle, `docs/for-claude/proposals/done/ui-foundation.md` and `loading-and-lifetime.md` §A). Starts after that lands on v1.4.0-dev
 and is merged into `advisor/v2.0`, so the two never edit the same files at once.
 
@@ -8,7 +8,7 @@ Goal: the file layout the v2.0 design needs (`docs/design/ui-design-v2.md`), wit
 steps. Each step is its own commit, with `npm test`, clippy, `check:types`, `check:format`, `check:privacy`, the UI
 sandbox and (on Windows) the screenshot tests between steps. Stop and report on any failure.
 
-The settings window moves to Preact with htm as these steps happen: see [v2-preact.md](done/v2-preact.md) (done).
+The settings window moves to Preact with htm as these steps happen: see [v2-preact.md](v2-preact.md) (done).
 
 ## Where things go
 
@@ -47,7 +47,7 @@ plain logic in `tests/ui/`. `docs/ARCHITECTURE.md` is updated in the same commit
    each with the existing layout tests.
 10. ~~**feat: Animation gallery** (each card demos with the animation's own file; see ui-design-v2.md, Adding more stays one
     file).~~ Done (Preact, `tabs/animation.js`).
-11. **feat: the key editor makeover** (`docs/design/key-editor.md`).
+11. ~~**feat: the key editor makeover** (`docs/design/key-editor.md`).~~ Done (M4.1–M4.3; Preact on 2026-10-19).
 
 Steps 1–4 can run on `advisor/v2.0` before the lifecycle lands, because they don't touch the tabs. Steps 5–11 wait for it.
 

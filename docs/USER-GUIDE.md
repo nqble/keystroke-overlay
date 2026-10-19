@@ -47,7 +47,7 @@ These OBS settings make the biggest difference to how smooth the overlay looks a
 ## Using two PCs (game on one, OBS on the other)
 
 Keystroke Overlay only talks to `127.0.0.1`, which means "this PC", so OBS has to run on the **same PC as the app**. If you play on
-PC A and stream with OBS on PC B, there is a way to make it work **without changing the app**: carry the overlay link from PC B to PC A
+PC A and stream with OBS on PC B, there is a way to make it work **without changing the app**: carry the OBS URL from PC B to PC A
 through an **SSH tunnel**. An SSH tunnel is an encrypted pipe between two computers; the program `ssh` builds it, not Keystroke Overlay.
 Run it over a private network you control, such as [Tailscale](https://tailscale.com).
 
@@ -95,7 +95,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 |---|---|
 | **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Other layouts** in the New layout popup. **Import… / Export…** share your layouts as a file. |
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** slides keys together to close the space left by hidden or moved keys, keeping the shape. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
-| **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts. |
+| **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts, and where **Key labels** chooses between the letters your keyboard prints (**My keyboard**) and the layout file's own. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
 | **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
@@ -245,8 +245,8 @@ use updates you can block the app in your firewall and everything else keeps wor
 
 ## On a Mac
 
-The Mac version needs macOS 11 or newer (the app is built for that), and has only been tried on the newest macOS (26) on one Apple
-Silicon Mac. It is early: it is tested on an Apple Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download on the Releases page; you can also build the app yourself (the steps are in the [README](../README.md#building-from-source)). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
+The Mac version needs macOS 11 or newer (the app is built for that), and has only been tried on the newest macOS (26), on an Apple
+Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download on the Releases page; you can also build the app yourself (the steps are in the [README](../README.md#building-from-source)). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
 
 - **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
   Launchpad. While the settings window is open, the app also shows in the Dock.
@@ -299,7 +299,7 @@ itself on Linux yet: download each new version. The plan and what has been teste
 ## Troubleshooting
 
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
-- **OBS runs on a different PC from the game:** the overlay link only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
+- **OBS runs on a different PC from the game:** the OBS URL only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Connection → Port** (then **Apply**), then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Check [the games tested so far](GAMES.md), then open an issue naming the game and its anti-cheat.
 - **Your antivirus flags the app:** check the file came from this project's

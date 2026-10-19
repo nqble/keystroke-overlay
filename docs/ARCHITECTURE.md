@@ -56,7 +56,7 @@ keystroke-overlay/
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
 │           ├── mod.rs        lists the command files
-│           ├── settings.rs   state, save, port, autostart
+│           ├── settings.rs   state, save, port, autostart, input method, secure link, reset, first run, copy, quit
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
 │           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
 │           ├── actions.rs    pause / layout / restart wrappers
@@ -174,7 +174,8 @@ returns (`downgrade.rs`). Per-layout key edits live in `layout.profiles[layoutId
   and `usesIntensity`: docs/EXTENDING.md). Themes work the same with `registerTheme`.
 - **Setting:** (1) default in `settings.rs` (a range or rule line in `sanitize.rs` if needed), (2) a descriptor in `CONTROLS` in
   `ui/settings/controls.js`, (3) use it in `ui/overlay/overlay.js`. Renaming or restructuring needs a migration + test.
-- **Command for the settings window:** a `#[tauri::command]` in the matching `commands/*.rs`, registered in
+- **Command for the settings window:** a `#[tauri::command]` in the matching `commands/*.rs` (a feature with its own
+  module keeps its command there: `set_pause_hotkey` in `hotkeys.rs`, the `debug_*` commands in `debug.rs`), registered in
   `main.rs` (`generate_handler!`).
 
 ## Updates
@@ -193,4 +194,4 @@ key presses through both input methods, a signed update download); it cleans up 
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4, not released yet) and Wayland capture in `keyboard/linux_devices.rs` (v2.0; [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, not released yet; [MAC-PORT.md](MAC-PORT.md)).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4.0, for developers; the first Linux download comes with v2.0) and Wayland capture in `keyboard/linux_devices.rs` (v2.0; [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, not released yet; [MAC-PORT.md](MAC-PORT.md)).

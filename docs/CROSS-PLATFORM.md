@@ -48,8 +48,9 @@ Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://
 
 - **Windows-only code** lives in `src-tauri/src/keyboard/hook.rs`, `src-tauri/src/keyboard/rawinput.rs`,
   `src-tauri/src/keyboard/windows_labels.rs` (key labels for the layout in front), the `#[cfg(windows)]` part of
-  `keyboard/tracker.rs` and the `#[cfg(windows)]` functions in `src-tauri/src/platform.rs`. The `windows` crate is only a dependency on Windows
-  (`[target.'cfg(windows)'.dependencies]` in `src-tauri/Cargo.toml`).
+  `keyboard/tracker.rs` and the `#[cfg(windows)]` functions in `src-tauri/src/platform.rs`. The `windows` and `webview2-com`
+  crates are only dependencies on Windows (`[target.'cfg(windows)'.dependencies]` in `src-tauri/Cargo.toml`;
+  `webview2-com` switches off the settings window's browser shortcuts, `platform::lock_browser_features`).
 - **Everything else is shared**, including the key naming table (`keyboard/keymap.rs`) and the repeat and stuck-key
   logic (`keyboard/tracker.rs`), so their tests run on every system.
 - **Linux-only code:** `keyboard/x11.rs` (X11 capture), `keyboard/linux_devices.rs` (Wayland capture from the keyboard

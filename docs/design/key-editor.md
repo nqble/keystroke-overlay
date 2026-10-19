@@ -4,7 +4,7 @@ Status: approved by Jordan, designed in the Advisory Session. **Built** in three
 merged into v2.0: the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use, the
 board with zoom and pan, selected keys, the inspector to the right of the editor, the toolbar with undo, redo, Snap and Grid,
 the layout style switch, Close gaps, the Reset menu and the Even grid tip. On v2.0 the zoom and pan gestures also cover
-trackpads (section 3). Still to do: the accessibility pass, the Preact conversion of the Keys tab (v2.0), and the
+trackpads (section 3). The Keys tab is a Preact component on v2.0 (the board itself stays plain page code). Still to do: the accessibility pass and the
 differences listed under "Spec and code differ" below. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
 https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE. Where this file and the prototype disagree, this file wins.
 
@@ -107,7 +107,7 @@ over the board, and holding stops when the window loses focus.
   key (it never selects or moves the key). A Mac's two-finger scroll pans too, moving the view by the scroll's distance and
   staying inside the board. The cursor shows "grabbing" while panning, and the browser's middle-click autoscroll is
   prevented.
-- **Limits:** the view may show the board and at most 120px of room past its edge (`OVERSCAN` in editor.js), so a small
+- **Limits:** the view may show the board and at most 120px of room past its edge (`OVERSCAN` in `editor/context.js`), so a small
   layout can sit in the middle of the box. While the middle button is held and the user pulls past an edge, the view
   stretches at 30% of the pointer's movement (rubber band). On release it eases back (the same 150ms ease-out) to within
   those limits.

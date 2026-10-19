@@ -2,7 +2,7 @@
 
 Keystroke Overlay should be usable with a keyboard alone and with a screen reader, and readable for people with low
 vision. This page is **guidance, not a gate**: nothing here blocks a change in CI, and most developers won't need to think
-about it, because the shared building blocks (`row`, `toggle`, `button`, dialogs, the tab bar) do the work for them.
+about it, because the shared building blocks (`Section`, `Switch`, `Segmented`, `GalleryCard`, `MenuButton` in `blocks.js`, the popup, the tab bar) do the work for them.
 
 ## The approach
 

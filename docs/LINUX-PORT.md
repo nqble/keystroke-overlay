@@ -91,7 +91,7 @@ npm test                                         # unit tests, including the Lin
 xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored x11    # X11 capture starts and stops
 ```
 
-Manual end-to-end check on an X11 desktop (or under `xvfb-run`): run `npm run dev`, open the overlay link in a browser, and
+Manual end-to-end check on an X11 desktop (or under `xvfb-run`): run `npm run dev`, open the OBS URL in a browser, and
 press keys in another window; or with `xdotool key w` while a WebSocket client is connected to `ws://127.0.0.1:7878/ws`,
 which should receive `{"t":"d","k":"KeyW"}` then `{"t":"u","k":"KeyW"}`. `node tests/linux/overlay-check.mjs keys -- xdotool key w a s d`
 does that check for you while the app runs. On Wayland, add yourself to the `input` group first, then type in any window.

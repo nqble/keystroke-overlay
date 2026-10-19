@@ -22,7 +22,7 @@ Keystroke Overlay has a built-in **Debug mode** for anyone working on the code (
 
 ## The browser inspector
 
-The settings window is a web page, so you can inspect it like one. Its own browser shortcuts (F12, Ctrl+Shift+I, print, reload, zoom) are switched off, so use the steps below:
+The settings window is a web page, so you can inspect it like one. On Windows its own browser shortcuts (F12, Ctrl+Shift+I, print, reload, zoom) are switched off (`platform::lock_browser_features`), so use the steps below:
 
 1. Quit Keystroke Overlay.
 2. In a Command Prompt run `set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222`, then start the app from that same window (`npm run dev:debug` does this for you).
@@ -43,7 +43,7 @@ In the inspector's console, the object **`ko`** has shortcuts: `ko.info()`, `ko.
   message or a key) to `crash-note.txt` in the data folder. The next start puts it in the event log and the bug
   report's problems, then deletes it.
 - The Key monitor is the only tool that shows key presses. It must be started by hand, stops after 60 seconds, and only talks to the settings window on this PC.
-- The bug report contains no key presses and no private link key, and your user name is removed from paths (from v1.4.0
+- The bug report contains no key presses and no secure link key, and your user name is removed from paths (from v1.4.0
   in its Windows, Linux and macOS forms; v1.3.0 removes the usual Windows form).
 
 ## Adding to it

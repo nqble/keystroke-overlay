@@ -1,5 +1,5 @@
 # 0001: Plain HTML/CSS/JavaScript, no build step
-Status: Accepted
+Status: Accepted; for the settings window, partly replaced by [0013](0013-preact-with-htm-for-the-settings-window.md) (v2.0)
 Date: 2026-10-15
 
 ## Context

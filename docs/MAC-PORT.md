@@ -24,7 +24,7 @@ Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`; Linux 
    - Add a **key-code map**: macOS virtual key codes → the same DOM names the layouts use (`KeyW`, `Space`, …). About
      100 entries, physical-position based, same idea as `code_name()` in `keyboard/keymap.rs`.
    - **Repeat filtering** and the stuck-key self-heal carry over (macOS exposes key state via `CGEventSourceKeyState`).
-2. **Permission flow (new first-run UX).** macOS will not deliver keys until the user ticks the app in
+2. **Permission flow (first-run UX).** macOS will not deliver keys until the user ticks the app in
    *System Settings → Privacy & Security → Input Monitoring*, and without it the tap either fails to start or starts and never receives a key (the second is what macOS 26 did on the test Mac). So the app
    needs: a friendly "Allow keyboard access" screen, a button that opens that settings pane, a re-check, and an app restart
    after granting. Apple's forums report the app sometimes doesn't appear in the list until it has requested access
@@ -178,7 +178,7 @@ Average CPU from the processes' own cumulative CPU time, memory as resident size
 
 | State | CPU | Memory | Processes |
 |---|---|---|---|
-| Settings window open (preview running) | 0% over 45 s and 60 s | about 183 to 191 MB | 4 (the app, the web content for the settings page and the preview, and Apple's networking helper) |
+| Settings window open (preview running) | 0% over 45 s and 60 s | about 183 to 191 MB | 4 (the app, the web content for the settings window and the preview, and Apple's networking helper) |
 | Settings window closed, menu-bar only | 0% over 60 s and 90 s | about 99 to 108 MB | 2 (the app about 83 MB, and `com.apple.WebKit.Networking` about 16 MB) |
 
 So the "about 0% CPU at idle" promise holds on a Mac, and closing the window really ends its web view processes (about 80

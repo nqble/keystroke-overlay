@@ -113,7 +113,7 @@ Rules:
 | `preview-frame` | The live preview frame |
 | `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `general`, `debug`) | The tab bar and its buttons |
 | `pane` | The area that shows the current tab |
-| `section-heading` | Every heading made by `heading()` inside a tab |
+| `section-heading` | Each tab's heading |
 | `toast` | The message at the bottom |
 | `notes-popup`, `notes-title`, `notes-body`, `notes-ok` | The "What's new" / release-notes popup |
 | `update-button` | The header's Update ready chip, shown when an update exists |
@@ -155,9 +155,9 @@ Rules:
 | `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-easing`) | Every slider, color picker, dropdown and row of choices made from `CONTROLS`; the name is the settings path in kebab-case |
 | `control-<path>-alpha`, `control-<path>-name` | A color's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | Style → Text: your font files (there is no Fonts tab since v2.0) |
-| `toggle-<path>` (for example `toggle-general-debug-mode`) | A tickbox made by `toggle()` (`ui/settings/controls.js`); in General, the same names are its switches (`role="switch"`, `aria-checked`) |
+| `toggle-<path>` (for example `toggle-general-debug-mode`) | General's switches (`Switch` in `blocks.js`, `role="switch"`, `aria-checked`) |
 | `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS URL: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
-| `app-version` | The version number shown in the About part of General |
+| `app-version` | The version number in **General → Updates** |
 | `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page) |
 | `server-port`, `server-port-apply` | Connection: the port; `server-restart` is in Advanced |
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | Connection: the secure-link switch (`aria-checked`), its note, and its buttons |

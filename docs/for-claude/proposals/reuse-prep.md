@@ -16,7 +16,7 @@ with a comment (checked). The top-up is only for the files meant to be lifted ou
 - Settings engine: `src-tauri/src/settings.rs` (the migration and sanitizer part; the app-specific
   defaults would stay behind)
 - Geometry: `ui/settings/tabs/keys-board.js`, `keys-view.js`, `keys-guides.js`, `keys-arrange.js`, `keys-history.js`
-- UI kit: `ui/settings/helpers.js`, `popups.js`, `controls.js`
+- UI kit: `ui/settings/helpers.js`, `blocks.js`, `popup.js`, `controls.js`
 - Tooling: `tools/check-style.mjs`, `tools/check-privacy.mjs`, `tools/changelog-section.mjs`,
   `tests/e2e/lib/cdp.mjs`, `tests/e2e/lib/mock-updates.mjs`, `tests/bench/latency.mjs`
 
@@ -48,5 +48,5 @@ Notes:
 ## 3. Generic-code check for review (standing rule 1)
 
 When reviewing new code in the files listed in section 1: no imports of key, layout, profile or overlay
-modules. The geometry modules and `helpers.js` follow this today. `popups.js` and `controls.js` should be
+modules. The geometry modules and `helpers.js` follow this today. `popup.js`, `blocks.js` and `controls.js` should be
 checked once in M6.

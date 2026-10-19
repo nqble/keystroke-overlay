@@ -7,7 +7,7 @@ Larger ideas that need review before anyone builds them are written up in [../fo
 
 | # | Decision | Status |
 |---|---|---|
-| [0001](0001-plain-web-code-no-build-step.md) | Plain HTML/CSS/JavaScript, no build step | Accepted |
+| [0001](0001-plain-web-code-no-build-step.md) | Plain HTML/CSS/JavaScript, no build step | Accepted; partly replaced by 0013 (settings window, v2.0) |
 | [0002](0002-local-only-server-and-optional-secure-link.md) | The overlay server is local-only; the secure link is optional | Accepted |
 | [0003](0003-two-keyboard-input-methods.md) | Two keyboard input methods (hook and Raw Input) | Accepted |
 | [0004](0004-update-channels-and-version-numbers.md) | Stable and Latest update channels, tied to the version number | Accepted |
@@ -19,6 +19,7 @@ Larger ideas that need review before anyone builds them are written up in [../fo
 | [0010](0010-the-apps-identity-lives-in-one-place.md) | The app's name, repository and identifiers live in one place | Accepted |
 | [0011](0011-working-notes-are-public-in-one-folder.md) | The Claude sessions' working notes are public, in one folder, with a placement rule | Accepted |
 | [0012](0012-releases-stay-unsigned-for-now.md) | Releases stay unsigned for now (SignPath declined; may apply again later) | Accepted |
+| [0013](0013-preact-with-htm-for-the-settings-window.md) | Preact with htm for the settings window (v2.0) | Accepted |
 
 ## How to add one
 

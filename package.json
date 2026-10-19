@@ -1,7 +1,7 @@
 {
   "name": "keystroke-overlay",
   "version": "1.4.0",
-  "description": "Keystroke overlay for OBS: a tiny tray app (Windows; Linux X11 in progress) with a transparent overlay served on 127.0.0.1.",
+  "description": "Keystroke overlay for OBS: a tiny tray app (Windows, macOS and Linux) with a transparent overlay served on 127.0.0.1.",
   "private": true,
   "license": "MIT",
   "repository": {

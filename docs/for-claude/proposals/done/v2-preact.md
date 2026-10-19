@@ -74,7 +74,7 @@ library."
    ahead; if Preact doesn't earn its place here, we stop and revert it.
 3. **Shared building blocks as components:** section card, switch, segmented choice, gallery card, "⋯" menu, popup. Each
    has the states from ui-design-v2.md.
-4. **One list of tabs** (step 5 of [v2-tab-restructure.md](../v2-tab-restructure.md)), as the Preact app shell. Tabs not yet
+4. **One list of tabs** (step 5 of [v2-tab-restructure.md](v2-tab-restructure.md)), as the Preact app shell. Tabs not yet
    converted keep working inside it through a small wrapper that runs their old `render()`.
 5. **Each tab as it is redesigned** (steps 6–11 of the tab plan): Debug, General, Style with Fonts, Layout, Animation, then
    the key editor. A tab is written once, in the new style.

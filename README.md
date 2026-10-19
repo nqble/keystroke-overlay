@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/nqble/keystroke-overlay/releases/latest"><img src="https://img.shields.io/github/v/release/nqble/keystroke-overlay?style=flat-square" alt="Latest release"></a>
   <a href="https://github.com/nqble/keystroke-overlay/releases"><img src="https://img.shields.io/github/downloads/nqble/keystroke-overlay/total?style=flat-square" alt="Downloads"></a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-blue?style=flat-square" alt="Windows 10 and 11">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=flat-square" alt="Windows, macOS and Linux">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/nqble/keystroke-overlay?style=flat-square" alt="MIT license"></a>
 </p>
 
@@ -122,8 +122,8 @@ npm run build        # installer in src-tauri/target/release/bundle/nsis/
 
 ### On a Mac
 
-macOS is early: you build the app yourself (tested on an Apple Silicon MacBook Air, M1). You need the Xcode Command
-Line Tools, [Rust](https://rustup.rs) and [Node.js](https://nodejs.org) 20+.
+To build the Mac app yourself (each release also has an Apple Silicon download; tested on a MacBook Air, M1), you need the
+Xcode Command Line Tools, [Rust](https://rustup.rs) and [Node.js](https://nodejs.org) 20+.
 
 ```bash
 git clone https://github.com/nqble/keystroke-overlay.git

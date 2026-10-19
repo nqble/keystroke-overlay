@@ -5,12 +5,7 @@ not lost. Nothing on this page is a commitment, and none of it should be treated
 these is chosen, it gets its own numbered decision record and leaves this page.
 
 ## Frontend structure
-- **Preact with htm for the settings window** (template strings instead of JSX, no build step). It is small (about 6 KB),
-  works under the app's security policy because it needs no `eval`, and uses the same ideas as React. If tried: copy the
-  library into `ui/settings/vendor/` pinned to exact versions with its MIT license (no downloads at run time); keep the
-  OBS overlay page plain; convert one tab at a time, running the full tests after each; and write templates so that a later
-  move to JSX stays mechanical (one component per file, one shared `html` tag, React spellings such as `onClick`, full
-  closing tags).
+- Preact with htm for the settings window was decided for v2.0: see [0013](0013-preact-with-htm-for-the-settings-window.md).
 
 ## Project safety and structure
 - **Branch protection on `main`** (changes through pull requests, CI must pass, no force-pushes). It would change how pushes
