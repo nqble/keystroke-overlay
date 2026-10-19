@@ -17,7 +17,7 @@ const snippet = (name) => {
 /** Close enough for sums of KLE's decimal offsets (0.1 + 0.2 is not 0.3 in floating point). */
 const near = (actual, expected, what) => assert.ok(Math.abs(actual - expected) < 1e-9, `${what}: ${actual}`);
 
-// ---- kle-serial's own cases, one test each ----------------------------------------------------------------------------
+// ---- kle-serial's own cases, one test each --------------------------------------------------------------------------
 const CHECKS = {
   'x offset applies before the first key': ({ keys }) => {
     assert.deepEqual(
@@ -88,7 +88,7 @@ for (const name of REFUSED) {
   test(`kle-serial: ${name}`, () => assert.throws(() => readKle(snippet(name)), KleFormatError));
 }
 
-// ---- every alignment, and the legends' shape --------------------------------------------------------------------------
+// ---- every alignment, and the legends' shape ------------------------------------------------------------------------
 test('every alignment gives 12 places, each line in at most one', () => {
   const twelveLines = Array.from({ length: LEGEND_PLACES }, (_, index) => String(index)).join('\n');
   for (let alignment = 0; alignment <= 7; alignment++) {
@@ -123,7 +123,7 @@ test('the alignment lasts until it is changed, across rows', () => {
   assert.equal(keys[1].labels[4], 'B');
 });
 
-// ---- turned clusters: KLE's rule, with the Atreus fixture -------------------------------------------------------------
+// ---- turned clusters: KLE's rule, with the Atreus fixture -----------------------------------------------------------
 test('a turned cluster counts its rows from its own turning point (rx, ry), as KLE does', () => {
   const { keys } = readKle(fixture('atreus-rotated.kle.json'));
   assert.equal(keys.length, 42);
@@ -150,7 +150,7 @@ test('after a row the cursor goes back to the cluster turning point, not to 0', 
   assert.deepEqual([keys[1].x, keys[1].y], [2, 4]);
 });
 
-// ---- files that are not KLE layouts -----------------------------------------------------------------------------------
+// ---- files that are not KLE layouts ---------------------------------------------------------------------------------
 test('anything that is not a list of rows is refused with a clear error', () => {
   const notKle = [
     {},

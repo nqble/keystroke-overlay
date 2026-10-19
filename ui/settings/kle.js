@@ -7,17 +7,17 @@
 //
 //  A port of `deserialize` from kle-serial 0.15.1 (https://github.com/ijprest/kle-serial), which says it is the same
 //  code KLE itself uses, with one change: giving `rx` or `ry` also moves the cursor to (rx, ry), as KLE itself and
-//  ergogen's fork of kle-serial do (kle-serial 0.15.1 keeps counting rows from above, which puts a second turned cluster
-//  in the wrong place). Colors, fonts, profiles and switches are not read: the overlay's look comes from the Style tab,
-//  and the file's `background` and `css` are never loaded.
+//  ergogen's fork of kle-serial do (kle-serial 0.15.1 keeps counting rows from above, which puts a second turned
+//  cluster in the wrong place). Colors, fonts, profiles and switches are not read: the overlay's look comes from the
+//  Style tab, and the file's `background` and `css` are never loaded.
 //
 //  kle-serial is under the MIT license:
 //    Copyright (c) 2013-2019 Ian Prest
 //
 //    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 //    documentation files (the "Software"), to deal in the Software without restriction, including without limitation
-//    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-//    permit persons to whom the Software is furnished to do so, subject to the following conditions:
+//    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+//    to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 //
 //    The above copyright notice and this permission notice shall be included in all copies or substantial portions of
 //    the Software.
