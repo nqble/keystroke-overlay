@@ -21,7 +21,7 @@ handled, with the ways to check it, is in [PRIVACY.md](../PRIVACY.md).
 
 ## Add it to OBS
 
-The first time the app opens, it walks you through these steps (to see them again: **General → First run setup**).
+The first time the app opens, it walks you through these steps (to see them again: **General → Connection → First run setup**).
 
 1. In the app, click **Copy OBS URL** (default: `http://localhost:7878/`).
 2. In OBS: **Sources → + → Browser**, then paste the link.
@@ -101,7 +101,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
-**Debug mode (for developers).** **General → Advanced → Debug mode** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one empty test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](DEBUGGING.md).
+**Debug mode (for developers).** **General → Advanced → Debug mode (for developers)** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one tiny test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](DEBUGGING.md).
 
 ## Keyboard input method
 
@@ -156,7 +156,7 @@ Built-in layouts can be hidden the same way (**Hide**) and brought back from **O
 also has more keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad). Drag the cards, or press **Alt+←** / **Alt+→**, to put
 them in the order you like; the tray menu uses the same order.
 
-**Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (a number is added to the name instead), and they count toward the 20-layout limit.
+**Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (the copy gets its own file; its name stays the same), and they count toward the 20-layout limit.
 
 **By hand (for full control):** a layout is a single JSON file. Put it in the app's `layouts` folder (**General → Advanced → Open data folder → layouts**) and restart the app.
 
@@ -193,7 +193,8 @@ Every step happens on your computer, in memory. The moment a key is released, th
 
 ### What is saved on your PC
 Only things you chose, in the app's data folder (`%APPDATA%\com.keyoverlay.app\` on Windows, `~/Library/Application Support/com.keyoverlay.app` on a Mac, `~/.local/share/com.keyoverlay.app` on Linux; **General → Advanced → Open data folder**): your settings (style, layout, hidden keys, labels, port,
-preferences), presets, fonts, and layouts you added; if the app ever crashes, a one-line note of where (read and deleted
+preferences), presets, fonts, and layouts you added; a backup of your previous settings, and a copy kept if you go back to an older
+version; if the app ever crashes, a one-line note of where (read and deleted
 at the next start). **Nothing in there contains keystrokes.** Uninstall and delete that folder to
 remove everything.
 
@@ -202,7 +203,7 @@ Exactly three things, all with GitHub, all optional or user-triggered, and none 
 
 | What | When | What is sent |
 |---|---|---|
-| **Update check** | When you click *Check now*, or — if you leave *Check automatically* on — about once an hour while the app is running (and when the settings window opens). Turn that setting off and the app **never** checks by itself. | An ordinary web request for a small file (`latest.json` / `stable.json`). GitHub sees your IP address, the time, and the app's name and version. |
+| **Update check** | When you click *Check now*, or — if you leave *Check automatically* on — about once an hour while the app is running (and when the settings window opens). Turn that setting off and the app **never** checks by itself. | An ordinary web request for a small file (`latest.json` / `stable.json`). GitHub sees your IP address, the time, and the updater library's name and version. |
 | **Update download** | Only after you click *Update now*. The file is verified against a signing key built into the app; anything that doesn't match is rejected and never run. | An ordinary file download. |
 | **Release notes** | When the *What's new* window or *Release notes* opens. | An ordinary request for one version's notes. |
 
@@ -213,7 +214,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 - never writes keystrokes to a file, log, cache or history
 - never sends keystrokes (or settings) over the network, to us or anyone
 - never accepts connections from other computers: the overlay server listens on `127.0.0.1` only, and it also refuses requests coming from web pages
-- never takes screenshots, reads your clipboard, or reads other programs' contents (it uses the clipboard only to *copy* the OBS address when you press *Copy OBS URL*)
+- never takes screenshots, reads your clipboard, or reads other programs' contents (it never reads the clipboard; it only writes to it when you press a Copy button, such as *Copy OBS URL* or *Copy secure link*)
 
 ### Limits, stated plainly
 - The app can see **every** key while it runs, including in password boxes. That is inherent to the job, so use **Pause overlay**.
@@ -275,7 +276,7 @@ Silicon Mac. It is early: it is tested on an Apple Silicon MacBook Air (M1). Fro
 - **Uninstall.** Turn off **Open at login** first if you turned it on. Quit the app from its menu-bar icon, delete
   Keystroke Overlay, and delete the data folder above if you want your settings gone too. To remove its keyboard
   permission, run `tccutil reset ListenEvent com.keyoverlay.app` in Terminal.
-- **Updates.** The app can't install updates on a Mac yet. **Check for updates** points you to the Releases page.
+- **Updates.** The app can't install updates on a Mac yet. **General → Updates → Check now** tells you to get new versions from the Releases page.
 - **If the build stops** with a linker error that says "malformed file" or "unknown architecture", your Xcode Command Line
   Tools are older than your newest macOS SDK. Update them in System Settings → Software Update, then build again.
 - **Running with `npm run dev`.** macOS may then ask for Input Monitoring for the program that started it, such as
