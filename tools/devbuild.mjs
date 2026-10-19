@@ -43,85 +43,105 @@ const fwd = (p) => p.replace(/\\/g, '/');
  * Start a throwaway test copy built from the same page + icons and check its window really shows the settings and the
  * purple logo.
  */
-async function verifyBuild(baseCfg, target, icons) {
-  const { acquire } = await import('../tests/lib/lock.mjs');
-  const lock = await acquire('devbuild verification (test copy)', { expectedMinutes: 6 });
-  const DATA = join(process.env.APPDATA, APP.identifiers.test);
-  const dir = join(WORK, 'verify'),
-    exe = join(dir, `${APP.testApps.e2eExe}.exe`);
-  try {
-    console.log('> Verifying: building a throwaway test copy with the same page and logo');
-    const cfg = join(WORK, 'cfg-verify.json');
-    writeFileSync(
-      cfg,
-      JSON.stringify({
-        ...baseCfg,
-        identifier: APP.identifiers.test,
-        bundle: { ...baseCfg.bundle, createUpdaterArtifacts: false },
-      }),
-    );
-    run('npx', ['tauri', 'build', '--no-bundle', '--config', `"${cfg}"`], {
-      env: { ...process.env, CARGO_TARGET_DIR: target, CARGO_BUILD_JOBS: process.env.CARGO_BUILD_JOBS ?? '2' },
-    });
-    mkdirSync(dir, { recursive: true });
-    // the program is renamed by mainBinaryName
-    const built = [`${APP.devbuild.binary}.exe`, 'keyoverlay.exe']
-      .map((n) => join(target, 'release', n))
-      .find(existsSync);
-    if (!built) throw new Error('could not find the built program in ' + join(target, 'release'));
-    copyFileSync(built, exe);
-    spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
-    rmSync(DATA, { recursive: true, force: true });
-    mkdirSync(DATA, { recursive: true });
-    writeFileSync(
-      join(DATA, 'settings.json'),
-      JSON.stringify({
-        version: 2,
-        general: { port: 7879, openOnLaunch: true, autoCheckUpdates: false, lastSeenVersion: version },
-        layout: { id: 'tkl', profiles: {} },
-      }),
-    );
-    spawn(exe, [], {
-      detached: true,
-      stdio: 'ignore',
-      env: { ...process.env, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9222' },
-    }).unref();
-    let target1;
-    for (let i = 0; i < 80 && !target1; i++) {
-      try {
-        target1 = (await (await fetch('http://127.0.0.1:9222/json')).json()).find((x) => x.type === 'page');
-      } catch {
-        /* not up yet */
-      }
-      if (!target1) await sleep(250);
+/** Builds a throwaway test copy (own identity, own port) with the same page and logo as the devbuild; returns its path. */
+function buildVerifyCopy(baseCfg, target, dir, exe) {
+  console.log('> Verifying: building a throwaway test copy with the same page and logo');
+  const cfg = join(WORK, 'cfg-verify.json');
+  writeFileSync(
+    cfg,
+    JSON.stringify({
+      ...baseCfg,
+      identifier: APP.identifiers.test,
+      bundle: { ...baseCfg.bundle, createUpdaterArtifacts: false },
+    }),
+  );
+  run('npx', ['tauri', 'build', '--no-bundle', '--config', `"${cfg}"`], {
+    env: { ...process.env, CARGO_TARGET_DIR: target, CARGO_BUILD_JOBS: process.env.CARGO_BUILD_JOBS ?? '2' },
+  });
+  mkdirSync(dir, { recursive: true });
+  // the program is renamed by mainBinaryName
+  const built = [`${APP.devbuild.binary}.exe`, 'keyoverlay.exe']
+    .map((n) => join(target, 'release', n))
+    .find(existsSync);
+  if (!built) throw new Error('could not find the built program in ' + join(target, 'release'));
+  copyFileSync(built, exe);
+}
+
+/** Starts the test copy with fresh settings (port 7879, no update checks) and the browser inspector on port 9222. */
+function startVerifyCopy(exe, dataDir) {
+  spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
+  rmSync(dataDir, { recursive: true, force: true });
+  mkdirSync(dataDir, { recursive: true });
+  writeFileSync(
+    join(dataDir, 'settings.json'),
+    JSON.stringify({
+      version: 2,
+      general: { port: 7879, openOnLaunch: true, autoCheckUpdates: false, lastSeenVersion: version },
+      layout: { id: 'tkl', profiles: {} },
+    }),
+  );
+  spawn(exe, [], {
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9222' },
+  }).unref();
+}
+
+/** Waits (up to 20 seconds) for the test copy's settings window to show up in the inspector's list of pages. */
+async function waitForWindow() {
+  for (let attempt = 0; attempt < 80; attempt++) {
+    try {
+      const page = (await (await fetch('http://127.0.0.1:9222/json')).json()).find((x) => x.type === 'page');
+      if (page) return page;
+    } catch {
+      /* not up yet */
     }
-    if (!target1) throw new Error('the devbuild window never appeared');
-    await sleep(2500);
-    const ws = new WebSocket(target1.webSocketDebuggerUrl);
-    await new Promise((r) => (ws.onopen = r));
-    const ask = (expression) =>
-      new Promise((res) => {
-        ws.onmessage = (e) => res(JSON.parse(e.data));
-        ws.send(
-          JSON.stringify({
-            id: 1,
-            method: 'Runtime.evaluate',
-            params: { expression, awaitPromise: true, returnByValue: true },
-          }),
-        );
-      });
-    const r =
-      await ask(`(async () => { const i = document.querySelector('.brand img'); if (!i || !i.complete || !i.naturalWidth) return { ok: false, why: 'logo missing', url: location.href };
+    await sleep(250);
+  }
+  throw new Error('the devbuild window never appeared');
+}
+
+/** Asks the window whether it loaded: the logo is there and purple, the six tabs are there, and it says "devbuild". */
+async function checkWindow(page) {
+  const ws = new WebSocket(page.webSocketDebuggerUrl);
+  await new Promise((resolve) => (ws.onopen = resolve));
+  const ask = (expression) =>
+    new Promise((resolve) => {
+      ws.onmessage = (message) => resolve(JSON.parse(message.data));
+      ws.send(
+        JSON.stringify({
+          id: 1,
+          method: 'Runtime.evaluate',
+          params: { expression, awaitPromise: true, returnByValue: true },
+        }),
+      );
+    });
+  const answer =
+    await ask(`(async () => { const i = document.querySelector('.brand img'); if (!i || !i.complete || !i.naturalWidth) return { ok: false, why: 'logo missing', url: location.href };
       const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.drawImage(i, 0, 0, 64, 64); const [R, G, B] = x.getImageData(16, 18, 1, 1).data;
       return { ok: document.querySelectorAll('nav button').length === 6 && R > G && B > R && document.querySelector('.brand').textContent.includes('devbuild'), url: location.href, rgb: [R, G, B], tabs: document.querySelectorAll('nav button').length }; })()`);
-    ws.close();
-    const v = r.result?.result?.value;
-    console.log('  window address:', v?.url, '| logo pixel:', v?.rgb, '| tabs:', v?.tabs);
-    if (!v?.ok) throw new Error('VERIFICATION FAILED: ' + JSON.stringify(v));
+  ws.close();
+  return answer.result?.result?.value;
+}
+
+async function verifyBuild(baseCfg, target) {
+  const { acquire } = await import('../tests/lib/lock.mjs');
+  const lock = await acquire('devbuild verification (test copy)', { expectedMinutes: 6 });
+  const dataDir = join(process.env.APPDATA, APP.identifiers.test);
+  const dir = join(WORK, 'verify');
+  const exe = join(dir, `${APP.testApps.e2eExe}.exe`);
+  try {
+    buildVerifyCopy(baseCfg, target, dir, exe);
+    startVerifyCopy(exe, dataDir);
+    const page = await waitForWindow();
+    await sleep(2500);
+    const result = await checkWindow(page);
+    console.log('  window address:', result?.url, '| logo pixel:', result?.rgb, '| tabs:', result?.tabs);
+    if (!result?.ok) throw new Error('VERIFICATION FAILED: ' + JSON.stringify(result));
     console.log('  OK: the settings window loads and the logo is purple');
   } finally {
     spawnSync('taskkill', ['/F', '/IM', `${APP.testApps.e2eExe}.exe`], { stdio: 'ignore' });
-    rmSync(DATA, { recursive: true, force: true });
+    rmSync(dataDir, { recursive: true, force: true });
     lock.release?.();
   }
 }
@@ -175,7 +195,7 @@ try {
   // 4. name it, put it in release/<version>-devbuild/, remove older temporary installers
   const nsis = join(target, 'release/bundle/nsis');
   const built = readdirSync(nsis).find((n) => n.endsWith('-setup.exe'));
-  if (verify) await verifyBuild(baseCfg, target, icons);
+  if (verify) await verifyBuild(baseCfg, target);
   const out = join(ROOT, 'release', `${version}-devbuild`);
   for (const old of [`release/${version}-test`, `release/${version}-devbuild`])
     rmSync(join(ROOT, old), { recursive: true, force: true });
