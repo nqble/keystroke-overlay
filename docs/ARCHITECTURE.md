@@ -39,6 +39,9 @@ keystroke-overlay/
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
 │       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
+│       ├── gamepad/        game controllers (not built yet: for-claude/proposals/controllers-gilrs.md)
+│       │   ├── mod.rs        lists the files
+│       │   └── names.rs      controller buttons -> the names in design/future-inputs.md (PadA, PadLB, …)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
 │       ├── app_info.rs     the app's name, repository and identifiers (must match app.config.json; npm run check:config)

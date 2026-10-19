@@ -9,6 +9,7 @@ mod commands;
 mod crash;
 mod debug;
 mod downgrade;
+mod gamepad;
 mod grid;
 mod hotkeys;
 mod key_labels;
