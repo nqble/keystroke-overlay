@@ -32,7 +32,9 @@ pub fn open_settings(app: &AppHandle) {
         // Tauri's default WebView2 flags.
         .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1");
     crate::platform::set_dock_icon_visible(app, true);
-    let _ = crate::platform::style_settings_window(builder).build();
+    if let Ok(window) = crate::platform::style_settings_window(builder).build() {
+        crate::platform::lock_browser_features(&window);
+    }
 }
 
 /// Opens the settings window on a specific tab (used by the tray's "Update available" entry).

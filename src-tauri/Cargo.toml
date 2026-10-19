@@ -44,6 +44,8 @@ core-foundation = "0.10"
 # Windows only: keyboard capture (keyboard/hook.rs, keyboard/rawinput.rs) and a few calls in platform.rs. On other systems
 # the app still builds and runs, without keyboard capture (docs/CROSS-PLATFORM.md).
 [target.'cfg(windows)'.dependencies]
+# The settings window's web view settings (platform.rs: browser shortcuts off). Same version as the one Tauri uses.
+webview2-com = "0.39"
 windows = { version = "0.62", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",

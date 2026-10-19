@@ -47,6 +47,39 @@ pub fn style_settings_window(builder: WindowBuilder<'_>) -> WindowBuilder<'_> {
         .initialization_script("document.documentElement.classList.add('mac')")
 }
 
+/// The settings window is an app, not a browser page: switch off WebView2's own shortcuts and gestures, so keys such as
+/// Ctrl+P / Ctrl+Shift+P (print), Ctrl+F (find), Ctrl+R and F5 (reload), Ctrl+S, Ctrl+U, F12 and Ctrl+Shift+I (developer
+/// tools), Ctrl+plus / minus / mouse wheel (zoom) and Alt+Left (back) do nothing. Only the app's own keys work. The pause
+/// shortcut (hotkeys.rs) is a system-wide shortcut and is not affected. Copy, paste and the like still work, and the
+/// developer tools stay reachable through the inspector port (docs/DEBUGGING.md).
+#[cfg(windows)]
+pub fn lock_browser_features(window: &tauri::WebviewWindow) {
+    use webview2_com::Microsoft::Web::WebView2::Win32::{
+        ICoreWebView2Settings, ICoreWebView2Settings3, ICoreWebView2Settings5, ICoreWebView2Settings6,
+    };
+    use windows::core::Interface;
+    let _ = window.with_webview(|webview| unsafe {
+        let Ok(core) = webview.controller().CoreWebView2() else {
+            return;
+        };
+        let Ok(settings) = core.Settings() else { return };
+        let _ = ICoreWebView2Settings::SetIsZoomControlEnabled(&settings, false);
+        if let Ok(settings) = settings.cast::<ICoreWebView2Settings3>() {
+            let _ = settings.SetAreBrowserAcceleratorKeysEnabled(false);
+        }
+        if let Ok(settings) = settings.cast::<ICoreWebView2Settings5>() {
+            let _ = settings.SetIsPinchZoomEnabled(false);
+        }
+        if let Ok(settings) = settings.cast::<ICoreWebView2Settings6>() {
+            let _ = settings.SetIsSwipeNavigationEnabled(false);
+        }
+    });
+}
+
+/// Other systems: their web views have no browser shortcuts of this kind to switch off.
+#[cfg(not(windows))]
+pub fn lock_browser_features(_window: &tauri::WebviewWindow) {}
+
 /// The tray icon when there is nothing to report. On macOS a monochrome "template" picture that the menu bar tints for
 /// light and dark; everywhere else the app icon, which keeps its colors.
 pub fn tray_icon(app_icon: &Image<'_>) -> Image<'static> {
