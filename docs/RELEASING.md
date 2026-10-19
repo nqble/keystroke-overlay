@@ -30,7 +30,7 @@ The steps below are kept for when Jordan applies again.
 The release workflow is ready for it: until `SIGNPATH_ORGANIZATION_ID` is set it builds unsigned, as before. To turn
 it on (Jordan, once):
 1. **Apply** at signpath.org with this repository. They check it is open source (MIT), public, built on GitHub
-   Actions, and has the "Code signing policy" section in README.md. Approval can take a few weeks.
+   Actions, and has the code signing policy in README.md (the "Code signing" section). Approval can take a few weeks.
 2. Turn on **two-factor login** on GitHub and SignPath for everyone who can change the repository (they require it).
 3. In SignPath, once the project exists:
    - an **artifact configuration** that signs every `.exe` in the uploaded zip (both uploads are one file each):

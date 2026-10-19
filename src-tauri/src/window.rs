@@ -39,7 +39,7 @@ pub fn open_settings(app: &AppHandle) {
 /// The settings window is an app, not a browser page: switch off WebView2's own shortcuts and gestures, so keys such as
 /// Ctrl+P / Ctrl+Shift+P (print), Ctrl+F (find), Ctrl+R and F5 (reload), Ctrl+S, Ctrl+U, F12 and Ctrl+Shift+I (developer
 /// tools), Ctrl+plus / minus / mouse wheel (zoom) and Alt+Left (back) do nothing. Only the app's own keys work. The pause
-/// shortcut (hotkeys.rs) is an operating system shortcut and is not affected. Copy, paste and the like still work, and the
+/// shortcut planned for v2.0 is a system-wide shortcut and is not affected. Copy, paste and the like still work, and the
 /// developer tools stay reachable through the inspector port (docs/DEBUGGING.md).
 #[cfg(windows)]
 fn lock_browser_features(window: &tauri::WebviewWindow) {

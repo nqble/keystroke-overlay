@@ -13,14 +13,14 @@ fails when a file is missing from this list.
 Each plan starts with a **Status** line (queued, in progress, done or superseded). Finished plans move to
 [proposals/done/](proposals/done).
 
-- [ui-foundation.md](proposals/ui-foundation.md): hooks, screenshot tests, design tokens, shared building blocks (done)
-- [loading-and-lifetime.md](proposals/loading-and-lifetime.md): keeping tabs alive, cached lists, overlay performance (done, with the measured decisions)
+- [done/ui-foundation.md](proposals/done/ui-foundation.md): hooks, screenshot tests, design tokens, shared building blocks (done)
+- [done/loading-and-lifetime.md](proposals/done/loading-and-lifetime.md): keeping tabs alive, cached lists, overlay performance (done, with the measured decisions)
 - [reuse-prep.md](proposals/reuse-prep.md): preparing the code to be reused in other programs, after v2.0
-- [tailscale-dual-pc.md](proposals/tailscale-dual-pc.md): dual-PC streaming through Tailscale Serve (proposed, not decided)
+- [done/tailscale-dual-pc.md](proposals/done/tailscale-dual-pc.md): a built-in dual-PC mode through Tailscale Serve (set aside: the SSH tunnel in the user guide instead)
 - [good-first-issues.md](proposals/good-first-issues.md): draft "good first issue" tickets (not posted)
 - [done/key-editor-polish.md](proposals/done/key-editor-polish.md): the first key editor plan, superseded by the design spec
 
 ## Audits and drafts
 
 - [CLEANUP.md](CLEANUP.md): the cleanup audit and the order to work through it
-- [NEXT-RELEASE.md](NEXT-RELEASE.md): the draft notes and the to-do list for the release in progress
+- [NEXT-RELEASE.md](NEXT-RELEASE.md): where the releases stand (the last one, and what comes next)

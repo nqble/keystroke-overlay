@@ -77,7 +77,7 @@ Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
 `x`, `y` are the key's position and `w`, `h` its size, in key units (1 = one normal key). `code` is a key name from the
 [protocol](PROTOCOL.md). The app keeps at most **20** layouts you made.
 
-**Exported layout file** (Layout tab → Export, and what Import reads):
+**Exported layout file** (**Layout → Export to file…**, and what **Import from file…** reads):
 
 ```json
 { "format": "keystroke-overlay-layouts", "version": 1,

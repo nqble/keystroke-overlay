@@ -80,13 +80,13 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
-  [for-claude/proposals/tailscale-dual-pc.md](for-claude/proposals/tailscale-dual-pc.md).
+  [for-claude/proposals/done/tailscale-dual-pc.md](for-claude/proposals/done/tailscale-dual-pc.md).
 
 ## Settings
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. **Export / Import layouts** share them as a file. |
+| **Layout** | Pick a keyboard: Full size, Tenkeyless, WASD, Gameplay, or **make your own** with the dashed **+** card (up to 20). Right-click a layout you made to delete it. **Import from file…** and **Export to file…** (under **Layouts you made**) share them as a file. |
 | **Keys** | The keyboard editor. Click a key to select it (Ctrl-click, or drag a box, to select several) and drag to move it: keys snap to a quarter key and to the edges of nearby keys, and can't leave the board. Scroll to zoom and drag with the middle mouse button to move the view. Drag the thin blue handles on the sides of a selected key to make it wider, narrower, taller or shorter. With two or more keys selected, a bar above them **aligns** them or **spaces them evenly**. The inspector on the right sets a key's label, width, height, place and whether it is shown; a **Hidden keys** switch shows or hides the dimmed keys you turned off. **Layout style** switches between **Keyboard shape** and **Even grid** (every key one key wide in neat columns); each style keeps its own moves. **Close gaps** slides keys together, **Reset** puts keys, labels or the whole layout back, **Undo** and **Redo** step through your changes, and **Snap** and **Grid** are switches that are remembered (the grid shows with or without Snap). Edits are saved automatically **per layout**. |
 | **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
@@ -128,7 +128,7 @@ Right-click the tray icon for quick actions without opening settings:
 - **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume.
 - **Layout** — switch between layouts.
 - **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
-- **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to General → Program updates.
+- **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to **General → Program updates**.
 - **Open settings**, **Copy OBS URL**, **Quit**.
 
 ## Updating
@@ -147,7 +147,7 @@ After an update, a **What's new** window shows the release notes once. You can r
 full-size keyboard. Then, in the **Keys** tab, hide the keys you don't want and relabel the ones you do. You can make up to **20**
 layouts (a counter shows how many you've used). To remove one, **right-click it and choose Delete layout**. Built-in layouts can't be deleted.
 
-**Share layouts:** in the Layout tab, **Export layouts** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import layouts** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (a number is added to the name instead), and they count toward the 20-layout limit.
+**Share layouts:** in the Layout tab, **Export to file…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import from file…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (the imported copy gets a new id instead, and keeps its name), and they count toward the 20-layout limit.
 
 **By hand (for full control):** a layout is a single JSON file. Put it in the app's `layouts` folder (**General → App → Open data folder → layouts**) and restart the app.
 

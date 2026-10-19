@@ -1,8 +1,8 @@
 # Working on Linux and macOS
 
 Keystroke Overlay is a Windows app, but you don't need Windows to work on most of it. Everything builds, runs and is
-tested on Linux and macOS too. Keyboard capture also works on **Linux X11 desktops** (on the
-`v1.4.0-dev` branch; no release has it yet); Wayland and macOS capture are not
+tested on Linux and macOS too. Keyboard capture also works on **Linux X11 desktops** (in v1.4.0, for
+developers who build the app; there is no Linux release yet); Wayland and macOS capture are not
 built yet ([LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI checks this on every push (the `other-systems` job in
 `.github/workflows/ci.yml`), so it stays that way.
 
@@ -15,7 +15,7 @@ built yet ([LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI check
 | Rust lints and unit tests (`cargo clippy`, `cargo test`) | yes | yes |
 | Privacy and formatting checks | yes | yes |
 | Running the app: tray, settings window, local server, overlay in OBS | yes | yes |
-| Keyboard capture | yes | Linux X11: yes (v1.4.0-dev). Linux Wayland and macOS: not yet |
+| Keyboard capture | yes | Linux X11: yes (from v1.4.0, built from source). Linux Wayland and macOS: not yet |
 | End-to-end tests (`npm run test:e2e`), install test, benchmark | yes | no (they drive Windows with PowerShell) |
 | Building the installer, releasing (`npm run build`, `npm run release`, `npm run devbuild`) | yes | no |
 

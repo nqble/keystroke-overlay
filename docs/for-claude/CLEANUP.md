@@ -25,10 +25,10 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
   delay already had one). The `overlay.js` rebuild question was measured and left alone (see the loading plan, section B).
 - **Update check (loading plan item C8): fine, no change needed.** `commands/updates.rs` `start_background_check` waits
   45 s after start-up, then loops with one `tokio::time::sleep(CHECK_EVERY_SECS)` (3600 s) per round, so the app wakes
-  once an hour and does nothing in between. When automatic checks are off it still wakes hourly to read the setting, which
-  costs nothing measurable. Only the 45 s should become a named constant.
-- The `ui/settings/` items are handled by the **UI foundation plan** (tokens, building blocks, tab lifecycle) and the
-  **key editor makeover**, not by a separate cleanup pass. They are listed here so nothing is missed.
+  once an hour and does nothing in between. When automatic checks are off it runs no timer: it waits until the setting
+  changes. The 45 s is a named constant (`FIRST_CHECK_AFTER_SECS`).
+- The `ui/settings/` items were handled by the **UI foundation plan** (tokens, building blocks, tab lifecycle) and the
+  **key editor** (v1.4.0), not by a separate cleanup pass. They are listed here so nothing is missed.
 
 ## Area 1: `ui/overlay/` (do first: contributors copy these files)
 

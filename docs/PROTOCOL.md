@@ -50,7 +50,7 @@ Every message is one JSON object in a text frame with a type field `t`.
 Key names follow the browser's `KeyboardEvent.code` (for example `KeyW`, `Digit1`, `ShiftLeft`, `ControlRight`, `Space`,
 `ArrowUp`, `Numpad5`, `NumpadEnter`, `PrintScreen`, `Pause`). The list is in
 `src-tauri/src/keyboard/keymap.rs`, shared by every Windows capture method so they all name keys the same way (the
-Linux capture in development, `keyboard/linux_keys.rs`, gives the same names).
+Linux X11 capture, `keyboard/linux_keys.rs`, gives the same names).
 
 **Reserved for the future** (not sent yet): mouse and controller buttons will use these same `d` / `u` / `snap` messages
 with names like `MouseLeft` and `PadA`, and analog controls (sticks, triggers) will use `{"t":"a",…}`. Clients must

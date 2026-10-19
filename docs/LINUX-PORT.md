@@ -1,7 +1,7 @@
 # Linux port
 
-Status: **in progress.** Keyboard capture on **X11 desktops works** and is tested, on the `v1.4.0-dev` branch
-(no release has it yet). Wayland capture, Linux packaging and a
+Status: **in progress.** Keyboard capture on **X11 desktops works** and is tested, in v1.4.0 for developers
+who build the app (there is no Linux release yet). Wayland capture, Linux packaging and a
 Linux release are not built yet. This page is the plan, so anyone on Linux can pick up the next step. For working on the
 code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
 
@@ -69,7 +69,7 @@ npm test                                         # unit tests, including the Lin
 xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored    # X11 capture starts and stops
 ```
 
-Manual end-to-end check on an X11 desktop (or under `xvfb-run`): run `npm run dev`, open the overlay link in a browser, and
+Manual end-to-end check on an X11 desktop (or under `xvfb-run`): run `npm run dev`, open the OBS URL in a browser, and
 press keys in another window; or with `xdotool key w` while a WebSocket client is connected to `ws://127.0.0.1:7878/ws`,
 which should receive `{"t":"d","k":"KeyW"}` then `{"t":"u","k":"KeyW"}`. CI runs the unit tests and the X11 start/stop test
 on Ubuntu for every push.

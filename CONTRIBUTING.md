@@ -3,7 +3,7 @@
 Thanks for helping! This is a small, fast, privacy-first app, and the bar for changes is "keep it that way".
 
 Code conventions (for people and AI sessions alike) are in [CLAUDE.md](CLAUDE.md). The working notes of the Claude sessions that help
-build this project are in [docs/for-claude/](docs/for-claude/README.md); you can ignore them, they are not instructions for contributors..
+build this project are in [docs/for-claude/](docs/for-claude/README.md); you can ignore them, they are not instructions for contributors.
 
 ## The three rules
 
@@ -36,7 +36,7 @@ Useful commands:
 | `npm run check:privacy` | Verifies the promises in [PRIVACY.md](PRIVACY.md) |
 | `npm run format` | Formats all the code (Prettier for web files, rustfmt for Rust, 120 columns). Run it before you commit |
 | `npm run check:format` | Checks the formatting without changing anything (CI runs it) |
-| `npm run check:style` | No tabs, no trailing spaces, files end with a newline in every source file (CI runs it) |
+| `npm run check:style` | No tabs, no trailing spaces, files end with a newline in every source file; no raw colors in `settings.css` outside its `:root` design tokens, and no inline styles in the settings scripts (CI runs it) |
 | `npm run check:types` | Type-checks the UI JavaScript with no build step (`jsconfig.json`, loose mode, CI runs it). Your editor (e.g. VS Code) shows the same hints as you type. To describe a value's type, use a JSDoc comment such as `/** @type {HTMLElement} */`; the app's globals are described in `ui/globals.d.ts` |
 | `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings` | Rust lints; CI requires zero warnings |
 | `npm run dev:debug` | Runs a separate development copy with **Debug mode** on (a Debug tab with self-test, event log, key monitor and more). See [docs/DEBUGGING.md](docs/DEBUGGING.md) |
