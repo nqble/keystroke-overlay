@@ -87,6 +87,7 @@ keystroke-overlay/
         ├── other-layouts.js  "Other layouts" in the New layout popup: built-in layouts not on the Layout tab
         ├── layout-order.js  which layouts the Layout tab shows and in what order; moving and dropping (tested)
         ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
+        ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
         ├── menu.js        the small "⋯" and right-click menus; no browser right-click menu, no dragging except layout cards
         ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
         ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup
