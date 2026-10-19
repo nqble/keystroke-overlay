@@ -112,7 +112,7 @@ keystroke-overlay/
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
             places.js says where the keys are. The geometry is in keys-board.js (board size and limits), keys-view.js (zoom and
-            pan) and keys-guides.js (smart snapping guides while dragging, used by editor/editor.js) and keys-mac.js (the macOS note that the F row needs Fn), keys-gestures.js (what a wheel, pinch or press over the board means, per system) and editor/view-gestures.js (attaches those gestures to the board), plain functions with unit tests.
+            pan) and keys-guides.js (smart snapping guides while dragging, used by editor/editor.js) and keys-gestures.js (what a wheel, pinch or press over the board means, per system) and editor/view-gestures.js (attaches those gestures to the board), plain functions with unit tests.
 ```
 
 ## How a key press travels

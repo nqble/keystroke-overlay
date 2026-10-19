@@ -109,12 +109,9 @@ pub fn restart_app(app: &AppHandle) {
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))] // built on macOS, and tested everywhere
 #[derive(Debug, PartialEq)]
 pub enum AppMenuAction {
-    OpenSettings,
     Quit,
 }
 
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
-const MENU_SETTINGS_ID: &str = "app-settings";
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 const MENU_QUIT_ID: &str = "app-quit";
 
@@ -122,7 +119,6 @@ const MENU_QUIT_ID: &str = "app-quit";
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub fn app_menu_action(id: &str) -> Option<AppMenuAction> {
     match id {
-        MENU_SETTINGS_ID => Some(AppMenuAction::OpenSettings),
         MENU_QUIT_ID => Some(AppMenuAction::Quit),
         _ => None,
     }
@@ -142,21 +138,16 @@ pub fn minimize_needs_focus_check() -> bool {
 
 /// macOS: the app's own menu bar while the settings window is open (the Dock icon is showing). Quit (Command+Q) really
 /// quits: the default Quit asks the app to exit without a code, which the app refuses so that closing the last window leaves
-/// it in the tray. Close Window (Command+W) closes the window like the red button, Command+, opens Settings, and the Edit
+/// it in the tray. Close Window (Command+W) closes the window like the red button, and the Edit
 /// menu keeps copy and paste working in the settings fields. Does nothing elsewhere.
 #[cfg(target_os = "macos")]
 pub fn install_app_menu(app: &tauri::App) -> tauri::Result<()> {
     use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
     let name = crate::app_info::NAME;
-    let settings = MenuItemBuilder::with_id(MENU_SETTINGS_ID, "Settings…")
-        .accelerator("Cmd+,")
-        .build(app)?;
     let quit = MenuItemBuilder::with_id(MENU_QUIT_ID, format!("Quit {name}"))
         .accelerator("Cmd+Q")
         .build(app)?;
     let app_menu = SubmenuBuilder::new(app, name)
-        .item(&settings)
-        .separator()
         .hide()
         .hide_others()
         .separator()
@@ -189,7 +180,6 @@ pub fn install_app_menu(_app: &tauri::App) -> tauri::Result<()> {
 /// does not hold back.
 pub fn on_app_menu_event(app: &AppHandle, id: &str) {
     match app_menu_action(id) {
-        Some(AppMenuAction::OpenSettings) => crate::window::open_settings_async(app),
         Some(AppMenuAction::Quit) => app.exit(0),
         None => {}
     }
@@ -455,7 +445,11 @@ mod tests {
     #[test]
     fn our_menu_items_map_to_their_actions_and_others_to_nothing() {
         assert_eq!(app_menu_action("app-quit"), Some(AppMenuAction::Quit));
-        assert_eq!(app_menu_action("app-settings"), Some(AppMenuAction::OpenSettings));
+        assert_eq!(
+            app_menu_action("app-settings"),
+            None,
+            "there is no Settings item: the menu only exists while the window is open"
+        );
         assert_eq!(app_menu_action("copy"), None);
         assert_eq!(app_menu_action(""), None);
     }

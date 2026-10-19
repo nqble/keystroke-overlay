@@ -207,6 +207,23 @@ impl Drop for WatchGuard<'_> {
     }
 }
 
+/// The modifier and lock keys. macOS still reports these to an app that was refused Input Monitoring (only the ordinary keys
+/// are hidden), so they do not prove that capture works: `Bus::has_seen_keys` ignores them.
+fn is_modifier_code(code: &str) -> bool {
+    matches!(
+        code,
+        "ShiftLeft"
+            | "ShiftRight"
+            | "ControlLeft"
+            | "ControlRight"
+            | "AltLeft"
+            | "AltRight"
+            | "MetaLeft"
+            | "MetaRight"
+            | "CapsLock"
+    )
+}
+
 /// What the operating system lets the app do with the keyboard. macOS asks the person first (Input Monitoring) and can
 /// switch capture off while a password is typed (Secure Input); a Linux Wayland desktop needs the `input` group to read
 /// the keyboards; everywhere else both are fine.
@@ -277,7 +294,9 @@ impl Bus {
     /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
     /// Pause is pressed can never slip through or leave a stuck key behind.
     fn forward(&self, event: KeyEvent) {
-        self.keys_seen.store(true, Ordering::Relaxed);
+        if !is_modifier_code(event.code) {
+            self.keys_seen.store(true, Ordering::Relaxed);
+        }
         let mut held = self.held.lock().unwrap();
         if self.paused.load(Ordering::Relaxed) {
             return;
@@ -295,7 +314,7 @@ impl Bus {
         self.allowed_at_start
     }
 
-    /// Has any key event arrived since the app started? See `keys_seen`.
+    /// Has an ordinary key (not a modifier) arrived since the app started? See `keys_seen`.
     pub fn has_seen_keys(&self) -> bool {
         self.keys_seen.load(Ordering::Relaxed)
     }
@@ -460,6 +479,23 @@ mod tests {
             0,
             "the last page leaving turns it off"
         );
+    }
+
+    #[test]
+    fn a_modifier_alone_does_not_prove_capture_works() {
+        let bus = test_bus();
+        for code in ["ShiftLeft", "ControlRight", "AltLeft", "MetaLeft", "CapsLock"] {
+            bus.forward(KeyEvent { down: true, code });
+        }
+        assert!(
+            !bus.has_seen_keys(),
+            "macOS reports modifiers even to an app that was refused Input Monitoring"
+        );
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyA",
+        });
+        assert!(bus.has_seen_keys());
     }
 
     #[test]

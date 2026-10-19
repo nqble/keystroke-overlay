@@ -32,7 +32,6 @@ import { render } from '../settings.js';
 import { observe } from './keys-history.js';
 import { overlappingCodes } from './keys-board.js';
 import { systemWord } from '../system-words.js';
-import { macFnHintText } from './keys-mac.js';
 import { hideSelection, keysToolbar, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
 import { placeKeys } from '../editor/places.js';
 import { platform, selectedKey, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
@@ -62,17 +61,11 @@ export async function keysTab() {
     el(
       'div',
       { className: 'keys-row' },
-      el('div', { className: 'keys-main' }, editor.element, hintLine(), macFnHint()),
+      el('div', { className: 'keys-main' }, editor.element, hintLine()),
       inspector(layout, profile, overlapping),
     ),
   );
   return page;
-}
-
-/** On a Mac laptop: why the F row needs Fn (keys-mac.js). Nothing on other systems. */
-function macFnHint() {
-  const text = macFnHintText(platform);
-  return text && el('p', { className: 'keyhint', test: 'keys-mac-fn-hint', textContent: text });
 }
 
 /** The switch in the heading row: the keyboard's own shape, or every key one key wide in neat columns. */
@@ -111,7 +104,15 @@ function layoutStyleSwitch(profile) {
 
 /** One line under the editor: how to move keys, and the shortcuts as small key caps. */
 function hintLine() {
-  const chip = (text, tooltip) => el('kbd', { textContent: text, title: tooltip });
+  // One pair is its key caps (several are joined by "or") and the word they mean.
+  const item = (chips, word) => {
+    const parts = chips.flatMap(({ chip, tip }, index) => [
+      index ? el('span', { textContent: 'or' }) : null,
+      el('kbd', { textContent: chip, title: tip }),
+    ]);
+    return el('span', { className: 'hintitem' }, ...parts, el('span', { textContent: word }));
+  };
+  const single = (chip, tip) => [{ chip, tip }];
   return el(
     'p',
     { className: 'keyhint', test: 'keys-shortcut-hint' },
@@ -119,16 +120,11 @@ function hintLine() {
     el(
       'span',
       { className: 'chips' },
-      chip('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key'),
-      ' nudge · ',
-      chip('Shift', 'Hold Shift with an arrow key to move a whole key'),
-      ' whole key · ',
-      chip(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform)),
-      ' hide · ',
-      chip(systemWord('zoomChip', platform), systemWord('zoomTip', platform)),
-      ' zoom · ',
-      chip(systemWord('panChip', platform), systemWord('panTip', platform)),
-      ' pan',
+      item(single('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key'), 'nudge'),
+      item(single('Shift', 'Hold Shift with an arrow key to move a whole key'), 'whole key'),
+      item(single(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform)), 'hide'),
+      item(single(systemWord('zoomChip', platform), systemWord('zoomTip', platform)), 'zoom'),
+      item(systemWord('panHints', platform), 'pan'),
     ),
   );
 }

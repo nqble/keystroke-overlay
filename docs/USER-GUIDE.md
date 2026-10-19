@@ -245,13 +245,13 @@ use updates you can block the app in your firewall and everything else keeps wor
 ## On a Mac
 
 The Mac version needs macOS 11 or newer (the app is built for that), and has only been tried on the newest macOS (26) on one Apple
-Silicon Mac. It is early: you build the app yourself (the steps are in the [README](../README.md#building-from-source)),
-and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
+Silicon Mac. It is early: it is tested on an Apple Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download on the Releases page; you can also build the app yourself (the steps are in the [README](../README.md#building-from-source)). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
 
 - **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
   Launchpad. While the settings window is open, the app also shows in the Dock.
 - **Closing and quitting.** ⌘W, the red button and the yellow button all close the window to the menu bar; the app keeps
-  running. ⌘Q quits it. ⌘, opens Settings.
+  running. ⌘Q quits it.
+- **Opening the download the first time.** The download is signed ad hoc, not notarized, so macOS blocks its first launch. Open it once, then go to System Settings → Privacy & Security and click **Open Anyway** next to Keystroke Overlay. An app you built yourself isn't blocked.
 - **First launch: allow keyboard access.** macOS won't give an app your key presses until you say yes. In the settings
   window, click **Allow keyboard access** (the blue bar under the header). In System Settings → Privacy & Security →
   **Input Monitoring**, switch on Keystroke Overlay. Come back to the app and click **Restart now**. Your keys now light
@@ -259,7 +259,9 @@ and it is tested on an Apple Silicon MacBook Air (M1). The plan and what has bee
 - **After you update or rebuild the app.** macOS ties the permission to the exact build, so a new build needs it again,
   even though the old entry still looks switched on. If keys stop lighting up, clear the old entry in Terminal:
   `tccutil reset ListenEvent com.keyoverlay.app`. Then click **Allow keyboard access** in the app, switch Keystroke
-  Overlay on in the list that opens, and click **Restart now**. (Switching the old entry off and on, or removing it
+  Overlay on in the list that opens, and click **Restart now**. If Keystroke Overlay is not in that list (macOS sometimes
+  leaves it out after the reset), click the **+** under the list, press ⌘⇧G, paste the folder the app is in, choose
+  Keystroke Overlay and switch it on. (Switching the old entry off and on, or removing it
   with the minus button, was not enough in testing.)
 - **The F row.** On a Mac laptop, F1 to F12 only light up while you hold **Fn**. Without it they are brightness and volume
   keys, which macOS doesn't send as F keys.

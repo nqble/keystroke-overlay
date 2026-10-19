@@ -2,7 +2,7 @@
 
 **Verdict: yes, and the best route is to keep Tauri.** Roughly 80% of the app is already cross-platform
 (overlay, settings window, local server, settings storage, tray, updater, autostart). What is Windows-only is key capture (the hook and Raw
-Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`; `process_stats` is now measured on a Mac too, `trim_memory` is a no-op there), and the way the app is packaged and signed.
+Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`; Linux now has both, and on a Mac `process_stats` is measured while `trim_memory` does nothing), and the way the app is packaged and signed.
 
 ## What carries over unchanged
 
@@ -55,9 +55,8 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
 
 1. **Phase 1 — it runs.** Already done: the capture methods sit behind one interface (`Method` in `keyboard/mod.rs`),
    Windows-only crates are gated with `[target.'cfg(windows)'.dependencies]`, and CI builds and tests on `macos-latest` (the
-   `other-systems` job, which is still allowed to fail until its first green run). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
-   release) are written and unit-tested, and seen working on a real Mac. The workflow that builds an unsigned `.app` in CI and attaches it to a release
-   (`mac-app.yml`) is written and has not yet run on GitHub.
+   `other-systems` job, which has passed on macOS; the workflow file still marks it allowed to fail). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
+   release) are written and unit-tested, and seen working on a real Mac. The workflow that builds an ad-hoc signed `.app` in CI (`mac-app.yml`) has run on GitHub: the download it made had a valid ad-hoc signature, was Apple Silicon (arm64) and used the identifier `com.keyoverlay.app`. Attaching it to a release (`release.yml`) has not run yet; that first happens with the v2.0 release.
 2. **Phase 2 — it behaves.** Done and merged into v2.0: a notice under the header (Allow keyboard access / restart / Secure
    Input hint, `ui/settings/keyboard-access.js`), menu-bar app (in the Dock only while the settings window is open) with a monochrome template tray
    icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: the tray icon, the native
@@ -122,15 +121,15 @@ Plan: build a real `.app`, test it, write the README steps. Nothing in this stag
 
 - **A denied app can still start a tap.** After the permission record was reset, macOS's log said "does not allow
   prompting; returning denied", yet the tap started without an error and received no keys, so "no error" does not prove
-  capture works. The window therefore shows the Allow bar while macOS says no and no key has arrived yet (the app
+  capture works. Also seen: an app whose permission no longer matched its build still received the modifier keys (⌃ ⌥ ⌘, Shift, Caps Lock) but none of the ordinary keys, so the overlay lit only the modifiers; the app therefore counts only an ordinary key as proof that capture works. The window shows the Allow bar while macOS says no and no ordinary key has arrived yet (the app
   remembers only that a key arrived, never which). Also seen: a build re-signed as a whole (new identity) lost its
   Input Monitoring permission until the old record was removed and the app allowed again.
 
 - **The permission belongs to one exact build.** macOS's log says "Failed to match existing code requirement" after a
   rebuild: an ad-hoc signed app's identity is its code hash (`designated => cdhash ...`), which changes with every build.
   The old Input Monitoring entry then still looks on but does nothing. What fixed it on the M1: `tccutil reset
-  ListenEvent com.keyoverlay.app`, then Allow keyboard access, switch it on, restart (the app then appears in the list
-  and keys light up). Toggling the old entry, or removing it with the minus button, did not (as far as the test on the M1 showed). So Mac users must re-allow after
+  ListenEvent com.keyoverlay.app`, then Allow keyboard access, switch it on, restart (the app usually then appears in the list and keys light up; once it did not appear even though macOS logged the request, and
+  adding it with the **+** button and the app's folder worked, then Restart now, then keys lit up). Toggling the old entry, or removing it with the minus button, did not (as far as the test on the M1 showed). So Mac users must re-allow after
   every update. Ways around it, none done: a signing certificate that stays the same between builds (a self-signed one
   kept as a secret in CI, or Apple's paid Developer ID), or signing with a rule that matches on the identifier alone,
   which would let any program with the same identifier inherit the keyboard permission, a real weakening for this app.
@@ -192,10 +191,16 @@ connected.
 
 Read from the `auto-launch` crate source (the autostart plugin uses `MacosLauncher::LaunchAgent`): turning it on writes
 `~/Library/LaunchAgents/<app name>.plist` pointing at the running app and its `--autostart` argument; turning it off removes
-that file. Not toggled on the M1 (the control tool could not scroll the General tab down to the switch). To check by hand: open
+that file. Jordan turned it on in the real app: the app then appeared in System Settings under the background items ("Allow in the Background"), not in the "Open at Login" list at the top, which is how macOS lists a LaunchAgent; whether it starts after a real log in was not tried. To check by hand: open
 General, scroll to Startup, turn **Open at login** on, look for the file with `ls ~/Library/LaunchAgents | grep -i keystroke`,
 turn it off, and look again (it should be gone). A login item points at the app's current location, so it breaks if the app is
 moved or rebuilt elsewhere.
+
+## Why there is no Command+, shortcut
+
+A Settings item with Command+, was tried and removed: the app only has a menu bar while its settings window is open (otherwise it
+is a menu-bar app with no menus), and then Command+, could only bring the window that is already open forward, so it looked
+broken. Opening Settings is the menu-bar icon's **Open settings**, or opening the app again from Finder or Launchpad.
 
 ## Bundle and the minimum macOS version
 
@@ -208,8 +213,8 @@ one Apple Silicon Mac has been tried.
 
 Jordan's decisions: Command+Q quits the app; Command+W, the red button and the yellow button all close the settings window to
 the menu bar (the app keeps running, the Dock icon goes away); the green button keeps its default. How it works:
-- `platform::install_app_menu` gives the app its own menu bar while the window is open (the app name menu with Settings…
-  (⌘,), Hide, Hide Others and Quit Keystroke Overlay (⌘Q); Edit, so copy and paste work in the settings fields; Window with
+- `platform::install_app_menu` gives the app its own menu bar while the window is open (the app name menu with Hide, Hide Others and Quit
+  Keystroke Overlay (⌘Q); Edit, so copy and paste work in the settings fields; Window with
   Close Window (⌘W)). Quit has to be our own item: the default one asks the app to exit without a code, which the app
   refuses so that closing the last window leaves it in the tray (`RunEvent::ExitRequested` in `main.rs`).
 - The yellow button: macOS sends no resize event when a window is minimized, so `window.rs` checks 400 ms after the window
@@ -220,7 +225,7 @@ the menu bar (the app keeps running, the Dock icon goes away); the green button 
 - Checked on the M1 with the built app, clicking the real buttons and the menu items (not by pressing keys): Window → Close
   Window, the red button and the yellow button (with the app in front) each close the window, keep the process running and
   hide the Dock icon; opening the app again brings a window back with the same process; Quit ends the process with no helper
-  left. The key presses ⌘W, ⌘Q and ⌘, themselves were not pressed (no way to send keys from here): try them by hand.
+  left. The key presses ⌘W and ⌘Q themselves were not pressed (no way to send keys from here): try them by hand.
   A closed window can still show in tools that list windows as a lingering off-screen window; it is not on screen.
 
 ## Checked on the M1: Secure Input and the update dot

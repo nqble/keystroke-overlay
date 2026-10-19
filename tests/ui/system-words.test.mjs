@@ -50,11 +50,18 @@ test('the Keys tab hint uses Command-click and "delete" on a Mac', () => {
 
 test('the Keys tab view hints say what pans and zooms on each system', () => {
   assert.equal(systemWord('zoomChip', 'macos'), 'Pinch');
-  assert.equal(systemWord('panChip', 'macos'), 'Scroll');
+  assert.deepEqual(
+    systemWord('panHints', 'macos').map((hint) => hint.chip),
+    ['Scroll', 'Space + drag'],
+  );
   assert.equal(systemWord('zoomChip', 'windows'), 'Scroll');
-  assert.equal(systemWord('panChip', 'windows'), 'Space-drag');
-  assert.match(systemWord('panTip', 'macos'), /two fingers/);
-  assert.match(systemWord('panTip', 'windows'), /middle mouse button/);
+  assert.deepEqual(
+    systemWord('panHints', 'windows').map((hint) => hint.chip),
+    ['Space + drag'],
+  );
+  assert.match(systemWord('panHints', 'macos')[0].tip, /two fingers/);
+  assert.match(systemWord('panHints', 'macos')[1].tip, /Space/);
+  assert.match(systemWord('panHints', 'windows')[0].tip, /middle mouse button/);
 });
 
 test('there is no Minimize switch on a Mac, where every close path leaves the window the same way', () => {
