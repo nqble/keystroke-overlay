@@ -4,7 +4,7 @@ Keystroke Overlay shows your key presses on stream, so it has to watch your keyb
 thing for software to do, so this page says **exactly** what the app does with that access, what it never does,
 and how you can check every claim yourself instead of trusting it.
 
-*Applies to v1.1 and later; parts marked with a version apply from that version. Last reviewed: 2026-10-18.*
+*Applies to v1.1 and later; parts marked with a version apply from that version. Last reviewed: 2026-10-19.*
 
 ## The short version
 

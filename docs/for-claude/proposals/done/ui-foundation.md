@@ -1,6 +1,6 @@
 # Plan: UI foundation (in progress, from the Advisory Session)
 
-Status: **Done on `v1.4.0-dev`** (2026-10-17). Steps 1 to 7 are in: test hooks, screenshot
+Status: **Done in v1.4.0** (2026-10-17). Steps 1 to 7 are in: test hooks, screenshot
 baselines (now also the overlay in every built-in theme), design tokens, shared building blocks, looks moved to CSS (a style check
 now keeps inline styles out of the scripts), and the UI rules in CLAUDE.md. The old key picture (`keys-map.js`), the last place that set inline styles, was replaced by
 the new editor (M4.1), which sets only CSS variables, so no file is exempt any more apart from the Debug tab.

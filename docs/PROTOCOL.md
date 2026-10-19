@@ -1,7 +1,7 @@
 # The local overlay protocol
 
 What the app's built-in web server speaks. This is the contract between the app and the overlay page, and the thing any
-other tool (or a future port) can rely on. Documented as of app v1.3.0 (unchanged on v1.4.0-dev). There is **no version field on the wire yet**; treat this page as protocol "1". Additive
+other tool (or a future port) can rely on. Documented as of app v1.3.0 (unchanged in v1.4.0). There is **no version field on the wire yet**; treat this page as protocol "1". Additive
 changes (a new message type or field) keep it; anything that would break an existing client needs a decision record first.
 
 > Read-only by design: clients receive key state and settings. Nothing a client sends changes the app.

@@ -17,7 +17,7 @@ keystroke-overlay/
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licenses for the installer), changelog-section.mjs (release notes + their format check),
-│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-systems.mjs (settings-window text must not name Windows-only things), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
+│                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links, spelling and names) with its word list in word-rules.mjs, check-systems.mjs (settings-window text must not name Windows-only things), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
 │                       ui-sandbox.mjs + sandbox/ (the settings window in a browser, docs/DEBUGGING.md), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app
@@ -79,7 +79,7 @@ keystroke-overlay/
         ├── vendor/        Preact and htm, copied by tools/vendor.mjs, pinned and fingerprint-checked (never edit)
         ├── controls.js    CONTROLS: the table that draws every slider, color picker and dropdown
         ├── preview.js     saving a change, the live preview, the OBS address bar
-        ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
+        ├── profiles.js    per-layout key edits: hidden keys, labels, moved and resized keys; the snap helpers
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
         ├── dialogs.js     New layout and Reset all settings, built on popup.js
         ├── first-run.js   the first run setup screen (new installs; General → First run setup opens it again)

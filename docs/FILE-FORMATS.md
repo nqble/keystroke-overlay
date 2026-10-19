@@ -19,7 +19,7 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
                "debugMode": false, "lastSeenVersion": "" },
   "layout": { "id": "tkl",
               "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } },   // see "Key edits" below
-              "editor": { "snap": 0.25, "grid": false },   // the Keys tab's choices, see below
+              "editor": { "snap": 0.25, "grid": false, "showHidden": true },   // the Keys tab's choices, see below
               "order": ["full", "tkl", "gameplay", "wasd"] },   // the built-in layouts the Layout tab shows, in order (your own always show)
   "style": { "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff", "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff",
              "borderWidth": 2, "radius": 8, "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
@@ -54,10 +54,10 @@ entries that are not finite numbers are dropped, positions are limited to −100
 written (so older settings files stay small). Files saved by version 2 kept `positions` directly on the profile; version 3 moves
 them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
 
-**`layout.editor` (since v1.3.0).** The Keys tab remembers two choices between sessions: `snap`, how far a
+**`layout.editor` (since v1.3.0; `showHidden` since v1.4.0).** The Keys tab remembers three choices between sessions: `snap`, how far a
 dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1` are accepted), and `grid`, whether the faint
-grid dots are shown (`true` or `false`). Anything else, or a settings file saved before these existed, gets the defaults
-(`0.25` and `false`). The overlay ignores them.
+grid dots are shown (`true` or `false`), and `showHidden`, whether keys you turned off are still shown dimmed on the board (`true` or `false`). Anything else, or a settings file saved before these existed, gets the defaults
+(`0.25`, `false` and `true`). The overlay ignores them.
 
 The port must be a whole number from 1024 to 65535, or it goes back to 7878. Other numbers are clamped to these ranges on
 load: borderWidth 0–20, radius 0–100, fontSize 0–120,
