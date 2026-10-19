@@ -4,7 +4,7 @@
 use super::*;
 
 #[cfg(test)]
-mod tests {
+mod load_and_save_tests {
     use super::*;
     use crate::sanitize::*;
     #[test]
