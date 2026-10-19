@@ -2,7 +2,7 @@
 
 **Verdict: yes, and the best route is to keep Tauri.** Roughly 80% of the app is already cross-platform
 (overlay, settings window, local server, settings storage, tray, updater, autostart). What is Windows-only is key capture (the hook and Raw
-Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`; `process_stats` is now measured on a Mac too, `trim_memory` is a no-op there), and the way the app is packaged and signed.
+Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`; Linux now has both, and on a Mac `process_stats` is measured while `trim_memory` does nothing), and the way the app is packaged and signed.
 
 ## What carries over unchanged
 
@@ -55,9 +55,8 @@ Everything is already prepared: OS-specific calls are isolated in `platform.rs`,
 
 1. **Phase 1 — it runs.** Already done: the capture methods sit behind one interface (`Method` in `keyboard/mod.rs`),
    Windows-only crates are gated with `[target.'cfg(windows)'.dependencies]`, and CI builds and tests on `macos-latest` (the
-   `other-systems` job, which is still allowed to fail until its first green run). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
-   release) are written and unit-tested, and seen working on a real Mac. The workflow that builds an unsigned `.app` in CI and attaches it to a release
-   (`mac-app.yml`) is written and has not yet run on GitHub.
+   `other-systems` job, which has passed on macOS; the workflow file still marks it allowed to fail). `keyboard/macos.rs` (listen-only CGEventTap) and `keyboard/macos_keys.rs` (key-code map, repeat filter, stuck-key
+   release) are written and unit-tested, and seen working on a real Mac. The workflow that builds an ad-hoc signed `.app` in CI (`mac-app.yml`) has run on GitHub: the download it made had a valid ad-hoc signature, was Apple Silicon (arm64) and used the identifier `com.keyoverlay.app`. Attaching it to a release (`release.yml`) has not run yet; that first happens with the v2.0 release.
 2. **Phase 2 — it behaves.** Done and merged into v2.0: a notice under the header (Allow keyboard access / restart / Secure
    Input hint, `ui/settings/keyboard-access.js`), menu-bar app (in the Dock only while the settings window is open) with a monochrome template tray
    icon, and a native window frame (real red/yellow/green buttons, rounded corners). Seen on a Mac: the tray icon, the native
