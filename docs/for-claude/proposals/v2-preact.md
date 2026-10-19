@@ -41,8 +41,8 @@ a build step.
 - **The privacy check** gets one narrow rule for `ui/settings/vendor/`: these files are checked against VENDOR.json instead of the
   line-by-line UI rules (minified library code contains strings like `http://www.w3.org` that are not requests). Every other
   UI file keeps the existing rules, and no code outside `ui/settings/vendor/` may import from a URL.
-- **Licences:** Preact is MIT, htm is Apache-2.0 (both permissive and fine for this MIT project). Both require their
-  licence text to ship with the code, so `tools/vendor.mjs` copies each `LICENSE` next to it, and
+- **Licenses:** Preact is MIT, htm is Apache-2.0 (both permissive and fine for this MIT project). Both require their
+  license text to ship with the code, so `tools/vendor.mjs` copies each `LICENSE` next to it, and
   `ui/settings/vendor/LICENSES.md` lists them.
 
 ## CLAUDE.md change (applied with step 1, after Jordan approves)
@@ -68,7 +68,7 @@ library."
 
 1. **Vendor the libraries.** `tools/vendor.mjs`, `ui/settings/vendor/` with VENDOR.json and LICENSES.md, the hash test, the
    privacy-check rule, `ui/settings/html.js`, CLAUDE.md and ARCHITECTURE.md updated. No screen uses it yet.
-2. **Trial on one small screen: the header** (status, Copy OBS link, Update ready). It is small, already built for v2.0
+2. **Trial on one small screen: the header** (status, Copy OBS URL, Update ready). It is small, already built for v2.0
    and well covered by tests. Before and after: the same `data-test` hooks pass the e2e suite, the screenshots match, and
    window open time and memory are measured (`tests/bench/run.mjs`). **Jordan reviews this step** before the rest goes
    ahead; if Preact doesn't earn its place here, we stop and revert it.
@@ -84,13 +84,13 @@ library."
 
 ## Step 2 results (the header trial)
 
-The header's status, Copy OBS link and Update ready are one Preact component (`ui/settings/header.js`); `paintHeader()`
+The header's status, Copy OBS URL and Update ready are one Preact component (`ui/settings/header.js`); `paintHeader()`
 replaced the hand-written updates in messages.js, preview.js and update-popup.js. Measured in the UI sandbox (headless
 Chromium; to confirm on Windows with `tests/bench/run.mjs`):
 
 - **Looks:** 6 of 8 states pixel-identical; in the other 2, 15–18 pixels on the status pill's rounded edge differ by one
   shade out of 255 (anti-aliasing rounding, invisible). Same text, classes, test hooks and screen-reader names in all 8.
-- **Behaviour:** 14 checks pass (status opens General, copying copies and clears "link changed", the arrow waits 150 ms,
+- **Behavior:** 14 checks pass (status opens General, copying copies and clears "link changed", the arrow waits 150 ms,
   ignores a pass-over, always finishes, starts at once on keyboard focus, the chip opens the popup and focus returns on Esc).
 - **Open time:** median about 79 ms before, 89 ms after (+10 ms, three runs of 30 each); preloading the library didn't help.
   A one-time cost: more Preact screens don't add to it.

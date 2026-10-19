@@ -21,7 +21,7 @@ test('paused wins, and still says when OBS is not connected', () => {
 test('a changed link is red until it is copied, but pause still wins', () => {
   assert.deepEqual(obsStatus({ paused: false, overlays: 0, linkChanged: true }), {
     kind: 'bad',
-    text: 'OBS link changed: copy it again',
+    text: 'OBS URL changed: copy it again',
   });
   assert.equal(obsStatus({ paused: true, overlays: 0, linkChanged: true }).kind, 'paused');
 });
@@ -41,7 +41,7 @@ test('debug detail gives the exact count', () => {
   assert.equal(obsStatusDetail(true, 2), '2 overlay clients · paused: yes');
 });
 
-test('Copy OBS link is always in the header (ui-design-v2.md, Header)', () => {
+test('Copy OBS URL is always in the header (ui-design-v2.md, Header)', () => {
   // header.js draws it (Preact); its button must never be hidden or drawn only under a condition
   const header = readFileSync(new URL('../../ui/settings/header.js', import.meta.url), 'utf8');
   const copyButton = header.match(/<button id="copyUrl"[^>]*>/)[0];

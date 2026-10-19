@@ -197,7 +197,7 @@ function seventyFive() {
   return [...top, ...moveBy(sixtyFive(), 0, 1.25)];
 }
 
-/** 96%: the 75% layout with a number pad attached on the right (no gap), Home taking the Insert spot's neighbour. */
+/** 96%: the 75% layout with a number pad attached on the right (no gap), Home taking the Insert spot's neighbor. */
 function ninetySix() {
   const pad = moveBy(numpad(), 16 - 18.5, 1.25 - 1.5);
   return [...seventyFive(), K('Home', 'Home', 14, 0), ...pad];

@@ -89,8 +89,8 @@ jobs:
       - name: Build the app
         run: node tools/release.mjs --stage app
 
-      # The licences of the libraries inside the app, which go with the installer (docs/RELEASING.md). Stops the
-      # release if a library uses a licence not accepted in src-tauri/about.toml.
+      # The licenses of the libraries inside the app, which go with the installer (docs/RELEASING.md). Stops the
+      # release if a library uses a license not accepted in src-tauri/about.toml.
       - name: Write the third-party notices
         shell: bash
         run: |

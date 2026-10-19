@@ -49,7 +49,7 @@ when chosen), and keeps each style's edits under `styles`:
 ```
 
 Only keys the user moved or resized are listed; every other key stays where, and as wide as, the layout style puts it. On load,
-entries that are not finite numbers are dropped, positions are limited to −100 to 100 (a key may sit left of or above the layout's own origin, so the Keys tab can centre the layout on its board) and widths and heights to 0.25–100, values are rounded to
+entries that are not finite numbers are dropped, positions are limited to −100 to 100 (a key may sit left of or above the layout's own origin, so the Keys tab can center the layout on its board) and widths and heights to 0.25–100, values are rounded to
 2 decimals, at most 300 keys are kept per list, an unknown `layoutStyle` means `"shape"`, and parts with nothing in them are not
 written (so older settings files stay small). Files saved by version 2 kept `positions` directly on the profile; version 3 moves
 them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
@@ -62,7 +62,7 @@ grid dots are shown (`true` or `false`). Anything else, or a settings file saved
 The port must be a whole number from 1024 to 65535, or it goes back to 7878. Other numbers are clamped to these ranges on
 load: borderWidth 0–20, radius 0–100, fontSize 0–120,
 fontWeight 100–900, glowSize 0–100, keySize 16–200, gap 0–60, scale 0.2–4, opacity 0–1, animation speed 0–2000,
-intensity 0–4. Colours are `#rrggbb` or `#rrggbbaa`. Text with a fixed set of choices (input method, update channel, key labels, the
+intensity 0–4. Colors are `#rrggbb` or `#rrggbbaa`. Text with a fixed set of choices (input method, update channel, key labels, the
 pause shortcut, ...) goes back to its default when it isn't one of them; unknown keys are removed. Wrong types fall back to
 the default.
 

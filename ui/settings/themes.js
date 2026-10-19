@@ -10,7 +10,7 @@ export function themeMatches(theme, style) {
 }
 
 /**
- * The CSS variables (blocks.css, .theme-key) for one sample key of a theme: its colours, border and corners as the
+ * The CSS variables (blocks.css, .theme-key) for one sample key of a theme: its colors, border and corners as the
  * theme sets them. `pressed` draws the key while it is held.
  */
 export function themeKeyVars(style, pressed) {

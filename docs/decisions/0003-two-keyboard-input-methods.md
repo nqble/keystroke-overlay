@@ -14,7 +14,7 @@ Two interchangeable methods feed the same pipeline (repeat filtering, stuck-key 
 Switching is live, with no restart, and a key held during a switch is released rather than left stuck.
 
 ## Why
-- One method cannot cover every game, and users cannot diagnose anti-cheat behaviour themselves, so a visible switch is the
+- One method cannot cover every game, and users cannot diagnose anti-cheat behavior themselves, so a visible switch is the
   honest answer.
 - Both methods measured the same on CPU use, so Standard stays the default because it is the one proven in the field.
 

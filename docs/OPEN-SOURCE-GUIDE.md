@@ -38,9 +38,10 @@ Because the repo already has your placeholder README, GitHub Desktop may ask you
 1. **Security → Private vulnerability reporting → Enable.** (So people can report problems privately.)
 2. **General → Features:** make sure **Issues** is ticked. Add a short **description** and **topics** (like `obs`, `keystroke`, `streaming`, `tauri`) in the "About" box on the main page.
 3. **Actions tab:** confirm the "CI" checks ran green after the upload.
-4. **For one-click releases** (see section 5): *Settings → Secrets and variables → Actions → New repository secret* named
-   `TAURI_SIGNING_PRIVATE_KEY`, value = the full text of your `updater.key` file. Optional safety: *Settings → Environments →
-   New environment* named `release` → tick **Required reviewers** and add yourself, so every release needs your approval click.
+4. **For one-click releases** (see section 5): *Settings → Environments → New environment* named `release` → tick
+   **Required reviewers** and add yourself, so every release needs your approval click. Add both signing secrets to that
+   environment (not as repository secrets): `TAURI_SIGNING_PRIVATE_KEY`, the full text of your `updater.key` file, and
+   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. The commands are in [RELEASING.md](RELEASING.md), "Signing key password".
 5. Optional: *Settings → Branches → Add rule* for `main`: require the CI checks to pass before changes are merged.
 
 ## 4. Day to day
@@ -75,7 +76,7 @@ On a computer (the sure way):
 1. Open **github.com/nqble/keystroke-overlay**.
 2. Click the **Actions** tab (a row of tabs near the top: Code, Issues, Pull requests, **Actions**, …).
 3. In the list on the left, click **Release**.
-4. You'll see a grey bar with a **Run workflow** button on the right. Click it.
+4. You'll see a gray bar with a **Run workflow** button on the right. Click it.
 5. A small form opens. Type the version you're releasing (for example `1.2.0`). This is a safety check: it must match the version inside the app, or nothing happens.
 6. Click the green **Run workflow** button in the form.
 

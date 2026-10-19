@@ -16,7 +16,7 @@ keystroke-overlay/
 ├── assets/             logo/: the logo as SVG (app, devbuild, tray); the app's icons are made from it
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
-├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
+├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licenses for the installer), changelog-section.mjs (release notes + their format check),
 │                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-systems.mjs (settings-window text must not name Windows-only things), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
 │                       ui-sandbox.mjs + sandbox/ (the settings window in a browser, docs/DEBUGGING.md), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
@@ -77,7 +77,7 @@ keystroke-overlay/
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
         ├── html.js        Preact with htm for new screens (html.d.ts: its types); the libraries are copies in vendor/
         ├── vendor/        Preact and htm, copied by tools/vendor.mjs, pinned and fingerprint-checked (never edit)
-        ├── controls.js    CONTROLS: the table that draws every slider, colour picker and dropdown
+        ├── controls.js    CONTROLS: the table that draws every slider, color picker and dropdown
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
@@ -94,7 +94,7 @@ keystroke-overlay/
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)
         ├── pause-button.js  the round pause button on the live preview (same switch as the tray)
         ├── scroll-fade.js   the soft fade at the edges of every scrolling area
-        ├── header.js      the header's status, Copy OBS link and Update ready, drawn with Preact (paintHeader)
+        ├── header.js      the header's status, Copy OBS URL and Update ready, drawn with Preact (paintHeader)
         ├── windowbar.js   the window's own minimize / maximize / close buttons
         ├── keyboard-access.js  macOS: the notice that asks for keyboard access (logic in access-notice.js)
         ├── shortcut.js    the pause shortcut's text: a key press -> "Ctrl+Shift+KeyP" and back to a friendly name (tested)

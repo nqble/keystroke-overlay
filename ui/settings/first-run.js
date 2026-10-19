@@ -16,7 +16,7 @@ const WORDS = {
   subtitle: 'Three steps. Close this any time.',
   close: 'Close first run setup',
   copyStep: 'Copy the link',
-  copy: 'Copy OBS link',
+  copy: 'Copy OBS URL',
   sourceStep: 'Add a Browser source',
   sourceHow: 'In OBS: Sources → + → Browser',
   sizeStep: 'Paste and size it',

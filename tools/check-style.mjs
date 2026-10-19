@@ -1,5 +1,5 @@
 // Basic code-style check (runs in CI): no tab characters, no trailing spaces, and every file ends with a newline.
-// Also: the settings window's stylesheet may only write colours inside its :root block (the design tokens), and may not
+// Also: the settings window's stylesheet may only write colors inside its :root block (the design tokens), and may not
 // use scrollbar-width / scrollbar-color (in WebView2 they swap the shared scrollbar for the system one, arrows included).
 // It checks only things every editor can get right, so it never fights with anyone's formatter.
 //   node tools/check-style.mjs
@@ -44,7 +44,7 @@ function checkJsStyles(file, text) {
   });
 }
 
-/** In the settings stylesheet a colour (#hex, rgb(), rgba()) is allowed only inside the :root block of design tokens. */
+/** In the settings stylesheet a color (#hex, rgb(), rgba()) is allowed only inside the :root block of design tokens. */
 function checkTokens(file, text) {
   // blank out comments (keeping the line breaks, so line numbers stay right) and the :root block
   const blank = (part) => part.replace(/[^\n]/g, ' ');
@@ -56,8 +56,8 @@ function checkTokens(file, text) {
     blank(withoutComments.slice(Math.max(rootStart, 0), rootEnd)) +
     withoutComments.slice(rootEnd);
   outside.split('\n').forEach((line, i) => {
-    const colour = line.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/);
-    if (colour) problems.push(`${file}:${i + 1}: raw colour ${colour[0]} outside :root (use a design token)`);
+    const color = line.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/);
+    if (color) problems.push(`${file}:${i + 1}: raw color ${color[0]} outside :root (use a design token)`);
     if (/\bscrollbar-(width|color)\s*:/.test(line)) {
       problems.push(`${file}:${i + 1}: scrollbar-width/-color replace the shared scrollbar (see ::-webkit-scrollbar)`);
     }

@@ -1,5 +1,5 @@
 /* Overlay styles. Everything that animates is transform or opacity only.
-   Colours/sizes come from CSS variables set by overlay.js from the settings. */
+   Colors/sizes come from CSS variables set by overlay.js from the settings. */
 html,
 body {
   margin: 0;

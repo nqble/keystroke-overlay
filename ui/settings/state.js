@@ -15,7 +15,7 @@ export let selectedKeys = new Set(); // the keys selected in the Keys tab (by ke
 export let selectedKey = null; // the one selected key, or null when none or several are selected (the editor shows it)
 export let booted = false; // true once the first screen is drawn
 export let serverError = null; // why the overlay server couldn't start (e.g. the port is in use), or null
-export let linkChanged = false; // the OBS link changed (new port or key) and hasn't been copied since
+export let linkChanged = false; // the OBS URL changed (new port or key) and hasn't been copied since
 export let obsUrl = ''; // the OBS Browser Source address (it carries ?key=... when the secure link is on)
 export let size = null; // the overlay's recommended size, reported by the live preview: { w, h }
 export let appVersion = ''; // the version of the running app

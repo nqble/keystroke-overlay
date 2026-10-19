@@ -118,7 +118,7 @@ export function GalleryCard({ title, detail = '', selected, onSelect, menu = nul
 
 /**
  * The "⋯" button that opens a small menu (menu.js) just below itself. items: [{ label, run?, danger?, disabled? }]. With
- * `text` it is a labelled button instead (a tab's "Reset ▾").
+ * `text` it is a labeled button instead (a tab's "Reset ▾").
  */
 export function MenuButton({ label, items, test = '', text = '' }) {
   const openMenu = (clickEvent) => {

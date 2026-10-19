@@ -51,7 +51,7 @@ export function clampView(state, view, content, overscan = 0) {
   };
 }
 
-/** The board centred in the box at `zoom` (100% by default): the starting view, and what clicking "100%" gives. */
+/** The board centered in the box at `zoom` (100% by default): the starting view, and what clicking "100%" gives. */
 export function centredView(view, content, zoom = 1, overscan = 0) {
   const fitted = Math.max(zoom, coverZoom(view, content));
   return clampView(

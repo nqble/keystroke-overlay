@@ -43,7 +43,7 @@ export function movedPositions(boxes, dx, dy) {
 export const ALIGNMENTS = ['left', 'center', 'right', 'top', 'middle', 'bottom'];
 
 /**
- * Line the boxes up with an edge or the centre of the group (`ALIGNMENTS`). Only one direction changes: left, center
+ * Line the boxes up with an edge or the center of the group (`ALIGNMENTS`). Only one direction changes: left, center
  * and right change x; top, middle and bottom change y. Returns { code: { x, y } } for every box.
  */
 export function alignPositions(boxes, alignment) {
@@ -63,7 +63,7 @@ export function alignPositions(boxes, alignment) {
 }
 
 /**
- * Spread the boxes out so the gaps between neighbouring keys are equal along one direction ('across' or 'down'). The
+ * Spread the boxes out so the gaps between neighboring keys are equal along one direction ('across' or 'down'). The
  * first and last key stay where they are. Needs three or more boxes; with fewer, nothing moves.
  */
 export function distributePositions(boxes, direction) {

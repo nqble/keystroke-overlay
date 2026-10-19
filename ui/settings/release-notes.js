@@ -1,12 +1,12 @@
 // =====================================================================================================================
 //  The release notes' sections: the one list both the app and the release check use (docs/RELEASING.md, "Release
-//  notes format"). notes.js colours each section when it shows the notes; tools/changelog-section.mjs refuses a
+//  notes format"). notes.js colors each section when it shows the notes; tools/changelog-section.mjs refuses a
 //  CHANGELOG entry that uses another heading or the wrong order. Plain logic, so tests/ui can run it with Node.
 // =====================================================================================================================
 
 /**
- * Every section a release may have, in the order they must appear. `kind` picks the colour in popups.css
- * (.notes-new, .notes-improved, ...). To add a section: add it here, give it a colour token in settings.css, and
+ * Every section a release may have, in the order they must appear. `kind` picks the color in popups.css
+ * (.notes-new, .notes-improved, ...). To add a section: add it here, give it a color token in settings.css, and
  * describe it in docs/RELEASING.md.
  */
 export const NOTE_SECTIONS = [
@@ -17,7 +17,7 @@ export const NOTE_SECTIONS = [
   { kind: 'hood', icon: '🧰', name: 'Under the hood' },
 ];
 
-// Emoji may carry an invisible "show as colour emoji" mark (U+FE0F) or not; both mean the same icon.
+// Emoji may carry an invisible "show as color emoji" mark (U+FE0F) or not; both mean the same icon.
 const plain = (text) => text.replace(/️/g, '').trim();
 
 /**
@@ -31,7 +31,7 @@ export function sectionOf(headingText) {
 
 /**
  * The heading text if this line is a section heading, else null. Accepts "### ✨ New" (the format from v1.4.0) and the
- * older bold line "**✨ New**" that published releases up to v1.3.0 use, so their notes are coloured too.
+ * older bold line "**✨ New**" that published releases up to v1.3.0 use, so their notes are colored too.
  */
 export function headingOf(line) {
   const markdownHeading = /^#{1,6}\s+(.*)$/.exec(line.trim());

@@ -11,7 +11,7 @@ const TEXT = {
   paused: '⏸ Paused',
   pausedNoObs: '⏸ Paused · OBS not connected',
   noObs: '○ Not connected to OBS',
-  linkChanged: 'OBS link changed: copy it again',
+  linkChanged: 'OBS URL changed: copy it again',
   serverProblem: '⚠ Port in use',
   debug: (overlays, paused) =>
     `${overlays} overlay ${overlays === 1 ? 'client' : 'clients'} · paused: ${paused ? 'yes' : 'no'}`,
@@ -19,7 +19,7 @@ const TEXT = {
 
 /**
  * What the status shows, from the facts the window knows: { paused, overlays, serverError, linkChanged }.
- * `kind` picks the colour in header.css (.obs-status.live / .paused / .off / .bad). The order matters:
+ * `kind` picks the color in header.css (.obs-status.live / .paused / .off / .bad). The order matters:
  *   1. a server that couldn't start: nothing works until it is fixed;
  *   2. paused: the one the streamer chose;
  *   3. a changed link: OBS still has the old one, so it can't connect until the new one is copied;

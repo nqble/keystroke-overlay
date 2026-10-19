@@ -149,7 +149,7 @@
     get_release_notes: () => ({ body: SHOWN_NOTES }),
     auto_check_update: () => (chosen.update ? UPDATE : NO_UPDATE),
     check_update: () => (chosen.update ? UPDATE : NO_UPDATE),
-    // The tray can't be seen here, so the sandbox draws a stand-in: a grey square, with the orange dot while a fake
+    // The tray can't be seen here, so the sandbox draws a stand-in: a gray square, with the orange dot while a fake
     // update is showing (the real picture comes from tray.rs indicator_state).
     debug_simulate_update: ({ on }) => {
       fakeUpdate = on;

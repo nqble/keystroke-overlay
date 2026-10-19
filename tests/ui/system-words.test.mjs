@@ -24,7 +24,7 @@ test('only Windows offers the Compatibility input method', () => {
   assert.deepEqual(inputMethods('windows'), ['hook', 'rawinput']);
   assert.deepEqual(inputMethods('macos'), ['hook']);
   assert.deepEqual(inputMethods('linux'), ['hook']);
-  assert.deepEqual(inputMethods(undefined), ['hook', 'rawinput'], 'unknown: the original behaviour');
+  assert.deepEqual(inputMethods(undefined), ['hook', 'rawinput'], 'unknown: the original behavior');
 });
 
 test("the Startup switches use each system's own words", () => {

@@ -212,7 +212,7 @@ await p.ev(
   `const box = ${boardCard}.getBoundingClientRect(); ${boardCard}.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + 20, clientY: box.top + 20 }))`,
 );
 await sleep(300);
-// the card is last, so its menu is Move left, Move right (off), Delete…: one step down skips the greyed-out item
+// the card is last, so its menu is Move left, Move right (off), Delete…: one step down skips the grayed-out item
 await pressKey('ArrowDown', 'ArrowDown', 40);
 await pressKey('Enter', 'Enter', 13);
 await sleep(300);

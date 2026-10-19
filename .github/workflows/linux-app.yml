@@ -35,7 +35,7 @@ jobs:
       - name: Privacy promises (see PRIVACY.md)
         run: npm run check:privacy
 
-      # The licences of the libraries inside the Linux app, which go with it. Stops the build if a library uses a licence
+      # The licenses of the libraries inside the Linux app, which go with it. Stops the build if a library uses a license
       # not accepted in src-tauri/about.toml.
       - name: Write the third-party notices
         run: |

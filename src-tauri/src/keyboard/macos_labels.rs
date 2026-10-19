@@ -92,7 +92,7 @@ pub fn watch(on_change: Box<dyn Fn() + Send + Sync>) {
     if ON_LAYOUT_CHANGE.set(on_change).is_err() {
         return;
     }
-    // SAFETY: the distributed centre is the system's own and lives for the whole run; the callback is a plain function
+    // SAFETY: the distributed center is the system's own and lives for the whole run; the callback is a plain function
     // that never unwinds; the notification name is the system's own constant string.
     unsafe {
         CFNotificationCenterAddObserver(

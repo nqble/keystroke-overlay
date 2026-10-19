@@ -7,7 +7,7 @@ test('a box of exactly the suggested size changes nothing', () => {
   assert.deepEqual(fitInBox({ w: 800, h: 300 }, { w: 800, h: 300 }), { fit: 1, x: 0, y: 0 });
 });
 
-test('a bigger box grows the keyboard to fill it, centred', () => {
+test('a bigger box grows the keyboard to fill it, centered', () => {
   assert.deepEqual(fitInBox({ w: 800, h: 300 }, { w: 1600, h: 900 }), { fit: 2, x: 0, y: 150 });
 });
 

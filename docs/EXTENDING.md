@@ -1,6 +1,6 @@
 # Extending the overlay
 
-The easy ways to add something, smallest first. None needs a build step. Why customisation is limited to these data files
+The easy ways to add something, smallest first. None needs a build step. Why customization is limited to these data files
 and not a general plugin system: [decision 0006](decisions/0006-layouts-themes-animations-are-data-files.md).
 
 ## 1. A layout
@@ -69,14 +69,14 @@ when it takes more than one, a check or test catches a forgotten one.
 | Words the user reads | the `TEXT` block of the file that shows them (shared ones: `ui/settings/text.js`) | 1 |
 | Words that differ per system (Windows / Mac / Linux) | one entry in `ui/settings/system-words.js` (`npm run check:systems` catches a Windows word left elsewhere) | 1 |
 | The look of one part of the window | its own CSS file next to `settings.css` (`header.css`, `popups.css`, ...; a new part gets a new file and a `<link>` in `index.html`) | 1–2 |
-| A colour, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colours) | 1 |
+| A color, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colors) | 1 |
 | A header status | one rule in `obsStatus()`, `ui/settings/obs-status.js`, plus its test | 1 |
 | A new screen or part of one | a Preact component using `html` from `ui/settings/html.js` (docs/for-claude/proposals/v2-preact.md); plain logic in its own tested function | 1 |
 | A popup | `dialog()` in `ui/settings/popup.js` (focus, Esc, Enter and size come with it) | 1 |
 | A scrolling area | the class `scroll-fade` on it (the fade and the shared scrollbar come with it; docs/design/ui-design-v2.md, Scrolling) | 1 |
 | A Debug tool | a file in `ui/settings/debug/` and its name in `SECTIONS` in `debug/index.js` | 2 |
 | A UI sandbox state | one line in `STATES` and one in the `?state=` list at the top of `tools/sandbox/fake-app.js` | 2 |
-| A release-note section | `NOTE_SECTIONS` in `ui/settings/release-notes.js`, a colour token, a `.notes-<kind>` rule in `popups.css`, a row in RELEASING.md (the release check refuses unknown sections) | 4 |
+| A release-note section | `NOTE_SECTIONS` in `ui/settings/release-notes.js`, a color token, a `.notes-<kind>` rule in `popups.css`, a row in RELEASING.md (the release check refuses unknown sections) | 4 |
 | A setting | section 4 above (a Rust test catches a missing sandbox copy) | 3 |
 | A tab | its file in `ui/settings/tabs/` plus one line in `ui/settings/tabs/index.js` (order, name, Debug-only); `tests/ui/tabs.test.mjs` checks the line | 2 |
 

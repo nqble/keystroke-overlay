@@ -45,7 +45,7 @@ test('clampView springs a stretched view back to the edge', () => {
   assert.deepEqual(clampView({ zoom: 1, panX: 30, panY: -250 }, VIEW, CONTENT), { zoom: 1, panX: 0, panY: -200 });
 });
 
-test('centredView centres the board at 100%', () => {
+test('centredView centers the board at 100%', () => {
   assert.deepEqual(centredView(VIEW, CONTENT), { zoom: 1, panX: -100, panY: -100 });
 });
 
