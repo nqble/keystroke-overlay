@@ -16,7 +16,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 - Formatting, file headers and descriptive names are already in good shape almost everywhere. The renames are done
   (no `S`, `reg`, `selKey` or `upProg` left).
-- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **six files over ~400 lines** (re-checked 2026-10-19: `settings.rs` 1133, `assets.rs` 570, `server.rs` 491, `popups.js` 536, `debug.js` 656,
+- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **six files over ~400 lines** (re-checked 2026-10-19: `settings/tests.rs` 862, `assets.rs` 570, `server.rs` 491, `popups.js` 536, `debug.js` 656,
   and the e2e suite `keys-editor.mjs` 1379),
   **user-facing text still inline** in a few UI files (about 33 long strings), and **unnamed numbers** (mostly sleeps and
   timings in Rust, and timings in the settings UI).
@@ -59,6 +59,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 | `tests/e2e/lib/cdp.mjs` | `connect` 103 lines. 12 one-letter names. | Split (launch, wait for target, message plumbing). Rename. | medium | good (every e2e uses it) |
 | `tests/e2e/run.mjs` | `main` 93 lines. | Split (build, start, run suites, clean up). | medium | good |
 | `tests/lib/lock.mjs` | `acquire` 87 lines. | Split (try, wait, stale-lock check). | medium | weak: add a unit test for the stale-lock rule first |
+| `tools/dev-debug.mjs` | **Fixed 2026-10-19:** `npm run dev:debug` failed on Windows (the `--config` JSON lost its quotes under the shell); the argument is now stringified twice so it survives. | none | low | checked by hand |
 | `tools/devbuild.mjs` | `verifyBuild` 82 lines. 3 lines with several statements. 7 one-letter names. | Split and rename. | low | weak: manual tool; check by running `npm run devbuild` once |
 | `tools/gen-layouts.mjs` | `main` 71 lines. | Split per layout step. | low | weak: compare generated files before and after |
 | `tests/bench/run.mjs`, e2e suites | Many one-letter names (`t`, `s`, `r`, …) in test code. | Rename while touching each file ("leave it cleaner"). Not urgent. | low | n/a |
@@ -67,12 +68,12 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 | File | Findings | Fix | Risk | Coverage |
 |---|---|---|---|---|
-| `main.rs` (179) | `main` is 143 lines. | Split into named setup steps (state, server, keyboard, tray, updater, window events). Keep the order exactly. | medium | good (smoke e2e starts the app) |
-| `settings.rs` (1133, the checker now in `sanitize.rs` 332) | The sanitizer was split out (done, byte-identical output proven on 20,000 random files). The tests still make `settings.rs` long. | Optionally move the tests to `settings/tests.rs`. | low | good (many unit tests) |
+| `main.rs` (211) | **Done 2026-10-19:** `main` was 143 lines; it is now short, and the start-up steps are named functions in the same order (`start_async_runtime`, `start_app`, `load_settings`, `start_event_log`, `make_shared`, `open_window_at_launch`). | none | medium | good (smoke e2e starts the app) |
+| `settings.rs` (278) | **Done 2026-10-19:** the unit tests moved to `settings/tests.rs` (862 lines); the sanitizer was split out earlier into `sanitize.rs` (332). | none | low | good (many unit tests) |
 | `commands/assets.rs` (570: 402 code + 168 tests) | `import_doc` 78, `create_layout` 46. | Split into validation and writing steps. | medium | good (hostile-file tests) |
-| `commands/updates.rs` | Unnamed 45 s start delay and 8 s timeout. | Name them (`FIRST_CHECK_DELAY_SECS`, `REQUEST_TIMEOUT_SECS`). | low | good |
-| `window.rs` | Unnamed 1500 ms wait before trimming memory. | Name it, with a comment on why it waits. | low | good |
-| `debug.rs` | Unnamed 60 s and 400 ms. | Name them. | low | good |
+| `commands/updates.rs` | **Done:** the 45 s start delay and the request timeout are named (`FIRST_CHECK_AFTER_SECS`, `REQUEST_TIMEOUT_SECS`). | none | low | good |
+| `window.rs` | **Done:** the wait before trimming memory is `TRIM_MEMORY_AFTER_MS`, with its reason. | none | low | good |
+| `debug.rs` | **Done:** `MONITOR_MAX` and `MONITOR_POLL`. | none | low | good |
 | `server.rs`, `state.rs`, `platform.rs`, `commands/settings.rs`, `commands/actions.rs` | Fine. | none | n/a | n/a |
 
 ## Area 5: Rust keyboard and tray (LIGHT TOUCH ONLY: comments, names, constants)
