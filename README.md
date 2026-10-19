@@ -68,7 +68,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Keystroke Overlay running on PC A as normal. Nothing to install or change on PC B except OBS.
 
 **Each time you stream**
-1. On PC A, open the app: **General → Secure link**, tick **Secure my OBS link**, and press **Copy secure link**. Keep this link private.
+1. On PC A, open the app: **General → Secure link**, tick **Secure my OBS URL**, and press **Copy secure link**. Keep this link private.
 2. On PC B, open a terminal and start the tunnel (use your Windows user name on PC A):
 
    ```
@@ -105,7 +105,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 | **Style** | Colors (idle and pressed), borders, corner radius, fonts, key size, spacing, scale, opacity. Sliders such as border, opacity and font size can go all the way to 0. Built-in themes plus your own saved presets. |
 | **Animation** | Press down, glow, fade, bounce, scale, or none — with adjustable speed, easing and intensity. |
 | **Fonts** | Add your own TTF / OTF / WOFF fonts. |
-| **General** | OBS link, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, program updates (channel, release notes), **Debug mode** and **Reset all settings**. |
+| **General** | OBS URL, port and server restart, **secure link**, **keyboard input method**, start with Windows, minimize to tray, program updates (channel, release notes), **Debug mode** and **Reset all settings**. |
 
 A live preview at the top of the window updates as you change things (the Keys tab hides it, because the editor shows the keyboard itself). You can click keys in the preview to test an animation.
 
@@ -125,13 +125,13 @@ as administrator too — Windows doesn't let normal programs see keys typed into
 
 ## Secure link (optional)
 
-Under **General → Secure link** you can choose how locked-down your OBS link is. It is **off by default**: the link is plain
+Under **General → Secure link** you can choose how locked-down your OBS URL is. It is **off by default**: the link is plain
 (`http://localhost:7878/`) and needs no extra step.
 
 | | What it means |
 |---|---|
 | **Off (default)** | Simple link, nothing extra to do. Other programs running on your PC could read your key presses through it. |
-| **On** | Your OBS link gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
+| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
 
 **Make a new key** creates a fresh key and cuts off every link made with the old one.
 
@@ -224,7 +224,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 - The app can see **every** key while it runs, including in password boxes. That is inherent to the job, so use **Pause overlay**.
 - The local overlay server does **not** authenticate other *programs* on the same PC, including other Windows users logged in at the
   same time. A program already running as you could receive key events from it (though it could also install its own keyboard hook).
-  You can close this gap with the optional **Secure link** (General → Secure link): your OBS link then carries a private key and
+  You can close this gap with the optional **Secure link** (General → Secure link): your OBS URL then carries a private key and
   the app refuses everything without it. It is off by default, so the link stays simple, and turning it on means pasting the new link into OBS once.
 - Three components are outside our control: **Microsoft Edge WebView2** (draws the settings window; Microsoft's diagnostic-data
   settings apply to it), **OBS**, and **Windows** itself.

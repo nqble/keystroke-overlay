@@ -194,7 +194,7 @@ fn give_empty_secure_link_a_key(settings: &mut Value) -> bool {
     }
 }
 
-/// What "Reset all settings" keeps: the port and the secure link with its key, so the OBS link stays exactly the same
+/// What "Reset all settings" keeps: the port and the secure link with its key, so the OBS URL stays exactly the same
 /// (and a reset never turns the protection off), and the version the "What's new" popup last showed.
 const KEPT_ON_RESET: [&str; 4] = ["lastSeenVersion", "port", "secureLink", "linkKey"];
 

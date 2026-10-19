@@ -102,7 +102,7 @@ authenticate** other *programs* on the same computer. So:
 - On a PC where **other people are logged in at the same time** (Windows fast user switching, shared or terminal
   servers), their programs could connect to your port too.
 
-If that matters to you: use *Pause overlay*, use the app only on a PC you alone use, or turn on the optional **Secure link** (General → Secure link). With it on, your OBS link carries a private key and the
+If that matters to you: use *Pause overlay*, use the app only on a PC you alone use, or turn on the optional **Secure link** (General → Secure link). With it on, your OBS URL carries a private key and the
 server refuses every data request and the key-press stream without it, so other programs and other Windows users can't listen in.
 It is off by default (the link stays simple); turning it on means pasting the new link into OBS once, and "Make a new key"
 cuts off old links. The overlay's own public page and scripts stay open because they contain nothing private, and the key itself is
