@@ -121,6 +121,11 @@ label.inline {
   gap: var(--space-14);
   align-items: flex-start;
 }
+/* the placeholder that holds the editor (keys.js) takes no box of its own, so the editor sits in .keys-main as before */
+.editor-host {
+  display: contents;
+}
+
 .keys-main {
   flex: 1;
   min-width: 0;

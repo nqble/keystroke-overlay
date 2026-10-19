@@ -32,10 +32,6 @@ export function el(tag, props = {}, ...children) {
   return element;
 }
 
-export const heading = (text) => el('h2', { textContent: text, test: 'section-heading' });
-
-export const note = (text) => el('p', { className: 'note', textContent: text });
-
 export const button = (text, onclick, className = '', test = '') =>
   el('button', { textContent: text, onclick, className, test });
 

@@ -1,12 +1,12 @@
 # Plan: Preact + htm for the settings window (v2.0)
 
-Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: General, Style, Layout, Animation and Debug done; the key editor is built (M4.1–M4.3, merged) and the Keys tab is converted next**, on `advisor/v2.0`. It is
+Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); steps 5 and 6 done: every tab is a Preact component, the Keys tab last (2026-10-19), and the wrapper is removed**, on `advisor/v2.0`. It is
 v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor/` because the window only serves
 `ui/settings/`.
 
 ## Why
 
-The v2.0 redesign ([ui-design-v2.md](../../design/ui-design-v2.md)) adds the screens where updating the page by hand gets
+The v2.0 redesign ([ui-design-v2.md](../../../design/ui-design-v2.md)) adds the screens where updating the page by hand gets
 tangled: drag-to-reorder cards, galleries, menus, the first run setup screen and, above all, the key editor. Preact lets each
 screen say what it looks like for the current state, and updates the page itself. That reads better top to bottom
 (CLAUDE.md principle 2). htm writes the markup as plain JavaScript (``html`<button>…</button>` ``), so there is still **no
@@ -74,13 +74,14 @@ library."
    ahead; if Preact doesn't earn its place here, we stop and revert it.
 3. **Shared building blocks as components:** section card, switch, segmented choice, gallery card, "⋯" menu, popup. Each
    has the states from ui-design-v2.md.
-4. **One list of tabs** (step 5 of [v2-tab-restructure.md](v2-tab-restructure.md)), as the Preact app shell. Tabs not yet
+4. **One list of tabs** (step 5 of [v2-tab-restructure.md](../v2-tab-restructure.md)), as the Preact app shell. Tabs not yet
    converted keep working inside it through a small wrapper that runs their old `render()`.
 5. **Each tab as it is redesigned** (steps 6–11 of the tab plan): Debug, General, Style with Fonts, Layout, Animation, then
    the key editor. A tab is written once, in the new style.
 6. **Tidy up** when the last tab is converted: remove the wrapper and any helper nothing uses any more. Helpers and
-   styles nothing uses are gone (2026-10-17); the wrapper stays until the Keys and Debug tabs are converted after the key editor's
-   last part (M4.3).
+   styles nothing uses are gone (2026-10-17). Done 2026-10-19: the Keys tab is converted, and settings.js draws every tab
+   with Preact; the keyboard editor itself (editor/editor.js) stays plain page code that the tab puts in a placeholder,
+   so its zoom, pan and key elements live on between visits.
 
 ## Step 2 results (the header trial)
 

@@ -66,24 +66,6 @@ function TabBar({ tabs, current }) {
   );
 }
 
-/**
- * Show a tab's content in the pane. A converted tab gives a Preact element, one not converted yet gives page elements;
- * switching between the two first clears what the other kind left there.
- */
-let paneHoldsPreact = false; // what the pane shows now: a Preact tab, or page elements from a tab not converted yet
-
-function showInPane(pane, content) {
-  if (content instanceof Node) {
-    if (paneHoldsPreact) draw(null, pane);
-    paneHoldsPreact = false;
-    pane.replaceChildren(content);
-    return;
-  }
-  if (!paneHoldsPreact) pane.replaceChildren();
-  paneHoldsPreact = true;
-  draw(content, pane);
-}
-
 const scrollOf = new Map(); // where each tab was scrolled to when you left it, so coming back lands there again
 
 /**
@@ -99,7 +81,7 @@ export async function render(scroll = null) {
   const entry = findTab(tab, debugMode);
   setPreviewHidden(!!entry.hidesPreview);
   const content = await entry.render();
-  showInPane(pane, content);
+  draw(content, pane);
   pane.scrollTop = scroll;
   refreshFades();
   paintHeader(); // a tab may have changed the link (new port or key), which the header status shows

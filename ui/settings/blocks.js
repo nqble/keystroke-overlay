@@ -2,7 +2,7 @@
 //  The shared building blocks every v2.0 screen is made of (docs/design/ui-design-v2.md, "Building blocks" and
 //  "States"): a section card, a switch, a segmented choice, a gallery card, the "⋯" menu button, and notes (a short
 //  note, and the technical detail Debug mode adds). Preact components
-//  (docs/for-claude/proposals/v2-preact.md); their look is in blocks.css, and every one of them can be seen in every state in the
+//  (docs/for-claude/proposals/done/v2-preact.md); their look is in blocks.css, and every one of them can be seen in every state in the
 //  UI sandbox at /__sandbox__/blocks.html. Popups are not a component: screens call dialog() in popup.js.
 //
 //  Each block is a real control with a name a screen reader can say, works with the keyboard, and takes a `test` hook
@@ -22,7 +22,7 @@ const CONFIRM_TEXT = 'Click again to confirm';
 
 let lastId = 0;
 /** An id that stays the same for this component's life, to link a label to its control. */
-function useId(prefix) {
+export function useId(prefix) {
   const [id] = useState(() => `${prefix}-${++lastId}`);
   return id;
 }
@@ -55,7 +55,7 @@ export function Switch({ label, checked, onChange, test = '' }) {
 
 /**
  * A small choice of two to six options (Stable | Latest), instead of a dropdown. It is one Tab stop: the arrow keys,
- * Home and End move the choice, like any radio group. choices: [{ value, text }]
+ * Home and End move the choice, like any radio group. choices: [{ value, text, test? }]
  */
 export function Segmented({ label, choices, value, onChange, test = '' }) {
   const group = useRef(null);
@@ -85,6 +85,7 @@ export function Segmented({ label, choices, value, onChange, test = '' }) {
           role="radio"
           aria-checked=${index === chosen ? 'true' : 'false'}
           tabindex=${index === chosen ? 0 : -1}
+          data-test=${choice.test || null}
           onClick=${() => onChange(choice.value)}
         >
           ${choice.text}
@@ -118,9 +119,9 @@ export function GalleryCard({ title, detail = '', selected, onSelect, menu = nul
 
 /**
  * The "⋯" button that opens a small menu (menu.js) just below itself. items: [{ label, run?, danger?, disabled? }]. With
- * `text` it is a labeled button instead (a tab's "Reset ▾").
+ * `text` it is a labeled button instead (a tab's "Reset ▾"); `tip` is its tooltip.
  */
-export function MenuButton({ label, items, test = '', text = '' }) {
+export function MenuButton({ label, items, test = '', text = '', tip = '' }) {
   const openMenu = (clickEvent) => {
     const box = clickEvent.currentTarget.getBoundingClientRect();
     showMenu(clickEvent, items, { x: box.left, y: box.bottom + MENU_GAP });
@@ -129,6 +130,7 @@ export function MenuButton({ label, items, test = '', text = '' }) {
     type="button"
     class=${text ? 'menu-button with-text' : 'menu-button'}
     aria-label=${label}
+    title=${tip || null}
     aria-haspopup="menu"
     data-test=${test || null}
     onClick=${openMenu}

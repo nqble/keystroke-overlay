@@ -107,8 +107,9 @@ keystroke-overlay/
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
         └── tabs/          one file per tab (layout, keys, style, animation, general; the Debug-only tab is debug/; layout-card.js, style-*.js and general-*.js are
                            parts of those); index.js lists them in order
-            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-toolbar.js (selection, nudge,
-            align, history, snap and grid controls), keys-arrange.js (the movement maths, plain functions with unit tests)
+            The Keys tab is several files: keys.js (the tab, its heading, hint line and shortcuts), keys-toolbar.js (the
+            toolbar: history, Snap, Grid, Hidden keys, Close gaps, Reset; also nudging), keys-inspector.js (the panel on
+            the right: show, label, size and place of the selected keys), keys-arrange.js (the movement maths, plain functions with unit tests)
             and keys-history.js (undo and redo). The keyboard itself is the editor in editor/ ([design/key-editor.md](design/key-editor.md)):
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
