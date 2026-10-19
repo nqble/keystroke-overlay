@@ -156,7 +156,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           FLAG=""; [ "${{ steps.v.outputs.stable }}" = "true" ] && FLAG="--stable"
-          node tools/release.mjs --stage finish $FLAG "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}' --title)"
+          node tools/release.mjs --stage finish $FLAG "$(node tools/changelog-section.mjs '${{ steps.v.outputs.version }}')"   # full notes: the in-app update dialog shows them
 
       - name: Publish the GitHub release
         shell: bash
