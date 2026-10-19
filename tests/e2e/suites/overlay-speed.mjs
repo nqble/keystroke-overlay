@@ -37,7 +37,7 @@ const result = JSON.parse(
       return median(list);
     };
     const out = {
-      colour: time((s, i) => { s.style.keyFill = '#' + (0x202020 + (i % 16) * 0x010101).toString(16) + 'ff'; }),
+      color: time((s, i) => { s.style.keyFill = '#' + (0x202020 + (i % 16) * 0x010101).toString(16) + 'ff'; }),
       size: time((s, i) => { s.style.keySize = 40 + (i % 12); }),
       hide: time((s, i) => { s.layout.profiles.full = { disabledKeys: i % 2 ? ['KeyA'] : [] }; }),
       keys: document.querySelectorAll('.key').length,

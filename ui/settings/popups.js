@@ -23,7 +23,7 @@ import { TEXT } from './text.js';
 
 // ---- Keyboard focus for popups ------------------------------------------------------------------------------------------
 // Three popups (the general dialog, the release notes, the update dialog) show and hide themselves by toggling `hidden`.
-// This one place gives all of them proper keyboard behaviour: when a popup opens, focus moves into it; while it is open,
+// This one place gives all of them proper keyboard behavior: when a popup opens, focus moves into it; while it is open,
 // Tab and Shift+Tab stay inside it; when it closes, focus goes back to whatever opened it.
 const POPUPS = ['#dlg', '#modal', '#updModal'];
 const FOCUSABLE =
@@ -273,7 +273,7 @@ addEventListener('dragstart', (e) => e.preventDefault());
 // ---- 6c. Release notes ("What's new"), fetched from GitHub
 /**
  * A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text.
- * Release-note sections (release-notes.js) get their colour: the heading and the list under it share a notes-<kind>
+ * Release-note sections (release-notes.js) get their color: the heading and the list under it share a notes-<kind>
  * class.
  */
 export function md(source) {

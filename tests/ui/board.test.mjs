@@ -96,7 +96,7 @@ test('close gaps shrinks wide gaps to a quarter key, keeps the order, and center
   assert.equal(width, 3.25, 'A + B + a quarter-key gap + C');
   assert.ok(positions.A.x < positions.B.x && positions.B.x < positions.C.x, 'order kept');
   assert.equal(positions.B.x - positions.A.x, 1, 'touching keys stay touching');
-  // centred: (24 − 3.25) / 2 = 10.375, which rounds down to the quarter step: 10.25
+  // centered: (24 − 3.25) / 2 = 10.375, which rounds down to the quarter step: 10.25
   assert.equal(positions.A.x, 10.25);
 });
 

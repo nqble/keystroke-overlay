@@ -283,7 +283,7 @@ npm run test:visual  # a picture of every settings screen and of the overlay in 
 npm run build        # installer in src-tauri/target/release/bundle/nsis/
 ```
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organised:
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organized:
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). A Mac port has been researched: [docs/MAC-PORT.md](docs/MAC-PORT.md).
 Maintaining the project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).
 

@@ -9,7 +9,7 @@ names, several statements on one line, long user-facing strings outside `TEXT`, 
 the files it flagged. Line counts re-checked on `v1.4.0-dev` on 2026-10-16; the findings themselves are from the first
 scan unless a row says otherwise.
 
-**Risk** is how likely a fix could change behaviour: low (wording, comments, names), medium (splitting functions),
+**Risk** is how likely a fix could change behavior: low (wording, comments, names), medium (splitting functions),
 high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how well tests would catch a mistake there.
 
 ## Summary

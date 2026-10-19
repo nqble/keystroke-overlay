@@ -75,7 +75,7 @@ switching Keys → Style → Keys does not reload the preview.
 | State | Look |
 |---|---|
 | Normal | panel-raised fill (`#222632`), 1px line border (`#343a4d`), text color |
-| Hover | darker solid gray fill (`#1b1e26`), **no border**; 90ms ease-out on background-colour |
+| Hover | darker solid gray fill (`#1b1e26`), **no border**; 90ms ease-out on background-color |
 | Selected | selection fill (`#26324d`) + 2px accent ring (`box-shadow 0 0 0 2px #4f8cff`) |
 | Held (mouse down on it, or a resize in progress) | selected look + lift shadow (`0 8px 18px #000a`); **all other keys fade to opacity 0.35** over 160ms ease-out; on release everything fades back to 1 |
 | Overlapping another key | 2px danger ring (`#ff5d6c`), shown above the selection ring |
@@ -90,7 +90,7 @@ switching Keys → Style → Keys does not reload the preview.
   key's left or right edge, it snaps to it and an orange 1px guide line (`#ff9f43`) is drawn through the board; the same for
   top edges. Snap off = free movement (1px steps).
 - **Grid (toggle, on by default):** shows dots every ½ key (every 1 key in Even grid). Display only.
-- **Resize:** when exactly one visible key is selected, thin accent lines (4px, with a board-coloured outline and a larger
+- **Resize:** when exactly one visible key is selected, thin accent lines (4px, with a board-colored outline and a larger
   area to grab) appear on **all four sides** (changed from the original design, which had left and right only). Drag a handle
   to resize; the opposite edge stays put. Width or height snaps to 0.25 with Snap on. Min = 1 key (or the layout's own size
   if smaller); max = up to the board edge in that direction. Badge shows "width 3.5" or "height 2" while dragging. Other keys
@@ -108,7 +108,7 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 - **Undo / Redo:** icon buttons, disabled when there's nothing to undo or redo. Undo covers every change on this tab
   (move, resize, hide or show, label, align, space, close gaps, reset, layout-style switch). Keep about 50 steps.
 - **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to close the empty space left by hidden or moved
-  keys. The shape stays the same." Behaviour: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
+  keys. The shape stays the same." Behavior: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
   closed to ¼ key, along both axes, keeping every key's relative order; then the result is centered on the board.
 - **Reset ▾** (Jordan keeps all five): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
   a divider · **Reset this layout completely** (danger color, asks "Reset this layout? Positions, sizes, hidden keys and labels go
