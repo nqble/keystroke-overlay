@@ -82,7 +82,6 @@ const SCREENS = [
   ],
   ['style-tab', () => openTab('style')],
   ['animation-tab', () => openTab('animation')],
-  ['fonts-tab', () => openTab('fonts')],
   ['general-tab', () => openTab('general')],
   [
     'popup-new-layout',

@@ -607,7 +607,7 @@ check(
   'the hint line lists the shortcuts',
   /Del/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)) &&
     /Scroll/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)) &&
-    /Middle-drag/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)),
+    /Space \+ drag/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)),
 );
 await clickKey('KeyD');
 await sleep(400);
