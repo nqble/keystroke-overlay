@@ -5,7 +5,7 @@ The layers, from quick to thorough:
 | Command | What it checks | Time | Disk |
 |---|---|---|---|
 | `npm run check:privacy` | The privacy promises in [PRIVACY.md](../PRIVACY.md): network code only in one file, server on 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests | 1 s | none |
-| `npm run check:style` | Code style basics: no tabs or trailing spaces, a final newline, and no raw colours in `settings.css` outside its `:root` design tokens | 1 s | none |
+| `npm run check:style` | Code style basics: no tabs or trailing spaces, a final newline, and no raw colors in `settings.css` outside its `:root` design tokens | 1 s | none |
 | `npm run test:ui` | JS unit tests in `tests/ui/` for the settings window's plain logic (every file in `tests/ui/`: the key editor's maths, gestures, the bug report, release notes, system words, themes, layout order, and more) | 1 s | none |
 | `npm test` | Rust unit tests + `test:ui` + the privacy and every-system checks. The Rust tests cover (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + `npm run test:ui` + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
 | `npm run test:e2e` | **End to end:** builds a throwaway copy of the app, drives its real settings window, injects real key presses, runs a real signed update download | ~5–8 min | ~4 GB **temporary, deleted when it finishes** |
@@ -93,7 +93,7 @@ CSS class, id or visible text. That way a redesign can move or restyle things wi
 Rules:
 
 - The name describes the **purpose**, not the looks: `layout-add`, not `dashed-card`. Kebab-case (lower case, words joined by `-`).
-- A hook is an attribute only. **No CSS (and no behaviour) may use it.**
+- A hook is an attribute only. **No CSS (and no behavior) may use it.**
 - Repeated things share one name and tell themselves apart with a `data-*` attribute that already exists or is added
   (`key-cell` + `data-code`, `layout-card` + `data-layout-id`, `tab` + `data-tab`).
 - In the page code, `el('div', { test: 'name' })` and `button(text, onclick, className, 'name')` set the attribute; static
@@ -107,7 +107,7 @@ Rules:
 | `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge, added by `tools/devbuild-title.mjs` |
 | `keyboard-access-banner`, `keyboard-access-text`, `keyboard-access-button`, `keyboard-access-command` | macOS and Linux Wayland: the notice under the header that asks for keyboard access, asks for a restart, explains Secure Input, or gives the input-group command (Linux) |
 | `keys-mac-fn-hint` | macOS only: the note under the keyboard editor that the F row needs Fn |
-| `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS link button (always shown) |
+| `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS URL button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
 | `preview-frame` | The live preview frame |
@@ -152,11 +152,11 @@ Rules:
 | `theme-card-<id>` (for example `theme-card-neon`), `style-themes` | Style's theme gallery: one card per theme file (`aria-pressed` on the one in use) |
 | `style-presets`, `preset-new`, `preset-card`, `preset-menu`, `preset-name`, `preset-save` | My presets: the "+ Save current look" card, each preset (click loads it) and its ⋯ menu; the name box and Save in the save popup |
 | `style-reset`, `style-colors`, `style-shape`, `style-text`, `style-size` | Style's Reset ▾ menu and its cards |
-| `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-easing`) | Every slider, colour picker, dropdown and row of choices made from `CONTROLS`; the name is the settings path in kebab-case |
-| `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
+| `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-easing`) | Every slider, color picker, dropdown and row of choices made from `CONTROLS`; the name is the settings path in kebab-case |
+| `control-<path>-alpha`, `control-<path>-name` | A color's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | Style → Text: your font files (there is no Fonts tab since v2.0) |
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | A tickbox made by `toggle()` (`ui/settings/controls.js`); in General, the same names are its switches (`role="switch"`, `aria-checked`) |
-| `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS link: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
+| `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS URL: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number shown in the About part of General |
 | `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page) |
 | `server-port`, `server-port-apply` | Connection: the port; `server-restart` is in Advanced |

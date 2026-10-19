@@ -61,7 +61,7 @@ header {
   letter-spacing: 0.04em;
 }
 
-/* Header OBS status (obs-status.js). Same colours as the v2.0 design: green live, amber paused, grey not connected. */
+/* Header OBS status (obs-status.js). Same colors as the v2.0 design: green live, amber paused, gray not connected. */
 .obs-status {
   display: inline-flex;
   align-items: center;

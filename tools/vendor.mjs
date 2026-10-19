@@ -27,7 +27,7 @@ const LIBRARIES = [
       LICENSE: 'preact.LICENSE.txt', // MIT
     },
   },
-  // Apache-2.0: its licence text must ship with it, so it is copied too
+  // Apache-2.0: its license text must ship with it, so it is copied too
   { name: 'htm', version: '3.1.1', files: { 'dist/htm.module.js': 'htm.module.js', LICENSE: 'htm.LICENSE.txt' } },
 ];
 

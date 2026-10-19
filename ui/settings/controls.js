@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The table that draws every Style / Animation slider, colour picker and dropdown.
+//  The table that draws every Style / Animation slider, color picker and dropdown.
 // =====================================================================================================================
 import { Segmented } from './blocks.js';
 import { html, render as drawPreact, useLayoutEffect, useRef } from './html.js';
@@ -174,7 +174,7 @@ export const currentAnimation = () => registry.animations.find((animation) => an
 export const testName = (prefix, path) =>
   [prefix, ...path.split('.').map((part) => part.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase()))].join('-');
 
-/** A colour picker plus a transparency slider. Colours are stored as #RRGGBBAA. */
+/** A color picker plus a transparency slider. Colors are stored as #RRGGBBAA. */
 function colorCtl(control) {
   const value = get(settings, control.path) || '#000000ff';
   const alpha = value.length >= 9 ? parseInt(value.slice(7, 9), 16) : 255;

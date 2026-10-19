@@ -41,7 +41,7 @@ export function layoutTab() {
   return html`<${Layout} />`;
 }
 
-/** Where the card sits in the row, so its menu can grey out the moves that can't happen. */
+/** Where the card sits in the row, so its menu can gray out the moves that can't happen. */
 function placeOf(index, count) {
   if (count === 1) return 'only';
   if (index === 0) return 'first';
@@ -218,7 +218,7 @@ function lineAt(gap, boxes, grid) {
 async function importLayouts() {
   try {
     const result = await invoke('import_layouts');
-    if (!result) return; // the user cancelled the file picker
+    if (!result) return; // the user canceled the file picker
     const [added, skipped] = result;
     if (added) toast(WORDS.imported(added, skipped));
     else toast(WORDS.nothingImported(skipped), true);

@@ -13,7 +13,7 @@ you drag. The goal of this pass is to make it feel like a small, proper layout e
 ## Guiding rules
 
 - **Same look as the rest of the app.** Reuse the existing pieces (`.keymap`, `.kmk`, `.btns`, `.editor`, `button()`, `row()`,
-  `heading()`, `note()`) and the existing colours. No new libraries, no build step, plain ES modules.
+  `heading()`, `note()`) and the existing colors. No new libraries, no build step, plain ES modules.
 - **No new settings format.** Everything below still saves only `positions`, `disabledKeys` and `labels`, so there is no
   migration and the overlay needs no change. (Key resizing would need a format change, so it is a separate, optional step, see
   the end.)
@@ -30,7 +30,7 @@ you drag. The goal of this pass is to make it feel like a small, proper layout e
 2. **Move a group.** Dragging any selected key moves them all together, keeping their shape. A small on-screen **nudge pad** (four
    arrow buttons, plus a "whole key" tickbox) moves the whole selection by one snap step; the existing arrow-key nudging keeps
    working too. The group stops at the edge of the box instead of squashing.
-3. **Align and distribute.** An "Arrange" row of buttons: align left / centre / right / top / middle / bottom, and space evenly
+3. **Align and distribute.** An "Arrange" row of buttons: align left / center / right / top / middle / bottom, and space evenly
    horizontally / vertically (needs 3 or more keys). Buttons are disabled, with a tooltip saying why, when they do not apply.
 4. **Undo and redo.** **Undo** and **Redo** buttons (no keyboard shortcuts). One drag, nudge, align, tidy or reset is one step. Covers moving keys, hiding keys and labels for the current layout. Up to 50 steps (a named constant), cleared when you
    switch layout; nothing is kept after the window closes.
@@ -42,7 +42,7 @@ you drag. The goal of this pass is to make it feel like a small, proper layout e
 7. **Accessible.** Keys can be reached with Tab, show a clear focus ring, and announce their state to screen readers
    (`role="button"`, `aria-pressed`). Enter or Space selects, arrows nudge. Everything is also reachable with the mouse and the
    buttons, which is the main way to use it.
-8. **Clean layout of the controls.** One toolbar above the picture in labelled groups, in this order: Select (Clear selection,
+8. **Clean layout of the controls.** One toolbar above the picture in labeled groups, in this order: Select (Clear selection,
    nudge pad), Arrange (align and distribute), History (Undo, Redo), View (Snap, Grid). The existing buttons (Enable all, Disable all,
    Reset all labels, Tidy up, Reset positions, Revert to Default) stay below, grouped as "Reset". When several keys are selected,
    the panel under the picture shows the group: show/hide them all, move them by an exact amount, and the count.
@@ -85,7 +85,7 @@ The existing `profiles.js` helpers (`keyPos`, `setKeyPos`, `tidyProf`, ...) keep
 
 ## Order of work (each its own commit, tests between)
 
-1. `refactor(keys)`: split `keys.js` into the files above, no behaviour change.
+1. `refactor(keys)`: split `keys.js` into the files above, no behavior change.
 2. `feat(keys)`: multi-select (click, Ctrl-click, marquee, Clear selection button) and group move, with a nudge pad.
 3. `feat(keys)`: align and distribute.
 4. `feat(keys)`: undo and redo.

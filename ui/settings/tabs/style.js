@@ -1,6 +1,6 @@
 // =====================================================================================================================
 //  The Style tab (docs/design/ui-design-v2.md, Tabs): the theme gallery and My presets (style-themes.js), then short
-//  section cards: Colors, Shape, Text (with your font files, style-fonts.js) and Size. The sliders and colour pickers
+//  section cards: Colors, Shape, Text (with your font files, style-fonts.js) and Size. The sliders and color pickers
 //  come from the control table (CONTROLS in controls.js), one group per card. The Fonts tab is merged in here.
 // =====================================================================================================================
 import { MenuButton, Section } from '../blocks.js';

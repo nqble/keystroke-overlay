@@ -39,7 +39,7 @@ check(
   'General\'s Connection card has the secure-link switch, off, with the "Off (default)" explanation',
   (await p.q(`!!document.querySelector('${byTest('general-connection')}')?.contains(${toggle})`)) &&
     (await p.q(`${toggle}.getAttribute('role') === 'switch' && ${toggle}.getAttribute('aria-checked') === 'false'`)) &&
-    /Off \(default\): your OBS link is simple/.test(await pageText()),
+    /Off \(default\): your OBS URL is simple/.test(await pageText()),
 );
 check(
   'while off, the copy / new-key buttons are not on screen',
@@ -64,7 +64,7 @@ check(
 );
 check(
   'the explanation changes to "On" and the copy / new-key buttons appear',
-  /On: your OBS link now contains a private key/.test(await pageText()) &&
+  /On: your OBS URL now contains a private key/.test(await pageText()) &&
     (await p.q(
       `!!document.querySelector('${byTest('secure-link-copy')}') && !!document.querySelector('${byTest('secure-link-new-key')}')`,
     )),
@@ -74,7 +74,7 @@ check(
   (await p.q(`${toggle}.getAttribute('aria-checked')`)) === 'true',
 );
 check(
-  'the OBS link box is hidden on screen (password field)',
+  'the OBS URL box is hidden on screen (password field)',
   (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'password',
 );
 
@@ -195,7 +195,7 @@ check(
   st.secureLink === false && st.url === `${base}/` && (await status('/api/config')) === 200 && (await wsOpens(null)),
 );
 check(
-  'the OBS link box is visible text again',
+  'the OBS URL box is visible text again',
   (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'text',
 );
 finish();

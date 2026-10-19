@@ -19,7 +19,7 @@ const WORDS = {
   remove: 'Delete…',
 };
 
-/** The layout's keys as small rectangles, scaled to fit the card (only geometry is set here; blocks.css colours them). */
+/** The layout's keys as small rectangles, scaled to fit the card (only geometry is set here; blocks.css colors them). */
 export function LayoutPicture({ keys }) {
   const width = Math.max(1, ...keys.map((key) => key.x + (key.w ?? 1)));
   const height = Math.max(1, ...keys.map((key) => key.y + (key.h ?? 1)));

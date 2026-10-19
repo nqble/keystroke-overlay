@@ -23,7 +23,7 @@ const UPDATE = process.env.VISUAL_UPDATE === '1';
 const WINDOW = { width: 1060, height: 1100 }; // tall enough to show a whole tab without scrolling
 const PIXEL_COLOUR_TOLERANCE = 0.02; // pixelmatch: how different two pixels may look before they count as different (0 to 1)
 // Two runs on the same PC give identical pictures (0 pixels differ), so only a tiny allowance is needed, for the smoothing of
-// letter edges. Keep it small: a change to one small element (a one-colour outline) changes a few hundred pixels.
+// letter edges. Keep it small: a change to one small element (a one-color outline) changes a few hundred pixels.
 const ALLOWED_DIFFERENT_PIXELS = 20;
 
 // What changes from run to run, or that animates, is frozen or hidden before every picture.

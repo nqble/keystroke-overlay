@@ -139,7 +139,7 @@ check(
   (await p.q(`document.querySelectorAll('${byTest('key-cell', '.clash')}').length`)) >= 2,
 );
 
-// ---- Close gaps: keep the shape, close the dead space, centre the keys on the board
+// ---- Close gaps: keep the shape, close the dead space, center the keys on the board
 // the Reset menu: open it, then choose one of its items by hook name
 const resetMenuItem = async (hook) => {
   await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
@@ -166,7 +166,7 @@ const groupH = Math.max(...[W, A, Sx, D, Sp].map((q) => q.y)) + 1 - Math.min(...
 const centreX = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.x)) * 2 + groupW) / 2;
 const centreY = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.y)) * 2 + groupH) / 2;
 check(
-  'Close gaps centres the keys on the board',
+  'Close gaps centers the keys on the board',
   Math.abs(centreX + gapBoard.ox - gapBoard.w / 2) < 0.8 && Math.abs(centreY + gapBoard.oy - gapBoard.h / 2) < 0.8,
   JSON.stringify({ centreX, centreY, gapBoard }),
 );
@@ -740,7 +740,7 @@ check(
   JSON.stringify(board0),
 );
 
-// the default view of the editor: the keyboard is centred in the box with space around it, and the zoom buttons are clear of the keys
+// the default view of the editor: the keyboard is centered in the box with space around it, and the zoom buttons are clear of the keys
 const defaultView = await p.ev(`
   const m = document.querySelector('${byTest('keymap')}').getBoundingClientRect();
   const keys = [...document.querySelectorAll('${byTest('key-cell')}')].map((k) => k.getBoundingClientRect());
@@ -750,7 +750,7 @@ const defaultView = await p.ev(`
   const touchesKeys = keys.some((r) => r.left < z.right && r.right > z.left && r.top < z.bottom && r.bottom > z.top);
   return { left, right, top, bottom, touchesKeys };`);
 check(
-  'in the default view the keyboard is centred left to right, with space on both sides',
+  'in the default view the keyboard is centered left to right, with space on both sides',
   Math.abs(defaultView.left - defaultView.right) < 3 && defaultView.left >= 12,
   JSON.stringify(defaultView),
 );
@@ -767,7 +767,7 @@ const prevented = await wheel(centreOfW.x, centreOfW.y, -300);
 await sleep(300);
 const zoomed = await boardInfo();
 check(
-  'the mouse wheel zooms in and the page does not scroll (the wheel event is cancelled)',
+  'the mouse wheel zooms in and the page does not scroll (the wheel event is canceled)',
   prevented && zoomed.zoom > board0.zoom,
   JSON.stringify([board0.zoom, zoomed.zoom]),
 );
@@ -1091,7 +1091,7 @@ await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
 await sleep(800);
 const gridAfterClose = (await profile(id)).styles?.grid?.positions ?? {};
 check(
-  'Close gaps in the Even grid closes the gaps completely (no gap left between neighbouring rows)',
+  'Close gaps in the Even grid closes the gaps completely (no gap left between neighboring rows)',
   Object.keys(gridAfterClose).length > 0,
   JSON.stringify(gridAfterClose),
 );
@@ -1170,7 +1170,7 @@ check('...and Undo brings the edits back', !!(shapeEdits(await profile(id)).posi
 await setShapeEdits({});
 await clearSelection();
 
-// ---- the board is centred on the layout; Grid works without Snap; handles step aside; Hidden keys switch (v1.4 review fixes)
+// ---- the board is centered on the layout; Grid works without Snap; handles step aside; Hidden keys switch (v1.4 review fixes)
 await setShapeEdits({});
 await clearSelection();
 const roomAround = await p.ev(`

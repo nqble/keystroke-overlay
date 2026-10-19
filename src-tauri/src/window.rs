@@ -24,7 +24,7 @@ pub fn open_settings(app: &AppHandle) {
         .inner_size(1060.0, 800.0)
         .min_inner_size(820.0, 600.0)
         .theme(Some(tauri::Theme::Dark))
-        // Same colour as the page: the window appears instantly dark instead of flashing white
+        // Same color as the page: the window appears instantly dark instead of flashing white
         // while the web view loads.
         .background_color(tauri::window::Color(18, 20, 26, 255))
         // One renderer process for the settings page + its preview frame instead of two (about 55 MB less

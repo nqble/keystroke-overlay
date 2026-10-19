@@ -34,7 +34,7 @@ Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (appr
 | Where | Everyone | Extra in Debug mode |
 |---|---|---|
 | Animation tab | "Smooth animations that don't slow your stream." | "Animates only `transform` and `opacity`." |
-| Connection | "OBS link and port" | "Local server on 127.0.0.1:7878; overlays connected: 2" |
+| Connection | "OBS URL and port" | "Local server on 127.0.0.1:7878; overlays connected: 2" |
 | Keyboard input | "Standard works with nearly every game." | "Standard = WH_KEYBOARD_LL; Compatibility = Raw Input." |
 | Secure link | "Only programs with your full link can see your key presses." | "128-bit key, checked on every request." |
 | Updates | "Checks about once an hour. Never installs without your click." | "Last check time and result." |
@@ -42,8 +42,8 @@ Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (appr
 
 ## 3. Tokens
 
-All colours and shadows are CSS variables in the `:root` block at the top of `ui/settings/settings.css`, named by
-purpose. That block is the list of record; don't copy values here. A raw colour anywhere else in that file fails
+All colors and shadows are CSS variables in the `:root` block at the top of `ui/settings/settings.css`, named by
+purpose. That block is the list of record; don't copy values here. A raw color anywhere else in that file fails
 `npm run check:style`. JavaScript sets only geometry, through CSS variables.
 
 Groups: surfaces (`--color-bg`, `--color-panel`, `--color-panel-raised`, `--color-well`, `--color-scrim`), lines
@@ -72,11 +72,11 @@ in every state, in the UI sandbox at `/__sandbox__/blocks.html`. A screen uses t
 
 One set of states for every button and control (buttons, tabs, segmented switches, switches, menus, the pause button,
 the update chip): rest → **hover** (a step lighter) → **pressed and held** (a step darker) → release back to hover.
-**Colour only: nothing shrinks or moves.** Keyboard focus shows the focus ring (`--color-focus`). Blue buttons:
+**Color only: nothing shrinks or moves.** Keyboard focus shows the focus ring (`--color-focus`). Blue buttons:
 hover and held use `--color-accent-pressed`; plain buttons held use `--color-control-pressed`.
 
 **Cards** (layouts, themes, presets) have no pressed state: only hover (`--color-line-hover`) and selected.
-**Selected shows on the border only** (the accent ring); what's inside the card never changes colour.
+**Selected shows on the border only** (the accent ring); what's inside the card never changes color.
 
 ## 6. Motion
 
@@ -105,22 +105,22 @@ Built. One look for every scrolling area in the window; a new scrolling area get
 ## 8. Header
 
 Built. On the left: the logo and name (with the **DEV** badge on a devbuild), then the **OBS status**. In the top right
-corner, just before the window buttons (drawn icons): **Copy OBS link** (always), and the **Update ready** chip to its
+corner, just before the window buttons (drawn icons): **Copy OBS URL** (always), and the **Update ready** chip to its
 right when an update is ready.
 
-- **No link box in the header.** It stays clean. The OBS link box lives only in General → Connection (hidden like a
-  password while the secure link is on). The header shows only the **Copy OBS link** button, always, so the link
+- **No link box in the header.** It stays clean. The OBS URL box lives only in General → Connection (hidden like a
+  password while the secure link is on). The header shows only the **Copy OBS URL** button, always, so the link
   is one click away on every tab.
 - **OBS status** (`obs-status.js`) is a button that opens General. It uses only the number of overlays connected to
   the local server (the live preview isn't counted). The first state that applies wins:
 
-| State | Shows | Colour |
+| State | Shows | Color |
 |---|---|---|
 | Port in use | "⚠ Port in use" | red |
 | Paused | "⏸ Paused", or "⏸ Paused · OBS not connected" with OBS closed | amber |
-| Link changed | "OBS link changed: copy it again" | red |
+| Link changed | "OBS URL changed: copy it again" | red |
 | Live | "● Live in OBS" | green |
-| Off | "○ Not connected to OBS" | grey |
+| Off | "○ Not connected to OBS" | gray |
 
 - **Update ready chip:** on hover (after 150 ms) or focus, its ↓ drops out of the bottom of its small box and comes
   back in from the top, once, like a download. Only the arrow moves; it always finishes. A click opens the update
@@ -153,8 +153,8 @@ Built. **One shared popup** (`popup.js`) for everything: the general dialog, Wha
   key has arrived yet; one key that really arrives proves capture works and the bar goes.
 
 **Release notes** (What's new and the update popup) always use the same five sections, in this order. A section with
-nothing to say is left out. The colour is on the heading and a thin line beside its list; the list text stays normal,
-and the icon and word mean colour is never the only signal. Each item has a small drawn dot, as far from the line as
+nothing to say is left out. The color is on the heading and a thin line beside its list; the list text stays normal,
+and the icon and word mean color is never the only signal. Each item has a small drawn dot, as far from the line as
 the text is from the dot. Every release ends with one plain line on what was kept.
 
 | Section | Icon | Token | For |
@@ -165,7 +165,7 @@ the text is from the dot. Every release ends with one plain line on what was kep
 | Performance | ⚡ | `--color-notes-perf` | speed and memory, with numbers |
 | Under the hood | 🧰 | `--color-notes-hood` | for developers |
 
-CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIONS`) colours them and
+CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIONS`) colors them and
 `tools/changelog-section.mjs` refuses an unknown heading or the wrong order.
 
 ## 11. Tabs
@@ -177,7 +177,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 | **Style** | A theme gallery, My presets as cards with a "Save current look" card, then short sections: Colors, Shape, Text (font picker, **Add font file…**, **Your fonts**), Size. **Reset ▾**. | built (Preact; Reset ▾ has \"Back to the default look\"; the app doesn't record which theme was chosen, so \"Back to the chosen theme\" waits for that) |
 | **Animation** | A gallery of animation cards that demo only while hovered or focused; then Speed, Strength (only for animations that use it) and Easing as a segmented switch. | built (Preact; cards demo at the default speed and strength so they compare like for like) |
 | **Fonts** | Removed as a tab: now Style → Text. | built |
-| **General** | Section cards: **Connection** (the OBS link box with Copy, port, secure link, and **First run setup**), **Keyboard input**, **Startup**, **Updates**, and a collapsed **Advanced** (Debug mode, Reset all settings). | built (Preact) |
+| **General** | Section cards: **Connection** (the OBS URL box with Copy, port, secure link, and **First run setup**), **Keyboard input**, **Startup**, **Updates**, and a collapsed **Advanced** (Debug mode, Reset all settings). | built (Preact) |
 | **Debug** | Only with Debug mode on. Cards for the app's state, the log and self-tests; **Copy bug report** copies the scrubbed report (`debug-report.js`, `BUG_REPORT_FORMAT`). | report built; cards designed |
 
 ### Layouts
@@ -203,7 +203,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 ### First run setup (Add to OBS)
 
 Built (`ui/settings/first-run.js`; First run setup board). **A screen over the Layout tab:** it covers
-the tab's content (the header, the tab list and the live preview stay, so the user sees what OBS will show) with three short steps: Copy OBS link, add a Browser source in OBS, paste it and use the size shown (the chosen
+the tab's content (the header, the tab list and the live preview stay, so the user sees what OBS will show) with three short steps: Copy OBS URL, add a Browser source in OBS, paste it and use the size shown (the chosen
 layout's real size).
 
 - **New installs only.** It shows when the app starts with no settings file yet (neither `settings.json` nor its
@@ -224,7 +224,7 @@ layout's real size).
   (shows Strength).
 - **Theme cards and layout pictures** are drawn from the theme or layout file itself.
 - A **scrolling area** gets the class `scroll-fade` (section 7). A **popup** uses `popup.js`. A **status** is one line in
-  `obs-status.js`. A **colour** is one token. See `docs/EXTENDING.md` for the full list.
+  `obs-status.js`. A **color** is one token. See `docs/EXTENDING.md` for the full list.
 
 ## 13. Logo and devbuilds
 

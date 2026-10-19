@@ -185,8 +185,8 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-/* Release-note sections in What's new and the update popup. The colour is on the heading and a thin line beside the
-   list; the list text keeps the normal colour, and the icon and word say the same thing for anyone who can't see it. */
+/* Release-note sections in What's new and the update popup. The color is on the heading and a thin line beside the
+   list; the list text keeps the normal color, and the icon and word say the same thing for anyone who can't see it. */
 .notes-new {
   --notes-color: var(--color-notes-new);
 }

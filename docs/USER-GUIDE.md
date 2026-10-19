@@ -23,9 +23,9 @@ handled, with the ways to check it, is in [PRIVACY.md](../PRIVACY.md).
 
 The first time the app opens, it walks you through these steps (to see them again: **General → First run setup**).
 
-1. In the app, click **Copy OBS link** (default: `http://localhost:7878/`).
+1. In the app, click **Copy OBS URL** (default: `http://localhost:7878/`).
 2. In OBS: **Sources → + → Browser**, then paste the link.
-3. Set **Width** and **Height** to the size the app shows (General → Connection, for example 1085 × 403 for the TKL layout). It changes with your layout and scale. If the box is a different size, the keyboard scales itself to fit inside it and stays centred, so nothing is cut off.
+3. Set **Width** and **Height** to the size the app shows (General → Connection, for example 1085 × 403 for the TKL layout). It changes with your layout and scale. If the box is a different size, the keyboard scales itself to fit inside it and stays centered, so nothing is cut off.
 4. Leave Custom CSS empty — the page is already transparent.
 
 If you change the port in settings, update the URL in OBS too.
@@ -57,7 +57,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Keystroke Overlay running on PC A as normal. Nothing to install or change on PC B except OBS.
 
 **Each time you stream**
-1. On PC A, open the app: **General → Connection**, tick **Secure my OBS link**, and press **Copy secure link**. Keep this link private.
+1. On PC A, open the app: **General → Connection**, tick **Secure my OBS URL**, and press **Copy secure link**. Keep this link private.
 2. On PC B, open a terminal and start the tunnel (use your Windows user name on PC A):
 
    ```
@@ -97,7 +97,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** slides keys together to close the space left by hidden or moved keys, keeping the shape. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
-| **General** | **Connection** (OBS link, port, **secure link**, **First run setup**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
+| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
@@ -117,13 +117,13 @@ as administrator too — Windows doesn't let normal programs see keys typed into
 
 ## Secure link (optional)
 
-Under **General → Connection** (**Secure my OBS link**) you can choose how locked-down your OBS link is. It is **off by default**: the link is plain
+Under **General → Connection** (**Secure my OBS URL**) you can choose how locked-down your OBS URL is. It is **off by default**: the link is plain
 (`http://localhost:7878/`) and needs no extra step.
 
 | | What it means |
 |---|---|
 | **Off (default)** | Simple link, nothing extra to do. Other programs running on your PC could read your key presses through it. |
-| **On** | Your OBS link gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
+| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
 
 **Make a new key** creates a fresh key and cuts off every link made with the old one.
 
@@ -213,13 +213,13 @@ use updates you can block the app in your firewall and everything else keeps wor
 - never writes keystrokes to a file, log, cache or history
 - never sends keystrokes (or settings) over the network, to us or anyone
 - never accepts connections from other computers: the overlay server listens on `127.0.0.1` only, and it also refuses requests coming from web pages
-- never takes screenshots, reads your clipboard, or reads other programs' contents (it uses the clipboard only to *copy* the OBS address when you press *Copy OBS link*)
+- never takes screenshots, reads your clipboard, or reads other programs' contents (it uses the clipboard only to *copy* the OBS address when you press *Copy OBS URL*)
 
 ### Limits, stated plainly
 - The app can see **every** key while it runs, including in password boxes. That is inherent to the job, so use **Pause overlay**.
 - The local overlay server does **not** authenticate other *programs* on the same PC, including other Windows users logged in at the
   same time. A program already running as you could receive key events from it (though it could also install its own keyboard hook).
-  You can close this gap with the optional **Secure link** (General → Connection → Secure my OBS link): your OBS link then carries a private key and
+  You can close this gap with the optional **Secure link** (General → Connection → Secure my OBS URL): your OBS URL then carries a private key and
   the app refuses everything without it. It is off by default, so the link stays simple, and turning it on means pasting the new link into OBS once.
 - Three components are outside our control: **Microsoft Edge WebView2** (draws the settings window; Microsoft's diagnostic-data
   settings apply to it), **OBS**, and **Windows** itself.

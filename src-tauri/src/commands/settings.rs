@@ -191,7 +191,7 @@ pub async fn regenerate_link_key(app: AppHandle) -> Result<String, String> {
 
 /// Put every setting back to its default. The user's own layouts, presets and fonts are files and are kept.
 /// Turns off start-with-Windows and the Compatibility input method, then restarts the server. The port and the secure
-/// link are kept so the OBS link doesn't change (see `settings::reset_keeping_link`).
+/// link are kept so the OBS URL doesn't change (see `settings::reset_keeping_link`).
 #[tauri::command]
 pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
     let _ = app.autolaunch().disable();

@@ -3,11 +3,11 @@ Status: Accepted
 Date: 2026-10-15
 
 ## Context
-People want to customise the overlay and share what they make. A general plugin system would let outside code run inside
+People want to customize the overlay and share what they make. A general plugin system would let outside code run inside
 the app.
 
 ## Decision
-Customisation is limited to small, well-defined files:
+Customization is limited to small, well-defined files:
 - **Layouts** are JSON (`ui/overlay/layouts/*.json`, or the user's `layouts` folder, or made in the app and shared with
   Export / Import).
 - **Themes** and **animations** are tiny JavaScript files that register themselves with `registry.js` and are loaded only

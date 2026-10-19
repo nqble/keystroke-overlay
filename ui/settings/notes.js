@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  Release notes ("What's new"), fetched from GitHub: a tiny safe markdown reader with coloured sections
+//  Release notes ("What's new"), fetched from GitHub: a tiny safe markdown reader with colored sections
 //  (release-notes.js), the quick typing reveal, and the notes popup.
 // =====================================================================================================================
 import { $, el, invoke } from './helpers.js';
@@ -8,7 +8,7 @@ import { headingOf, sectionOf } from './release-notes.js';
 
 /**
  * A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text.
- * Release-note sections (release-notes.js) get their colour: the heading and the list under it share a notes-<kind>
+ * Release-note sections (release-notes.js) get their color: the heading and the list under it share a notes-<kind>
  * class.
  */
 export function md(source) {
@@ -34,7 +34,7 @@ function readLine(reader, line) {
   reader.fragment.append(withInline(el('p'), line));
 }
 
-/** A heading; a known release-note section also colours the list under it (class e.g. "notes-section notes-fixed"). */
+/** A heading; a known release-note section also colors the list under it (class e.g. "notes-section notes-fixed"). */
 function addHeading(reader, headingText) {
   const section = sectionOf(headingText);
   reader.list = null;
@@ -100,7 +100,7 @@ function typeIn(root) {
     index = 0,
     startTime = 0;
   const step = (now) => {
-    if (run !== typingRun || $('#modal').hidden) return; // cancelled or closed
+    if (run !== typingRun || $('#modal').hidden) return; // canceled or closed
     startTime ||= now;
     const want = Math.min(total, Math.ceil((total * (now - startTime)) / duration));
     while (shown < want && index < parts.length) {

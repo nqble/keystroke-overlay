@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  Saving a change, the live preview, and the OBS link / address bar.
+//  Saving a change, the live preview, and the OBS URL / address bar.
 // =====================================================================================================================
 import { $, call, invoke, toast } from './helpers.js';
 import { paintHeader } from './header.js';
@@ -82,13 +82,13 @@ addEventListener('pagehide', flushPendingSave);
 addEventListener('beforeunload', flushPendingSave);
 
 // ---------------------------------------------------------------------------------------------------------------------
-// 10. OBS link and preview
+// 10. OBS URL and preview
 // ---------------------------------------------------------------------------------------------------------------------
 /** The overlay's size for OBS, "1085 × 403" ("…" until the live preview has measured it). */
 export const obsSize = () => (size ? `${size.w} × ${size.h}` : '…');
 export const sizeText = () => (size ? `Size in OBS: ${obsSize()}` : '');
 
-/** The OBS link (or its size) changed: show it everywhere it appears, including the header's "copy it again". */
+/** The OBS URL (or its size) changed: show it everywhere it appears, including the header's "copy it again". */
 export function updateObs() {
   paintHeader();
   const linkBox = /** @type {HTMLInputElement | null} */ ($('#obsUrl'));
@@ -106,10 +106,10 @@ export async function copyUrl() {
   await call('copy_text', { text: obsUrl });
   setLinkChanged(false);
   paintHeader();
-  toast('OBS link copied');
+  toast('OBS URL copied');
 }
 
-/** The address of the live preview: the OBS link plus ?preview=1 (a secured link keeps its ?key=). */
+/** The address of the live preview: the OBS URL plus ?preview=1 (a secured link keeps its ?key=). */
 export const previewSrc = () => {
   const url = new URL(obsUrl);
   url.searchParams.set('preview', '1');

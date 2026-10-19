@@ -18,7 +18,7 @@ about it, because the shared building blocks (`row`, `toggle`, `button`, dialogs
 
 ## Audit of the settings window (v1.3.0)
 
-Checked against WCAG 2.1 AA by reading the code and measuring colours; a hands-on screen-reader pass is still to do (see
+Checked against WCAG 2.1 AA by reading the code and measuring colors; a hands-on screen-reader pass is still to do (see
 the end). Already good: body text contrast (12–15:1), the page language, named window buttons, dialogs marked up as
 dialogs and closing with Escape, and the Keys tab's key map, which is fully keyboard-usable with spoken key names.
 

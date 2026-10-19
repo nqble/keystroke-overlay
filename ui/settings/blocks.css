@@ -1,6 +1,6 @@
 /* The shared building blocks (blocks.js; docs/design/ui-design-v2.md, "Building blocks" and "States"). Every control has
    the same states: rest, hover (a step lighter), pressed and held (a step darker), keyboard focus (the focus ring).
-   Colour only: nothing shrinks or moves. Cards show selection on the border only. Tokens are in settings.css.
+   Color only: nothing shrinks or moves. Cards show selection on the border only. Tokens are in settings.css.
    See every block in every state: npm run ui-sandbox, then /__sandbox__/blocks.html. */
 
 /* ---- Section card: one card of a tab, a short title and its controls */
@@ -242,7 +242,7 @@
   border-color: var(--color-line-dashed-hover);
   color: var(--color-text);
 }
-/* A theme's two sample keys: the colours come from the theme file, through CSS variables (themes.js) */
+/* A theme's two sample keys: the colors come from the theme file, through CSS variables (themes.js) */
 .theme-stage {
   display: flex;
   justify-content: center;
@@ -335,7 +335,7 @@
   height: var(--drop-height);
   border-radius: 1px;
   background: var(--color-accent);
-  /* centred in the gap between two cards (the .gallery gap) */
+  /* centered in the gap between two cards (the .gallery gap) */
   transform: translateX(calc(var(--space-12) / -2 - 1px));
   pointer-events: none;
 }

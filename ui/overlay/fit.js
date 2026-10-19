@@ -1,6 +1,6 @@
 // Fitting the keyboard into the OBS source's box (used by overlay.js). OBS gives the overlay a fixed width and
 // height; when that box isn't exactly the size the app suggests (it changes with each layout), the keys are scaled to
-// fit inside it, keeping their shape, and centred. No imports, so the tests can load it on its own.
+// fit inside it, keeping their shape, and centered. No imports, so the tests can load it on its own.
 
 /**
  * How to place a keyboard of `size` ({ w, h } pixels, padding included) in a box of `box` ({ w, h } pixels):

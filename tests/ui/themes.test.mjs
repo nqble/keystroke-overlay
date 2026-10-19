@@ -14,7 +14,7 @@ test('changing any value the theme sets means it no longer matches', () => {
   assert.equal(themeMatches(neon, null), false);
 });
 
-test('a sample key uses the theme colours, idle or pressed', () => {
+test('a sample key uses the theme colors, idle or pressed', () => {
   const style = {
     keyFill: 'a',
     keyFillPressed: 'b',

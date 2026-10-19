@@ -50,7 +50,7 @@ you like; the tray menu follows it.
 Hide keys, give them your own labels (`⎵`, `Jump`), and drag them anywhere on a zoomable board. Align, space evenly,
 undo and redo. Edits are saved per layout.
 
-<!-- MEDIA: Keys tab, moving and relabelling keys (docs/media/keys.webp) -->
+<!-- MEDIA: Keys tab, moving and relabeling keys (docs/media/keys.webp) -->
 
 ### Themes and style
 
@@ -69,7 +69,7 @@ only the graphics card's cheapest effects, so streams stay smooth.
 ## Get started
 
 1. **Download** the installer from [Releases](https://github.com/nqble/keystroke-overlay/releases/latest) and run it.
-2. **Copy the OBS link.** The app opens on three short setup steps the first time.
+2. **Copy the OBS URL.** The app opens on three short setup steps the first time.
 3. **In OBS:** Sources → **+** → **Browser**, paste the link and set the size the app shows. Done.
 
 **Is it safe?** Antivirus tools are wary of any program that reads the keyboard, and now and then one flags a new
@@ -138,7 +138,7 @@ settings window, and the help of [Claude Code](https://claude.com/claude-code).
 
 ## Contributing
 
-Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organised:
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organized:
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Adding a layout, theme or animation is one file:
 [docs/EXTENDING.md](docs/EXTENDING.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). Maintaining the
 project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).

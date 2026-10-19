@@ -1,11 +1,11 @@
-/* The settings window's shared basics: the design tokens (every colour, size and font, in :root), the page itself,
+/* The settings window's shared basics: the design tokens (every color, size and font, in :root), the page itself,
    the one scrollbar, the scroll fade and what can be selected. Each part of the window has its own file next to this
    one (header.css, tabs.css, pause-button.css, popups.css, debug.css, keys.css), loaded in that order by index.html.
-   Use the tokens everywhere; a raw colour outside :root fails npm run check:style. Design: docs/design/ui-design-v2.md. */
+   Use the tokens everywhere; a raw color outside :root fails npm run check:style. Design: docs/design/ui-design-v2.md. */
 :root {
   /* ===================================================================================================================
-     Design tokens: every colour and shadow of the settings window lives here, named by PURPOSE, with today's exact
-     values. Use these names in the rules below; do not write raw colours anywhere else (tools/check-style.mjs checks).
+     Design tokens: every color and shadow of the settings window lives here, named by PURPOSE, with today's exact
+     values. Use these names in the rules below; do not write raw colors anywhere else (tools/check-style.mjs checks).
      =================================================================================================================== */
 
   /* Surfaces */
@@ -64,7 +64,7 @@
   --color-key-fill: #2a3042;
   --color-key-line: #50597a;
 
-  /* Release-note sections (release-notes.js): one colour each, on the heading and the line beside its list */
+  /* Release-note sections (release-notes.js): one color each, on the heading and the line beside its list */
   --color-notes-new: #7aa8ff;
   --color-notes-improved: #b79cff;
   --color-notes-fixed: #ffd27a;
@@ -77,7 +77,7 @@
 
   /* Scrollbars */
   --color-scrollbar-thumb: #343a4c;
-  --color-mask-solid: #000; /* a mask's "fully shown" (only its opacity counts, not its colour) */
+  --color-mask-solid: #000; /* a mask's "fully shown" (only its opacity counts, not its color) */
 
   /* The window's own buttons */
   --color-hover-soft: rgba(255, 255, 255, 0.09);

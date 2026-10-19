@@ -4,7 +4,7 @@
 //   node tests/linux/overlay-check.mjs keys -- <command that types w a s d>
 //       Connects to the overlay's key stream, runs the command, and checks that each key arrives pressed, then released.
 //   node tests/linux/overlay-check.mjs labels -- <command that switches to a French layout>
-//       Checks that the key labels follow the keyboard layout: the key in the Q position is labelled A in French (AZERTY).
+//       Checks that the key labels follow the keyboard layout: the key in the Q position is labeled A in French (AZERTY).
 //
 // Exits 1 with a reason when a check fails. Uses only Node's own WebSocket and fetch.
 import { spawnSync } from 'node:child_process';
@@ -72,14 +72,14 @@ async function labelOfQ() {
 
 async function checkLabels(command) {
   const before = await labelOfQ();
-  if (before?.toUpperCase() !== 'Q') fail(`the Q key should be labelled Q on a US layout; it is ${before}`);
+  if (before?.toUpperCase() !== 'Q') fail(`the Q key should be labeled Q on a US layout; it is ${before}`);
   run(command);
   let after = before;
   for (let waited = 0; waited < WAIT_MS && after === before; waited += STEP_MS) {
     await sleep(STEP_MS);
     after = await labelOfQ();
   }
-  if (after?.toUpperCase() !== 'A') fail(`after switching to French the Q key should be labelled A; it is ${after}`);
+  if (after?.toUpperCase() !== 'A') fail(`after switching to French the Q key should be labeled A; it is ${after}`);
   console.log(`labels follow the layout: Q became ${after}`);
 }
 

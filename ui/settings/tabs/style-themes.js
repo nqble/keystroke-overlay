@@ -17,7 +17,7 @@ const WORDS = {
   presets: 'My presets',
   saveLook: '+ Save current look',
   saveTitle: 'Save current look',
-  saveHelp: 'Your colours, shape, text, size and animation, under a name.',
+  saveHelp: 'Your colors, shape, text, size and animation, under a name.',
   namePlaceholder: 'Preset name',
   cancel: 'Cancel',
   save: 'Save',

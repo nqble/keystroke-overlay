@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  General → Connection (docs/design/ui-design-v2.md, Tabs): the OBS link (the only link box in the window), the port
+//  General → Connection (docs/design/ui-design-v2.md, Tabs): the OBS URL (the only link box in the window), the port
 //  the secure link, and First run setup (first-run.js). Part of the General tab (general.js). preview.js keeps #obsUrl and #sizeNote up to date.
 // =====================================================================================================================
 import { ConfirmButton, Detail, Note, Section, Switch } from '../blocks.js';
@@ -13,12 +13,12 @@ import { TEXT } from '../text.js';
 
 const WORDS = {
   title: 'Connection',
-  link: 'OBS link',
+  link: 'OBS URL',
   copy: 'Copy',
   port: 'Port',
   apply: 'Apply',
-  portChanged: 'Port changed. Copy the OBS link into OBS.',
-  secure: 'Secure my OBS link',
+  portChanged: 'Port changed. Copy the OBS URL into OBS.',
+  secure: 'Secure my OBS URL',
   copySecure: 'Copy secure link',
   newKey: 'Make a new key',
   secureOn: 'Secure link on: copy the new link into OBS.',

@@ -48,7 +48,7 @@ pub fn style_settings_window(builder: WindowBuilder<'_>) -> WindowBuilder<'_> {
 }
 
 /// The tray icon when there is nothing to report. On macOS a monochrome "template" picture that the menu bar tints for
-/// light and dark; everywhere else the app icon, which keeps its colours.
+/// light and dark; everywhere else the app icon, which keeps its colors.
 pub fn tray_icon(app_icon: &Image<'_>) -> Image<'static> {
     #[cfg(target_os = "macos")]
     if let Ok(template) = Image::from_bytes(include_bytes!("../icons/tray-template.png")) {
@@ -62,7 +62,7 @@ pub fn tray_icon_is_template() -> bool {
     cfg!(target_os = "macos")
 }
 
-/// Switch the tray icon between template and coloured: the orange update dot needs colour, so while it shows the icon
+/// Switch the tray icon between template and colored: the orange update dot needs color, so while it shows the icon
 /// is not a template. Does nothing off macOS.
 pub fn set_tray_icon_template(tray: &TrayIcon, template: bool) {
     #[cfg(target_os = "macos")]

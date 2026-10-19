@@ -43,7 +43,7 @@ Input), two small calls in `platform.rs` (`trim_memory`, `process_stats`; `proce
 | Option | Cost | User experience | Notes |
 |---|---|---|---|
 | **Developer ID + notarization** (not used: Jordan chose the free route) | Apple Developer Program, **US$99/year** | Double-click, no warnings | Tauri automates signing + notarization from CI using a certificate and App Store Connect API key. **Permissions (Input Monitoring) survive updates** because the signing identity stays the same. |
-| Ad-hoc signed, unsigned/un-notarized | Free | Gatekeeper blocks the first launch; user must open *Privacy & Security → Open Anyway* (right-click → Open no longer works on recent macOS) | Required to run at all on Apple Silicon (ad-hoc signing). Because the identity changes every build, macOS does **not honour the old Input Monitoring permission after each update** (verified on the M1: it must be cleared and allowed again, see below). Acceptable for early testers only. |
+| Ad-hoc signed, unsigned/un-notarized | Free | Gatekeeper blocks the first launch; user must open *Privacy & Security → Open Anyway* (right-click → Open no longer works on recent macOS) | Required to run at all on Apple Silicon (ad-hoc signing). Because the identity changes every build, macOS does **not honor the old Input Monitoring permission after each update** (verified on the M1: it must be cleared and allowed again, see below). Acceptable for early testers only. |
 | **Build from source** (free, available as soon as the port exists) | Free | Command Line Tools, Rust, Node, `npm ci`, `npx tauri build --bundles app ...` (see the README) | A locally built app is not quarantined, so Gatekeeper doesn't block it. Good for developers and early adopters, and a natural fit for an open-source project. |
 | Homebrew cask | Free (needs a notarized or at least stable download) | `brew install --cask keystroke-overlay` | Nice later, once releases are signed. |
 
@@ -229,7 +229,7 @@ the menu bar (the app keeps running, the Dock icon goes away); the green button 
   off the way a password box does and checks `secure_input_on` follows it, so the window's hint and the bug report's
   row have a working source.
 - **Update dot on the tray icon:** a development copy run with `KEYOVERLAY_TEST_UPDATE_BASE` pointing at a local mock
-  update file (a newer version with a `darwin-aarch64` entry) found the "update"; Jordan saw the coloured icon with the
+  update file (a newer version with a `darwin-aarch64` entry) found the "update"; Jordan saw the colored icon with the
   orange dot, and "Update available" at the top of the tray menu. Since v2.0 the in-window update button is the
   "Update ready" button in the header's top right.
 
@@ -244,7 +244,7 @@ with "listen-only event tap"; the Debug tab shows memory and open files, Input M
 
 ## Things to double-check before relying on them
 
-These came from community sources. Confirmed on the M1: ad-hoc signed builds do lose their Input Monitoring permission after a rebuild (macOS's log says it fails to match the code requirement), and the app appears in the list once it has asked. Still to confirm in Apple's docs or on other macOS versions: the exact Input Monitoring behaviour for listen-only taps (the test Mac runs macOS 26 only).
+These came from community sources. Confirmed on the M1: ad-hoc signed builds do lose their Input Monitoring permission after a rebuild (macOS's log says it fails to match the code requirement), and the app appears in the list once it has asked. Still to confirm in Apple's docs or on other macOS versions: the exact Input Monitoring behavior for listen-only taps (the test Mac runs macOS 26 only).
 
 ## Sources
 

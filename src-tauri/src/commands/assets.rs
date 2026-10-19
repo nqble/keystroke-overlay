@@ -360,7 +360,7 @@ pub async fn export_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
     Ok(Some(doc["layouts"].as_array().map_or(0, |a| a.len())))
 }
 
-/// Returns None if the user cancelled, otherwise (layouts added, layouts skipped).
+/// Returns None if the user canceled, otherwise (layouts added, layouts skipped).
 #[tauri::command]
 pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<Option<(usize, usize)>, String> {
     let Some(picked_file) = app
