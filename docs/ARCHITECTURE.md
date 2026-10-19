@@ -16,7 +16,7 @@ keystroke-overlay/
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licenses for the installer), changelog-section.mjs (release notes + their format check),
-│                       check-privacy.mjs, check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), gen-layouts.mjs, make-icon.ps1 (the icon source image),
+│                       check-privacy.mjs, check-style.mjs, check-docs.mjs (where docs live, the indexes, links, spelling and names) with its word list in word-rules.mjs, check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), gen-layouts.mjs, make-icon.ps1 (the icon source image),
 │                       preview.mjs (the overlay in a browser), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
 ├── src-tauri/          the Rust app
@@ -29,8 +29,8 @@ keystroke-overlay/
 │       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
-│       │   ├── x11.rs        Linux (from v1.4.0-dev): X11 key capture with XInput2 raw events
-│       │   └── linux_keys.rs Linux (from v1.4.0-dev): X11 key numbers -> the same DOM "code" names
+│       │   ├── x11.rs        Linux (from v1.4.0): X11 key capture with XInput2 raw events
+│       │   └── linux_keys.rs Linux (from v1.4.0): X11 key numbers -> the same DOM "code" names
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
@@ -63,7 +63,7 @@ keystroke-overlay/
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
         ├── controls.js    CONTROLS: the table that draws every slider, color picker and dropdown
         ├── preview.js     saving a change, the live preview, the OBS address bar
-        ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
+        ├── profiles.js    per-layout key edits: hidden keys, labels, moved and resized keys; the snap helpers
         ├── popups.js      dialogs, right-click menu, release notes, update dialog
         ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
@@ -78,7 +78,7 @@ keystroke-overlay/
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab; it draws, selects, drags, zooms and pans, and sets only CSS variables.
             places.js says where the keys are. The geometry is in keys-board.js (board size and limits), keys-view.js (zoom and
-            pan) and keys-guides.js (snapping guides, used from the next step), plain functions with unit tests.
+            pan) and keys-guides.js (snapping guides), plain functions with unit tests.
 ```
 
 ## How a key press travels

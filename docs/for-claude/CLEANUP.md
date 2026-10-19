@@ -1,12 +1,12 @@
 # Cleanup audit
 
 Checked against [CLAUDE.md](../../CLAUDE.md) on `v1.3.0-dev` (4b82723) plus `advisor/editor-logic`; line counts and done items
-re-checked on `v1.4.0-dev` (2026-10-16). Most findings are still open; the rows say which are done. Each area below is fixed later in its own `refactor:` commits, with tests run between
+re-checked on v1.4.0 (`main`, 2026-10-19). Most findings are still open; the rows say which are done. Each area below is fixed later in its own `refactor:` commits, with tests run between
 areas (see "How to work through it").
 
 How the checks were made: an automated scan of every source file (function length, file length, file headers, one-letter
 names, several statements on one line, long user-facing strings outside `TEXT`, unnamed numbers and sleeps), then reading
-the files it flagged. Line counts re-checked on `v1.4.0-dev` on 2026-10-16; the findings themselves are from the first
+the files it flagged. Line counts re-checked on v1.4.0 (`main`) on 2026-10-19; the findings themselves are from the first
 scan unless a row says otherwise.
 
 **Risk** is how likely a fix could change behavior: low (wording, comments, names), medium (splitting functions),
@@ -16,8 +16,8 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 - Formatting, file headers and descriptive names are already in good shape almost everywhere. The renames are done
   (no `S`, `reg`, `selKey` or `upProg` left).
-- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **seven files over ~400 lines** (re-checked 2026-10-18: `settings.rs` 1097, `assets.rs` 570, `server.rs` 491, `popups.js` 536, `debug.js` 656,
-  the new `editor/editor.js` 668, and the e2e suite `keys-editor.mjs` 1199),
+- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **seven files over ~400 lines** (re-checked 2026-10-19: `settings.rs` 1133, `assets.rs` 570, `server.rs` 491, `popups.js` 536, `debug.js` 656,
+  the new `editor/editor.js` 722, and the e2e suite `keys-editor.mjs` 1379),
   **user-facing text still inline** in a few UI files (about 33 long strings), and **unnamed numbers** (mostly sleeps and
   timings in Rust, and timings in the settings UI).
 - **Done 2026-10-17:** the headers on the 5 themes and 6 animations ("copy this file to make your own"); the loose timings in
@@ -47,15 +47,15 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 | `tabs/general.js` (317) | `updatesSection` 105, `secureLinkSection` 53, `inputSection` 43. 3 inline strings. | Step 4 (shared building blocks shorten these), text into `TEXT`. |
 | `tabs/style.js` (117) | `styleTab` 97 lines. Re-fetched presets on every open (done: presets are cached, 8d9691e). | Step 4 and loading plan A2 (cached lists) and A4 (targeted updates). |
 | `tabs/fonts.js` (73) | `fontsTab` 58 lines. Re-fetches fonts on every open. | Step 4, loading plan A2. |
-| `tabs/keys.js` (324), `keys-toolbar.js`, `editor/editor.js` (668) | The makeover replaced `keys-map.js` (deleted). `createEditor` in `editor/editor.js` is one function of about 600 lines (view, drag, resize, marquee, arrange bar). `profiles.js` `tidyPositions` is no longer used by the tab (Close gaps uses `closeGapsPositions`). | Split `createEditor` into modules (view and gestures, key drag, resize handles, marquee, arrange bar) with the editor tests as the safety net; remove `tidyPositions` if nothing else uses it. |
-| `controls.js` (345) | 14 numbers, but they're slider ranges in a data table. That's fine as data. | none |
+| `tabs/keys.js` (343), `keys-toolbar.js`, `editor/editor.js` (722) | The makeover replaced `keys-map.js` (deleted). `createEditor` in `editor/editor.js` is one function of about 600 lines (view, drag, resize, marquee, arrange bar). `profiles.js` `tidyPositions` is no longer used by the tab (Close gaps uses `closeGapsPositions`). | Split `createEditor` into modules (view and gestures, key drag, resize handles, marquee, arrange bar) with the editor tests as the safety net; remove `tidyPositions` if nothing else uses it. |
+| `controls.js` (349) | 14 numbers, but they're slider ranges in a data table. That's fine as data. | none |
 | `settings.js`, `messages.js`, `preview.js`, `helpers.js`, `windowbar.js` | A few unnamed timings (save delay 150 ms, resize timer 150 ms). | Name them. The resize timer goes away with the tab lifecycle (loading plan, spec §9a). |
 
 ## Area 3: `tools/` and `tests/`
 
 | File | Findings | Fix | Risk | Coverage |
 |---|---|---|---|---|
-| `tests/e2e/suites/keys-editor.mjs` (1199) | Over ~400 lines. 6 lines with several statements. | Split by feature (selection, moving, arrange, history, resize) when the makeover rewrites these tests. | low | n/a (it is the test) |
+| `tests/e2e/suites/keys-editor.mjs` (1379) | Over ~400 lines. 6 lines with several statements. | Split by feature (selection, moving, arrange, history, resize) when the makeover rewrites these tests. | low | n/a (it is the test) |
 | `tests/e2e/lib/cdp.mjs` | `connect` 103 lines. 12 one-letter names. | Split (launch, wait for target, message plumbing). Rename. | medium | good (every e2e uses it) |
 | `tests/e2e/run.mjs` | `main` 93 lines. | Split (build, start, run suites, clean up). | medium | good |
 | `tests/lib/lock.mjs` | `acquire` 87 lines. | Split (try, wait, stale-lock check). | medium | weak: add a unit test for the stale-lock rule first |
@@ -68,7 +68,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 | File | Findings | Fix | Risk | Coverage |
 |---|---|---|---|---|
 | `main.rs` (179) | `main` is 143 lines. | Split into named setup steps (state, server, keyboard, tray, updater, window events). Keep the order exactly. | medium | good (smoke e2e starts the app) |
-| `settings.rs` (1097, the checker now in `sanitize.rs` 322) | The sanitizer was split out (done, byte-identical output proven on 20,000 random files). The tests still make `settings.rs` long. | Optionally move the tests to `settings/tests.rs`. | low | good (many unit tests) |
+| `settings.rs` (1133, the checker now in `sanitize.rs` 332) | The sanitizer was split out (done, byte-identical output proven on 20,000 random files). The tests still make `settings.rs` long. | Optionally move the tests to `settings/tests.rs`. | low | good (many unit tests) |
 | `commands/assets.rs` (570: 402 code + 168 tests) | `import_doc` 78, `create_layout` 46. | Split into validation and writing steps. | medium | good (hostile-file tests) |
 | `commands/updates.rs` | Unnamed 45 s start delay and 8 s timeout. | Name them (`FIRST_CHECK_DELAY_SECS`, `REQUEST_TIMEOUT_SECS`). | low | good |
 | `window.rs` | Unnamed 1500 ms wait before trimming memory. | Name it, with a comment on why it waits. | low | good |
