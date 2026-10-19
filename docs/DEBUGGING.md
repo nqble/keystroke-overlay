@@ -22,7 +22,7 @@ Keystroke Overlay has a built-in **Debug mode** for anyone working on the code (
 
 ## The browser inspector
 
-The settings window is a web page, so you can inspect it like one:
+The settings window is a web page, so you can inspect it like one. Its own browser shortcuts (F12, Ctrl+Shift+I, print, reload, zoom) are switched off, so use the steps below:
 
 1. Quit Keystroke Overlay.
 2. In a Command Prompt run `set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222`, then start the app from that same window (`npm run dev:debug` does this for you).
