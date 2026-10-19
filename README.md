@@ -57,7 +57,7 @@ card's cheapest effects, so streams stay smooth.
 
 1. **Download** `Keystroke-Overlay_<version>_x64-setup.exe` from
    [Releases](https://github.com/nqble/keystroke-overlay/releases/latest) and run it. If Windows shows a SmartScreen
-   warning, click **More info → Run anyway**.
+   warning, click **More info → Run anyway** (releases are not code-signed yet).
 2. **Open the app** from the tray icon (bottom-right of the taskbar) and click **Copy OBS URL**.
 3. **In OBS:** **Sources → + → Browser**, paste the URL and set the width and height the app's header shows. Done.
 
@@ -120,19 +120,12 @@ project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md). 
 `CLAUDE.md` and [docs/for-claude/](docs/for-claude/README.md) hold the rules and working notes of the Claude sessions
 that help build this project. They are public on purpose and written for those sessions, so contributors can ignore them.
 
-## Code signing policy
+## Code signing
 
-**Not signed yet.** The project has applied for free code signing from [SignPath.io](https://signpath.io), with a
-certificate by [SignPath Foundation](https://signpath.org), and is waiting for their answer. Until then the installer is
-not code-signed, so Windows may show a SmartScreen warning (**More info → Run anyway**). Once signing is approved, this
-policy applies:
-
-- **Committers and reviewers:** [Jordan Phoutthavone](https://github.com/nqble) and the contributors whose pull
-  requests Jordan reviews and merges.
-- **Approvers:** [Jordan Phoutthavone](https://github.com/nqble). Every signed release will be approved by hand.
-- Only installers built by this repository's release workflow from the `main` branch will be signed.
-- **Privacy:** see [PRIVACY.md](PRIVACY.md). The app's only internet contact is GitHub, for updates and release
-  notes; the automatic update check can be turned off. Keystrokes never leave your PC.
+Releases are **not code-signed yet**, so Windows may show a SmartScreen warning the first time you install
+(**More info → Run anyway**). Every update the app installs is signed with the project's own update key, and the app
+installs nothing else. The project may apply for free code signing again once it is better known
+([decision 0012](docs/decisions/0012-releases-stay-unsigned-for-now.md)).
 
 ## License
 
