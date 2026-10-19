@@ -15,13 +15,17 @@ Releases are signed so the in-app updater can verify them. The signing key never
    release tagged `channel-stable`, tick *pre-release* (so it never becomes "latest"), title "Stable channel". It only ever
    holds `stable.json`.
 
-## Code signing (Windows, free from SignPath Foundation)
+## Code signing (Windows; not active)
 
 Two different signatures, both needed:
 - **Update signature** (above): lets the app check an update came from us. Users never see it.
 - **Code signing** (Authenticode): Windows shows it as the publisher. Without it, SmartScreen warns on every download
   and antivirus tools are quicker to flag a program that watches the keyboard. SignPath Foundation signs open-source
   projects for free; the certificate is in **their** name ("SignPath Foundation"), linked to this repository.
+
+**Status: not active.** SignPath Foundation declined the application on 2026-10-18 (not enough public visibility yet)
+and invited a new one later, so releases are unsigned ([decision 0012](decisions/0012-releases-stay-unsigned-for-now.md)).
+The steps below are kept for when Jordan applies again.
 
 The release workflow is ready for it: until `SIGNPATH_ORGANIZATION_ID` is set it builds unsigned, as before. To turn
 it on (Jordan, once):
