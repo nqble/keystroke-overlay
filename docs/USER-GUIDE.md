@@ -41,6 +41,12 @@ These OBS settings make the biggest difference to how smooth the overlay looks a
 - **Shutdown source when not visible:** turn it on if the overlay is only in some of your scenes. It stops using CPU while
   hidden and reconnects in a moment when the scene shows again.
 - **Refresh browser when scene becomes active:** leave it off. The overlay updates itself; reloading only adds a short gap.
+- **A different overlay per scene:** turn on **General → OBS scenes** and list the scenes by name: **Hide** keeps the keys
+  out of that scene, **Show** with a layout draws that layout there. Names must match OBS's (upper and lower case don't
+  matter). In OBS, right-click the Browser source, choose **Properties** and set **Page permissions** to **Read access to
+  user information**, so the overlay knows the scene as soon as OBS starts; without it, it follows from the first scene
+  switch on. The Browser source's box keeps one size, so a smaller layout is drawn larger to fill it. The live preview in
+  the settings window always shows your chosen layout. **Pause overlay** still hides everything.
 - **Hardware acceleration:** in OBS, **Settings → Advanced → Sources → Enable Browser Source Hardware Acceleration** should be
   on (it is by default). The overlay's animations are designed to run on the graphics card.
 
@@ -97,7 +103,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** slides keys together to close the space left by hidden or moved keys, keeping the shape. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts, and where **Key labels** chooses between the letters your keyboard prints (**My keyboard**) and the layout file's own. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
-| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
+| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **OBS scenes**, **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 

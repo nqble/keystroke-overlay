@@ -163,6 +163,7 @@ Rules:
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | Connection: the secure-link switch (`aria-checked`), its note, and its buttons |
 | `input-method-select`, `input-method-info`, `input-method-error` | Keyboard input: the segmented choice (a radiogroup; the chosen button has `aria-checked="true"`), its note, its error |
 | `general-hotkey`, `toggle-hotkeys-enabled`, `hotkey-pause-record`, `hotkey-pause-clear` | Pause shortcut: its section, the switch, the button that records a shortcut, and Clear |
+| `general-obs-scenes`, `toggle-obs-scenes-enabled`, `obs-scene-rule` + `data-index`, `obs-scene-name`, `obs-scene-show`, `obs-scene-layout`, `obs-scene-remove`, `obs-scene-add` | OBS scenes: its section, the switch, one rule row and its name box, Show / Hide choice, layout menu and remove button, and **+ Add a scene** |
 | `general-open-folder`, `general-reset`, `general-quit` | Advanced's buttons |
 | `update-channel`, `update-check`, `update-install`, `update-status`, `update-release-notes`, `general-update-progress`, `general-update-progress-text` | Updates (the channel is a segmented choice) |
 | `debug-card` + `data-card`, `debug-card-title` | One box of the Debug tab and its title |

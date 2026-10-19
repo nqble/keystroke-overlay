@@ -539,3 +539,27 @@ button:disabled:hover {
   color: var(--color-text-dim);
   font-variant-numeric: tabular-nums;
 }
+
+/* General → OBS scenes: one row per scene (name, show or hide, layout, remove) */
+.scene-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.scene-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+.scene-rule input[type='text'] {
+  flex: 1;
+  min-width: 120px; /* room for a scene name next to the choice and the layout menu */
+}
+.scene-rule .segmented {
+  flex: none;
+}
+.scene-rule select {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 150px;
+}
