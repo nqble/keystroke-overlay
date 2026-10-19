@@ -18,6 +18,7 @@ Larger ideas that need review before anyone builds them are written up in [../fo
 | [0009](0009-secure-link-stays-optional.md) | The secure link stays optional, also for new installs | Accepted |
 | [0010](0010-the-apps-identity-lives-in-one-place.md) | The app's name, repository and identifiers live in one place | Accepted |
 | [0011](0011-working-notes-are-public-in-one-folder.md) | The Claude sessions' working notes are public, in one folder, with a placement rule | Accepted |
+| [0012](0012-releases-stay-unsigned-for-now.md) | Releases stay unsigned for now (SignPath declined; may apply again later) | Accepted |
 
 ## How to add one
 
