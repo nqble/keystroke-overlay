@@ -1,0 +1,72 @@
+{
+  "source": "https://github.com/ijprest/kle-serial/blob/4080386fcdcb66a391e1b4857532512f9ca4121e/test/test.js",
+  "license": "MIT, Copyright (c) 2013-2019 Ian Prest (see README.md in this folder)",
+  "note": "Inline layouts from kle-serial's own tests, copied as data. 'expect' is what kle-serial's tests check, in kle-serial's terms.",
+  "cases": [
+    {
+      "name": "x offset applies before the first key",
+      "layout": [[{ "x": 1 }, "1", "2"]],
+      "expect": "key 1 at x 1, key 2 at x 2"
+    },
+    {
+      "name": "y offset then next row",
+      "layout": [[{ "y": 1 }, "1"], ["2"]],
+      "expect": "key 1 at y 1, key 2 at y 2"
+    },
+    {
+      "name": "width resets to 1 after one key",
+      "layout": [[{ "w": 5 }, "1", "2"]],
+      "expect": "key 1 width 5, key 2 width 1"
+    },
+    {
+      "name": "height resets to 1 after one key",
+      "layout": [[{ "h": 5 }, "1", "2"]],
+      "expect": "key 1 height 5, key 2 height 1"
+    },
+    {
+      "name": "second rectangle defaults to the first",
+      "layout": [[{ "w": 2, "h": 2 }, "1", { "w": 2, "h": 2, "w2": 4, "h2": 4 }, "2"]],
+      "expect": "key 1 width2/height2 = 2/2; key 2 width2/height2 = 4/4"
+    },
+    {
+      "name": "decal, stepped and homing reset after one key",
+      "layout": [[{ "l": true, "n": true, "d": true }, "1", "2"]],
+      "expect": "key 1 stepped, nub and decal; key 2 none of them"
+    },
+    {
+      "name": "ghost stays on until turned off",
+      "layout": [["0", { "g": true }, "1", "2"]],
+      "expect": "key 0 not ghosted; keys 1 and 2 ghosted"
+    },
+    {
+      "name": "rotation only on the first item of a row (allowed)",
+      "layout": [[{ "r": 45 }, "1", "2"]],
+      "expect": "no error"
+    },
+    {
+      "name": "rotation later in a row (refused)",
+      "layout": [["1", { "r": 45 }, "2"]],
+      "expect": "error"
+    },
+    {
+      "name": "legend positions, alignment 4 (the default)",
+      "layout": [[{ "a": 4 }, "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11"]],
+      "expect": "labels in reading order: [0, 8, 2, 6, 9, 7, 1, 10, 3, , 4, ]"
+    },
+    {
+      "name": "legend positions, alignment 7 (centered everything)",
+      "layout": [[{ "a": 7 }, "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11"]],
+      "expect": "labels in reading order: [, , , , 0, , , , , , 4, ]"
+    },
+    {
+      "name": "metadata first",
+      "layout": [{ "name": "Sample", "author": "Your Name" }, ["Q", "W", "E", "R", "T", "Y"]],
+      "expect": "meta.name 'Sample', six keys"
+    },
+    {
+      "name": "metadata not first (refused)",
+      "layout": [[], { "name": "test" }],
+      "expect": "error"
+    }
+  ]
+}

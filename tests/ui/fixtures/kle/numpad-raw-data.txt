@@ -1,0 +1,5 @@
+["Numlock","/","*","-"],
+["7\nHome","8\nUp","9\nPgUp",{h:2},"+"],
+["4\nLeft","5","6\nRight"],
+["1\nEnd","2\nDown","3\nPgDn",{h:2},"Enter"],
+[{w:2},"0\nIns",".\nDel"]
