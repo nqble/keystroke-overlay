@@ -30,16 +30,7 @@ use tokio::sync::broadcast;
 use window::open_settings_async;
 
 fn main() {
-    // Tauri's default async runtime starts one worker thread per CPU core (16 here). This app does
-    // almost no async work, so two are plenty: fewer threads = less memory and a faster start.
-    let rt = tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(2)
-        .thread_name("ko-async")
-        .enable_all()
-        .build()
-        .expect("async runtime");
-    tauri::async_runtime::set(rt.handle().clone());
-    std::mem::forget(rt); // keep it alive for the whole process
+    start_async_runtime();
 
     let app = tauri::Builder::default()
         // Raw Input registrations are per process. Tauri's window layer registers its own at startup, which would
@@ -53,74 +44,7 @@ fn main() {
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--autostart"]),
         ))
-        .setup(|app| {
-            let paths = Paths {
-                root: app.path().app_data_dir()?,
-            };
-            paths.ensure();
-            let current = env!("CARGO_PKG_VERSION");
-            let (mut cfg, pending) = settings::load_at_startup(&paths.settings(), &app.config().identifier, current);
-            // A layout that no longer exists (for example the retired TSB layout) falls back to Tenkeyless.
-            if !server::layouts(&paths).iter().any(|l| l["id"] == cfg["layout"]["id"]) {
-                cfg["layout"]["id"] = json!("tkl");
-            }
-            let _ = settings::save(&paths.settings(), &cfg); // persists migrations/new defaults
-            let port = cfg["general"]["port"].as_u64().unwrap_or(7878) as u16;
-            let open_on_launch = cfg["general"]["openOnLaunch"].as_bool().unwrap_or(true);
-
-            let method = keyboard::Method::parse(cfg["general"]["inputMethod"].as_str().unwrap_or("hook"))
-                .unwrap_or(keyboard::Method::Hook);
-
-            // `npm run dev:debug` sets KEYOVERLAY_DEBUG so developers get the Debug tab without clicking anything.
-            if std::env::var_os("KEYOVERLAY_DEBUG").is_some() {
-                cfg["general"]["debugMode"] = json!(true);
-            }
-            debug::init(cfg["general"]["debugMode"].as_bool().unwrap_or(false));
-            debug::log(format!("app started (v{current})"));
-            if let Some(note) = crash::take_last(&paths.root) {
-                debug::log(format!("the last run crashed: {note}"));
-                debug::set_last_crash(note);
-            }
-            crash::install(&paths.root);
-
-            let (cfg_tx, _) = broadcast::channel(8);
-            let shared = Arc::new(Shared {
-                bus: keyboard::start(method),
-                settings: cfg.into(),
-                paths,
-                cfg_tx,
-            });
-            match shared.bus.error() {
-                Some(e) => debug::log(format!("keyboard input ({}) could not start: {e}", method.id())),
-                None => debug::log(format!("keyboard input: {}", method.id())),
-            }
-            let (srv, err) = match server::start(shared.clone(), port) {
-                Ok(handle) => (Some(handle), None),
-                Err(e) => (None, Some(e)),
-            };
-            app.manage(AppState {
-                shared: shared.clone(),
-                server: Mutex::new(srv),
-                server_error: Mutex::new(err),
-                tray: Mutex::new(None),
-                update_cache: Mutex::new(None),
-                whats_new: AtomicBool::new(pending),
-                pending_tab: Mutex::new(None),
-                auto_check_changed: tokio::sync::Notify::new(),
-            });
-
-            tray::build(app, shared)?;
-            commands::updates::start_background_check(app.handle().clone());
-
-            let autostarted = std::env::args().any(|a| a == "--autostart");
-            let server_failed = app.state::<AppState>().server_error.lock().unwrap().is_some();
-            // Show the window if the overlay server couldn't start (port taken), so the problem is visible,
-            // and after an update so the "What's new" window can appear.
-            if server_failed || pending || (open_on_launch && !autostarted) {
-                open_settings_async(app.handle());
-            }
-            Ok(())
-        })
+        .setup(|app| start_app(app))
         .on_window_event(window::on_event)
         .invoke_handler(tauri::generate_handler![
             commands::settings::get_state,
@@ -176,4 +100,112 @@ fn main() {
             }
         }
     });
+}
+
+/// Starts the async runtime (two worker threads) and keeps it for the whole process.
+fn start_async_runtime() {
+    // Tauri's default async runtime starts one worker thread per CPU core (16 here). This app does
+    // almost no async work, so two are plenty: fewer threads = less memory and a faster start.
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .thread_name("ko-async")
+        .enable_all()
+        .build()
+        .expect("async runtime");
+    tauri::async_runtime::set(rt.handle().clone());
+    std::mem::forget(rt); // keep it alive for the whole process
+}
+
+/// Everything that happens once Tauri is ready, in order: settings, event log, keyboard, server, state, tray, update check,
+/// window.
+fn start_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    let paths = Paths {
+        root: app.path().app_data_dir()?,
+    };
+    paths.ensure();
+    let current = env!("CARGO_PKG_VERSION");
+    let (mut cfg, pending) = load_settings(&paths, &app.config().identifier, current);
+    let port = cfg["general"]["port"].as_u64().unwrap_or(7878) as u16;
+    let open_on_launch = cfg["general"]["openOnLaunch"].as_bool().unwrap_or(true);
+
+    let method = keyboard::Method::parse(cfg["general"]["inputMethod"].as_str().unwrap_or("hook"))
+        .unwrap_or(keyboard::Method::Hook);
+
+    start_event_log(&mut cfg, &paths, current);
+
+    let shared = make_shared(cfg, paths, method);
+    let (srv, err) = match server::start(shared.clone(), port) {
+        Ok(handle) => (Some(handle), None),
+        Err(e) => (None, Some(e)),
+    };
+    app.manage(AppState {
+        shared: shared.clone(),
+        server: Mutex::new(srv),
+        server_error: Mutex::new(err),
+        tray: Mutex::new(None),
+        update_cache: Mutex::new(None),
+        whats_new: AtomicBool::new(pending),
+        pending_tab: Mutex::new(None),
+        auto_check_changed: tokio::sync::Notify::new(),
+    });
+
+    tray::build(app, shared)?;
+    commands::updates::start_background_check(app.handle().clone());
+
+    open_window_at_launch(app, pending, open_on_launch);
+    Ok(())
+}
+
+/// Reads the settings (migrating them), makes sure the chosen layout still exists, and saves the result. Also says
+/// whether to show "What's new" after this start.
+fn load_settings(paths: &Paths, identifier: &str, current: &str) -> (serde_json::Value, bool) {
+    let (mut cfg, pending) = settings::load_at_startup(&paths.settings(), identifier, current);
+    // A layout that no longer exists (for example the retired TSB layout) falls back to Tenkeyless.
+    if !server::layouts(paths).iter().any(|l| l["id"] == cfg["layout"]["id"]) {
+        cfg["layout"]["id"] = json!("tkl");
+    }
+    let _ = settings::save(&paths.settings(), &cfg); // persists migrations/new defaults
+    (cfg, pending)
+}
+
+/// Starts the in-memory event log and the crash note: reports the last crash (if any), then arms the next one.
+fn start_event_log(cfg: &mut serde_json::Value, paths: &Paths, current: &str) {
+    // `npm run dev:debug` sets KEYOVERLAY_DEBUG so developers get the Debug tab without clicking anything.
+    if std::env::var_os("KEYOVERLAY_DEBUG").is_some() {
+        cfg["general"]["debugMode"] = json!(true);
+    }
+    debug::init(cfg["general"]["debugMode"].as_bool().unwrap_or(false));
+    debug::log(format!("app started (v{current})"));
+    if let Some(note) = crash::take_last(&paths.root) {
+        debug::log(format!("the last run crashed: {note}"));
+        debug::set_last_crash(note);
+    }
+    crash::install(&paths.root);
+}
+
+/// Starts keyboard capture and builds the state the server and the windows share.
+fn make_shared(cfg: serde_json::Value, paths: Paths, method: keyboard::Method) -> Arc<Shared> {
+    let (cfg_tx, _) = broadcast::channel(8);
+    let shared = Arc::new(Shared {
+        bus: keyboard::start(method),
+        settings: cfg.into(),
+        paths,
+        cfg_tx,
+    });
+    match shared.bus.error() {
+        Some(e) => debug::log(format!("keyboard input ({}) could not start: {e}", method.id())),
+        None => debug::log(format!("keyboard input: {}", method.id())),
+    }
+    shared
+}
+
+/// Shows the settings window at start-up when it should appear.
+fn open_window_at_launch(app: &tauri::App, pending: bool, open_on_launch: bool) {
+    let autostarted = std::env::args().any(|a| a == "--autostart");
+    let server_failed = app.state::<AppState>().server_error.lock().unwrap().is_some();
+    // Show the window if the overlay server couldn't start (port taken), so the problem is visible,
+    // and after an update so the "What's new" window can appear.
+    if server_failed || pending || (open_on_launch && !autostarted) {
+        open_settings_async(app.handle());
+    }
 }
