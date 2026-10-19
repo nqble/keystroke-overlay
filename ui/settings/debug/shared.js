@@ -2,7 +2,7 @@
 //  The Debug tab's wording and the small helpers every section uses.
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { el } from '../helpers.js';
+import { html, useEffect } from '../html.js';
 
 // -------------------------------------------------------------------------------------------------------------------
 // Words the user reads. The longer explanations live here, so the code below stays short and the wording is easy to
@@ -59,28 +59,47 @@ export const TEXT = {
 };
 
 // -------------------------------------------------------------------------------------------------------------------
-// Small helpers used by every section
+// Small building blocks used by every section (Preact, like the rest of the settings window: html.js)
 
-/** Run `fn` now and then every `ms` milliseconds, until `root` has left the page (the tab was changed or redrawn). */
-export function every(root, ms, fn) {
-  fn();
-  const timer = setInterval(() => {
-    if (!root.isConnected) clearInterval(timer);
-    else fn();
-  }, ms);
+/** Run `fn` now and then every `ms` milliseconds while the section is on screen; leaving the tab stops it. */
+export function useEvery(ms, fn) {
+  useEffect(() => {
+    fn();
+    const timer = setInterval(fn, ms);
+    return () => clearInterval(timer);
+  }, []);
 }
 
-/** A two-column list of label → value. Call `.set(rows)` to refresh it. */
-export function facts() {
-  const box = el('div', { className: 'dbg-facts', test: 'debug-facts' });
-  box.set = (rows) =>
-    box.replaceChildren(
-      ...rows.flatMap(([label, value, state]) => [
-        el('span', { className: 'k', textContent: label }),
-        el('span', { className: 'v ' + (state ?? ''), textContent: String(value) }),
-      ]),
-    );
-  return box;
+/** A button with its test hook. `kind` is a class such as 'primary'. */
+export function Button({ text, onClick, kind = '', test = '' }) {
+  return html`<button type="button" class=${kind} data-test=${test || null} onClick=${onClick}>${text}</button>`;
+}
+
+/** A short help line (plain text, like the rest of the Debug tab). */
+export function Hint({ text }) {
+  return html`<p class="note">${text}</p>`;
+}
+
+/** A two-column list of label → value, each row [label, value, 'good' | 'bad' | ''] . */
+export function Facts({ rows }) {
+  return html`<div class="dbg-facts" data-test="debug-facts">
+    ${rows.flatMap(([label, value, state]) => [
+      html`<span class="k">${label}</span>`,
+      html`<span class=${'v ' + (state ?? '')}>${String(value)}</span>`,
+    ])}
+  </div>`;
+}
+
+/** One line of a yes/no list: a mark, a name and an optional detail. */
+export function Check({ ok, mark, name, detail = '', test = '' }) {
+  return html`<div class=${'dbg-test ' + (ok === undefined ? '' : ok ? 'good' : 'bad')} data-test=${test || null}>
+    <b>${mark}</b><span>${name}</span>${detail ? html`<i>${detail}</i>` : null}
+  </div>`;
+}
+
+/** A log line: a time stamp and its text. */
+export function LogLine({ time, text }) {
+  return html`<div><span class="ts">${time}</span><span>${text}</span></div>`;
 }
 
 export const seconds = (s) =>

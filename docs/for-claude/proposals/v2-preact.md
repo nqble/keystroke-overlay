@@ -1,6 +1,6 @@
 # Plan: Preact + htm for the settings window (v2.0)
 
-Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: General, Style, Layout and Animation done; Debug split into one file per tool but not converted yet; the key editor is built (M4.1–M4.3, merged) and the Keys tab is converted next**, on `advisor/v2.0`. It is
+Status: **approved by Jordan (2026-10-17); steps 1–4 done (Jordan approved the header trial); step 5: General, Style, Layout, Animation and Debug done; the key editor is built (M4.1–M4.3, merged) and the Keys tab is converted next**, on `advisor/v2.0`. It is
 v2.0 work and changes nothing in v1.4. The libraries live in `ui/settings/vendor/` because the window only serves
 `ui/settings/`.
 

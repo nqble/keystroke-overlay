@@ -13,7 +13,6 @@ import {
 } from '../debug-report.js';
 import { invoke } from '../helpers.js';
 import { lastUpdate, layouts, paused, settings, size } from '../state.js';
-import { facts } from './shared.js';
 
 // -------------------------------------------------------------------------------------------------------------------
 // Self-test: quick yes/no checks of everything that has to work for the overlay to work

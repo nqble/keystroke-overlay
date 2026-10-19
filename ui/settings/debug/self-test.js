@@ -2,34 +2,32 @@
 //  "Self-test": quick yes/no checks of everything the overlay needs.
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { button, el, note } from '../helpers.js';
-import { TEXT } from './shared.js';
+import { html, useState } from '../html.js';
 import { runSelfTest } from './checks.js';
+import { Button, Check, Hint, TEXT } from './shared.js';
 
-export const selfTest = {
-  id: 'self-test',
-  title: 'Self-test',
-  build() {
-    const results = el('div', { className: 'dbg-tests' });
-    const run = async () => {
-      results.replaceChildren(el('span', { className: 'hint', textContent: 'Running…' }));
-      const tests = await runSelfTest();
-      results.replaceChildren(
-        ...tests.map((testResult) =>
-          el(
-            'div',
-            { className: 'dbg-test ' + (testResult.ok ? 'good' : 'bad'), test: 'debug-test' },
-            el('b', { textContent: testResult.ok ? '✔' : '✖' }),
-            el('span', { textContent: testResult.name }),
-            el('i', { textContent: testResult.detail }),
-          ),
-        ),
-      );
-    };
-    return [
-      note(TEXT.selfTestHelp),
-      el('div', { className: 'btns' }, button('Run self-test', run, 'primary', 'debug-self-test-run')),
-      results,
-    ];
-  },
-};
+function SelfTest() {
+  const [results, setResults] = useState(null); // null: not run yet; 'running'; or the list of checks
+  const run = async () => {
+    setResults('running');
+    setResults(await runSelfTest());
+  };
+  const list =
+    results === 'running'
+      ? html`<span class="hint">Running…</span>`
+      : (results ?? []).map(
+          (check) =>
+            html`<${Check}
+              ok=${check.ok}
+              mark=${check.ok ? '✔' : '✖'}
+              name=${check.name}
+              detail=${check.detail}
+              test="debug-test"
+            />`,
+        );
+  return html`<${Hint} text=${TEXT.selfTestHelp} />
+    <div class="btns"><${Button} text="Run self-test" kind="primary" test="debug-self-test-run" onClick=${run} /></div>
+    <div class="dbg-tests">${list}</div>`;
+}
+
+export const selfTest = { id: 'self-test', title: 'Self-test', Body: SelfTest };

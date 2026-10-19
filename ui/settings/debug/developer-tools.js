@@ -2,52 +2,47 @@
 //  "Developer tools": how to open the full browser inspector.
 //  Part of the Debug tab (debug/index.js lists every section). PRIVACY: nothing here is saved or sent anywhere.
 // =====================================================================================================================
-import { button, call, el, note, toast } from '../helpers.js';
+import { call, toast } from '../helpers.js';
+import { html } from '../html.js';
 import { platform } from '../state.js';
 import { inspectorTool } from '../system-words.js';
-import { TEXT } from './shared.js';
+import { Button, Hint, TEXT } from './shared.js';
+
+const INTRO = 'To inspect this window like a web page (elements, console, network):';
+const COMMAND = 'set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222';
+// per-system: these steps are for Windows and Linux only; a Mac gets TEXT.inspectorMacSteps
+const EDGE_STEPS = [
+  'Quit Keystroke Overlay (tray icon → Quit).', // per-system: Windows and Linux only
+  'In a Command Prompt, run the line below, then start the app from that same window.',
+  TEXT.inspectorStepEdge,
+];
+
+async function copyCommand() {
+  await call('copy_text', { text: COMMAND });
+  toast('Copied');
+}
+
+const Steps = ({ steps }) =>
+  html`<ol class="dbg-steps">
+    ${steps.map((step) => html`<li>${step}</li>`)}
+  </ol>`;
+
+function DeveloperTools() {
+  // On a Mac the window is a WKWebView: Safari's inspector, in a development build, with no command to copy.
+  if (inspectorTool(platform) === 'safari') {
+    return html`<${Hint} text=${INTRO} /><${Steps} steps=${TEXT.inspectorMacSteps} /><${Hint}
+        text=${TEXT.inspectorDeveloperNote}
+      />`;
+  }
+  return html`<${Hint} text=${INTRO} />
+    <${Steps} steps=${EDGE_STEPS} />
+    <code class="dbg-cmd">${COMMAND}</code>
+    <div class="btns"><${Button} text="Copy command" test="debug-copy-command" onClick=${copyCommand} /></div>
+    <${Hint} text=${TEXT.inspectorDeveloperNote} />`;
+}
 
 export const developerTools = {
   id: 'developer-tools',
   title: 'Developer tools (full browser inspector)',
-  build() {
-    if (inspectorTool(platform) === 'safari') return macSteps();
-    const command = 'set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222';
-    return [
-      note('To inspect this window like a web page (elements, console, network):'),
-      el(
-        'ol',
-        { className: 'dbg-steps' },
-        el('li', { textContent: 'Quit Keystroke Overlay (tray icon → Quit).' }), // per-system: these steps are for Windows and Linux only
-        el('li', {
-          textContent: 'In a Command Prompt, run the line below, then start the app from that same window.',
-        }),
-        el('li', { textContent: TEXT.inspectorStepEdge }),
-      ),
-      el('code', { className: 'dbg-cmd', textContent: command }),
-      el(
-        'div',
-        { className: 'btns' },
-        button(
-          'Copy command',
-          async () => {
-            await call('copy_text', { text: command });
-            toast('Copied');
-          },
-          '',
-          'debug-copy-command',
-        ),
-      ),
-      note(TEXT.inspectorDeveloperNote),
-    ];
-  },
+  Body: DeveloperTools,
 };
-
-/** On a Mac the window is a WKWebView: Safari's inspector, in a development build, with no command to copy. */
-function macSteps() {
-  return [
-    note('To inspect this window like a web page (elements, console, network):'),
-    el('ol', { className: 'dbg-steps' }, ...TEXT.inspectorMacSteps.map((step) => el('li', { textContent: step }))),
-    note(TEXT.inspectorDeveloperNote),
-  ];
-}

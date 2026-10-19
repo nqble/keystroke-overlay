@@ -61,22 +61,25 @@ crate::debug::log("what just happened");            // or  crate::debug::log(for
    `ui/settings/debug/index.js`:
 
 ```js
-export const myTool = {
-  id: 'my-tool', // a short name for tests (goes into data-card)
-  title: 'My tool',
-  build() {
-    const out = el('div');
-    every(out, 2000, async () => { out.textContent = JSON.stringify(await invoke('debug_info')); });   // refresh every 2 s
-    return [note('What this shows.'), out];
-  },
-};
+import { invoke } from '../helpers.js';
+import { html, useState } from '../html.js';
+import { Facts, Hint, useEvery } from './shared.js';
+
+function MyTool() {
+  const [info, setInfo] = useState(null);
+  useEvery(2000, async () => setInfo(await invoke('debug_info'))); // refresh every 2 s, only while the tab is open
+  return html`<${Hint} text="What this shows." />
+    <${Facts} rows=${info ? [['Version', info.version]] : []} />`;
+}
+
+export const myTool = { id: 'my-tool', title: 'My tool', Body: MyTool }; // id goes into data-card for the tests
 ```
 
-Each file is an ES module, so import what you use at the top: `../helpers.js` for the small tools, `../state.js` for
-the settings and layouts, `./shared.js` for `every()`, `facts()` and the tab's wording, `./checks.js` for the
-self-test; the other sections show the pattern.
-
-Helpers you can use there: `el()`, `heading()`, `note()`, `button()`, `row()`, `toast()`, `call()`, `invoke()`, the `settings`, `layouts`, `showNotes()`, `resync()`, `render()`. `ui/settings/debug/index.js`'s header comment has the steps.
+Each section is a small Preact component (`html` from `../html.js`, like the other tabs). Import what you use at the
+top: `../helpers.js` for `invoke()`, `call()` and `toast()`, `../state.js` for the settings and layouts, `./shared.js`
+for the Debug tab's blocks (`Button`, `Hint`, `Facts`, `Check`, `LogLine`), `useEvery()` and its wording, and
+`./checks.js` for the self-test; the other sections show the pattern. `ui/settings/debug/index.js`'s header comment has
+the steps.
 
 3. Add a check to `tests/e2e/suites/debug.mjs` and run `npm run test:e2e -- --suite debug`.
 
