@@ -3,6 +3,10 @@
 Start here. The root of the repository holds the files GitHub expects (README, CHANGELOG, CONTRIBUTING, SECURITY, PRIVACY,
 CODE_OF_CONDUCT) and [CLAUDE.md](../CLAUDE.md), the rules for Claude sessions.
 
+## Using the app
+
+- [USER-GUIDE.md](USER-GUIDE.md): adding it to OBS, every tab, the tray menu, updates and troubleshooting
+
 ## How it works (reference)
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): the parts of the app and how they connect

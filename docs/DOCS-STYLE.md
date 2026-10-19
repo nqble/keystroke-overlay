@@ -44,6 +44,7 @@ Every fact has one home. Other documents link to it instead of repeating it, so 
 |---|---|
 | What the app can see, saves and sends | [PRIVACY.md](../PRIVACY.md) |
 | Getting the app, the short feature list | [README.md](../README.md) |
+| How to use each tab, OBS settings, two PCs, troubleshooting | [USER-GUIDE.md](USER-GUIDE.md) |
 | How a release is made, secrets, channels | [RELEASING.md](RELEASING.md) |
 | The settings and layout files | [FILE-FORMATS.md](FILE-FORMATS.md) |
 | The parts of the code | [ARCHITECTURE.md](ARCHITECTURE.md) |
