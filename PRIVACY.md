@@ -117,8 +117,8 @@ Exactly three things, all with GitHub (`github.com`, `api.github.com`, and GitHu
    `api.github.com`.
 
 What GitHub can see in those requests is what any website can see: your **IP address**, the time, and a user-agent:
-`KeystrokeOverlay/<version>` for release notes, and the updater library's own (`tauri-plugin-updater/<its version>`, which
-names neither the app nor its version) for update checks and downloads. The app sends **no** user ID, device ID,
+`KeystrokeOverlay/<version>` for release notes (for example `KeystrokeOverlay/1.4.0`), and the updater library's own
+(`tauri-plugin-updater/<its version>`, which names neither the app nor its version) for update checks and downloads. The app sends **no** user ID, device ID,
 settings or keystrokes, and sets no cookies. GitHub's own privacy statement governs what GitHub does with its logs.
 
 If you never use updates, you can block the app in your firewall and everything else keeps working.
