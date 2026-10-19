@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 
 use crate::sanitize::sanitize;
 
-pub const CURRENT_VERSION: u64 = 3;
+pub const CURRENT_VERSION: u64 = 4;
 
 pub fn defaults() -> Value {
     json!({
@@ -66,7 +66,7 @@ pub fn defaults() -> Value {
 type Migration = fn(&mut Value);
 
 /// MIGRATIONS[i] upgrades a config from version (i+1) to (i+2).
-const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3];
+const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3, v3_to_v4];
 
 /// v1 stored one global `layout.disabledKeys` / `layout.labels`.
 /// v2 stores them per layout in `layout.profiles[layoutId]`.
@@ -98,6 +98,12 @@ fn v2_to_v3(config: &mut Value) {
         }
     }
 }
+
+/// v4 (v2.0) only adds settings (`hotkeys`, `layout.order`, `style.keyLabels`), so nothing moves. The number goes up
+/// anyway: v1.4.0 also wrote version 3, and it drops every setting it doesn't know when it saves. Seeing a newer
+/// version is what makes an older app keep a copy first (downgrade.rs), so going back to v1.4.0 and forward again
+/// loses nothing.
+fn v3_to_v4(_config: &mut Value) {}
 
 pub fn migrate(mut config: Value) -> Value {
     if !config.is_object() {

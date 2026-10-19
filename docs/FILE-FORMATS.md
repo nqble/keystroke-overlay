@@ -7,12 +7,12 @@ Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows, `~/Library/Ap
 Mac, `~/.local/share/com.keyoverlay.app` on Linux (General → Advanced → Open data folder).
 
 ## Settings (`settings.json`)
-Versioned (`"version": 3` since v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
+Versioned (`"version": 4` from v2.0, which only adds settings; 3 from v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
 The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the single source of truth. Shape:
 
 ```jsonc
 {
-  "version": 3,
+  "version": 4,
   "general": { "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
                "autoCheckUpdates": true, "inputMethod": "hook",            // "hook" | "rawinput"
                "secureLink": false, "linkKey": "", "updateChannel": "stable", // "stable" | "latest"
