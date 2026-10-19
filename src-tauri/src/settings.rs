@@ -63,6 +63,9 @@ pub fn defaults() -> Value {
         },
         // The global pause shortcut (hotkeys.rs), e.g. "Ctrl+Shift+KeyP". Off and empty by default.
         "hotkeys": { "enabled": false, "pause": "" },
+        // OBS scenes (obs_scenes.rs): hide the overlay or show another layout in the listed scenes, followed by the
+        // overlay page inside OBS. rules = [{ "scene": "Chat", "show": false, "layout": "" }]; off by default.
+        "obs": { "scenes": { "enabled": false, "rules": [] } },
         "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
     })
 }

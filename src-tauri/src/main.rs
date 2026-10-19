@@ -14,6 +14,7 @@ mod hotkeys;
 mod key_labels;
 mod keyboard;
 mod layout_order;
+mod obs_scenes;
 mod platform;
 mod sanitize;
 mod server;

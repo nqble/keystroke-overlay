@@ -41,6 +41,7 @@ keystroke-overlay/
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
+│       ├── obs_scenes.rs   cleans the OBS scene rules (obs.scenes); the overlay follows them inside OBS (ui/overlay/obs-source.js)
 │       ├── app_info.rs     the app's name, repository and identifiers (must match app.config.json; npm run check:config)
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
 │       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
