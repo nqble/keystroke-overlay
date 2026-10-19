@@ -2,7 +2,7 @@
 //  The key editor's zoom and pan gestures: the wheel (a two-finger scroll pans on a Mac, the wheel zooms elsewhere), a
 //  trackpad pinch, Command + scroll, Space + drag and middle-button drag (docs/design/key-editor.md §3, Zoom and Pan).
 //  What each one means is plain logic in tabs/keys-gestures.js (tested); this file attaches it to the board's box.
-//  editor.js gives it a few functions so it never touches the editor's own state.
+//  view.js gives it a few functions so it never touches the editor's own state.
 // =====================================================================================================================
 import { gestureFactor, isTypingTarget, startsPan, wheelAction } from '../tabs/keys-gestures.js';
 import { clampView, panBy, stretchPan, zoomAt } from '../tabs/keys-view.js';

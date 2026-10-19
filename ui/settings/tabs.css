@@ -278,7 +278,7 @@ button:disabled:hover {
 }
 /* The board: a fixed area measured in keys (--board-w, --board-h). Zoom and pan are one transform on this layer. */
 .keymap-canvas {
-  --unit: 40px; /* pixels per key at 100% zoom (UNIT in editor/editor.js) */
+  --unit: 40px; /* pixels per key at 100% zoom (UNIT in editor/context.js) */
   position: absolute;
   left: 0;
   top: 0;

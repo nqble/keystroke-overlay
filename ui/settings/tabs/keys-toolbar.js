@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  The toolbar above the keyboard in the Keys tab (Preact): undo and redo, the Snap, Grid and Hidden keys switches, Close
 //  gaps and the Reset menu, and a status line. keys.js puts it on the page. Moving, aligning and spacing keys is done in
-//  editor/editor.js (the bar that floats above the selection); the maths is in keys-arrange.js.
+//  editor/arrange-bar.js (the bar that floats above the selection); the maths is in keys-arrange.js.
 // =====================================================================================================================
 import { MenuButton } from '../blocks.js';
 import { plural, toast } from '../helpers.js';
