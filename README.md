@@ -143,6 +143,20 @@ Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). How the code 
 [docs/EXTENDING.md](docs/EXTENDING.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). Maintaining the
 project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).
 
+## Code signing policy
+
+**Not signed yet.** The project has applied for free code signing from [SignPath.io](https://signpath.io), with a
+certificate by [SignPath Foundation](https://signpath.org), and is waiting for their answer. Until then the installer is
+not code-signed, so Windows may show a SmartScreen warning (**More info → Run anyway**). Once signing is approved, this
+policy applies:
+
+- **Committers and reviewers:** [Jordan Phoutthavone](https://github.com/nqble) and the contributors whose pull
+  requests Jordan reviews and merges.
+- **Approvers:** [Jordan Phoutthavone](https://github.com/nqble). Every signed release will be approved by hand.
+- Only installers built by this repository's release workflow from the `main` branch will be signed.
+- **Privacy:** see [PRIVACY.md](PRIVACY.md). The app's only internet contact is GitHub, for updates and release
+  notes; the automatic update check can be turned off. Keystrokes never leave your PC.
+
 ## License
 
 [MIT](LICENSE) © 2026 Jordan Phoutthavone. Third-party components keep their own licenses.
@@ -159,4 +173,5 @@ you publish your own version:
   Phoutthavone" is welcome.
 
 Official releases are only published at [github.com/nqble/keystroke-overlay](https://github.com/nqble/keystroke-overlay/releases)
-and are signed, so the app's built-in updater only installs updates from there.
+and every update is signed with the project's update key, so the app's built-in updater only installs updates from
+there.
