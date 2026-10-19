@@ -10,6 +10,14 @@ import { structureKey } from '/overlay/structure.js';
 // another PC than the app). Must match the Mac fonts note in ui/settings/system-fonts.js.
 const FONT_FALLBACKS = '"Segoe UI", system-ui, -apple-system, sans-serif';
 
+// What the overlay says to the person looking at it in OBS. The menu path must match the settings window
+// (ui/settings/tabs/general-connection.js).
+const TEXT = {
+  locked:
+    '🔒 This OBS URL is secured. Copy the current OBS URL from Keystroke Overlay ' +
+    '(General → Connection) into this OBS source.',
+};
+
 const PAD = 16; // room around the keys so glows aren't clipped
 const params = new URLSearchParams(location.search);
 const PREVIEW = params.has('preview') && window.parent !== window;
@@ -25,9 +33,7 @@ function showLocked() {
   lockedNotice.style.cssText =
     'position:fixed;left:8px;top:8px;max-width:420px;padding:8px 12px;border-radius:8px;' +
     'background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",system-ui,sans-serif';
-  lockedNotice.textContent =
-    '🔒 This overlay link is secured. Copy the current link from Keystroke Overlay ' +
-    '(General → Secure link) into this OBS source.';
+  lockedNotice.textContent = TEXT.locked;
   document.body.append(lockedNotice);
 }
 const getJson = async (url) => {
