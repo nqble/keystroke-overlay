@@ -86,6 +86,7 @@ keystroke-overlay/
         ├── first-run.js   the first run setup screen (new installs; General → First run setup opens it again)
         ├── other-layouts.js  "Other layouts" in the New layout popup: built-in layouts not on the Layout tab
         ├── layout-order.js  which layouts the Layout tab shows and in what order; moving and dropping (tested)
+        ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
         ├── menu.js        the small "⋯" and right-click menus; no browser right-click menu, no dragging except layout cards
         ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
         ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup
