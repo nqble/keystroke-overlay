@@ -5,7 +5,7 @@ Keystroke Overlay has a built-in **Debug mode** for anyone working on the code (
 ## Turn it on
 
 - **In the app:** General → Advanced → **Debug mode (for developers)**. A **Debug** tab appears in the left menu. Turn the switch off and the tab disappears and the log's everyday details are forgotten (the important events stay; see below).
-- **For development:** `npm run dev:debug` starts a separate development copy of the app with Debug mode already on and the browser inspector ready (see below). It needs Windows. It has its own settings folder (`%APPDATA%\com.keyoverlay.dev`) and its own port (7880), so it never clashes with an installed Keystroke Overlay.
+- **For development:** `npm run dev:debug` starts a separate development copy of the app with Debug mode already on and the browser inspector ready (see below). It works on Windows, macOS and Linux. It has its own settings folder (`com.keyoverlay.dev` in the system's app-data folder: `%APPDATA%` on Windows, `~/Library/Application Support` on a Mac, `~/.local/share` on Linux) and its own port (7880), so it never clashes with an installed Keystroke Overlay. On a Mac the inspector is Safari's Develop menu instead of edge://inspect.
 
 ## What the Debug tab has
 

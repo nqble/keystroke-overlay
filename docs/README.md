@@ -31,7 +31,8 @@ CODE_OF_CONDUCT) and [CLAUDE.md](../CLAUDE.md), the rules for Claude sessions.
 ## Decisions, designs and proposals
 
 - [decisions/](decisions): short numbered records of choices already made (start with its README)
-- [design/](design): approved designs: [key-editor.md](design/key-editor.md), [future-inputs.md](design/future-inputs.md)
+- [design/](design): approved designs: [ui-design-v2.md](design/ui-design-v2.md), [key-editor.md](design/key-editor.md),
+  [future-inputs.md](design/future-inputs.md); the audit behind them: [ui-audit.md](design/ui-audit.md)
 
 ## For Claude sessions
 

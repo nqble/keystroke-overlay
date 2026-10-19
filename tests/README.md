@@ -62,8 +62,9 @@ harmless copy of `whoami.exe`, signed with a throwaway key made for the run. Don
 (or `E2E_WORK`) and **removed automatically** unless you pass `--keep`. Debug builds are also configured with
 `debug = 0` in `Cargo.toml` to keep `src-tauri/target` small. To reclaim space any time: `cargo clean --manifest-path src-tauri/Cargo.toml`.
 
-**Not in CI.** GitHub's hosted runners have no real desktop session for window and keyboard tests, so the end-to-end
-suites run on your machine. CI runs the privacy check, syntax checks and the Rust tests.
+**On GitHub.** The **E2E (Windows)** workflow runs the end-to-end suites on GitHub's Windows machines for every pull
+request (not blocking yet: they have no real desktop session, so a run on your machine is still the reference). CI runs
+the privacy, format, style, docs, config and type checks, syntax checks, clippy, the UI unit tests and the Rust tests.
 
 ## Visual tests (`npm run test:visual`)
 

@@ -10,7 +10,8 @@ changes (a new message type or field) keep it; anything that would break an exis
 - `http://127.0.0.1:<port>/` (default port **7878**; also reachable as `http://localhost:<port>/`).
 - Local only: the server never accepts connections from other computers ([decision 0002](decisions/0002-local-only-server-and-optional-secure-link.md)).
 - Every request must have `Host: localhost:<port>` or `127.0.0.1:<port>`, and an `Origin` header (if present) of
-  `http://localhost:<port>` or `http://127.0.0.1:<port>`. Anything else gets HTTP 403. Every response that passes these checks (and the secure-link check below) is
+  `http://localhost:<port>` or `http://127.0.0.1:<port>`. Anything else gets HTTP 403 (a request with two Host headers gets 400). If the request line carries its own address,
+that address must also be this server. Every response that passes these checks (and the secure-link check below) is
 sent with `Cache-Control: no-store`.
 
 ## Secure link (optional)
@@ -49,8 +50,8 @@ Every message is one JSON object in a text frame with a type field `t`.
 
 Key names follow the browser's `KeyboardEvent.code` (for example `KeyW`, `Digit1`, `ShiftLeft`, `ControlRight`, `Space`,
 `ArrowUp`, `Numpad5`, `NumpadEnter`, `PrintScreen`, `Pause`). The list is in
-`src-tauri/src/keyboard/keymap.rs`, shared by every Windows capture method so they all name keys the same way (the
-Linux capture in development, `keyboard/linux_keys.rs`, gives the same names).
+`src-tauri/src/keyboard/keymap.rs`, shared by both Windows capture methods so they all name keys the same way; `keyboard/linux_keys.rs` (Linux) and
+`keyboard/macos_keys.rs` (macOS) give the same names.
 
 **Reserved for the future** (not sent yet): mouse and controller buttons will use these same `d` / `u` / `snap` messages
 with names like `MouseLeft` and `PadA`, and analog controls (sticks, triggers) will use `{"t":"a",…}`. Clients must

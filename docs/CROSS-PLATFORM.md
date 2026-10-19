@@ -1,8 +1,8 @@
 # Working on Linux and macOS
 
-Keystroke Overlay is a Windows app, but you don't need Windows to work on most of it. Everything builds, runs and is
+Keystroke Overlay is made first for Windows and also ships for macOS (Linux builds too), and you don't need Windows to work on most of it. Everything builds, runs and is
 tested on Linux and macOS too. Keyboard capture also works on **Linux X11 desktops** (from
-v1.4, not released yet); macOS capture works on v2.0 (it needs the Input Monitoring permission; tested on one Apple Silicon Mac). Wayland capture is
+v1.4); macOS capture works on v2.0 (it needs the Input Monitoring permission; tested on one Apple Silicon Mac). Wayland capture is
 built on v2.0 (it needs the `input` group; [LINUX-PORT.md](LINUX-PORT.md), [MAC-PORT.md](MAC-PORT.md)). CI checks this on every pull request and every push to `main` and the work branches (the `other-systems` job in
 `.github/workflows/ci.yml`), so it stays that way.
 
@@ -33,8 +33,8 @@ sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicat
 git clone https://github.com/nqble/keystroke-overlay.git
 cd keystroke-overlay
 npm install
-npm run dev          # the app (keys are captured on X11 desktops)
-npm test             # Rust tests, UI tests and the privacy check
+npm run dev          # the app (keys are captured on X11, and on Wayland once you are in the input group)
+npm test             # Rust tests, UI tests, the privacy check and the every-system check
 ```
 
 Other distributions: see Tauri's [prerequisites](https://v2.tauri.app/start/prerequisites/) for the same libraries.

@@ -20,7 +20,7 @@ checks the rules marked **(checked)**; the rest are for reviewers.
   | **overlay** (what OBS shows) and **live preview** (the copy in the settings window) | widget, preview window |
   | **layout** (a keyboard: Full size, TKL…) and **key** | board, button |
 
-- **Menu paths** are bold, with arrows: **General → App → Debug mode**. Use the names the app shows, letter for letter.
+- **Menu paths** are bold, with arrows: **General → Advanced → Debug mode (for developers)**. Use the names the app shows, letter for letter.
 
 ## Voice
 

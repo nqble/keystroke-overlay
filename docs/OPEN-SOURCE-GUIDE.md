@@ -24,7 +24,7 @@ You don't need to write code to run an open-source project. Claude (or any contr
 
 ## 3. Publish it (done: the repository is public and has releases since v1.1.0; kept for reference)
 
-You already created the repository `nqble/keystroke-overlay` on GitHub (it holds only a placeholder README).
+You already created the repository `nqble/keystroke-overlay` on GitHub (at first it held only a placeholder README).
 
 **Easiest: ask Claude.** Say "publish the repo". Claude will ask for your confirmation (publishing is public), then upload the
 project. You may be asked to sign in to GitHub once in your browser. Nothing is uploaded without your yes.

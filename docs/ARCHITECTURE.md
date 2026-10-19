@@ -1,7 +1,8 @@
 # Architecture
 
 A small Tauri v2 app: a Rust backend (keyboard hook + local web server + tray) and two web pages (the overlay OBS
-loads, and the settings window). No framework, no bundler.
+loads, and the settings window). No bundler and no build step: the settings window uses Preact with htm (copied into
+`ui/settings/vendor/`), and the overlay is plain JavaScript.
 
 ## Folder map
 
@@ -15,7 +16,7 @@ keystroke-overlay/
 │                       public on purpose); schemas/ holds the JSON schemas for layout and preset files
 ├── assets/             logo/: the logo as SVG (app, devbuild, tray); the app's icons are made from it
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
-│                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
+│                       (speed and memory), lib/ (the shared lock), linux/ (the key-stream and key-label check the Linux CI runs); see tests/README.md. Rust unit tests live next to the code
 ├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licenses for the installer), changelog-section.mjs (release notes + their format check),
 │                       check-privacy.mjs (+ privacy-patterns.mjs), check-style.mjs, check-docs.mjs (where docs live, the indexes, links, spelling and names) with its word list in word-rules.mjs, check-systems.mjs (settings-window text must not name Windows-only things), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), vendor.mjs (copies Preact + htm), gen-layouts.mjs, preview.mjs (the overlay in a browser),
 │                       ui-sandbox.mjs + sandbox/ (the settings window in a browser, docs/DEBUGGING.md), devbuild.mjs + devbuild-title.mjs (a test installer),
@@ -74,7 +75,7 @@ keystroke-overlay/
         ├── tabs.css, header.css, pause-button.css, popups.css, debug.css, keys.css, keyboard-access.css   one file per part of the window
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
-        ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
+        ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports only text.js)
         ├── html.js        Preact with htm for new screens (html.d.ts: its types); the libraries are copies in vendor/
         ├── vendor/        Preact and htm, copied by tools/vendor.mjs, pinned and fingerprint-checked (never edit)
         ├── controls.js    CONTROLS: the table that draws every slider, color picker and dropdown
