@@ -57,7 +57,7 @@ Only things you chose, in `%APPDATA%\com.keyoverlay.app\` (and the web view's no
 - from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app (you went back
   a version). When you go forward to that version again, its settings are put back and the copy is deleted. This works
   between versions from v1.4.0 on; going back to v1.3.0 or earlier still loses the newer settings
-- `presets/`, `fonts/`, `layouts/`: files you created or added
+- `presets/`, `fonts/`, `layouts/` (plus empty `animations/` and `themes/` folders): files you created or added
 - from v1.4.0, only if the app crashes: `crash-note.txt`, one line saying which version crashed, where in the app's code
   and how long after starting (never the crash message, never a key). The next start reads it into the event log and
   deletes it
@@ -70,11 +70,11 @@ app did (the server started, keyboard input failed, an update check ran), never 
 holds the last 100 important events; it is never written to disk, never sent anywhere, and gone when the app closes.
 
 **Debug mode** (off by default; General → App) adds a developer tab, and the event log then also records everyday steps
-(the last 300 lines; turning Debug mode off forgets them). Nothing is written to disk (apart from the self-test's empty test file, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
+(the last 300 lines; turning Debug mode off forgets them). Nothing is written to disk (apart from the self-test's tiny test file, two bytes, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## When the app talks to the internet
 
-Exactly three things, all with `github.com` / `api.github.com`, and all visible in the settings window:
+Exactly three things, all with GitHub (`github.com`, `api.github.com`, and GitHub's download servers for release files), and all visible in the settings window:
 
 1. **Update check** — fetches a small manifest file (`latest.json` or `stable.json`) from this project's GitHub releases.
    Runs when you click *Check for updates*, and — if you leave *Check for updates automatically* on — 45 seconds after the app
@@ -85,8 +85,9 @@ Exactly three things, all with `github.com` / `api.github.com`, and all visible 
 3. **Release notes** — the "What's new" window / *View release notes* fetches the notes for one version from
    `api.github.com`.
 
-What GitHub can see in those requests is what any website can see: your **IP address**, the time, and a user-agent
-that names the app and its version (release notes use `KeystrokeOverlay/` plus the version, for example `KeystrokeOverlay/1.4.0`). The app sends **no** user ID, device ID,
+What GitHub can see in those requests is what any website can see: your **IP address**, the time, and a user-agent:
+`KeystrokeOverlay/<version>` for release notes (for example `KeystrokeOverlay/1.4.0`), and the updater library's own
+(`tauri-plugin-updater/<its version>`, which names neither the app nor its version) for update checks and downloads. The app sends **no** user ID, device ID,
 settings or keystrokes, and sets no cookies. GitHub's own privacy statement governs what GitHub does with its logs.
 
 If you never use updates, you can block the app in your firewall and everything else keeps working.
@@ -124,7 +125,7 @@ You do not have to take our word for any of this.
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
    - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings (and the `settings.vN.json` copy), presets, fonts, layouts, files you export (to a place you pick), the one-line
-     `crash-note.txt`, and the Debug self-test's empty `.write-test` file, created and deleted at once
+     `crash-note.txt`, and the Debug self-test's tiny `.write-test` file (two bytes), created and deleted at once
      (never the keyboard or server code)
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on
