@@ -2,11 +2,11 @@
 // It runs inside the overlay page that the settings window shows as its live preview. For each kind of change it hands the
 // overlay new settings, exactly as the settings window does while you drag a slider, and times how long the overlay's own work
 // takes (in milliseconds, the median of many changes, on a full keyboard layout):
-//   colour    a colour changes: only CSS variables change (the cheapest case)
+//   color    a color changes: only CSS variables change (the cheapest case)
 //   size      key size, gap, font size or scale changes: today the overlay builds every key again
 //   hide      one key is hidden or shown
 // The numbers are printed so a change to the overlay can be compared before and after; they are not pass/fail limits, except
-// that a colour change must stay cheap.
+// that a color change must stay cheap.
 import { connect, check, finish, sleep, PORT } from '../lib/cdp.mjs';
 
 const p = await connect();
@@ -37,7 +37,7 @@ const result = JSON.parse(
       return median(list);
     };
     const out = {
-      colour: time((s, i) => { s.style.keyFill = '#' + (0x202020 + (i % 16) * 0x010101).toString(16) + 'ff'; }),
+      color: time((s, i) => { s.style.keyFill = '#' + (0x202020 + (i % 16) * 0x010101).toString(16) + 'ff'; }),
       size: time((s, i) => { s.style.keySize = 40 + (i % 12); }),
       hide: time((s, i) => { s.layout.profiles.full = { disabledKeys: i % 2 ? ['KeyA'] : [] }; }),
       keys: document.querySelectorAll('.key').length,
@@ -47,10 +47,10 @@ const result = JSON.parse(
   ),
 );
 console.log(`\n  keys on screen: ${result.keys}`);
-console.log(`  colour change   ${result.colour.toFixed(2)} ms`);
+console.log(`  color change   ${result.colour.toFixed(2)} ms`);
 console.log(`  size change     ${result.size.toFixed(2)} ms`);
 console.log(`  hide a key      ${result.hide.toFixed(2)} ms`);
 check('the overlay shows a full keyboard', result.keys > 80, String(result.keys));
-check('a colour change stays cheap (under 2 ms)', result.colour < 2, `${result.colour.toFixed(2)} ms`);
+check('a color change stays cheap (under 2 ms)', result.colour < 2, `${result.colour.toFixed(2)} ms`);
 p.close();
 finish();

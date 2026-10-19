@@ -102,7 +102,7 @@ authenticate** other *programs* on the same computer. So:
 - On a PC where **other people are logged in at the same time** (Windows fast user switching, shared or terminal
   servers), their programs could connect to your port too.
 
-If that matters to you: use *Pause overlay*, use the app only on a PC you alone use, or turn on the optional **Secure link** (General → Secure link). With it on, your OBS link carries a private key and the
+If that matters to you: use *Pause overlay*, use the app only on a PC you alone use, or turn on the optional **Secure link** (General → Secure link). With it on, your OBS URL carries a private key and the
 server refuses every data request and the key-press stream without it, so other programs and other Windows users can't listen in.
 It is off by default (the link stays simple); turning it on means pasting the new link into OBS once, and "Make a new key"
 cuts off old links. The overlay's own public page and scripts stay open because they contain nothing private, and the key itself is
@@ -113,7 +113,7 @@ anywhere you paste it. Treat the link like a password, keep it off your stream, 
 
 - **Microsoft Edge WebView2** draws the settings window. It is a Microsoft component; Microsoft's diagnostic-data
   settings in Windows apply to it. The settings window only ever loads this app's own local pages.
-- **OBS Studio** (or whatever browser source you use) renders the overlay. Its behaviour is its own.
+- **OBS Studio** (or whatever browser source you use) renders the overlay. Its behavior is its own.
 - **Windows** itself, and any other software on your PC.
 
 ## How to check it yourself
@@ -132,7 +132,7 @@ You do not have to take our word for any of this.
    above: with *Check for updates automatically* on (the default), the first one comes about 45 seconds after start.
 3. **Block it.** Add a firewall rule blocking the app's outbound traffic: the overlay keeps working, only updates stop.
 4. **Watch the disk.** Process Monitor (Microsoft Sysinternals) filtered to the app shows writes only inside its data folder.
-5. **Build it yourself.** See [CONTRIBUTING.md](CONTRIBUTING.md) — compile from source and compare behaviour.
+5. **Build it yourself.** See [CONTRIBUTING.md](CONTRIBUTING.md) — compile from source and compare behavior.
 
 ## Reporting a problem
 

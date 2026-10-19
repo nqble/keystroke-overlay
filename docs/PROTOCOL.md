@@ -41,7 +41,7 @@ Every message is one JSON object in a text frame with a type field `t`.
 
 | Message | Meaning |
 |---|---|
-| `{"t":"snap","down":["KeyW","ShiftLeft"]}` | Full state: exactly the keys held down right now. Sent first on connect, and again to resynchronise after a client falls behind. Replace your state with it. |
+| `{"t":"snap","down":["KeyW","ShiftLeft"]}` | Full state: exactly the keys held down right now. Sent first on connect, and again to resynchronize after a client falls behind. Replace your state with it. |
 | `{"t":"d","k":"KeyW"}` | Key **down**. |
 | `{"t":"u","k":"KeyW"}` | Key **up**. |
 | `{"t":"cfg","s":<public settings>,"paused":false}` | Settings changed (or the pause state changed). Redraw. |
@@ -56,7 +56,7 @@ Linux capture in development, `keyboard/linux_keys.rs`, gives the same names).
 with names like `MouseLeft` and `PadA`, and analog controls (sticks, triggers) will use `{"t":"a",…}`. Clients must
 ignore message types they don't know. See [design/future-inputs.md](design/future-inputs.md).
 
-### Behaviour you can rely on
+### Behavior you can rely on
 - **Repeats are filtered.** Holding a key sends one `d`, not a stream of them.
 - **No stuck keys.** If a release is missed, the app corrects itself; a `snap` is the ground truth.
 - **While paused,** key events are not sent and a `snap` has an empty `down` list.

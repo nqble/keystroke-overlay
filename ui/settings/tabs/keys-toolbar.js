@@ -66,12 +66,12 @@ function toggleButton(label, on, tooltip, test, onclick) {
   return toggle;
 }
 
-/** "Close gaps": slide the shown keys together, keeping their order, then centre them on the board. */
+/** "Close gaps": slide the shown keys together, keeping their order, then center them on the board. */
 function closeGaps(layout) {
   const profile = viewProf();
   const hidden = new Set(profile.disabledKeys);
   const frame = boardFor(layout, profile);
-  // the keys as they sit on the board (saved place plus the origin), closed up and centred on the board, then back to saved places
+  // the keys as they sit on the board (saved place plus the origin), closed up and centered on the board, then back to saved places
   const boxes = placedBoxesFor(layout, profile)
     .filter((box) => !hidden.has(box.code))
     .map((box) => ({ ...box, x: box.x + frame.originX, y: box.y + frame.originY }));

@@ -192,7 +192,7 @@ function gapCloser(spans, keepGap) {
 
 /**
  * "Close gaps": slide the visible keys together so no gap between groups is wider than `keepGap` (CLOSED_GAP, or 0 in
- * Even grid), on both axes, then centre the result on the board. Returns { code: { x, y } } for every box given.
+ * Even grid), on both axes, then center the result on the board. Returns { code: { x, y } } for every box given.
  */
 export function closeGapsPositions(boxes, board, keepGap = CLOSED_GAP, step = CLOSED_GAP) {
   if (!boxes.length) return {};

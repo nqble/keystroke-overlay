@@ -17,7 +17,7 @@ const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {} });
 export const LAYOUT_STYLES = ['shape', 'grid'];
 
 // Limits for positions and widths. Keep in step with MAX_POSITION, MIN_KEY_WIDTH and MAX_KEY_WIDTH in settings.rs.
-export const MIN_POSITION = -100; // a key may sit left of or above the layout's own origin (the board is centred on the layout)
+export const MIN_POSITION = -100; // a key may sit left of or above the layout's own origin (the board is centered on the layout)
 export const MAX_POSITION = 100;
 export const MIN_KEY_WIDTH = 0.25;
 export const MAX_KEY_WIDTH = 100;

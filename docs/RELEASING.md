@@ -70,10 +70,12 @@ unsigned (SignPath can't reach inside an NSIS installer); Windows only shows it 
 
 The repository has a **Release** workflow (`.github/workflows/release.yml`) that does everything below by itself.
 
-One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): add the repository secret `TAURI_SIGNING_PRIVATE_KEY`
-(the text of your `updater.key`), and an environment named `release` with yourself as a **required reviewer** (every
-release then waits for your approval before the signing key is used), and the secret `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
-(the key's password; see "Signing key password" below).
+One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): an environment named `release` with yourself as a
+**required reviewer** (every release then waits for your approval before the signing key is used), holding both secrets:
+`TAURI_SIGNING_PRIVATE_KEY` (the text of your `updater.key`) and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (the key's password;
+see "Signing key password" below). Keep both in the `release` environment, not at the repository level: an environment
+secret wins over a repository secret with the same name, so a newer copy at the repository level is silently ignored.
+That is what failed the first two v1.4.0 runs with "Wrong password for that key".
 
 **Safety rules the workflow enforces:** it only releases a commit that is already on `main` (merge first); every GitHub
 Action it uses is pinned to an exact commit, and Dependabot (`.github/dependabot.yml`) opens a pull request each month when
@@ -93,7 +95,7 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## Signing key password
 
-The update key has a password (since October 2026), kept in Jordan's password manager and in the GitHub secret
+The update key has a password (since October 2026), kept in Jordan's password manager and in the `release` environment's secret
 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Without it the key can't sign anything, and nobody can recover it.
 
 To change the password, change it on the **same** key: that keeps the public key, so every installed copy keeps
@@ -111,12 +113,22 @@ of its `x86_64\minisign.exe`):
    -f updater.key test.txt` (the password in `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`), decode `test.txt.sig` and
    `plugins.updater.pubkey` (in `src-tauri/tauri.conf.json`) from base64, and run `minisign -V` on them. It must say
    "Signature and comment signature verified".
-4. Update both GitHub secrets, and replace every backup of the old file.
+4. Update both secrets in the `release` environment, straight from the checked file and password so nothing is
+   retyped (in the project folder, signed in with `gh auth login`; `$pw` is the password that passed step 3):
+
+   ```powershell
+   gh secret set TAURI_SIGNING_PRIVATE_KEY_PASSWORD --env release --body $pw
+   cmd /c "gh secret set TAURI_SIGNING_PRIVATE_KEY --env release < ""%USERPROFILE%\.keystroke-overlay-keys\updater.key"""
+   gh secret list --env release
+   ```
+
+   The list should show both as just updated (`cmd`'s `<` passes the file unchanged; a PowerShell pipe can alter it).
+   Then replace every backup of the old file.
 
 ## Release notes format
 
-From v1.4.0 (v1.3.0 and earlier used bold lines, which the app still colours), every CHANGELOG entry uses only these sections, in this order, each as a `###` heading. Leave out a section with
-nothing in it. The app colours each one in "What's new" and the update popup, and `tools/changelog-section.mjs` (run by
+From v1.4.0 (v1.3.0 and earlier used bold lines, which the app still colors), every CHANGELOG entry uses only these sections, in this order, each as a `###` heading. Leave out a section with
+nothing in it. The app colors each one in "What's new" and the update popup, and `tools/changelog-section.mjs` (run by
 the release workflow) refuses an entry with another heading, the wrong order or a section twice.
 
 | Heading | For |
@@ -128,7 +140,7 @@ the release workflow) refuses an entry with another heading, the wrong order or 
 | `### 🧰 Under the hood` | changes for developers |
 
 Don't end the entry with "Your settings … are kept": the script adds that line to every release. The list of sections
-lives in `ui/settings/release-notes.js`; add a section there, give it a colour token in `settings.css`, and add a row
+lives in `ui/settings/release-notes.js`; add a section there, give it a color token in `settings.css`, and add a row
 here.
 
 ## Every release (manual)
@@ -162,12 +174,12 @@ General), and a button appears in the settings window; the user must click it an
 
 ## Third-party notices
 
-The app is built from open-source libraries whose licences ask that their notices go with the app. The release
+The app is built from open-source libraries whose licenses ask that their notices go with the app. The release
 workflow writes them (`npm run notices`, using cargo-about 0.9.2 and `src-tauri/about.toml`), puts the file in the
 installer (it lands next to the app as `THIRD-PARTY-NOTICES.html`) and attaches it to the GitHub release.
 
-If a library update brings a licence that is not listed in `src-tauri/about.toml`, the release stops there. Check that
-the new licence is compatible with MIT (permissive licences like MIT, BSD or Apache are; GPL and AGPL are not), then add
+If a library update brings a license that is not listed in `src-tauri/about.toml`, the release stops there. Check that
+the new license is compatible with MIT (permissive licenses like MIT, BSD or Apache are; GPL and AGPL are not), then add
 it to the list. To try it on your PC: `cargo install cargo-about --version 0.9.2 --locked --features cli`, then
 `npm run notices`.
 
@@ -189,6 +201,6 @@ Signed releases (Code signing above) build reputation much faster, so these repo
 - `npm run check:privacy` passes
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
 - The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
-- Dependency licences still compatible with MIT: checked automatically (see Third-party notices)
+- Dependency licenses still compatible with MIT: checked automatically (see Third-party notices)
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`
   (never set it in a real build)

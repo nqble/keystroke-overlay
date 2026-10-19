@@ -12,7 +12,7 @@ are pasted into GitHub, not read from this folder); turn them into full GitHub l
 GitHub already creates some of these in every new repository (marked "default"). Only the others need creating. The two
 issue templates in `.github/ISSUE_TEMPLATE/` already use `bug` and `enhancement`.
 
-| Name | Colour (hex) | Description | Note |
+| Name | Color (hex) | Description | Note |
 |---|---|---|---|
 | `good first issue` | `#7057ff` | Small, self-contained and explained step by step. Good for a first contribution. | default |
 | `help wanted` | `#008672` | The maintainer would welcome a pull request for this. | default |
@@ -82,7 +82,7 @@ You do not need to register the file anywhere. Every file in `ui/overlay/layouts
    upside-down "T" of four keys.
 3. Click the keys in the preview: each should light up. Press the real arrow keys: they should light up too.
 4. Open the **Keys** tab: the whole keyboard should fit in its box without scrolling.
-5. Right-click the layout card: **Delete layout** should be greyed out (built-in layouts cannot be deleted).
+5. Right-click the layout card: **Delete layout** should be grayed out (built-in layouts cannot be deleted).
 6. Run `npm run format` and `npm run check:style`.
 
 ### Acceptance criteria
@@ -108,13 +108,13 @@ you are working on it. Keep the pull request to these two files.
 **Body:**
 
 ### Context
-A theme is a named bundle of colours, fonts and one animation. We ship Default, Glass, Minecraft, Minimal light and Neon glow. None
-of them is built for **maximum readability**: big bold text, thick borders, and a pressed colour that stands out sharply against
-the idle colour. That helps viewers on small screens and people with low vision.
+A theme is a named bundle of colors, fonts and one animation. We ship Default, Glass, Minecraft, Minimal light and Neon glow. None
+of them is built for **maximum readability**: big bold text, thick borders, and a pressed color that stands out sharply against
+the idle color. That helps viewers on small screens and people with low vision.
 
 ### What to change
 Create one file, `ui/overlay/themes/high-contrast.js` (new). Copy `ui/overlay/themes/minimal-light.js`, then change the id, the
-name and the values. A starting point (colours are `#rrggbb` or `#rrggbbaa`):
+name and the values. A starting point (colors are `#rrggbb` or `#rrggbbaa`):
 
 ```js
 import { registerTheme } from '/overlay/registry.js';
@@ -155,8 +155,8 @@ Every file in `ui/overlay/themes/` is loaded automatically, so nothing else need
 ### How to test
 1. Run `npm run dev`.
 2. In the settings window, open the **Style** tab and choose **High contrast** from **Built-in theme**.
-3. The preview should change to white-on-black keys. Click keys in the preview, or press real keys: the pressed colour should be a clear,
-   different colour, and the text should stay readable.
+3. The preview should change to white-on-black keys. Click keys in the preview, or press real keys: the pressed color should be a clear,
+   different color, and the text should stay readable.
 4. Try other animations in the **Animation** tab (it should still look fine), then switch back to another theme.
 5. Run `npm run format` and `npm run check:style`.
 

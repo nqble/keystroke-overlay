@@ -203,7 +203,7 @@ function reportSize(width, height) {
 }
 
 /**
- * Scale the keyboard to fit the OBS source's box and centre it, so a box that doesn't match the suggested size (or a
+ * Scale the keyboard to fit the OBS source's box and center it, so a box that doesn't match the suggested size (or a
  * layout wider than the box) still shows the whole keyboard. In the settings window's preview the frame is already
  * the suggested size, so nothing changes there. Runs only when the keys are rebuilt or the box is resized.
  */

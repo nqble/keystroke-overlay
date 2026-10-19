@@ -1,10 +1,12 @@
 // Keeps the documentation tidy (runs in CI):
 //   * every markdown file lives in a place the placement table in CLAUDE.md allows;
 //   * every file in docs/ and docs/for-claude/ is listed in that folder's README;
-//   * every relative link in a markdown file points at something that exists.
+//   * every relative link in a markdown file points at something that exists;
+//   * the docs and the app's own text follow the wording rules in docs/DOCS-STYLE.md (tools/word-rules.mjs).
 //   node tools/check-docs.mjs
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
+import { wordProblems } from './word-rules.mjs';
 
 const SKIP = new Set(['node_modules', 'target', '.git', 'release']);
 const problems = [];
@@ -79,6 +81,23 @@ for (const file of files) {
   }
 }
 
+// The wording rules: every doc except the CHANGELOG's history and DOCS-STYLE.md (which names the words to avoid), and
+// the text people see in the app.
+const APP_TEXT = ['ui/settings/index.html', 'src-tauri/src/tray.rs'];
+const appScripts = (dir) =>
+  readdirSync(dir, { recursive: true })
+    .map((name) => join(dir, name).split(sep).join('/'))
+    .filter((path) => path.endsWith('.js') && !path.includes('/vendor/'));
+const NOT_WORDED = new Set(['CHANGELOG.md', 'docs/DOCS-STYLE.md']);
+const worded = [...files.filter((file) => !NOT_WORDED.has(file)), ...APP_TEXT, ...appScripts('ui')];
+for (const file of worded) {
+  readFileSync(file, 'utf8')
+    .split('\n')
+    .forEach((line, index) => {
+      for (const problem of wordProblems(line)) problems.push(`${file}:${index + 1}: ${problem}`);
+    });
+}
+
 if (problems.length) {
   console.error(
     problems.slice(0, 40).join('\n') + (problems.length > 40 ? `\n... and ${problems.length - 40} more` : ''),
@@ -86,4 +105,6 @@ if (problems.length) {
   console.error(`\ndocs check failed: ${problems.length} problem(s)`);
   process.exit(1);
 }
-console.log(`docs check passed: ${files.length} markdown files, all in the right place, listed and with working links`);
+console.log(
+  `docs check passed: ${files.length} markdown files, all in the right place, listed and with working links; wording rules kept`,
+);

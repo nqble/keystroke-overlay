@@ -45,7 +45,7 @@ import {
 import { layoutBoxesFor, placeKeys } from './places.js';
 
 const UNIT = 40; // pixels per key at 100% zoom (keep in step with --unit in settings.css)
-const KEY_GAP = 3; // pixels between neighbouring keys at 100% zoom (keep in step with the .kmk size in settings.css)
+const KEY_GAP = 3; // pixels between neighboring keys at 100% zoom (keep in step with the .kmk size in settings.css)
 const DRAG_START_DISTANCE = 3; // pixels the pointer must move before a press counts as a drag, not a click
 const MIN_DOT_SPACING = 6; // pixels: grid dots closer together than this are thinned out so the grid stays readable
 const MIDDLE_BUTTON = 1;
@@ -57,7 +57,7 @@ const ARRANGE_GAP = 10; // pixels between the arrange bar and the selected keys
 // The arrange bar: [hook name, label, tooltip, kind, how many keys it needs]. It floats above two or more selected keys.
 const ARRANGE_BUTTONS = [
   ['key-align-left', 'Left', 'Line the keys up along their left edge', 'align', 'left', 2],
-  ['key-align-center', 'Centre', 'Line the keys up along their vertical middle', 'align', 'center', 2],
+  ['key-align-center', 'Center', 'Line the keys up along their vertical middle', 'align', 'center', 2],
   ['key-align-right', 'Right', 'Line the keys up along their right edge', 'align', 'right', 2],
   ['key-align-top', 'Top', 'Line the keys up along their top edge', 'align', 'top', 2],
   ['key-align-middle', 'Middle', 'Line the keys up along their horizontal middle', 'align', 'middle', 2],
@@ -101,7 +101,7 @@ function createEditor() {
     'zoom-percent',
     'editor-zoom-reset',
   );
-  zoomLabel.title = 'Zoom to 100% and centre the board';
+  zoomLabel.title = 'Zoom to 100% and center the board';
   const zoomBy = (factor) => () => {
     viewTouched = true;
     setView(zoomAt(view, factor, { x: boxSize.w / 2, y: boxSize.h / 2 }, boxSize, content(), OVERSCAN));
@@ -133,7 +133,7 @@ function createEditor() {
 
   const content = () => ({ w: board.w * UNIT, h: board.h * UNIT });
 
-  /** Save a key's place, given as a board place (the board is centred on the layout, so a saved place is the board place minus the origin). */
+  /** Save a key's place, given as a board place (the board is centered on the layout, so a saved place is the board place minus the origin). */
   const saveAt = (key, x, y) => setKeyPos(key, x - frame.originX, y - frame.originY);
 
   /** The selected keys as boxes in board places: [{ code, x, y, w, h }]. */
@@ -178,7 +178,7 @@ function createEditor() {
     setView(clampView({ ...view, zoom: Math.min(ZOOM_MAX, zoom) }, boxSize, content(), OVERSCAN));
   }
 
-  /** The first view of a layout: its keys centred in the box, as large as fits (never more than 100%). */
+  /** The first view of a layout: its keys centered in the box, as large as fits (never more than 100%). */
   function firstView() {
     // The keyboard goes in the middle of the box with FIRST_VIEW_PADDING of space around it, and the zoom buttons get their own
     // strip underneath (FIRST_VIEW_BOTTOM), so nothing sits on top of the keys.
@@ -552,10 +552,10 @@ function createEditor() {
     const bottomRight = toScreen({ x: bounds.maxX * UNIT, y: bounds.maxY * UNIT }, view);
     const height = arrangeBar.offsetHeight || 32;
     const above = topLeft.y - ARRANGE_GAP - height;
-    // centred over the selection, but kept inside the box
+    // centered over the selection, but kept inside the box
     const half = (arrangeBar.offsetWidth || 0) / 2 + ARRANGE_GAP / 2;
-    const centre = Math.min(Math.max((topLeft.x + bottomRight.x) / 2, half), Math.max(half, boxSize.w - half));
-    arrangeBar.style.setProperty('--bar-x', centre + 'px');
+    const center = Math.min(Math.max((topLeft.x + bottomRight.x) / 2, half), Math.max(half, boxSize.w - half));
+    arrangeBar.style.setProperty('--bar-x', center + 'px');
     arrangeBar.style.setProperty('--bar-y', (above >= 0 ? above : bottomRight.y + ARRANGE_GAP) + 'px');
   }
 

@@ -16,7 +16,7 @@ export const TEXT = {
     'options go back to their defaults. Your own layouts, presets and fonts are kept, and so is your ' +
     'port.',
   resetBodyLinkNote:
-    'If the secure link was on, your OBS link goes back to the plain address, so paste it into OBS ' + 'again.',
+    'If the secure link was on, your OBS URL goes back to the plain address, so paste it into OBS ' + 'again.',
   manualInstallDialog:
     'This update needs a manual install: download the new installer from GitHub, close this app, and ' +
     'run it. Your settings are kept.',
@@ -26,7 +26,7 @@ export const TEXT = {
   dragHint: 'Drag a key to move it. Ctrl-click to add.',
   noKeySelected: 'No key selected',
   inspectorTip:
-    'Click a key to change its label or hide it. Drag keys anywhere and they line up with their neighbours. ' +
+    'Click a key to change its label or hide it. Drag keys anywhere and they line up with their neighbors. ' +
     'Changes are saved automatically for each layout.',
   overlapNote: 'This key overlaps another. Drag it to a free spot, or press Close gaps.',
   inspectorTipGrid:
@@ -58,10 +58,10 @@ export const TEXT = {
     'The server only listens on 127.0.0.1 (this PC). Keystrokes are never saved or sent anywhere. OBS ' +
     'reconnects by itself after a restart.',
   secureLinkOff:
-    '**Off (default):** your OBS link is simple and needs no extra step. Any program running on this ' +
+    '**Off (default):** your OBS URL is simple and needs no extra step. Any program running on this ' +
     'PC can read your key presses through it. Turn this on if you share the PC or want that closed.',
   secureLinkOn:
-    '**On:** your OBS link now contains a private key, and only a program that knows the full link ' +
+    '**On:** your OBS URL now contains a private key, and only a program that knows the full link ' +
     'can read your key presses. **Copy the new link into your OBS Browser Source once** — the old ' +
     'link stops working. Keep the link off your stream. “Make a new key” cuts off anyone who has the ' +
     'old one.',

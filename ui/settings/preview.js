@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  Saving a change, the live preview, and the OBS link / address bar.
+//  Saving a change, the live preview, and the OBS URL / address bar.
 // =====================================================================================================================
 import { $, call, invoke, toast } from './helpers.js';
 import { forgetPages, render } from './settings.js';
@@ -82,7 +82,7 @@ addEventListener('pagehide', flushPendingSave);
 addEventListener('beforeunload', flushPendingSave);
 
 // ---------------------------------------------------------------------------------------------------------------------
-// 10. OBS link and preview
+// 10. OBS URL and preview
 // ---------------------------------------------------------------------------------------------------------------------
 export const sizeText = () => (size ? `Recommended Browser Source size: ${size.w} × ${size.h}` : '');
 
@@ -102,7 +102,7 @@ export async function copyUrl() {
 
 $('#copyUrl').onclick = copyUrl;
 
-/** The address of the live preview: the OBS link plus ?preview=1 (a secured link keeps its ?key=). */
+/** The address of the live preview: the OBS URL plus ?preview=1 (a secured link keeps its ?key=). */
 export const previewSrc = () => {
   const url = new URL(obsUrl);
   url.searchParams.set('preview', '1');

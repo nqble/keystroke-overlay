@@ -66,7 +66,7 @@ check(
 );
 check(
   'the explanation changes to "On" and the copy / new-key buttons appear',
-  /On: your OBS link now contains a private key/.test(await pageText()) &&
+  /On: your OBS URL now contains a private key/.test(await pageText()) &&
     (await p.q(
       `!!document.querySelector('${byTest('secure-link-copy')}') && !!document.querySelector('${byTest('secure-link-new-key')}')`,
     )),

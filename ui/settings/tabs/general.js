@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The General tab: OBS link, server, security, input method, app options and updates.
+//  The General tab: OBS URL, server, security, input method, app options and updates.
 // =====================================================================================================================
 import { $, button, call, confirmTwice, el, heading, invoke, note, row, toast } from '../helpers.js';
 import { toggle } from '../controls.js';
@@ -19,7 +19,7 @@ import {
 } from '../state.js';
 import { TEXT } from '../text.js';
 
-// ---- General: OBS link, server, security, input method, app options, updates --------------------------------------
+// ---- General: OBS URL, server, security, input method, app options, updates --------------------------------------
 export function generalTab() {
   const page = el('div');
   page.append(
@@ -136,7 +136,7 @@ function secureLinkSection() {
     }
   });
   paint(!!settings.general.secureLink);
-  return [heading('Secure link'), row('Secure my OBS link', checkbox), explanation, buttons];
+  return [heading('Secure link'), row('Secure my OBS URL', checkbox), explanation, buttons];
 }
 
 function inputSection() {

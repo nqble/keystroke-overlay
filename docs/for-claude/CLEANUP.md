@@ -9,7 +9,7 @@ names, several statements on one line, long user-facing strings outside `TEXT`, 
 the files it flagged. Line counts re-checked on `v1.4.0-dev` on 2026-10-16; the findings themselves are from the first
 scan unless a row says otherwise.
 
-**Risk** is how likely a fix could change behaviour: low (wording, comments, names), medium (splitting functions),
+**Risk** is how likely a fix could change behavior: low (wording, comments, names), medium (splitting functions),
 high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how well tests would catch a mistake there.
 
 ## Summary
@@ -87,7 +87,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 ## How to work through it
 
-1. One area at a time, in the order above. Use `refactor:` commits with no behaviour change. A bug found along the way
+1. One area at a time, in the order above. Use `refactor:` commits with no behavior change. A bug found along the way
    gets its own `fix:` commit with a test.
 2. Where coverage is "weak", add the test first (`test:` commit).
 3. After each area run `npm test`, `npm run check:format`, `check:privacy`, clippy with zero warnings, and the full e2e
