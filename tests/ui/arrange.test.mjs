@@ -48,7 +48,7 @@ test('movedPositions moves every key by the same amount and rounds to 2 decimals
 // ---- align and distribute
 const GROUP = [key('A', 1, 1), key('B', 4, 3), key('Wide', 2, 6, 3, 2)]; // outline: x 1..5, y 1..8
 
-test('aligning left, right and centre changes only x', () => {
+test('aligning left, right and center changes only x', () => {
   const left = alignPositions(GROUP, 'left');
   assert.deepEqual(
     [left.A, left.B, left.Wide],

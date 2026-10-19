@@ -75,7 +75,7 @@ On a computer (the sure way):
 1. Open **github.com/nqble/keystroke-overlay**.
 2. Click the **Actions** tab (a row of tabs near the top: Code, Issues, Pull requests, **Actions**, …).
 3. In the list on the left, click **Release**.
-4. You'll see a grey bar with a **Run workflow** button on the right. Click it.
+4. You'll see a gray bar with a **Run workflow** button on the right. Click it.
 5. A small form opens. Type the version you're releasing (for example `1.2.0`). This is a safety check: it must match the version inside the app, or nothing happens.
 6. Click the green **Run workflow** button in the form.
 

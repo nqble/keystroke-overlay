@@ -587,7 +587,7 @@ mod tests {
         assert_eq!(
             broken["general"]["linkKey"],
             json!(""),
-            "the sanitiser clears an invalid key"
+            "the sanitizer clears an invalid key"
         );
         assert!(give_empty_secure_link_a_key(&mut broken));
         let key = broken["general"]["linkKey"].as_str().unwrap().to_string();
@@ -755,7 +755,7 @@ mod robustness_tests {
         ] {
             assert!(
                 is_hex_color(settings["style"][color_field].as_str().unwrap_or("")),
-                "seed {seed}: colour {color_field}"
+                "seed {seed}: color {color_field}"
             );
         }
         let font = settings["style"]["fontFamily"].as_str().unwrap();
@@ -984,7 +984,7 @@ mod position_tests {
         let out = clean_profiles(&raw);
         let pos = &out["wasd"]["styles"]["shape"]["positions"];
         assert_eq!(pos["KeyW"], json!({ "x": 1.26, "y": 0.0 }));
-        // a key may sit left of or above the layout's origin (the board is centred on the layout), down to MIN_POSITION
+        // a key may sit left of or above the layout's origin (the board is centered on the layout), down to MIN_POSITION
         assert_eq!(pos["KeyA"], json!({ "x": -5.0, "y": 100.0 }));
         assert_eq!(pos["KeyB"], json!({ "x": -100.0, "y": 0.0 }));
         assert!(pos.get("KeyS").is_none() && pos.get("KeyD").is_none() && pos.get("").is_none());

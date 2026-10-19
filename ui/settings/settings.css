@@ -1,7 +1,7 @@
 :root {
   /* ===================================================================================================================
-     Design tokens: every colour and shadow of the settings window lives here, named by PURPOSE, with today's exact
-     values. Use these names in the rules below; do not write raw colours anywhere else (tools/check-style.mjs checks).
+     Design tokens: every color and shadow of the settings window lives here, named by PURPOSE, with today's exact
+     values. Use these names in the rules below; do not write raw colors anywhere else (tools/check-style.mjs checks).
      =================================================================================================================== */
 
   /* Surfaces */
@@ -48,7 +48,7 @@
   --color-key-fill: #2a3042;
   --color-key-line: #50597a;
 
-  /* Release-note sections (release-notes.js): one colour each, on the heading and the line beside its list */
+  /* Release-note sections (release-notes.js): one color each, on the heading and the line beside its list */
   --color-notes-new: #7aa8ff;
   --color-notes-improved: #b79cff;
   --color-notes-fixed: #ffd27a;
@@ -435,7 +435,7 @@ button:disabled:hover {
   /* a card is a button (so the keyboard can reach it): these make it look like the plain box it used to be */
   width: 100%;
   text-align: left;
-  display: flex; /* a button centres its content up and down; this keeps the text at the top, as in the old box */
+  display: flex; /* a button centers its content up and down; this keeps the text at the top, as in the old box */
   flex-direction: column;
   justify-content: flex-start;
 }
@@ -465,7 +465,7 @@ button:disabled:hover {
   aspect-ratio: calc(var(--board-w, 24) / var(--board-h, 12));
   max-height: 62vh;
   min-height: 200px;
-  /* the same grey as the board, so the room that shows past the board's edge does not look like a darker frame */
+  /* the same gray as the board, so the room that shows past the board's edge does not look like a darker frame */
   background: var(--color-panel);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-2xl);
@@ -897,8 +897,8 @@ button:disabled:hover {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-/* Release-note sections in What's new and the update popup. The colour is on the heading and a thin line beside the
-   list; the list text keeps the normal colour, and the icon and word say the same thing for anyone who can't see it. */
+/* Release-note sections in What's new and the update popup. The color is on the heading and a thin line beside the
+   list; the list text keeps the normal color, and the icon and word say the same thing for anyone who can't see it. */
 .notes-new {
   --notes-color: var(--color-notes-new);
 }
@@ -949,7 +949,7 @@ button:disabled:hover {
   gap: var(--space-10);
 }
 
-/* Corner update button: white download icon on a circle in the app's accent colour (--accent). Shakes briefly every 7.5 s
+/* Corner update button: white download icon on a circle in the app's accent color (--accent). Shakes briefly every 7.5 s
    (transform only), tooltip on hover. */
 .upd {
   position: fixed;

@@ -115,8 +115,8 @@ of its `x86_64\minisign.exe`):
 
 ## Release notes format
 
-From v1.4.0 (v1.3.0 and earlier used bold lines, which the app still colours), every CHANGELOG entry uses only these sections, in this order, each as a `###` heading. Leave out a section with
-nothing in it. The app colours each one in "What's new" and the update popup, and `tools/changelog-section.mjs` (run by
+From v1.4.0 (v1.3.0 and earlier used bold lines, which the app still colors), every CHANGELOG entry uses only these sections, in this order, each as a `###` heading. Leave out a section with
+nothing in it. The app colors each one in "What's new" and the update popup, and `tools/changelog-section.mjs` (run by
 the release workflow) refuses an entry with another heading, the wrong order or a section twice.
 
 | Heading | For |
@@ -128,7 +128,7 @@ the release workflow) refuses an entry with another heading, the wrong order or 
 | `### 🧰 Under the hood` | changes for developers |
 
 Don't end the entry with "Your settings … are kept": the script adds that line to every release. The list of sections
-lives in `ui/settings/release-notes.js`; add a section there, give it a colour token in `settings.css`, and add a row
+lives in `ui/settings/release-notes.js`; add a section there, give it a color token in `settings.css`, and add a row
 here.
 
 ## Every release (manual)
@@ -162,12 +162,12 @@ General), and a button appears in the settings window; the user must click it an
 
 ## Third-party notices
 
-The app is built from open-source libraries whose licences ask that their notices go with the app. The release
+The app is built from open-source libraries whose licenses ask that their notices go with the app. The release
 workflow writes them (`npm run notices`, using cargo-about 0.9.2 and `src-tauri/about.toml`), puts the file in the
 installer (it lands next to the app as `THIRD-PARTY-NOTICES.html`) and attaches it to the GitHub release.
 
-If a library update brings a licence that is not listed in `src-tauri/about.toml`, the release stops there. Check that
-the new licence is compatible with MIT (permissive licences like MIT, BSD or Apache are; GPL and AGPL are not), then add
+If a library update brings a license that is not listed in `src-tauri/about.toml`, the release stops there. Check that
+the new license is compatible with MIT (permissive licenses like MIT, BSD or Apache are; GPL and AGPL are not), then add
 it to the list. To try it on your PC: `cargo install cargo-about --version 0.9.2 --locked --features cli`, then
 `npm run notices`.
 
@@ -189,6 +189,6 @@ Signed releases (Code signing above) build reputation much faster, so these repo
 - `npm run check:privacy` passes
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
 - The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
-- Dependency licences still compatible with MIT: checked automatically (see Third-party notices)
+- Dependency licenses still compatible with MIT: checked automatically (see Third-party notices)
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`
   (never set it in a real build)

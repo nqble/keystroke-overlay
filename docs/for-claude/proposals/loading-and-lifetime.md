@@ -39,7 +39,7 @@ tabs mounted versus not. Tests: tab state and scroll kept across switches; Style
 ## B. Overlay (OBS) (do this in the cleanup phase, overlay area, benchmarked: the overlay's speed is a core promise)
 
 **Measured 2026-10-17, decided not to do items 6 and 7.** `npm run test:e2e -- --suite overlay-speed` times the overlay's own work
-for one settings change on a full layout (103 keys, the median of 60 changes): a colour change 0.00 ms, a key-size change (every key
+for one settings change on a full layout (103 keys, the median of 60 changes): a color change 0.00 ms, a key-size change (every key
 built again) 0.70 ms, hiding one key 0.70 ms. Driving the sizes with CSS variables or updating single keys would save under a
 millisecond per change and risks the look of the overlay in OBS (a core promise), so the code stays as it is. Revisit only if a
 future change makes the rebuild measurably slower.

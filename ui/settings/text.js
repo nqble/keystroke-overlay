@@ -26,7 +26,7 @@ export const TEXT = {
   dragHint: 'Drag a key to move it. Ctrl-click to add.',
   noKeySelected: 'No key selected',
   inspectorTip:
-    'Click a key to change its label or hide it. Drag keys anywhere and they line up with their neighbours. ' +
+    'Click a key to change its label or hide it. Drag keys anywhere and they line up with their neighbors. ' +
     'Changes are saved automatically for each layout.',
   overlapNote: 'This key overlaps another. Drag it to a free spot, or press Close gaps.',
   inspectorTipGrid:

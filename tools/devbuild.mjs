@@ -7,7 +7,7 @@
 // What makes it a devbuild:
 //   * the file is named  Keystroke-Overlay_<version>-devbuild_x64-setup.exe   (in release/<version>-devbuild/)
 //   * it uses the official devbuild logo: the normal logo in black and purple (installer, program icon, tray, window
-//     and the logo in the settings header). Nothing in the project's own files changes; the recoloured copies are
+//     and the logo in the settings header). Nothing in the project's own files changes; the recolored copies are
 //     temporary.
 //   * it is a SEPARATE app (identity com.keyoverlay.devbuild, its own install folder, uninstall entry, settings folder
 //   and
@@ -27,7 +27,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const version = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'), 'utf8')).version;
 const verify = process.argv.includes('--verify');
 const WORK = join(tmpdir(), 'keyoverlay-devbuild');
-// The recoloured copy of the settings page lives INSIDE the project folder (ignored by git) and is given to the build
+// The recolored copy of the settings page lives INSIDE the project folder (ignored by git) and is given to the build
 // as a
 // RELATIVE path. An absolute Windows path such as C:/... would be read as a web address and the app would open a blank
 // "File not found" page instead of its settings.

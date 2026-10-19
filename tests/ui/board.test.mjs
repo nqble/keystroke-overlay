@@ -88,7 +88,7 @@ test('overlappingCodes finds overlaps but not keys that only touch', () => {
   assert.deepEqual([...overlappingCodes(stacked)].sort(), ['A', 'B']);
 });
 
-test('close gaps shrinks wide gaps to a quarter key, keeps the order, and centres', () => {
+test('close gaps shrinks wide gaps to a quarter key, keeps the order, and centers', () => {
   // A and B touch; a 3-key gap before C
   const keys = [key('A', 0, 0), key('B', 1, 0), key('C', 5, 0)];
   const positions = closeGapsPositions(keys, BOARD);

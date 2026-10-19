@@ -83,7 +83,7 @@ cannot see keys while a game has focus. The realistic alternatives are (a) a Mac
 ## Things to double-check before relying on them
 
 These came from community sources and should be confirmed on a real Mac / in Apple's docs when the work starts:
-the exact Input Monitoring behaviour for listen-only taps, whether the app reliably appears in the Input Monitoring list,
+the exact Input Monitoring behavior for listen-only taps, whether the app reliably appears in the Input Monitoring list,
 and whether ad-hoc signed builds really lose their permission on every update.
 
 ## Sources

@@ -1,6 +1,6 @@
 # Extending the overlay
 
-The easy ways to add something, smallest first. None needs a build step. Why customisation is limited to these data files
+The easy ways to add something, smallest first. None needs a build step. Why customization is limited to these data files
 and not a general plugin system: [decision 0006](decisions/0006-layouts-themes-animations-are-data-files.md).
 
 ## 1. A layout
@@ -59,7 +59,7 @@ Animate only `transform` and `opacity`, so the work stays on the graphics card a
 - **A popup:** `dialog()` in `ui/settings/popups.js` gives you the frame, focus handling and Esc.
 - **A Debug tool:** one entry in `SECTIONS` in `ui/settings/debug.js` ([DEBUGGING.md](DEBUGGING.md)).
 - **Words the user reads:** the `TEXT` block of the file that shows them; shared ones are in `ui/settings/text.js`.
-- **A colour or size:** a design token in the `:root` block at the top of `ui/settings/settings.css`.
+- **A color or size:** a design token in the `:root` block at the top of `ui/settings/settings.css`.
 
 ## Before you open a pull request
 `npm test` (Rust and UI unit tests, privacy check), `npm run check:format`, `npm run check:types`, `npm run check:style` and

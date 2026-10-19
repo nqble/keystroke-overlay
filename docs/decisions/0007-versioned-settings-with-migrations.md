@@ -8,14 +8,14 @@ Users update the app across many versions and expect their settings, layouts and
 ## Decision
 `settings.json` has a `version` number. On load it is migrated one step at a time to the current version
 (`MIGRATIONS` in `src-tauri/src/settings.rs`), merged on top of the defaults so new options always have a value, then
-sanitised (wrong types fall back to defaults, numbers are clamped to ranges, colours and ids are validated). A corrupted
+sanitized (wrong types fall back to defaults, numbers are clamped to ranges, colors and ids are validated). A corrupted
 file falls back to the last good `.bak` copy. From v1.4.0, a file written by a newer version is copied aside
 (`settings.vN.json`) before it is rewritten, so going back a version never loses settings, and the copy is put back (and
 deleted) when the newer version runs again.
 
 ## Why
 - Additive changes (a new option) need no migration; renames and restructures bump the version and add one migration step.
-- Sanitising on load means a hand-edited or imported file can never put the app in a broken state.
+- Sanitizing on load means a hand-edited or imported file can never put the app in a broken state.
 
 ## Consequences
 - **Compatibility rule:** settings, layout and preset files from older versions must keep working. A format change always

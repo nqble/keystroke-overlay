@@ -35,7 +35,7 @@ Prefer to build it yourself? See [Building from source](#building-from-source).
 1. In the app, click **Copy OBS URL** (default: `http://localhost:7878/`).
 2. In OBS: **Sources → + → Browser**, then paste the URL.
 3. Set **Width** and **Height** to the size shown in the app's header (for example 1085 × 403 for the TKL layout). It changes with your layout and scale. If the box is a different size, the keyboard
-   scales itself to fit inside it and stays centred, so nothing is cut off.
+   scales itself to fit inside it and stays centered, so nothing is cut off.
 4. Leave Custom CSS empty — the page is already transparent.
 
 If you change the port in settings, update the URL in OBS too.

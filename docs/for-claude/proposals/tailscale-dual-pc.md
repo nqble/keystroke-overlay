@@ -35,7 +35,7 @@ local port to the user's own private tailnet over HTTPS, for example `tailscale 
    - Everything else stays exactly as now (localhost / 127.0.0.1 only). A wrong host still gets HTTP 403.
    - The secure-link key is still required for `/api/*`, `/ws`, `/fonts/*`, `/user/*` (HTTP 401 without it).
 
-Validation of the setting (in `settings.rs`, same style as the other sanitisers):
+Validation of the setting (in `settings.rs`, same style as the other sanitizers):
 - lower-case letters, digits, hyphens and dots only, at most 253 characters;
 - must end in `.ts.net` (so the feature cannot be pointed at an arbitrary domain);
 - anything invalid is dropped back to empty.
@@ -72,10 +72,10 @@ User-facing pieces:
 
 ## Test plan (when built)
 - Unit tests in `server.rs`: Host/Origin matrix (localhost, 127.0.0.1, allowed name with and without port, `https` origin,
-  a look-alike name such as `evil.tail1234.ts.net.attacker.com`, an empty setting = old behaviour exactly).
+  a look-alike name such as `evil.tail1234.ts.net.attacker.com`, an empty setting = old behavior exactly).
 - Unit tests in `settings.rs`: the validation rules above.
 - End-to-end: extend the `secure-link` suite with raw HTTP requests carrying custom `Host` headers; confirm the plain
-  behaviour is unchanged when the setting is empty.
+  behavior is unchanged when the setting is empty.
 - Manual two-device test following the README steps, recorded in the pull request.
 
 ## Docs to update if accepted

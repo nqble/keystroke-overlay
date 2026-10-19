@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The Style tab: themes, presets, colours, shape, text and size.
+//  The Style tab: themes, presets, colors, shape, text and size.
 // =====================================================================================================================
 import { renderControls, shareRow } from '../controls.js';
 import { button, call, el, heading, row, toast } from '../helpers.js';
@@ -14,7 +14,7 @@ async function loadPresets() {
   return names;
 }
 
-// ---- Style: themes, presets, colours, shape, text, size -----------------------------------------------------------
+// ---- Style: themes, presets, colors, shape, text, size -----------------------------------------------------------
 export async function styleTab() {
   const page = el('div');
   page.append(heading('Themes & presets'));

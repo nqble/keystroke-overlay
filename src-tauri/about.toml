@@ -1,5 +1,5 @@
 # Settings for the third-party notices (tools/notices.mjs, run by the release workflow; docs/RELEASING.md).
-# Every licence the app's Rust libraries use must be listed here; a new one stops the release until someone checks it
+# Every license the app's Rust libraries use must be listed here; a new one stops the release until someone checks it
 # is compatible with MIT (no GPL or AGPL). Ordered from most to least preferred when a library offers a choice.
 accepted = [
     "MIT",

@@ -106,7 +106,7 @@ function layoutCard(layout) {
 async function importLayouts() {
   try {
     const result = await invoke('import_layouts');
-    if (!result) return; // the user cancelled the file picker
+    if (!result) return; // the user canceled the file picker
     const [added, skipped] = result;
     if (added) toast(`Imported ${plural(added, 'layout')}` + (skipped ? `, skipped ${skipped}` : ''));
     else toast('Nothing imported' + (skipped ? ` (${skipped} skipped: empty, or the 20-layout limit)` : ''), true);

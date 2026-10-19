@@ -8,7 +8,7 @@
 //    helpers.js     small tools: talk to the app, build page elements, toasts
 //    preview.js     saving a change, the live preview, the OBS address bar
 //    profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"
-//    controls.js    the table that draws every slider, colour picker and dropdown
+//    controls.js    the table that draws every slider, color picker and dropdown
 //    popups.js      dialogs, the right-click menu, release notes, the update dialog
 //    messages.js    messages from the app (tray, updates, progress) and re-reading its state
 //    windowbar.js   the window's own minimize / maximize / close buttons

@@ -113,7 +113,7 @@ anywhere you paste it. Treat the link like a password, keep it off your stream, 
 
 - **Microsoft Edge WebView2** draws the settings window. It is a Microsoft component; Microsoft's diagnostic-data
   settings in Windows apply to it. The settings window only ever loads this app's own local pages.
-- **OBS Studio** (or whatever browser source you use) renders the overlay. Its behaviour is its own.
+- **OBS Studio** (or whatever browser source you use) renders the overlay. Its behavior is its own.
 - **Windows** itself, and any other software on your PC.
 
 ## How to check it yourself
@@ -132,7 +132,7 @@ You do not have to take our word for any of this.
    above: with *Check for updates automatically* on (the default), the first one comes about 45 seconds after start.
 3. **Block it.** Add a firewall rule blocking the app's outbound traffic: the overlay keeps working, only updates stop.
 4. **Watch the disk.** Process Monitor (Microsoft Sysinternals) filtered to the app shows writes only inside its data folder.
-5. **Build it yourself.** See [CONTRIBUTING.md](CONTRIBUTING.md) — compile from source and compare behaviour.
+5. **Build it yourself.** See [CONTRIBUTING.md](CONTRIBUTING.md) — compile from source and compare behavior.
 
 ## Reporting a problem
 

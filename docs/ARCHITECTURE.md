@@ -15,7 +15,7 @@ keystroke-overlay/
 ├── assets/             icon source image
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock); see tests/README.md. Rust unit tests live next to the code
-├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licences for the installer), changelog-section.mjs (release notes + their format check),
+├── tools/              release.mjs (build, installer, update signature + manifests, in stages for code signing), notices.mjs (third-party licenses for the installer), changelog-section.mjs (release notes + their format check),
 │                       check-privacy.mjs, check-style.mjs, check-docs.mjs (where docs live, the indexes, links), check-config.mjs + app-config.mjs (the app's name, repository and identifiers agree everywhere; app.config.json is the list), gen-layouts.mjs, make-icon.ps1 (the icon source image),
 │                       preview.mjs (the overlay in a browser), devbuild.mjs + devbuild-title.mjs (a test installer),
 │                       dev-debug.mjs (npm run dev:debug)
@@ -61,7 +61,7 @@ keystroke-overlay/
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports nothing)
-        ├── controls.js    CONTROLS: the table that draws every slider, colour picker and dropdown
+        ├── controls.js    CONTROLS: the table that draws every slider, color picker and dropdown
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"; the snap helpers
         ├── popups.js      dialogs, right-click menu, release notes, update dialog

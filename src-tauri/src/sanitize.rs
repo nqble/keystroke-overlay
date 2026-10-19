@@ -1,5 +1,5 @@
 //! Cleaning settings that come from outside (a hand-edited settings.json, an imported preset or layout): anything of
-//! the wrong type goes back to its default, numbers are kept in range, and text, colours and ids are checked, so no file
+//! the wrong type goes back to its default, numbers are kept in range, and text, colors and ids are checked, so no file
 //! can break the overlay. `sanitize` walks the defaults; the tables of special rules sit right above `clean_value`.
 //! Defaults, migrations, loading and saving are in settings.rs, which also holds the tests.
 use serde_json::{json, Map, Value};
@@ -202,7 +202,7 @@ fn range_for(path: &str) -> (f64, f64) {
 }
 
 /// Make arbitrary JSON (hand-edited file, imported preset) safe to use: wrong types fall back to defaults, numbers are
-/// clamped, colours and ids validated. Each setting follows the default's type; the tables below hold every setting
+/// clamped, colors and ids validated. Each setting follows the default's type; the tables below hold every setting
 /// with a rule of its own, so a new rule is one line there.
 pub fn sanitize(value: &mut Value, def: &Value) {
     clean_value(value, def, "");
@@ -223,7 +223,7 @@ const NUMBER_CHOICES: &[(&str, &[f64])] = &[("layout.editor.snap", &SNAP_CHOICES
 /// clamped port would quietly be a different port.
 const RESET_WHEN_INVALID: &[&str] = &["general.port"];
 
-/// Text settings with a rule of their own. Text whose default is a colour must be a colour; any other text must be a
+/// Text settings with a rule of their own. Text whose default is a color must be a color; any other text must be a
 /// plain identifier (`is_ident`).
 const TEXT_RULES: &[(&str, TextRule)] = &[
     ("style.fontFamily", is_font_name),

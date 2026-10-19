@@ -366,7 +366,7 @@ function typeIn(root) {
     index = 0,
     startTime = 0;
   const step = (now) => {
-    if (run !== typingRun || $('#modal').hidden) return; // cancelled or closed
+    if (run !== typingRun || $('#modal').hidden) return; // canceled or closed
     startTime ||= now;
     const want = Math.min(total, Math.ceil((total * (now - startTime)) / duration));
     while (shown < want && index < parts.length) {

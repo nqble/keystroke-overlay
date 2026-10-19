@@ -5,7 +5,7 @@ The layers, from quick to thorough:
 | Command | What it checks | Time | Disk |
 |---|---|---|---|
 | `npm run check:privacy` | The privacy promises in [PRIVACY.md](../PRIVACY.md): network code only in one file, server on 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests | 1 s | none |
-| `npm run check:style` | Code style basics: no tabs or trailing spaces, a final newline, and no raw colours in `settings.css` outside its `:root` design tokens | 1 s | none |
+| `npm run check:style` | Code style basics: no tabs or trailing spaces, a final newline, and no raw colors in `settings.css` outside its `:root` design tokens | 1 s | none |
 | `npm run test:ui` | JS unit tests in `tests/ui/` for the settings window's plain logic (key arrange, history, board, view, guides, bug report, release-note sections, devbuild title) | 1 s | none |
 | `npm test` | Rust unit tests (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + `npm run test:ui` + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
 | `npm run test:e2e` | **End to end:** builds a throwaway copy of the app, drives its real settings window, injects real key presses, runs a real signed update download | ~5–8 min | ~4 GB **temporary, deleted when it finishes** |
@@ -84,7 +84,7 @@ CSS class, id or visible text. That way a redesign can move or restyle things wi
 Rules:
 
 - The name describes the **purpose**, not the looks: `layout-add`, not `dashed-card`. Kebab-case (lower case, words joined by `-`).
-- A hook is an attribute only. **No CSS (and no behaviour) may use it.**
+- A hook is an attribute only. **No CSS (and no behavior) may use it.**
 - Repeated things share one name and tell themselves apart with a `data-*` attribute that already exists or is added
   (`key-cell` + `data-code`, `layout-card` + `data-layout-id`, `tab` + `data-tab`).
 - In the page code, `el('div', { test: 'name' })` and `button(text, onclick, className, 'name')` set the attribute; static
@@ -130,8 +130,8 @@ Rules:
 | `key-inspector-empty` | The inspector while nothing is selected |
 | `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-width`, `key-height`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back`, `key-clear-selection` | The inspector to the right of the editor (one key or several) |
 | `style-theme`, `preset-select`, `preset-load`, `preset-delete`, `preset-name`, `preset-save` | Themes and presets in the Style tab |
-| `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, colour picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
-| `control-<path>-alpha`, `control-<path>-name` | A colour's transparency slider; the typed font name box |
+| `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, color picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
+| `control-<path>-alpha`, `control-<path>-name` | A color's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` (`ui/settings/controls.js`), used in the General tab |
 | `general-obs-url`, `general-obs-copy`, `general-size-note` | The OBS section of General |

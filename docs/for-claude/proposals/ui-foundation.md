@@ -16,7 +16,7 @@ Goal: make a future redesign cheap and safe. Step 3 must change nothing visually
 - Screenshot tests run locally, with a small tolerance, not in CI. Two development-only dependencies, pinned to exact versions:
   `pixelmatch` and `pngjs`.
 - JavaScript may set only geometry that truly varies (key x/y/width, preview scale, drag position), and only through CSS custom
-  properties (for example `el.style.setProperty('--x', …)`). All colours, fonts, borders and shadows live in CSS.
+  properties (for example `el.style.setProperty('--x', …)`). All colors, fonts, borders and shadows live in CSS.
 - Tokens map today's exact values first (pixel-identical). Tidying the scale happens later, during the redesign.
 - Tokens are named by purpose, not by raw value.
 - The window stays dark only, but token-ready, so a light theme would later be one added block.
@@ -38,22 +38,22 @@ requires asking, even for development-only ones) and editing CLAUDE.md (step 7).
    diff image and print which screens changed. Commit the baselines in `tests/visual/baselines/`. Document in `tests/README.md`
    that baselines come from Jordan's PC and are re-captured (`--update`) only for an intended visual change, with before/after
    shown to Jordan.
-3. **refactor(settings): design tokens, pixel-identical.** One `:root` block at the top of `settings.css` holds every colour, font
-   family, font size and weight, spacing, radius, border width, shadow and transition duration (about 54 hard-coded colours and
+3. **refactor(settings): design tokens, pixel-identical.** One `:root` block at the top of `settings.css` holds every color, font
+   family, font size and weight, spacing, radius, border width, shadow and transition duration (about 54 hard-coded colors and
    about 200 hard-coded sizes today). Named by purpose and grouped and commented: `--color-bg`, `--color-panel`,
    `--color-panel-raised`, `--color-line`, `--color-text`, `--color-text-dim`, `--color-accent`, `--color-accent-strong`,
    `--color-danger`, `--color-warning`, `--color-focus`; `--space-1…n`; `--radius-sm/md/lg`; `--text-xs/sm/md/lg`;
    `--weight-normal/bold`; `--shadow-popup`; `--duration-fast`. Map the existing `--bg`, `--accent` and the rest to the new names.
    Where two near-identical values exist (for example 10px and 12px) keep both as separate tokens for now and note the merge
    candidates in a comment for the redesign. Proof: `npm run test:visual` passes with zero differences (tolerance only for
-   anti-aliasing). Add a check to `check-style.mjs` (or a tiny new check) that fails on raw colour values in `ui/settings/*.css`
+   anti-aliasing). Add a check to `check-style.mjs` (or a tiny new check) that fails on raw color values in `ui/settings/*.css`
    outside the `:root` block.
 4. **refactor(settings): shared building blocks.** List every control on every tab and popup. Each must come from a shared helper
-   (`row`, `toggle`, `button`, select, slider, colour picker, number field, card, dialog) or `CONTROLS`. Replace one-off controls
+   (`row`, `toggle`, `button`, select, slider, color picker, number field, card, dialog) or `CONTROLS`. Replace one-off controls
    with helpers; add a helper when a pattern repeats twice or more. Button variants are classes (`primary`, `danger`, `ghost`), not
    inline styles. Each helper gets a short header comment: what it draws, its options, its CSS class. Screenshots stay identical;
    if a one-off control looked different on purpose, keep the look as a named variant and tell Jordan.
-5. **refactor(settings): separate look and logic.** Remove the ~24 places where JS sets styles. Colours, fonts and looks move to CSS
+5. **refactor(settings): separate look and logic.** Remove the ~24 places where JS sets styles. Colors, fonts and looks move to CSS
    classes and state classes (`.is-selected`, `.is-overlapping`, `.is-dragging`, `.is-disabled`). Only geometry may stay, through
    CSS custom properties. No logic may read computed styles or depend on class names used purely for looks. All user-facing text
    comes from `text.js` / `TEXT`. Screenshots identical.
@@ -61,7 +61,7 @@ requires asking, even for development-only ones) and editing CLAUDE.md (step 7).
    visual baselines of the overlay (via `npm run preview` or the e2e app) for every built-in theme (default, glass, minecraft,
    minimal-light, neon) with a fixed layout and a fixed set of held keys. Settings-window work must never change these; changing
    them needs Jordan's explicit OK with before/after shown.
-7. **docs: UI rules.** Add a "UI rules" section to CLAUDE.md: (1) use tokens, no raw colours or sizes outside `:root`; (2) build screens
+7. **docs: UI rules.** Add a "UI rules" section to CLAUDE.md: (1) use tokens, no raw colors or sizes outside `:root`; (2) build screens
    from the shared building blocks; (3) every interactive element gets a `data-test` hook; (4) JS sets only geometry, via CSS
    variables; (5) no visual change without running `test:visual` and showing before/after screenshots to Jordan; (6) the Claude
    Design system (maintained by the Advisory Session) is the visual reference, and the tokens in `settings.css` are the source of
