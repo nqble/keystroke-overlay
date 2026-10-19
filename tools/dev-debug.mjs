@@ -43,7 +43,9 @@ Keystroke Overlay (development copy)
   }
 `);
 
-const child = spawn('npx', ['tauri', 'dev', '--config', JSON.stringify({ identifier: DEV_ID })], {
+// The config is JSON, and the shell (needed for npx on Windows) strips the quotes of an argument unless the whole
+// argument is quoted and its inner quotes are escaped: that is what stringifying twice produces.
+const child = spawn('npx', ['tauri', 'dev', '--config', JSON.stringify(JSON.stringify({ identifier: DEV_ID }))], {
   stdio: 'inherit',
   shell: true,
   env: { ...process.env, KEYOVERLAY_DEBUG: '1', WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9222' },
