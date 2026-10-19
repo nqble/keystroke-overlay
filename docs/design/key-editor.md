@@ -1,14 +1,12 @@
 # Key editor: design spec (makeover planned for v1.4, reference for the v2.0 redesign)
 
-Status: approved by Jordan, designed in the Advisory Session. **Being built in three parts** (M4.1 to M4.3). Part 1 (M4.1) is in
-on `v1.4.0-dev` (2026-10-17): the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use,
-the board with zoom and pan, the preview hidden on the Keys tab, and everything the 1.3 editor did. Part 3 (M4.3) is in as well: the layout style switch, Close gaps, the Reset menu, and the Even grid tip. Part 2 (M4.2) is in too: resize handles, smart guides, the held-key fade, the arrange bar that floats above
-selected keys, the inspector to the right of the editor, and the toolbar with undo, redo, Snap and Grid. Still to come (M4.3): the
-layout style switch, "Close gaps" and the Reset menu (the old buttons under the editor stay until then), the hint about Even
-grid, the accessibility pass and the release notes. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
-https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE. Where this file and the prototype disagree, this file wins.
+Status: approved by Jordan, designed in the Advisory Session. **Built and released in v1.4.0**, in three parts (M4.1 to
+M4.3): the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use; the board
+with zoom and pan, and the preview hidden on the Keys tab; resize handles on all four sides, smart guides, the held-key
+fade, the arrange bar that floats above selected keys, the inspector to the right of the editor, and the toolbar with
+undo, redo, Snap, Grid and Hidden keys; the layout style switch, Close gaps, the Reset menu and the Even grid tip.
 
-Build it AFTER UI foundation steps 1–5 (1–3 are done) (test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
+Built after the UI foundation (test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
 tokens and shared building blocks only. The colors below are today's values; map each one to its purpose token.
 
 ## 1. Goal
