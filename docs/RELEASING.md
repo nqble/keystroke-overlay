@@ -134,7 +134,7 @@ have to approve it — from the website or the GitHub phone app):
    the release reads it from `tauri.conf.json`) and add the CHANGELOG entry — Claude can do both.
 2. GitHub → **Actions → Release → Run workflow** → type the version to confirm → **Run** (or push a tag named `v<version>`).
 3. It checks the version/tag/CHANGELOG match and that the release doesn't already exist, runs `npm test`, builds and signs the
-   installer, creates the GitHub release with the CHANGELOG text as the notes, and — for `x.y.0` versions — updates the Stable channel.
+   installer, creates the GitHub release with the CHANGELOG text as the notes (the update manifests `latest.json` and `stable.json` carry the same full text, because the in-app update dialog shows the manifest's notes), and — for `x.y.0` versions — updates the Stable channel.
 
 The signing key is read from the encrypted secret and never appears in logs; pull requests from forks cannot access it.
 The manual steps below are the fallback (and what the workflow runs internally).
