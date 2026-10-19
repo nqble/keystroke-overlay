@@ -4,7 +4,7 @@ Keystroke Overlay shows your key presses on stream, so it has to watch your keyb
 thing for software to do, so this page says **exactly** what the app does with that access, what it never does,
 and how you can check every claim yourself instead of trusting it.
 
-*Applies to v1.1 and later. Last reviewed: 2026-10-14.*
+*Applies to v1.1 and later. Last reviewed: 2026-10-19.*
 
 ## The short version
 
@@ -86,7 +86,7 @@ Exactly three things, all with `github.com` / `api.github.com`, and all visible 
    `api.github.com`.
 
 What GitHub can see in those requests is what any website can see: your **IP address**, the time, and a user-agent
-that names the app and its version (for example `tauri-plugin-updater/2.x`). The app sends **no** user ID, device ID,
+that names the app and its version (release notes use `KeystrokeOverlay/` plus the version, for example `KeystrokeOverlay/1.4.0`). The app sends **no** user ID, device ID,
 settings or keystrokes, and sets no cookies. GitHub's own privacy statement governs what GitHub does with its logs.
 
 If you never use updates, you can block the app in your firewall and everything else keeps working.
@@ -123,8 +123,8 @@ You do not have to take our word for any of this.
 1. **Read the code.** It is small. These searches in `src-tauri/src/` show everything:
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
-   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), and the Debug self-test's empty
-     `.write-test` file, created and deleted at once
+   - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings (and the `settings.vN.json` copy), presets, fonts, layouts, files you export (to a place you pick), the one-line
+     `crash-note.txt`, and the Debug self-test's empty `.write-test` file, created and deleted at once
      (never the keyboard or server code)
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on
