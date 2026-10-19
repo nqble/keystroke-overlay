@@ -8,6 +8,29 @@ Outside contributors: the "ask Jordan" rules below are covered by opening a pull
 (mouse, controller, hotkeys, game detection), `docs/ACCESSIBILITY.md`, `docs/CROSS-PLATFORM.md` and `docs/LINUX-PORT.md`,
 `PRIVACY.md`, `docs/RELEASING.md`.
 
+## Commands
+
+- Run the app: `npm run dev` (Debug mode on, separate data folder and port: `npm run dev:debug`). The settings window in a
+  browser, with a fake app: `npm run ui-sandbox` → http://127.0.0.1:7882/?tab=debug (states in `tools/sandbox/fake-app.js`).
+- Before every commit: `npm test` (Rust tests, UI unit tests, privacy and every-system checks), `npm run check:format`,
+  `npm run check:types`, `npm run check:docs`, `npm run check:style`, and
+  `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets` with zero warnings. Fix formatting with `npm run format`.
+- One Rust test: `cargo test --manifest-path src-tauri/Cargo.toml <name filter>`. Tests that need a desktop are
+  `#[ignore]`d: `xvfb-run -a cargo test … -- --ignored x11` on Linux.
+- One UI test file: `node --test tests/ui/<name>.test.mjs`.
+- End-to-end (Windows only; it presses real keys, so not while the PC is in use): `npm run test:e2e`, one suite with
+  `-- --suite <name>` (the list is in `tests/README.md`); screenshots: `npm run test:visual` (`-- --update` only for a
+  change meant to be seen).
+
+## The big picture
+
+A Rust process (`src-tauri/`) captures keys per system in `keyboard/`, keeps only the keys held right now in memory, and
+serves the overlay page plus a WebSocket on 127.0.0.1 (`server.rs`). OBS loads that page (`ui/overlay/`, plain
+JavaScript). The settings window (`ui/settings/`, Preact with htm, no build step) talks to the Rust side through Tauri commands
+(`src-tauri/src/commands/`) and saves settings that `settings.rs` cleans and migrates. Layouts, themes and animations are
+data files in `ui/overlay/`. The map of every file is `docs/ARCHITECTURE.md`; how protocol messages look is
+`docs/PROTOCOL.md`.
+
 ## 1. Principles, in priority order
 
 When two principles conflict, the higher one wins.
