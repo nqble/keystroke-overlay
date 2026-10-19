@@ -15,6 +15,10 @@ use std::path::{Path, PathBuf};
 use crate::sanitize::sanitize;
 
 pub const CURRENT_VERSION: u64 = 4;
+/// The settings version v1.4.0 wrote. v1.4.0 drops every setting it doesn't know when it saves, and only a higher
+/// number makes it keep a copy of this version's file first (downgrade.rs), so the build fails if this ever stops holding.
+const VERSION_WRITTEN_BY_V1_4: u64 = 3;
+const _: () = assert!(CURRENT_VERSION > VERSION_WRITTEN_BY_V1_4);
 
 pub fn defaults() -> Value {
     json!({

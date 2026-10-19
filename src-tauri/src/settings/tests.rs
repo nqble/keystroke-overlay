@@ -18,13 +18,6 @@ mod load_and_save_tests {
         );
     }
     #[test]
-    fn this_version_is_newer_than_the_one_v1_4_wrote() {
-        // v1.4.0 wrote version 3 and drops settings it doesn't know when it saves; only a higher number makes it keep a
-        // copy of this version's file first (downgrade.rs). Lowering CURRENT_VERSION would lose v2.0's settings on a downgrade.
-        const VERSION_WRITTEN_BY_V1_4: u64 = 3;
-        assert!(CURRENT_VERSION > VERSION_WRITTEN_BY_V1_4);
-    }
-    #[test]
     fn a_version_3_file_keeps_everything_on_the_way_to_4() {
         let migrated = migrate(json!({
             "version": 3,
