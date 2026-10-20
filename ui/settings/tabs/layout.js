@@ -2,7 +2,7 @@
 //  The Layout tab (docs/design/ui-design-v2.md, Layouts): the layouts you use, as cards in the order you set (drag a
 //  card, use Alt+← / Alt+→, or its "⋯" menu), "+ New layout" last, then Import/Export of the layouts you made.
 //  One card: layout-card.js. Which layouts show, and the moving rules: layout-order.js. The New layout popup and its
-//  "Other layouts" library: dialogs.js.
+//  Start from choices (Blank, Built-in, From a KLE file): dialogs.js.
 // =====================================================================================================================
 import { addLayoutDialog } from '../dialogs.js';
 import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js';
@@ -66,7 +66,7 @@ async function saveOrder(order, movedId) {
   card?.focus();
 }
 
-/** Take a layout off the tab: a built-in one goes back to "Other layouts"; your own is deleted (after asking). */
+/** Take a layout off the tab: a built-in one goes back to New layout's Built-in; your own is deleted (after asking). */
 async function remove(layout, shownIds) {
   if (layout.user && !(await confirmDelete(layout))) return;
   settings.layout.order = shownIds.filter((id) => id !== layout.id);
@@ -135,7 +135,7 @@ function Layout() {
             }}
           />`,
       )}
-      <button type="button" class="gallery-card add" data-test="layout-add" onClick=${addLayoutDialog}>
+      <button type="button" class="gallery-card add" data-test="layout-add" onClick=${() => addLayoutDialog()}>
         ${WORDS.add}
       </button>
       ${drag.gap === null ? null : html`<span class="drop-line" aria-hidden="true"></span>`}

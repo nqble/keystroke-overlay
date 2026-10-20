@@ -72,7 +72,7 @@ check(
   moved.slice(0, 2).join() === 'tkl,full' && (await p.q(`document.activeElement === ${cardOf('full')}`)),
   moved.join(),
 );
-// ---- Hide a built-in, then add it back from Other layouts
+// ---- Hide a built-in, then add it back from New layout's Built-in
 await rightClick(`[data-test="layout-card"][data-layout-id="gameplay"]`);
 await p.ev(
   `[...document.querySelectorAll('${byTest('context-menu-item')}')].find((b) => b.textContent === 'Hide').click()`,
@@ -81,7 +81,7 @@ await sleep(1200);
 check('Hide takes the card off the tab', !(await p.q(`!!${cardOf('gameplay')}`)));
 await p.ev(`document.querySelector('${byTest('layout-add')}').click()`);
 await sleep(300);
-await p.ev(`document.querySelector('${byTest('other-layouts-toggle')}').click()`);
+await p.ev(`document.querySelector('${byTest('new-layout-built-in')}').click()`);
 await sleep(300);
 await p.ev(
   `document.querySelector('[data-test="other-layouts"] [data-layout-id="gameplay"] ${byTest('other-layout-add')}').click()`,
@@ -89,7 +89,7 @@ await p.ev(
 await sleep(1200);
 const back = (await p.invoke('get_state')).ok.settings.layout.order;
 check(
-  'Other layouts → Add puts it back at the end',
+  'Built-in → Add puts it back at the end',
   back[back.length - 1] === 'gameplay' && (await p.q(`!!${cardOf('gameplay')}`)),
   back.join(),
 );

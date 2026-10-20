@@ -183,11 +183,16 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 ### Layouts
 
 - **A new install shows four layouts:** Full size, TKL, Gameplay (left hand), WASD.
-- **"Other layouts"** sit in the New layout popup: 96%, 75%, 65%, 60%, Arrows, Numpad, Full size (ISO), TKL (ISO). Under
-  the name box, a darker plain text toggle (no underline), **"▸ Other layouts (N)"**, is collapsed by default. Open, it
-  shows two columns and four rows; more scroll inside it (with the scroll fade), so the popup never grows. **Add**
-  puts one at the end of the tab.
-- **Hide** (a built-in layout) sends it back to Other layouts; **Delete…** (your own) removes it for good. The last
+- **New layout** starts with a **Start from** choice (a segmented control): **Blank** (a name box, then Create),
+  **Built-in** (the built-in layouts not on the tab: 96%, 75%, 65%, 60%, Arrows, Numpad, Full size (ISO), TKL (ISO),
+  two columns and four rows, more scroll inside it with the scroll fade; **Add** puts one at the end of the tab; the
+  footer has only Close) and **From a KLE file** (one line on what to do in KLE; the footer's primary button is
+  **Choose file…**). Built-in is left out when every built-in is on the tab.
+- **Import from KLE** (after Choose file…): the layout's picture with its key labels, keys that can't light up drawn
+  dashed (`--color-key-unlit`), a Name box, one bold summary line ("61 keys · 60 light up · 1 can't: Fn") with the
+  reason under it, then **Back** (to New layout, From a KLE file) and **Create layout**. On the Keys tab such a key's
+  inspector title is its label and "can't light up", never its placeholder code.
+- **Hide** (a built-in layout) sends it back to New layout's Built-in; **Delete…** (your own) removes it for good. The last
   layout can't be removed; removing the one in use selects the first card.
 - **"Your layouts: N / 20"** counts only your own; built-in layouts never count.
 - **Order:** drag, the "⋯" menu (Move left / Move right) or Alt+← / Alt+→ (focus stays on the moved card). The tray's
@@ -195,7 +200,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
   the gap or within about 28 px of it; over the middle of a card nothing happens. While dragging, the card's own spot
   is a faint dashed placeholder (opacity 0.35) with no selection ring.
 - The **"+ New layout"** card is always last and says only that. With 20 of your own, its popup says so in place of
-  the name box; Other layouts can still be added.
+  the Start from choice and shows Built-in, which can still be added.
 - **Saved as one setting,** `layout.order`: layout ids in order. A built-in layout shows only if it is listed; your own
   always show (a missing one is added at the end). The default is the four above, so nothing needs migrating.
   **Reset all settings** brings back exactly the four defaults; your own layouts are kept.

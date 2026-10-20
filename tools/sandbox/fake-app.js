@@ -53,7 +53,7 @@
   };
   const NO_UPDATE = { available: false, current: '1.4.0', channel: 'stable' };
 
-  // A KLE file (keyboard-layout-editor.com, Download JSON) for From a KLE file…: tests/ui/fixtures/kle/ansi-60.kle.json
+  // A KLE file (keyboard-layout-editor.com, Download JSON) for New layout → From a KLE file: tests/ui/fixtures/kle/ansi-60.kle.json
   // with Fn in place of the right Win key, so the import shows one key it can't link.
   const SANDBOX_KLE = [
     { name: 'Sandbox 60%' },
@@ -159,7 +159,7 @@
     delete_layout: ({ id }) => {
       ownLayouts = ownLayouts.filter((layout) => layout.id !== id);
     },
-    // New layout → From a KLE file…: the "picked file" is SANDBOX_KLE below (a 60% with an Fn key, which can't be
+    // New layout → From a KLE file → Choose file…: the "picked file" is SANDBOX_KLE below (a 60% with an Fn key, which can't be
     // linked); add_layout keeps the keys the window worked out, like create_layout
     pick_layout_source: () => ({ fileName: 'sandbox-60.json', text: JSON.stringify(SANDBOX_KLE) }),
     add_layout: ({ name, keys }) => {
