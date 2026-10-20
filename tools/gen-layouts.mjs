@@ -14,7 +14,8 @@ const row = (y, x0, items) => {
 };
 const letters = (s) => [...s].map((ch) => ['Key' + ch, ch]);
 
-function main(withFn = true) {
+/** The Escape key and the four groups of function keys. */
+function functionRow() {
   const k = [];
   k.push(K('Escape', 'Esc', 0, 0));
   [
@@ -24,6 +25,12 @@ function main(withFn = true) {
   ].forEach(([x0, n]) => {
     for (let i = 0; i < 4; i++) k.push(K('F' + (n + i), 'F' + (n + i), x0 + i, 0));
   });
+  return k;
+}
+
+/** The number row down to the bottom row (Ctrl, Win, Alt, Space ...). */
+function typingRows() {
+  const k = [];
   k.push(
     ...row(1.5, 0, [
       ['Backquote', '`'],
@@ -73,7 +80,12 @@ function main(withFn = true) {
       ['ControlRight', 'Ctrl', 1.25],
     ]),
   );
-  // navigation cluster
+  return k;
+}
+
+/** Print Screen to Pause, Insert to Page Down, and the arrow keys. */
+function navigationCluster() {
+  const k = [];
   k.push(K('PrintScreen', 'PrtSc', 15.25, 0), K('ScrollLock', 'ScrLk', 16.25, 0), K('Pause', 'Pause', 17.25, 0));
   k.push(K('Insert', 'Ins', 15.25, 1.5), K('Home', 'Home', 16.25, 1.5), K('PageUp', 'PgUp', 17.25, 1.5));
   k.push(K('Delete', 'Del', 15.25, 2.5), K('End', 'End', 16.25, 2.5), K('PageDown', 'PgDn', 17.25, 2.5));
@@ -84,6 +96,11 @@ function main(withFn = true) {
     K('ArrowRight', '→', 17.25, 5.5),
   );
   return k;
+}
+
+/** Everything except the number pad: what the TKL layout is, and the left part of the full-size one. */
+function mainBlock() {
+  return [...functionRow(), ...typingRows(), ...navigationCluster()];
 }
 function numpad() {
   return [
@@ -131,8 +148,8 @@ const wasd = [
 ].map((k) => ({ ...k, x: k.x + 1.5 }));
 
 const out = {
-  full: { name: 'Full size (104)', keys: [...main(), ...numpad()] },
-  tkl: { name: 'Tenkeyless (TKL)', keys: main() },
+  full: { name: 'Full size (104)', keys: [...mainBlock(), ...numpad()] },
+  tkl: { name: 'Tenkeyless (TKL)', keys: mainBlock() },
   wasd: { name: 'WASD gameplay', keys: wasd },
   gameplay: { name: 'Gameplay (left hand)', keys: gameplay },
 };

@@ -16,7 +16,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 - Formatting, file headers and descriptive names are already in good shape almost everywhere. The renames are done
   (no `S`, `reg`, `selKey` or `upProg` left).
-- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **six files over ~400 lines** (re-checked 2026-10-19: `settings/tests.rs` 862, `assets.rs` 570, `server.rs` 491, `popups.js` 536, `debug.js` 656,
+- The main remaining issues are **long functions** (about 30 over the ~40-line guideline), **six files over ~400 lines** (re-checked 2026-10-19: `settings/tests.rs` 862, `assets.rs` 564, `server.rs` 491, `popups.js` 536, `debug.js` 656,
   and the e2e suite `keys-editor.mjs` 1379),
   **user-facing text still inline** in a few UI files (about 33 long strings), and **unnamed numbers** (mostly sleeps and
   timings in Rust, and timings in the settings UI).
@@ -60,8 +60,8 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 | `tests/e2e/run.mjs` | `main` 93 lines. | Split (build, start, run suites, clean up). | medium | good |
 | `tests/lib/lock.mjs` | `acquire` 87 lines. | Split (try, wait, stale-lock check). | medium | weak: add a unit test for the stale-lock rule first |
 | `tools/dev-debug.mjs` | **Fixed 2026-10-19:** `npm run dev:debug` failed on Windows (the `--config` JSON lost its quotes under the shell); the argument is now stringified twice so it survives. | none | low | checked by hand |
-| `tools/devbuild.mjs` | `verifyBuild` 82 lines. 3 lines with several statements. 7 one-letter names. | Split and rename. | low | weak: manual tool; check by running `npm run devbuild` once |
-| `tools/gen-layouts.mjs` | `main` 71 lines. | Split per layout step. | low | weak: compare generated files before and after |
+| `tools/devbuild.mjs` | **Done 2026-10-19:** `verifyBuild` is split into `buildVerifyCopy`, `startVerifyCopy`, `waitForWindow` and `checkWindow` (checked with `npm run devbuild -- --verify`). The one-letter names there are gone. | none | low | checked by hand |
+| `tools/gen-layouts.mjs` | **Done 2026-10-19:** `main` is split into `functionRow`, `typingRows`, `navigationCluster` and `mainBlock`; the output is byte-identical to before. | none | low | compared before and after |
 | `tests/bench/run.mjs`, e2e suites | Many one-letter names (`t`, `s`, `r`, …) in test code. | Rename while touching each file ("leave it cleaner"). Not urgent. | low | n/a |
 
 ## Area 4: Rust (`settings.rs`, `server.rs`, `commands/`, `state.rs`, `window.rs`, `debug.rs`, `platform.rs`)
@@ -70,7 +70,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 |---|---|---|---|---|
 | `main.rs` (211) | **Done 2026-10-19:** `main` was 143 lines; it is now short, and the start-up steps are named functions in the same order (`start_async_runtime`, `start_app`, `load_settings`, `start_event_log`, `make_shared`, `open_window_at_launch`). | none | medium | good (smoke e2e starts the app) |
 | `settings.rs` (278) | **Done 2026-10-19:** the unit tests moved to `settings/tests.rs` (862 lines); the sanitizer was split out earlier into `sanitize.rs` (332). | none | low | good (many unit tests) |
-| `commands/assets.rs` (570: 402 code + 168 tests) | `import_doc` 78, `create_layout` 46. | Split into validation and writing steps. | medium | good (hostile-file tests) |
+| `commands/assets.rs` (564) | **Done 2026-10-19:** layout names, free ids and imported keys have their own functions (`layout_name`, `unused_id`, `clean_keys`); `create_layout` and `import_doc` are much shorter. Behavior unchanged (hostile-file tests, layouts e2e). | none | medium | good (hostile-file tests) |
 | `commands/updates.rs` | **Done:** the 45 s start delay and the request timeout are named (`FIRST_CHECK_AFTER_SECS`, `REQUEST_TIMEOUT_SECS`). | none | low | good |
 | `window.rs` | **Done:** the wait before trimming memory is `TRIM_MEMORY_AFTER_MS`, with its reason. | none | low | good |
 | `debug.rs` | **Done:** `MONITOR_MAX` and `MONITOR_POLL`. | none | low | good |
