@@ -1,6 +1,6 @@
 # Proposal: a second two-PC route, sending the overlay as video with NDI (DistroAV)
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Kept as documentation only** (Jordan, 2026-10-20: NDI is widely used but redundant next to the SSH tunnel; not added to the user guide, and untested because only one PC is available. The steps and the privacy warning stay here for others to try)
 
 A documentation-only proposal: a second way to use the overlay with two PCs, next to the SSH tunnel in the user guide.
 OBS on the gaming PC draws the overlay and sends it as video over the local network with NDI; OBS on the streaming PC

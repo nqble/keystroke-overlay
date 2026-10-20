@@ -29,7 +29,7 @@ Each plan starts with a **Status** line (queued, in progress, done or superseded
   - [stream-deck-companion.md](proposals/stream-deck-companion.md): Stream Deck control through Bitfocus Companion (open idea, not v2.0)
   - [analog-keys-wooting.md](proposals/analog-keys-wooting.md): analog key pressure with the Wooting Analog SDK (open research)
   - [accessibility-checks.md](proposals/accessibility-checks.md): automatic accessibility checks with axe-core in the e2e tests
-  - [two-pc-ndi.md](proposals/two-pc-ndi.md): a second two-PC route, sending the overlay as video with NDI (docs only)
+  - [two-pc-ndi.md](proposals/two-pc-ndi.md): a second two-PC route, sending the overlay as video with NDI (docs only) (kept as documentation only)
 - [good-first-issues.md](proposals/good-first-issues.md): draft "good first issue" tickets (not posted)
 - [done/key-editor-polish.md](proposals/done/key-editor-polish.md): the first key editor plan, superseded by the design spec
 
