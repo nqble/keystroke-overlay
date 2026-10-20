@@ -1,7 +1,8 @@
 // =====================================================================================================================
 //  The General tab (docs/design/ui-design-v2.md, Tabs): section cards for Connection (general-connection.js), OBS
-//  scenes (general-obs-scenes.js), Keyboard input, Startup, Pause shortcut (general-hotkey.js), Updates (general-updates.js) and a collapsed Advanced. Built
-//  with Preact and the shared blocks (blocks.js). Plain words by default; Debug mode adds the technical detail lines.
+//  scenes (general-obs-scenes.js), Keyboard input, Startup, Pause shortcut (general-hotkey.js), Updates
+//  (general-updates.js) and a collapsed Advanced. Built with Preact and the shared blocks (blocks.js). Plain words by
+//  default; Debug mode adds the technical detail lines.
 // =====================================================================================================================
 import { Detail, Note, Section, Segmented, Switch } from '../blocks.js';
 import { call, invoke, toast } from '../helpers.js';

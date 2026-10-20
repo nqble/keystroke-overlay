@@ -169,8 +169,7 @@ function placedKey(layoutKey, layout, prof) {
   return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width, h: height };
 }
 
-function build(nextSettings) {
-  const layout = layouts.find((l) => l.id === drawnLayoutId) ?? layouts[0];
+function build(nextSettings, layout) {
   stage.textContent = '';
   keyEls.clear();
   if (!layout) return;
@@ -250,18 +249,17 @@ addEventListener('resize', placeStage);
 
 // the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
 let reloadedFor = '';
+/** A layout we should draw is not in our list: it was created or imported after we loaded. Re-read the list (once per id). */
+function reloadIfMissing(id) {
+  if (!id || layouts.some((l) => l.id === id) || reloadedFor === id) return;
+  reloadedFor = id;
+  refresh();
+}
 function apply(nextSettings) {
   settings = nextSettings;
-  // The selected layout is not in our list: it was created or imported after we loaded. Re-read the list (once per id).
-  if (
-    nextSettings.layout.id &&
-    !layouts.some((l) => l.id === nextSettings.layout.id) &&
-    reloadedFor !== nextSettings.layout.id
-  ) {
-    reloadedFor = nextSettings.layout.id;
-    refresh();
-  }
+  reloadIfMissing(nextSettings.layout.id);
   const view = sceneView(nextSettings, currentScene, layouts);
+  reloadIfMissing(view.wanted); // a scene rule's layout
   drawnLayoutId = view.layoutId;
   sceneHidden = view.hidden;
   showStage();
@@ -270,7 +268,7 @@ function apply(nextSettings) {
   applyVars(nextSettings);
   if (key !== structKey) {
     structKey = key;
-    build(nextSettings);
+    build(nextSettings, layout);
   }
 }
 

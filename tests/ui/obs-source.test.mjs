@@ -89,18 +89,39 @@ const layouts = [{ id: 'tkl' }, { id: 'full' }];
 const settingsWith = (obs) => ({ layout: { id: 'tkl' }, obs });
 
 test('what to draw: hide, another layout, or the chosen layout', () => {
-  assert.deepEqual(sceneView(settingsWith(on), 'Just Chatting', layouts), { layoutId: 'tkl', hidden: true });
-  assert.deepEqual(sceneView(settingsWith(on), 'Coding', layouts), { layoutId: 'full', hidden: false });
-  assert.deepEqual(sceneView(settingsWith(on), 'Elsewhere', layouts), { layoutId: 'tkl', hidden: false });
+  assert.deepEqual(sceneView(settingsWith(on), 'Just Chatting', layouts), {
+    layoutId: 'tkl',
+    hidden: true,
+    wanted: 'tkl',
+  });
+  assert.deepEqual(sceneView(settingsWith(on), 'Coding', layouts), { layoutId: 'full', hidden: false, wanted: 'full' });
+  assert.deepEqual(sceneView(settingsWith(on), 'Elsewhere', layouts), {
+    layoutId: 'tkl',
+    hidden: false,
+    wanted: 'tkl',
+  });
 });
 
-test('a rule naming a layout that no longer exists shows the chosen layout', () => {
-  const gone = { scenes: { enabled: true, rules: [{ scene: 'Coding', show: true, layout: 'deleted' }] } };
-  assert.deepEqual(sceneView(settingsWith(gone), 'Coding', layouts), { layoutId: 'tkl', hidden: false });
+test('a rule naming a layout not in the list shows the chosen layout, and says which it wanted', () => {
+  const missing = { scenes: { enabled: true, rules: [{ scene: 'Coding', show: true, layout: 'made-later' }] } };
+  assert.deepEqual(sceneView(settingsWith(missing), 'Coding', layouts), {
+    layoutId: 'tkl',
+    hidden: false,
+    wanted: 'made-later',
+  });
+});
+
+test("the overlay re-reads its layout list for a scene rule's missing layout too", () => {
+  const source = readFileSync(new URL('../../ui/overlay/overlay.js', import.meta.url), 'utf8');
+  assert.match(source, /reloadIfMissing\(view\.wanted\)/);
 });
 
 test('settings saved before this feature (no obs section) draw the chosen layout', () => {
-  assert.deepEqual(sceneView({ layout: { id: 'tkl' } }, 'Coding', layouts), { layoutId: 'tkl', hidden: false });
+  assert.deepEqual(sceneView({ layout: { id: 'tkl' } }, 'Coding', layouts), {
+    layoutId: 'tkl',
+    hidden: false,
+    wanted: 'tkl',
+  });
 });
 
 test('the live preview never follows OBS scenes', () => {

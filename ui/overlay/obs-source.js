@@ -40,13 +40,15 @@ export function sceneRule(obsSettings, sceneName) {
 }
 
 /**
- * What to draw in this scene: `{ layoutId, hidden }`. Without a matching rule it is the layout chosen in the settings
- * window, shown. A rule's layout that no longer exists counts as the chosen one.
+ * What to draw in this scene: `{ layoutId, hidden, wanted }`. Without a matching rule it is the layout chosen in the
+ * settings window, shown. A rule's layout that isn't in `layouts` counts as the chosen one; `wanted` still names it, so
+ * the overlay can re-read its list once (the layout may have been made after the page loaded).
  */
 export function sceneView(settings, sceneName, layouts) {
   const chosen = settings.layout.id;
   const rule = sceneRule(settings.obs, sceneName);
-  if (!rule) return { layoutId: chosen, hidden: false };
-  const ruleLayoutExists = !!rule.layout && layouts.some((layout) => layout.id === rule.layout);
-  return { layoutId: ruleLayoutExists ? rule.layout : chosen, hidden: rule.show === false };
+  if (!rule) return { layoutId: chosen, hidden: false, wanted: chosen };
+  const wanted = rule.layout || chosen;
+  const known = layouts.some((layout) => layout.id === wanted);
+  return { layoutId: known ? wanted : chosen, hidden: rule.show === false, wanted };
 }
