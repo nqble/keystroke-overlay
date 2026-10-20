@@ -1,14 +1,22 @@
 # Dependabot opens a pull request when a library or a GitHub Action has a new version. Each one is reviewed and merged
 # by Jordan like any other change (CLAUDE.md: every crate runs next to a keyboard hook); nothing updates by itself. The
 # workflows pin every action to an exact commit for supply-chain safety, and the github-actions entry keeps those pins current.
+# Small updates (minor and patch) come grouped, one pull request per ecosystem, so they are reviewed together; a major
+# version, which can break things, still gets its own pull request.
 version: 2
 updates:
   - package-ecosystem: cargo
     directory: /src-tauri
     schedule: { interval: weekly }
+    groups:
+      rust-small-updates: { update-types: [minor, patch] }
   - package-ecosystem: npm
     directory: /
     schedule: { interval: monthly }
+    groups:
+      npm-small-updates: { update-types: [minor, patch] }
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
+    groups:
+      actions-small-updates: { update-types: [minor, patch] }
