@@ -8,7 +8,9 @@ use serde_json::json;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tauri::image::Image;
-use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, IsMenuItem, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{
+    CheckMenuItem, CheckMenuItemBuilder, IsMenuItem, Menu, MenuBuilder, MenuItemBuilder, Submenu, SubmenuBuilder,
+};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt as _;
@@ -232,7 +234,17 @@ pub fn restart_server_inner(app: &AppHandle) -> Result<(), String> {
 }
 
 // ---------------------------------------------------------------- the tray itself
-pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
+/// The menu pieces the app keeps after start-up, to tick the checkmarks and show the update entry later.
+struct TrayMenu {
+    menu: Menu<tauri::Wry>,
+    pause: CheckMenuItem<tauri::Wry>,
+    layouts: Vec<(String, CheckMenuItem<tauri::Wry>)>,
+    layout_menu: Submenu<tauri::Wry>,
+}
+
+/// The right-click menu: Open settings, Copy OBS URL, Pause, the Layout submenu (the current layout ticked), Restart
+/// server and Quit. Plain construction: no lock is held and no thread is started here.
+fn build_menu(app: &tauri::App, shared: &Shared) -> tauri::Result<TrayMenu> {
     let cur_layout = shared.settings.read().unwrap()["layout"]["id"]
         .as_str()
         .unwrap_or("")
@@ -264,12 +276,34 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         .separator()
         .item(&MenuItemBuilder::with_id("quit", "Quit").build(app)?)
         .build()?;
+    Ok(TrayMenu {
+        menu,
+        pause: pause_item,
+        layouts: layout_items,
+        layout_menu,
+    })
+}
+
+/// The tray icon, and a copy of it with the orange "update available" dot.
+fn build_icons(app: &tauri::App) -> (Image<'static>, Image<'static>) {
     let icon = app.default_window_icon().unwrap().clone();
     let icon_badged = Image::new_owned(
         badge_rgba(icon.rgba(), icon.width(), icon.height()),
         icon.width(),
         icon.height(),
     );
+    (icon.to_owned(), icon_badged) // an owned copy: the app only lends the window icon
+}
+
+/// Makes the tray icon and its menu at start-up, says what each click does, and stores the pieces in the app state.
+pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
+    let TrayMenu {
+        menu,
+        pause: pause_item,
+        layouts: layout_items,
+        layout_menu,
+    } = build_menu(app, &shared)?;
+    let (icon, icon_badged) = build_icons(app);
     let update_item = MenuItemBuilder::with_id("update", "Update available").build(app)?;
 
     let tray = TrayIconBuilder::new()

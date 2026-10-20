@@ -80,7 +80,7 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 | File | Findings | Fix | Risk | Coverage |
 |---|---|---|---|---|
-| `tray.rs` (362) | The 100 ms retry sleep is named (`TRAY_RETRY_DELAY`, done earlier). `build` is still 96 lines. | Split `build` only if it is plain menu construction (no lock or thread changes); **ask Jordan first**. Not started. | high | medium (soak test, tray deadlock test) |
+| `tray.rs` | **Done 2026-10-20, the safe half only (Jordan chose it):** `build` is now `build_menu` and `build_icons` (plain construction, no lock held, no thread started) plus a shorter `build` that keeps the click handler and the storing exactly as before. The click handler stays inside `build`; splitting it was left undone on purpose (it takes locks and starts threads). The 100 ms retry sleep is named (`TRAY_RETRY_DELAY`). | none | high | medium (soak test, tray deadlock test) |
 | `keyboard/rawinput.rs` | **Done 2026-10-20 (comments only):** why-comments on `start`, the thread-local state, `RIDEV_INPUTSINK` and the clean-up. No code changed. | none | high | good (decoding unit tests, input-method e2e) |
 | `keyboard/keymap.rs` | `code_name` 114 lines, but it is one lookup table. | Fine as a table. Make sure the numpad keys are all present (spec §11, right-hand layouts). | low | good |
 | `keyboard/tracker.rs` | `handle` 44 lines (just over). | Fine. Optionally extract the stuck-key check. | high | good |
