@@ -1,6 +1,6 @@
 # Proposal: OBS scene awareness through the Browser source's page API
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Part (b) built on the branch `advisor/obs-scenes`; Jordan picked it to ship in v2.0** (2026-10-20), with the rules edited in a popup opened from General (design C). Not merged yet. Part (a) waits for the measurement in OBS.
 
 What the overlay could do with the page API that OBS's Browser source (obs-browser) gives every page it shows: pause drawing
 while the source is hidden (measure first), and change per OBS scene (hide, or show another layout). No network code.

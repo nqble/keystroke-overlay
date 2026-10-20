@@ -539,3 +539,22 @@ button:disabled:hover {
   color: var(--color-text-dim);
   font-variant-numeric: tabular-nums;
 }
+
+/* The Edit scenes popup (obs-scenes-popup.js): one row per scene (name, what shows there, remove), in columns */
+.scene-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.scene-rule {
+  display: grid;
+  /* the name takes what's left; the menu fits "Show: " + a layout name; the last column is the ✕ button's width (.menu-button
+     in blocks.css), so the headings row, which has no button, lines up with the rows */
+  grid-template-columns: minmax(0, 1fr) 220px 28px;
+  align-items: center;
+  gap: var(--space-8);
+}
+.scene-rule-headings {
+  font-size: var(--text-sm);
+  color: var(--color-text-dim);
+}

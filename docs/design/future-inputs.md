@@ -83,6 +83,8 @@ plain, additive changes:
 "hotkeys": { "enabled": false, "pause": "" },   // built (hotkeys.rs); add "nextLayout": "" when that is built, and make
                                                 //   set_pause_hotkey merge into this object instead of replacing it
 "window":  { "enabled": false, "x": 0, "y": 0, "clickThrough": true, "alwaysOnTop": true }
+"obs":     { "scenes": { "enabled": false, "rules": [] } }   // built on advisor/obs-scenes (obs_scenes.rs); a later
+                                                //   obs-websocket feature adds to "obs" instead of a new name
 ```
 
 Shapes may change while designing a feature, but keep these top-level names and the "off by default" values. The

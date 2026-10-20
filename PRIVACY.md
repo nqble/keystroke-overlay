@@ -37,6 +37,11 @@ From v2.0 you can also set a **pause shortcut** (General → Pause shortcut, off
 macOS or Linux) to tell it about that one key combination only; it sees no other key that way, and registers nothing while the
 shortcut is off. The check in `tools/check-privacy.mjs` makes sure shortcuts are registered only in `hotkeys.rs` (`main.rs` only loads the plugin).
 
+With **OBS scenes** on (**General → OBS scenes**, off by default), the overlay page that OBS shows asks OBS which
+scene is on air, inside OBS, to follow the rules you wrote (hide the keys, or show another layout). The scene's name stays
+in that page: it is never saved, logged or sent anywhere, not even to the app. Only the rules you write are saved, with
+your other settings.
+
 Use **Pause overlay** (tray menu) whenever you are about to type something private on stream. While paused, the app
 forwards nothing at all.
 

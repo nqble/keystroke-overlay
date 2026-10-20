@@ -3,6 +3,7 @@
 // transitions do all the animation work on the compositor.
 import { animations, themes, easings } from '/overlay/registry.js';
 import { fitInBox } from '/overlay/fit.js';
+import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
 
 // What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
@@ -54,6 +55,11 @@ let settings = null,
   layouts = [],
   fontFiles = [],
   structKey = '';
+// The OBS scene on air, known only inside OBS (obs-source.js), and what its rule says: the layout to draw and whether
+// to hide the keys. Never stored or sent.
+let currentScene = null,
+  drawnLayoutId = '',
+  sceneHidden = false;
 const keyEls = new Map(); // code -> element
 const held = new Set(); // codes currently down (kept across rebuilds)
 
@@ -163,8 +169,7 @@ function placedKey(layoutKey, layout, prof) {
   return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width, h: height };
 }
 
-function build(nextSettings) {
-  const layout = layouts.find((l) => l.id === nextSettings.layout.id) ?? layouts[0];
+function build(nextSettings, layout) {
   stage.textContent = '';
   keyEls.clear();
   if (!layout) return;
@@ -244,23 +249,26 @@ addEventListener('resize', placeStage);
 
 // the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
 let reloadedFor = '';
+/** A layout we should draw is not in our list: it was created or imported after we loaded. Re-read the list (once per id). */
+function reloadIfMissing(id) {
+  if (!id || layouts.some((l) => l.id === id) || reloadedFor === id) return;
+  reloadedFor = id;
+  refresh();
+}
 function apply(nextSettings) {
   settings = nextSettings;
-  // The selected layout is not in our list: it was created or imported after we loaded. Re-read the list (once per id).
-  if (
-    nextSettings.layout.id &&
-    !layouts.some((l) => l.id === nextSettings.layout.id) &&
-    reloadedFor !== nextSettings.layout.id
-  ) {
-    reloadedFor = nextSettings.layout.id;
-    refresh();
-  }
-  const layout = layouts.find((l) => l.id === nextSettings.layout.id) ?? layouts[0];
+  reloadIfMissing(nextSettings.layout.id);
+  const view = sceneView(nextSettings, currentScene, layouts);
+  reloadIfMissing(view.wanted); // a scene rule's layout
+  drawnLayoutId = view.layoutId;
+  sceneHidden = view.hidden;
+  showStage();
+  const layout = layouts.find((l) => l.id === drawnLayoutId) ?? layouts[0];
   const key = structureKey(layout, profileOf(nextSettings, layout), nextSettings.style);
   applyVars(nextSettings);
   if (key !== structKey) {
     structKey = key;
-    build(nextSettings);
+    build(nextSettings, layout);
   }
 }
 
@@ -268,8 +276,12 @@ function apply(nextSettings) {
 let paused = false; // tray "Pause overlay": show nothing, ignore keys
 function setPaused(shouldPause) {
   paused = shouldPause;
-  stage.style.visibility = shouldPause ? 'hidden' : '';
+  showStage();
   if (shouldPause) releaseAll();
+}
+// Pause wins over a scene rule; a scene rule only hides the keys (held keys stay known, so nothing sticks).
+function showStage() {
+  stage.style.visibility = paused || sceneHidden ? 'hidden' : '';
 }
 function setKey(code, down) {
   if (paused && down) return;
@@ -368,4 +380,13 @@ if (PREVIEW) {
 await loadModules();
 await refresh();
 connect();
+// The live preview always shows the chosen layout, so only a page OBS loads follows OBS scenes.
+if (!PREVIEW) {
+  watchObs(window, {
+    onScene: (name) => {
+      currentScene = name;
+      if (settings) apply(settings);
+    },
+  });
+}
 if (PREVIEW) parent.postMessage({ type: 'ready' }, '*');
