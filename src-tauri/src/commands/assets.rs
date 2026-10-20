@@ -133,10 +133,26 @@ pub async fn import_preset(app: AppHandle) -> Result<Option<Value>, String> {
 
 // ---------------------------------------------------------------- layouts the user made (stored in layouts/<id>.json)
 /// How many layouts of their own a user may have. Keep in step with MAX_LAYOUTS in ui/settings/state.js.
-const MAX_USER_LAYOUTS: usize = 20;
+pub(crate) const MAX_USER_LAYOUTS: usize = 20;
+/// The biggest file Import… (and a keyboard file, layout_import.rs) reads; a layout file is far smaller.
+pub(crate) const MAX_LAYOUT_FILE_BYTES: u64 = 2_000_000;
+pub(crate) const TOO_BIG_FOR_A_LAYOUT: &str = "That file is too big to be a layout file";
+/// The longest layout name, in characters. Keep in step with MAX_NAME_LENGTH in ui/settings/kle-layout.js and the
+/// New layout popup's name box (ui/settings/dialogs.js).
+const MAX_NAME_LENGTH: usize = 30;
+
+/// A layout name as the app keeps it: trimmed, without control characters, at most MAX_NAME_LENGTH long.
+pub(crate) fn clean_layout_name(raw_name: &str) -> String {
+    raw_name
+        .trim()
+        .chars()
+        .filter(|c| !c.is_control())
+        .take(MAX_NAME_LENGTH)
+        .collect()
+}
 
 /// A layout id made from a name: lower case letters, digits and dashes, at most 30 long ("My Board!" → "my-board").
-fn slug(name: &str) -> String {
+pub(crate) fn slug(name: &str) -> String {
     let cleaned: String = name
         .to_lowercase()
         .chars()
@@ -154,7 +170,7 @@ fn slug(name: &str) -> String {
 }
 
 /// `base`, or `base-2`, `base-3`, ... : the first id no layout has yet, so a new layout never replaces another.
-fn free_id(base: &str, is_taken: impl Fn(&str) -> bool) -> String {
+pub(crate) fn free_id(base: &str, is_taken: impl Fn(&str) -> bool) -> String {
     let mut id = base.to_string();
     let mut suffix = 2;
     while is_taken(&id) {
@@ -167,7 +183,7 @@ fn free_id(base: &str, is_taken: impl Fn(&str) -> bool) -> String {
 /// Makes a new layout that starts as a copy of the full-size keyboard, selects it, and returns its id.
 #[tauri::command]
 pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Result<String, String> {
-    let name: String = name.trim().chars().filter(|c| !c.is_control()).take(30).collect();
+    let name = clean_layout_name(&name);
     if name.is_empty() {
         return Err("Enter a layout name".into());
     }
@@ -278,14 +294,7 @@ pub fn import_doc(
     let (mut out, mut skipped) = (Vec::new(), 0);
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     for item in items.iter().take(MAX_USER_LAYOUTS) {
-        let name: String = item["name"]
-            .as_str()
-            .unwrap_or("Imported layout")
-            .trim()
-            .chars()
-            .filter(|c| !c.is_control())
-            .take(30)
-            .collect();
+        let name = clean_layout_name(item["name"].as_str().unwrap_or("Imported layout"));
         let keys = crate::sanitize::clean_layout_keys(&item["keys"]);
         if keys.is_empty() || name.is_empty() || count >= MAX_USER_LAYOUTS {
             skipped += 1;
@@ -341,8 +350,8 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
         return Ok(None);
     };
     let path = picked_file.into_path().map_err(|e| e.to_string())?;
-    if std::fs::metadata(&path).map_err(|e| e.to_string())?.len() > 2_000_000 {
-        return Err("That file is too big to be a layout file".into());
+    if std::fs::metadata(&path).map_err(|e| e.to_string())?.len() > MAX_LAYOUT_FILE_BYTES {
+        return Err(TOO_BIG_FOR_A_LAYOUT.into());
     }
     let top: Value = serde_json::from_str(&std::fs::read_to_string(path).map_err(|e| e.to_string())?)
         .map_err(|_| "That isn't a valid layout file")?;

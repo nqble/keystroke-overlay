@@ -53,6 +53,50 @@
   };
   const NO_UPDATE = { available: false, current: '1.4.0', channel: 'stable' };
 
+  // A KLE file (keyboard-layout-editor.com, Download JSON) for From a KLE file…: tests/ui/fixtures/kle/ansi-60.kle.json
+  // with Fn in place of the right Win key, so the import shows one key it can't link.
+  const SANDBOX_KLE = [
+    { name: 'Sandbox 60%' },
+    [
+      '~\n`',
+      '!\n1',
+      '@\n2',
+      '#\n3',
+      '$\n4',
+      '%\n5',
+      '^\n6',
+      '&\n7',
+      '*\n8',
+      '(\n9',
+      ')\n0',
+      '_\n-',
+      '+\n=',
+      { w: 2 },
+      'Backspace',
+    ],
+    [{ w: 1.5 }, 'Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{\n[', '}\n]', { w: 1.5 }, '|\n\\'],
+    [{ w: 1.75 }, 'Caps Lock', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':\n;', '"\n\'', { w: 2.25 }, 'Enter'],
+    [{ w: 2.25 }, 'Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<\n,', '>\n.', '?\n/', { w: 2.75 }, 'Shift'],
+    [
+      { w: 1.25 },
+      'Ctrl',
+      { w: 1.25 },
+      'Win',
+      { w: 1.25 },
+      'Alt',
+      { w: 6.25 },
+      '',
+      { w: 1.25 },
+      'Alt',
+      { w: 1.25 },
+      'Fn',
+      { w: 1.25 },
+      'Menu',
+      { w: 1.25 },
+      'Ctrl',
+    ],
+  ];
+
   const loaded = Promise.all([
     fetch('/__sandbox__/default-settings.json').then((response) => response.json()),
     fetch('/__sandbox__/layouts.json').then((response) => response.json()),
@@ -114,6 +158,14 @@
     },
     delete_layout: ({ id }) => {
       ownLayouts = ownLayouts.filter((layout) => layout.id !== id);
+    },
+    // New layout → From a KLE file…: the "picked file" is SANDBOX_KLE below (a 60% with an Fn key, which can't be
+    // linked); add_layout keeps the keys the window worked out, like create_layout
+    pick_layout_source: () => ({ fileName: 'sandbox-60.json', text: JSON.stringify(SANDBOX_KLE) }),
+    add_layout: ({ name, keys }) => {
+      const id = `user-${ownLayouts.length + 1}-${Date.now()}`;
+      ownLayouts.push({ id, name: name.trim() || 'My layout', keys: structuredClone(keys), user: true });
+      return id;
     },
     list_fonts: () => [],
     // presets live in memory for the visit, so saving, loading and deleting can be tried

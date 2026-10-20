@@ -58,6 +58,7 @@ keystroke-overlay/
 │           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart, input method, secure link, reset, first run, copy, quit
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
+│           ├── layout_import.rs  a layout from a keyboard file the user picks (KLE): the file picker and add_layout (keys cleaned by sanitize.rs)
 │           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
 │           ├── actions.rs    pause / layout / restart wrappers
 │           └── updates.rs    update check + install, release notes, "What's new"
