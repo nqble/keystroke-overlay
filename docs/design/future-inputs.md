@@ -101,6 +101,8 @@ keyboard's input method stays at `general.inputMethod`.
 ### Global hotkeys
 - Use Tauri's global-shortcut plugin (cross-platform), not our own hook. Ask Jordan before adding it.
 - Actions: pause/resume the overlay, next/previous layout, open settings. Empty (off) until the user sets them.
+- The plugin is loaded only once a hotkey is set (`hotkeys.rs`): on Linux X11 it wakes 20 times a second, so loading it at start-up
+  broke the ~0% idle promise for everyone without a hotkey.
 - Hotkeys never turn privacy features off (secure link, pause state shown in the tray) without the user seeing it.
 
 ### Overlay window outside OBS
