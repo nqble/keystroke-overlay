@@ -47,7 +47,16 @@ Keystroke Overlay (development copy)
 // The config is JSON, and the shell (needed for npx on Windows) strips the quotes of an argument unless the whole
 // argument is quoted and its inner quotes are escaped: that is what stringifying twice produces.
 const config = JSON.stringify(JSON.stringify({ identifier: DEV_ID }));
-const child = spawn('npx', ['tauri', 'dev', '--config', config, ...process.argv.slice(2)], {
+// Extra arguments (e.g. `-- --features gamepad`) go through the same shell, so only plain words are passed on: one with
+// spaces or quotes would be split or lose its quotes on Windows, like the --config bug above.
+const PLAIN_ARGUMENT = /^[\w=.,:/-]+$/;
+const extra = process.argv.slice(2);
+const unsafe = extra.find((argument) => !PLAIN_ARGUMENT.test(argument));
+if (unsafe !== undefined) {
+  console.error(`dev:debug passes on only plain words (letters, digits, = . , : / - _); not: ${unsafe}`);
+  process.exit(1);
+}
+const child = spawn('npx', ['tauri', 'dev', '--config', config, ...extra], {
   stdio: 'inherit',
   shell: true,
   env: { ...process.env, KEYOVERLAY_DEBUG: '1', WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9222' },

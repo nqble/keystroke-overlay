@@ -146,6 +146,18 @@ test('the controller library is found however it is named', () => {
   assert.doesNotMatch('let mut gilrs = open_gilrs()?;', GAMEPAD_LIB); // a variable, not the library
 });
 
+test('the controller library is caught however it is brought in', () => {
+  for (const line of ['use gilrs;', 'use gilrs as pads;', 'extern crate gilrs;', 'use ::gilrs_core::Gamepad;']) {
+    assert.match(line, GAMEPAD_LIB, line);
+  }
+});
+
+test('force feedback is caught unless it is a plain false', () => {
+  for (const line of ['.with_force_feedback(on)', '.with_force_feedback(!false)', '.with_force_feedback( true )']) {
+    assert.match(line, GAMEPAD_RUMBLE, line);
+  }
+});
+
 test('sending anything to a controller is caught', () => {
   for (const line of [
     '.with_force_feedback(true)',

@@ -207,6 +207,13 @@ impl Drop for WatchGuard<'_> {
     }
 }
 
+/// A controller button (`PadA`, `PadLB`, … in docs/design/future-inputs.md). It arrives through the same channel as
+/// keys, but proves nothing about keyboard capture, so `Bus::has_seen_keys` ignores it too: otherwise a controller press
+/// would hide the "keyboard access needed" notice on a Mac that was refused Input Monitoring.
+fn is_controller_code(code: &str) -> bool {
+    code.starts_with("Pad")
+}
+
 /// The modifier and lock keys. macOS still reports these to an app that was refused Input Monitoring (only the ordinary keys
 /// are hidden), so they do not prove that capture works: `Bus::has_seen_keys` ignores them.
 fn is_modifier_code(code: &str) -> bool {
@@ -294,7 +301,7 @@ impl Bus {
     /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
     /// Pause is pressed can never slip through or leave a stuck key behind.
     fn forward(&self, event: KeyEvent) {
-        if !is_modifier_code(event.code) {
+        if !is_modifier_code(event.code) && !is_controller_code(event.code) {
             self.keys_seen.store(true, Ordering::Relaxed);
         }
         let mut held = self.held.lock().unwrap();
@@ -430,6 +437,14 @@ pub fn start(method: Method) -> Arc<Bus> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn controller_buttons_are_not_keys_seen() {
+        assert!(is_controller_code("PadA"));
+        assert!(is_controller_code("PadLB"));
+        assert!(!is_controller_code("KeyP"));
+        assert!(!is_controller_code("PageUp"));
+    }
 
     fn test_bus() -> Bus {
         let (ev_tx, _) = channel::<KeyEvent>();

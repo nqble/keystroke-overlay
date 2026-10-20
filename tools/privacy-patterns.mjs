@@ -42,13 +42,14 @@ export const LINUX_DEVICES = /\bevdev::/;
  * The controller library (gilrs, only in a build with the cargo feature `gamepad`). Allowed only in
  * src-tauri/src/gamepad/mod.rs, so one file shows everything the app asks of it.
  */
-export const GAMEPAD_LIB = /\bgilrs(_core)?::/;
+export const GAMEPAD_LIB = /\bgilrs(_core)?::|\b(use|extern\s+crate)\s+(::)?gilrs(_core)?\b/;
 
 /**
  * Sending anything to a controller: turning gilrs's force feedback (rumble) on, or using its effects. Never allowed. With
  * force feedback on, gilrs also starts a thread that wakes every 50 ms forever.
  */
-export const GAMEPAD_RUMBLE = /\.with_force_feedback\s*\(\s*true|\bff::|\bset_ff_state\b|\bEffect(Builder)?\b/;
+export const GAMEPAD_RUMBLE =
+  /\.with_force_feedback\s*\((?!\s*false\s*\))|\bff::|\bset_ff_state\b|\bEffect(Builder)?\b/;
 
 /** What gamepad/mod.rs must say when it builds gilrs: force feedback off (gilrs's own default is on). */
 export const GAMEPAD_NO_RUMBLE = /\.with_force_feedback\s*\(\s*false\s*\)/;
