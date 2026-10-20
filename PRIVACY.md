@@ -38,13 +38,13 @@ keyboard  ->  Windows keyboard hook (or Raw Input)  ->  memory  ->  local web se
 Every step happens on your PC, in memory. When the key is released the event is gone. There is no step that writes
 to disk and no step that uses the network.
 
-### The two input methods (General → Keyboard input)
+### The two input methods (**General → Keyboard input**)
 
 - **Standard** reads keys through a Windows *keyboard hook*. **Compatibility** reads them through Windows *Raw Input*.
 - They differ only in *how Windows hands the key events to the app*. Both see the same keys, record the same two facts
   (which key, down or up), keep nothing, and send nothing anywhere except the local overlay page. Choosing one over the other
   changes nothing about your privacy.
-- **On Linux** (X11 desktops, still in development), Standard reads keys through X11's *XInput2 raw key events* instead. It
+- **On Linux** (X11 desktops, for developers who build the app; no Linux release yet), Standard reads keys through X11's *XInput2 raw key events* instead. It
   works the same way: listen-only, the same two facts per key, kept only in memory, sent only to the local overlay page. Any
   program on an X11 desktop can listen this way; the app doesn't gain a power others don't already have
   ([docs/LINUX-PORT.md](docs/LINUX-PORT.md)).
@@ -69,7 +69,7 @@ Nothing in there contains keystrokes. To remove everything: uninstall, then dele
 app did (the server started, keyboard input failed, an update check ran), never which keys were pressed. At all times it
 holds the last 100 important events; it is never written to disk, never sent anywhere, and gone when the app closes.
 
-**Debug mode** (off by default; General → App) adds a developer tab, and the event log then also records everyday steps
+**Debug mode** (off by default; **General → App**) adds a developer tab, and the event log then also records everyday steps
 (the last 300 lines; turning Debug mode off forgets them). Nothing is written to disk (apart from the self-test's tiny test file, two bytes, created and deleted at once), and nothing is sent anywhere. Its optional Key monitor shows key presses in the settings window only, for at most 60 seconds, only after you press Start. See [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## When the app talks to the internet
@@ -125,7 +125,8 @@ You do not have to take our word for any of this.
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
    - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings (and the `settings.vN.json` copy), presets, fonts, layouts, files you export (to a place you pick), the one-line
-     `crash-note.txt`, and the Debug self-test's tiny `.write-test` file (two bytes), created and deleted at once
+     `crash-note.txt`, and the Debug self-test's tiny `.write-test` file (two bytes), created and deleted at once (the unit tests in
+     `settings/tests.rs` also match: they write to scratch folders)
      (never the keyboard or server code)
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on

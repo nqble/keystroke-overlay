@@ -1,6 +1,6 @@
 // =====================================================================================================================
 //  The toolbar above the keyboard in the Keys tab: undo and redo, the Snap and Grid switches, and a status line. keys.js puts
-//  it on the page. Moving, aligning and spacing keys is done in editor/editor.js (the bar that floats above the selection);
+//  it on the page. Moving, aligning and spacing keys is done in editor/ (arrange-bar.js is the bar that floats above the selection);
 //  the maths is in keys-arrange.js.
 // =====================================================================================================================
 import { button, el, plural, toast } from '../helpers.js';

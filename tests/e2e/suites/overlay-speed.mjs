@@ -47,10 +47,10 @@ const result = JSON.parse(
   ),
 );
 console.log(`\n  keys on screen: ${result.keys}`);
-console.log(`  color change   ${result.colour.toFixed(2)} ms`);
+console.log(`  color change   ${result.color.toFixed(2)} ms`);
 console.log(`  size change     ${result.size.toFixed(2)} ms`);
 console.log(`  hide a key      ${result.hide.toFixed(2)} ms`);
 check('the overlay shows a full keyboard', result.keys > 80, String(result.keys));
-check('a color change stays cheap (under 2 ms)', result.colour < 2, `${result.colour.toFixed(2)} ms`);
+check('a color change stays cheap (under 2 ms)', result.color < 2, `${result.color.toFixed(2)} ms`);
 p.close();
 finish();

@@ -19,7 +19,7 @@ Switching is live, with no restart, and a key held during a switch is released r
 - Both methods measured the same on CPU use, so Standard stays the default because it is the one proven in the field.
 
 ## Consequences
-- On Linux (in development, no release yet), Standard is X11 XInput2 raw events (`keyboard/x11.rs`); Compatibility is
+- On Linux (from v1.4.0, built from source; no Linux release yet), Standard is X11 XInput2 raw events (`keyboard/x11.rs`); Compatibility is
   Windows-only ([LINUX-PORT.md](../LINUX-PORT.md)).
 - New capture code must go through the shared tracker and key naming (`src-tauri/src/keyboard/`), so every method
   behaves identically.

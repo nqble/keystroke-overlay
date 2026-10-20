@@ -29,7 +29,7 @@ keystroke-overlay/
 │       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
 │       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
-│       │   ├── x11.rs        Linux (from v1.4.0): X11 key capture with XInput2 raw events
+│       │   ├── x11.rs        Linux (from v1.4.0, for developers; no Linux release yet): X11 key capture with XInput2 raw events
 │       │   └── linux_keys.rs Linux (from v1.4.0): X11 key numbers -> the same DOM "code" names
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
@@ -72,8 +72,8 @@ keystroke-overlay/
         ├── debug.js       the optional Debug tab (docs/DEBUGGING.md)
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
         └── tabs/*.js      one file per tab: layout, keys, style, animation, fonts, general
-            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-toolbar.js (selection, nudge,
-            align, history, snap and grid controls), keys-arrange.js (the movement maths, plain functions with unit tests)
+            The Keys tab is several files: keys.js (the tab, buttons, editor panels), keys-toolbar.js (the toolbar: undo
+            and redo, Snap, Grid, Hidden keys, Close gaps, the Reset menu; also nudging), keys-arrange.js (the movement maths, plain functions with unit tests)
             and keys-history.js (undo and redo). The keyboard itself is the editor in editor/ ([design/key-editor.md](design/key-editor.md)):
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab, and it sets only CSS variables. Its gestures are one file each, sharing one
@@ -93,7 +93,7 @@ key press → capture method on its own thread:
           → overlay page (OBS) toggles a CSS class on the key; CSS transitions do the animation
 ```
 
-- The method is chosen in General → Keyboard input (`general.inputMethod`: `hook` default, `rawinput`) and can be switched
+- The method is chosen in **General → Keyboard input** (`general.inputMethod`: `hook` default, `rawinput`) and can be switched
   live: `Bus::set_method` stops the old source, releases any held keys, starts the new one, and falls back to the old one if
   the new one can't start. The framework's own Raw Input registration is disabled at startup (`device_event_filter(Always)`)
   because registrations are per process and would compete with ours.
@@ -154,4 +154,4 @@ key presses through both input methods, a signed update download); it cleans up 
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs`, in development and in no release yet ([LINUX-PORT.md](LINUX-PORT.md)); for macOS, see [MAC-PORT.md](MAC-PORT.md).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs`, in v1.4.0 for developers who build the app (there is no Linux release yet) ([LINUX-PORT.md](LINUX-PORT.md)); for macOS, see [MAC-PORT.md](MAC-PORT.md).

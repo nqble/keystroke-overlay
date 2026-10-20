@@ -4,8 +4,8 @@
 //! step at a time up to `CURRENT_VERSION`, then deep-merged on top of
 //! `defaults()` so newly added settings always have a value, then sanitized.
 //!
-//! HOW TO ADD A SETTING: add it to `defaults()` (and to the control list in
-//! ui/settings/settings.js). No migration is needed for purely additive changes. If it needs a rule beyond its
+//! HOW TO ADD A SETTING: add it to `defaults()` (and to `CONTROLS` in
+//! ui/settings/controls.js). No migration is needed for purely additive changes. If it needs a rule beyond its
 //! type (a range, a fixed set of choices, a text format), add one line to the tables in sanitize.rs.
 //! HOW TO RENAME/RESTRUCTURE: bump CURRENT_VERSION and add a step to `MIGRATIONS`.
 

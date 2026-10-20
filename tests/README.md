@@ -6,7 +6,7 @@ The layers, from quick to thorough:
 |---|---|---|---|
 | `npm run check:privacy` | The privacy promises in [PRIVACY.md](../PRIVACY.md): network code only in one file, server on 127.0.0.1, no file writes in keyboard/server code, no logging, no external UI requests | 1 s | none |
 | `npm run check:style` | Code style basics: no tabs or trailing spaces, a final newline, and no raw colors in `settings.css` outside its `:root` design tokens | 1 s | none |
-| `npm run test:ui` | JS unit tests in `tests/ui/` for the settings window's plain logic (key arrange, history, board, view, guides, bug report, release-note sections, devbuild title) | 1 s | none |
+| `npm run test:ui` | JS unit tests in `tests/ui/` for the settings window's plain logic (key arrange, history, board, view, guides, overlay fit, bug report, release-note sections, devbuild title, privacy patterns, word rules) | 1 s | none |
 | `npm test` | Rust unit tests (settings migration/validation, key naming, key tracking, Raw Input decoding, update URLs, release notes, **hostile-input tests** that feed thousands of corrupted settings and layout files to the cleaning code, secure-link key checks) + `npm run test:ui` + the privacy check | ~1 min | ~1 GB build cache in `src-tauri/target` |
 | `npm run test:e2e` | **End to end:** builds a throwaway copy of the app, drives its real settings window, injects real key presses, runs a real signed update download | ~5–8 min | ~4 GB **temporary, deleted when it finishes** |
 
@@ -14,7 +14,7 @@ The layers, from quick to thorough:
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | ui-sweep | csp | soak | whats-new | debug (and the optional visual)
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -29,7 +29,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
 - `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay).
-- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Tidy up (keeps the shape, closes gaps), Reset positions, that the preview and overlay size follow, and that junk positions are cleaned.
+- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape, closes gaps), Put all keys back, that the preview and overlay size follow, and that junk positions are cleaned.
 - `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
 - `csp` — the settings window's content-security policy: normal use (every tab, dialogs, the live preview) causes no policy violations,
   while injected scripts, scripts or frames from other websites, outside fetches and object embeds are blocked.
@@ -126,16 +126,18 @@ Rules:
 | `key-snap`, `key-grid`, `key-show-hidden` | The Snap, Grid and Hidden keys switches (buttons with `aria-pressed`) |
 | `key-status`, `key-readout` | The moved / hidden / overlap line at the right of the toolbar, the label shown while dragging or resizing |
 | `keys-shortcut-hint` | The one-line hint and shortcut key caps under the editor |
-| `keys-enable-all`, `keys-disable-all`, `keys-reset-labels`, `keys-tidy`, `keys-reset-positions`, `keys-revert` | The buttons under the editor |
+| `keys-tidy` | The **Close gaps** button in the toolbar |
+| `keys-reset-menu`, `keys-put-selected-back`, `keys-reset-positions`, `keys-enable-all`, `keys-reset-labels`, `keys-revert`, `dialog-reset-layout-confirm` | The **Reset ▾** menu and its items (put selected keys back, put all keys back, show all hidden keys, reset all labels, reset this layout completely, and its confirm popup) |
+| `layout-style`, `layout-style-shape`, `layout-style-grid` | The **Layout style** switch (Keyboard shape or Even grid) |
 | `key-inspector-empty` | The inspector while nothing is selected |
 | `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-width`, `key-height`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back`, `key-clear-selection` | The inspector to the right of the editor (one key or several) |
 | `style-theme`, `preset-select`, `preset-load`, `preset-delete`, `preset-name`, `preset-save` | Themes and presets in the Style tab |
 | `control-<path>` (for example `control-style-radius`, `control-style-key-fill`, `control-animation-type`) | Every slider, color picker and dropdown made from `CONTROLS`; the name is the settings path in kebab-case |
 | `control-<path>-alpha`, `control-<path>-name` | A color's transparency slider; the typed font name box |
 | `fonts-add`, `fonts-open-folder`, `font-item` + `data-font`, `font-use`, `font-remove` | The Fonts tab |
-| `toggle-<path>` (for example `toggle-general-debug-mode`) | Every tickbox made by `toggle()` (`ui/settings/controls.js`), used in the General tab |
+| `toggle-<path>` (for example `toggle-general-debug-mode`) | Every checkbox made by `toggle()` (`ui/settings/controls.js`), used in the General tab |
 | `general-obs-url`, `general-obs-copy`, `general-size-note` | The OBS section of General |
-| `app-version` | The version number shown in the About part of General |
+| `app-version` | The version number in **General → Program updates** (Current version) |
 | `server-port`, `server-port-apply`, `server-restart` | The Server section |
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | The Secure link section |
 | `input-method-select`, `input-method-info`, `input-method-error` | The Keyboard input section |

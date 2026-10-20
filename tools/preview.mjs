@@ -1,6 +1,6 @@
 // Preview the overlay in a normal browser, without building or running the app.
 //
-//   npm run preview                      then open http://127.0.0.1:7880/
+//   npm run preview                      then open http://127.0.0.1:7883/
 //   npm run preview -- --port 8000       use another port
 //   npm run preview -- --layout wasd     start on another built-in layout (tkl, full, gameplay, wasd)
 //
@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 const OVERLAY_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'ui', 'overlay');
 const HOST = '127.0.0.1';
-const DEFAULT_PORT = 7880; // not the app's own 7878, so both can run at once
+const DEFAULT_PORT = 7883; // not the app's 7878 or the dev copy's 7880 (npm run dev:debug), so all can run at once
 const FAKE_KEY_EVERY_MS = 450; // how often a fake key goes down
 const FAKE_KEY_HELD_MS = 220; // how long a fake key stays down
 const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'; // fixed by the WebSocket standard (RFC 6455)
