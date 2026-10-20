@@ -147,9 +147,10 @@ key press → capture method on its own thread:
 
 ## Threads and idle cost
 
-Capture thread (hook or Raw Input), dispatcher thread, two async worker threads (tokio), plus Tauri's own: ~9 threads at idle, ~13 MB working set,
-0.0% CPU. The settings window is created on demand and fully destroyed on close (the web view's processes exit), after which
-the app trims its working set.
+Capture thread (hook or Raw Input), dispatcher thread, two async worker threads (tokio), plus Tauri's own. On Windows, with the settings window closed (a v2.0 release build, measured 2026-10-20): 12 threads,
+about 3 MB working set (1.2 MB private), 0 ms of CPU over 2 minutes. The settings window is created on demand and fully
+destroyed on close (its WebView2 processes exit within about 10 seconds), after which the app trims its working set. On a
+Mac the system's web framework stays loaded, so the app holds much more at rest: see [MAC-PORT.md](MAC-PORT.md).
 
 ## Settings
 
