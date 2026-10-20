@@ -41,8 +41,8 @@ These OBS settings make the biggest difference to how smooth the overlay looks a
 - **Shutdown source when not visible:** turn it on if the overlay is only in some of your scenes. It stops using CPU while
   hidden and reconnects in a moment when the scene shows again.
 - **Refresh browser when scene becomes active:** leave it off. The overlay updates itself; reloading only adds a short gap.
-- **A different overlay per scene:** turn on **General → OBS scenes** and list the scenes by name: **Hide** keeps the keys
-  out of that scene, **Show** with a layout draws that layout there. Names must match OBS's (upper and lower case don't
+- **A different overlay per scene:** turn on **General → OBS scenes**, click **Edit scenes…** and list the scenes by name: for each, **Hide the
+  overlay** keeps the keys out of that scene, and **Show:** a layout draws that layout there. **Save** keeps the list. Names must match OBS's (upper and lower case don't
   matter). In OBS, right-click the Browser source, choose **Properties** and set **Page permissions** to **Read access to
   user information**, so the overlay knows the scene as soon as OBS starts; without it, it follows from the first scene
   switch on. The Browser source's box keeps one size, so a smaller layout is drawn larger to fill it. The live preview in
