@@ -64,7 +64,7 @@ hook, local server, tray, settings storage), `ui/overlay/` is the page OBS loads
   `registerTheme` (copy an existing one).
 - **A setting** — default in `src-tauri/src/settings.rs`, a line in `CONTROLS` in `ui/settings/controls.js`, and use it
   in `ui/overlay/overlay.js`. If you rename or restructure one, add a migration step (and a unit test).
-- **See your layout, theme or animation without building the app** — `npm run preview` serves the overlay at http://127.0.0.1:7880/ with fake key presses (see the top of `tools/preview.mjs`).
+- **See your layout, theme or animation without building the app** — `npm run preview` serves the overlay at http://127.0.0.1:7883/ with fake key presses (see the top of `tools/preview.mjs`).
 - **See the settings window without Windows or a build** — `npm run ui-sandbox` serves the real `ui/settings/` at
   http://127.0.0.1:7882/ with a stand-in for the app. Pick a state and tab in the address, e.g.
   `?state=paused-no-obs&tab=general` (the list is at the top of `tools/sandbox/fake-app.js`). Handy for screenshots and for

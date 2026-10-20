@@ -135,32 +135,15 @@ pub async fn import_preset(app: AppHandle) -> Result<Option<Value>, String> {
 /// Makes a new layout that starts as a copy of the full-size keyboard, selects it, and returns its id.
 #[tauri::command]
 pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Result<String, String> {
-    let name: String = name.trim().chars().filter(|c| !c.is_control()).take(30).collect();
+    let name = layout_name(&name);
     if name.is_empty() {
         return Err("Enter a layout name".into());
     }
     let all = server::layouts(&st.shared.paths);
-    if all.iter().filter(|l| l["user"] == true).count() >= 20 {
-        return Err("Max layouts reached (20)".into());
+    if all.iter().filter(|l| l["user"] == true).count() >= MAX_USER_LAYOUTS {
+        return Err(format!("Max layouts reached ({MAX_USER_LAYOUTS})"));
     }
-    let base: String = name
-        .to_lowercase()
-        .chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
-        .collect::<String>()
-        .trim_matches('-')
-        .to_string();
-    let base = if base.is_empty() {
-        "layout".to_string()
-    } else {
-        base.chars().take(30).collect()
-    };
-    let mut id = base.clone();
-    let mut suffix = 2;
-    while all.iter().any(|l| l["id"] == id.as_str()) {
-        id = format!("{base}-{suffix}");
-        suffix += 1;
-    }
+    let id = unused_id(&slug(&name), |candidate| all.iter().any(|l| l["id"] == candidate));
     let full = all
         .iter()
         .find(|l| l["id"] == "full")
@@ -239,6 +222,53 @@ fn slug(name: &str) -> String {
     }
 }
 
+/// A layout name as the app keeps it: no control characters, no spaces at the ends, at most 30 characters.
+fn layout_name(raw: &str) -> String {
+    raw.trim().chars().filter(|c| !c.is_control()).take(30).collect()
+}
+
+/// `base`, or `base-2`, `base-3`, ... : the first of these that `taken` says is free.
+fn unused_id(base: &str, taken: impl Fn(&str) -> bool) -> String {
+    let mut id = base.to_string();
+    let mut suffix = 2;
+    while taken(&id) {
+        id = format!("{base}-{suffix}");
+        suffix += 1;
+    }
+    id
+}
+
+/// The keys of an imported layout, cleaned: at most 300, each with a code of up to 40 characters and numeric x and y,
+/// optional numeric w and h, and a label of up to 16 characters. Anything else about a key is dropped.
+fn clean_keys(raw_keys: &Value) -> Vec<Value> {
+    raw_keys
+        .as_array()
+        .map(|raw_keys| {
+            raw_keys
+                .iter()
+                .take(300)
+                .filter(|key| {
+                    key["code"].as_str().is_some_and(|c| !c.is_empty() && c.len() <= 40)
+                        && key["x"].is_number()
+                        && key["y"].is_number()
+                })
+                .map(|key| {
+                    let mut cleaned_key = serde_json::json!({ "code": key["code"], "x": key["x"], "y": key["y"] });
+                    for field in ["w", "h"] {
+                        if key[field].is_number() {
+                            cleaned_key[field] = key[field].clone();
+                        }
+                    }
+                    if let Some(label) = key["label"].as_str() {
+                        cleaned_key["label"] = Value::String(label.chars().take(16).collect());
+                    }
+                    cleaned_key
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// The document written by "Export layouts": every layout the user made plus their key edits (hidden keys, labels).
 pub fn export_doc(all: &[Value], settings: &Value) -> Result<Value, String> {
     let mine: Vec<&Value> = all.iter().filter(|l| l["user"] == true).collect();
@@ -281,50 +311,14 @@ pub fn import_doc(
     let (mut out, mut skipped) = (Vec::new(), 0);
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     for item in items.iter().take(MAX_USER_LAYOUTS) {
-        let name: String = item["name"]
-            .as_str()
-            .unwrap_or("Imported layout")
-            .trim()
-            .chars()
-            .filter(|c| !c.is_control())
-            .take(30)
-            .collect();
-        let keys: Vec<Value> = item["keys"]
-            .as_array()
-            .map(|raw_keys| {
-                raw_keys
-                    .iter()
-                    .take(300)
-                    .filter(|key| {
-                        key["code"].as_str().is_some_and(|c| !c.is_empty() && c.len() <= 40)
-                            && key["x"].is_number()
-                            && key["y"].is_number()
-                    })
-                    .map(|key| {
-                        let mut cleaned_key = serde_json::json!({ "code": key["code"], "x": key["x"], "y": key["y"] });
-                        for field in ["w", "h"] {
-                            if key[field].is_number() {
-                                cleaned_key[field] = key[field].clone();
-                            }
-                        }
-                        if let Some(label) = key["label"].as_str() {
-                            cleaned_key["label"] = Value::String(label.chars().take(16).collect());
-                        }
-                        cleaned_key
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+        let name = layout_name(item["name"].as_str().unwrap_or("Imported layout"));
+        let keys = clean_keys(&item["keys"]);
         if keys.is_empty() || name.is_empty() || count >= MAX_USER_LAYOUTS {
             skipped += 1;
             continue;
         }
         let base = slug(item["id"].as_str().unwrap_or(&name));
-        let (mut id, mut suffix) = (base.clone(), 2);
-        while have.contains(&id) {
-            id = format!("{base}-{suffix}");
-            suffix += 1;
-        }
+        let id = unused_id(&base, |candidate| have.iter().any(|existing| existing == candidate));
         let doc = serde_json::json!({ "id": id, "name": name, "keys": keys });
         std::fs::write(
             dir.join(format!("{id}.json")),

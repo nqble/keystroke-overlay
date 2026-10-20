@@ -1,16 +1,16 @@
 # Proposal: dual-PC streaming through Tailscale Serve
 
 Status: **Not built; a no-code workaround was chosen instead** (2026-10-15, see the update below). Kept as background in
-case a built-in mode is wanted later; if that happens it becomes decision record 0009. Written 2026-10-15 by a side session; to be reviewed by the master session and the advisor
+case a built-in mode is wanted later; if that happens it gets its own decision record. Written 2026-10-15 by a side session; to be reviewed by the master session and the advisor
 before anyone writes code.
 
-> Update 2026-10-15: the advisor recommended documenting a no-code workaround (an SSH tunnel over Tailscale) instead of building this; see [User guide: Using two PCs](../../USER-GUIDE.md#using-two-pcs-game-on-one-obs-on-the-other). The design below is kept as background in case a built-in mode is wanted later.
+> Update 2026-10-15: the advisor recommended documenting a no-code workaround (an SSH tunnel over Tailscale) instead of building this; see [User guide: Using two PCs](../../../USER-GUIDE.md#using-two-pcs-game-on-one-obs-on-the-other). The design below is kept as background in case a built-in mode is wanted later.
 
 ## Problem
 Some streamers use two PCs: a **gaming PC** (where the keys are pressed and this app runs) and a **streaming PC** (where OBS
 runs). OBS loads the overlay from `http://localhost:7878/`, which on the streaming PC means *its own* localhost, so the
 overlay cannot work. Today there is no supported way to reach the app from another computer, by design
-([decision 0002](../../decisions/0002-local-only-server-and-optional-secure-link.md)).
+([decision 0002](../../../decisions/0002-local-only-server-and-optional-secure-link.md)).
 
 ## Goal
 Let OBS on a second PC show the overlay **without** making the app listen on the network and **without** weakening the
