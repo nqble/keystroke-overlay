@@ -83,6 +83,93 @@ the steps.
 
 3. Add a check to `tests/e2e/suites/debug.mjs` and run `npm run test:e2e -- --suite debug`.
 
+## Trying the controller spike
+
+A trial of game controller input through the gilrs library, to measure it before it is approved as a dependency
+([the plan](for-claude/proposals/controllers-gilrs.md), work order step 1). Controller buttons light the keys named
+`PadA`, `PadLB`, … ([design/future-inputs.md](design/future-inputs.md)); a trigger counts as pressed past half way.
+Sticks and triggers as moving values are not in the trial.
+
+**It is not in the app people download.** The code (`src-tauri/src/gamepad/mod.rs`) is built only with the cargo feature
+`gamepad`, which is off by default, and even then it starts only when the environment variable `KEYOVERLAY_GAMEPAD` is
+set at launch. There is no switch in the settings window, so PRIVACY.md doesn't mention it yet. While it runs:
+buttons are handled like keys (memory only, sent only to the local overlay); the event log says when a controller
+connects or disconnects, never which one; force feedback (rumble) is off. **On Linux gilrs opens the controller for
+writing too** and gives a controller that can rumble one rumble effect, which is never played: the keyboard is opened
+read-only, the controller is not.
+
+### Start it
+
+`KEYOVERLAY_GAMEPAD=1` turns controllers on. `KEYOVERLAY_GAMEPAD=cycle` first turns them on and off 20 times (the event
+log says "turned on and off 20 times" when done), then on, to count the threads gilrs leaves behind. Anything else, or
+no variable, leaves controllers off.
+
+| System | Commands (from the project folder) |
+|---|---|
+| Windows (PowerShell) | `$env:KEYOVERLAY_GAMEPAD = "1"` then `npm run dev:debug -- --features gamepad` |
+| Windows (Command Prompt) | `set KEYOVERLAY_GAMEPAD=1` then `npm run dev:debug -- --features gamepad` |
+| macOS | `KEYOVERLAY_GAMEPAD=1 npm run dev:debug -- --features gamepad` |
+| Linux | once: `sudo apt-get install libudev-dev pkg-config` (gilrs links the system's libudev); then `KEYOVERLAY_GAMEPAD=1 npm run dev:debug -- --features gamepad` |
+
+`npm run dev -- --features gamepad` works too (the normal data folder and port). On Windows only Xbox-style controllers
+are seen (gilrs's XInput backend, at most 4).
+
+**See it work:** Debug tab → Key monitor → Start, then press A: it shows `PadA`. To see it in the overlay, save this
+as `controller.json` and add it with Layout tab → Import (positions are a first draft; the plan has the full layout):
+
+```json
+{
+  "id": "controller-trial",
+  "name": "Controller trial",
+  "keys": [
+    { "code": "PadLT", "label": "LT", "x": 0, "y": 0, "w": 2 },
+    { "code": "PadRT", "label": "RT", "x": 9, "y": 0, "w": 2 },
+    { "code": "PadLB", "label": "LB", "x": 0, "y": 1, "w": 2 },
+    { "code": "PadRB", "label": "RB", "x": 9, "y": 1, "w": 2 },
+    { "code": "PadBack", "label": "Back", "x": 4, "y": 2.5 },
+    { "code": "PadHome", "label": "Home", "x": 5, "y": 2 },
+    { "code": "PadStart", "label": "Start", "x": 6, "y": 2.5 },
+    { "code": "PadY", "label": "Y", "x": 9, "y": 2 },
+    { "code": "PadX", "label": "X", "x": 8, "y": 3 },
+    { "code": "PadB", "label": "B", "x": 10, "y": 3 },
+    { "code": "PadA", "label": "A", "x": 9, "y": 4 },
+    { "code": "PadLS", "label": "LS", "x": 0.5, "y": 3, "w": 2 },
+    { "code": "PadUp", "label": "↑", "x": 3, "y": 4.5 },
+    { "code": "PadLeft", "label": "←", "x": 2, "y": 5.5 },
+    { "code": "PadRight", "label": "→", "x": 4, "y": 5.5 },
+    { "code": "PadDown", "label": "↓", "x": 3, "y": 6.5 },
+    { "code": "PadRS", "label": "RS", "x": 6, "y": 5.5, "w": 2 }
+  ]
+}
+```
+
+### What to measure
+
+Each one compared with a run without `KEYOVERLAY_GAMEPAD` (the same build), with the settings window closed.
+
+1. **Idle CPU and wakes**, with no controller, then with one connected but not touched. Windows: Task Manager → Details,
+   add the Threads column, watch `keyoverlay.exe`; Process Explorer → the process → Threads shows each thread's
+   context switches per second (the `gilrs` XInput thread is expected to wake about 100 times a second: the reason the
+   plan calls it a problem). macOS: Activity Monitor (% CPU, Threads), or `top -pid $(pgrep -n keyoverlay) -stats pid,cpu,th`.
+   Linux: `top -H -p $(pgrep -n keyoverlay)`. Our own `gamepad` thread wakes once a second on every system (its stop
+   check); with a PlayStation controller on a Mac, check whether its motion sensors keep the app awake.
+2. **Threads over 20 on/off cycles:** start with `KEYOVERLAY_GAMEPAD=cycle`, then with `=1`, and compare the thread
+   counts once the event log has the "on" line. On Linux a test does the same: `cargo test --manifest-path
+   src-tauri/Cargo.toml --features gamepad -- --ignored --nocapture --exact gamepad::tests::count_threads_over_on_off_cycles`
+   (and `gamepad::tests::count_wakes_while_idle` for the wakes).
+3. **Windows, a game in front:** start a game in full screen with an Xbox controller and press buttons; the overlay in
+   OBS should still light them (XInput is read in the background; Windows.Gaming.Input would not be).
+4. **Linux, uaccess:** as a user who is **not** in the `input` group, on a desktop session: `ls -l
+   /dev/input/by-id/*-event-joystick` and `getfacl` on the `eventN` file it points to should show your user with
+   `rw-` (systemd's uaccess rule); the controller should then work without the group. gilrs needs `rw`, not only `r`.
+   With a virtual controller instead of a real one (needs `sudo modprobe uinput` and udev):
+   `sudo cargo test --manifest-path src-tauri/Cargo.toml --features gamepad -- --ignored --exact gamepad::tests::captures_a_virtual_controller`.
+5. **macOS, Input Monitoring:** with the terminal app that runs `npm run dev:debug` turned off under System Settings →
+   Privacy & Security → Input Monitoring (the permission belongs to the terminal in a dev run), restart the dev copy and
+   press buttons: do they still arrive? The plan expects they do (gilrs asks only for game controllers, not keyboards).
+
+Write the numbers into [the plan](for-claude/proposals/controllers-gilrs.md) for Jordan's decision.
+
 ## Other things that speed up development
 
 - `npm test` runs the Rust unit tests, the UI unit tests, the privacy check and the every-system check (about a minute).

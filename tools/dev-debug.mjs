@@ -1,5 +1,6 @@
 // Starts the app for development with everything a developer wants switched on:
 //   npm run dev:debug
+//   npm run dev:debug -- --features gamepad     (anything after -- goes to `tauri dev`, here a cargo feature)
 //
 //   * Debug mode is ON (the Debug tab is there from the first start; same as KEYOVERLAY_DEBUG=1)
 //   * the full browser inspector is reachable: open edge://inspect in Edge, add localhost:9222, click "inspect"
@@ -45,7 +46,8 @@ Keystroke Overlay (development copy)
 
 // The config is JSON, and the shell (needed for npx on Windows) strips the quotes of an argument unless the whole
 // argument is quoted and its inner quotes are escaped: that is what stringifying twice produces.
-const child = spawn('npx', ['tauri', 'dev', '--config', JSON.stringify(JSON.stringify({ identifier: DEV_ID }))], {
+const config = JSON.stringify(JSON.stringify({ identifier: DEV_ID }));
+const child = spawn('npx', ['tauri', 'dev', '--config', config, ...process.argv.slice(2)], {
   stdio: 'inherit',
   shell: true,
   env: { ...process.env, KEYOVERLAY_DEBUG: '1', WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9222' },
