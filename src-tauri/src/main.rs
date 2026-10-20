@@ -150,6 +150,8 @@ fn start_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     key_labels::init(app.handle()); // what the user's keyboard prints, asked now and on each layout switch
 
     let shared = make_shared(cfg, paths, method);
+    #[cfg(feature = "gamepad")]
+    gamepad::start_trial_if_asked(shared.bus.event_sender()); // only in a build with the trial (docs/DEBUGGING.md)
     let (srv, err) = match server::start(shared.clone(), port) {
         Ok(handle) => (Some(handle), None),
         Err(e) => (None, Some(e)),

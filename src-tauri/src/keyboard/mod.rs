@@ -309,6 +309,12 @@ impl Bus {
         let _ = self.tx.send(event); // Err = no listeners; fine.
     }
 
+    /// The channel every key source sends into. The controller trial sends its buttons here too (gamepad/mod.rs).
+    #[cfg(feature = "gamepad")]
+    pub fn event_sender(&self) -> Sender<KeyEvent> {
+        self.ev_tx.clone()
+    }
+
     /// Was keyboard access already on when the app started? See `allowed_at_start`.
     pub fn was_allowed_at_start(&self) -> bool {
         self.allowed_at_start

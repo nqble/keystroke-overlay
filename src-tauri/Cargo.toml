@@ -25,6 +25,15 @@ axum = { version = "0.8", default-features = false, features = ["http1", "tokio"
 include_dir = "0.7"
 getrandom = "0.3"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+# Game controllers, for a trial only (gamepad/mod.rs; docs/DEBUGGING.md, Trying the controller spike). Built only with
+# `--features gamepad`, so the app as shipped, CI's builds and a plain `cargo build` don't contain it. Not approved as a
+# dependency yet: Jordan decides after the trial (docs/for-claude/proposals/controllers-gilrs.md). The `xinput` backend,
+# not the default `wgi`: Windows.Gaming.Input only reports controllers to an app with a window in focus.
+gilrs = { version = "0.11", optional = true, default-features = false, features = ["xinput"] }
+
+[features]
+# The controller spike (gilrs above). Off by default.
+gamepad = ["dep:gilrs"]
 
 # Linux only: keyboard capture on X11 desktops (keyboard/x11.rs). Pure Rust, talks to the X server directly
 # (docs/LINUX-PORT.md).
