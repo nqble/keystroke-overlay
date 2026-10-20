@@ -2,9 +2,19 @@
 // can check that each one catches what it should. The check is a tripwire, not a proof: it reads the code line by line
 // and can't see what a dependency does. Code review (CLAUDE.md section 8) is the real safeguard.
 
-/** Anything that opens a network connection. Allowed only in src-tauri/src/commands/updates.rs. */
+/**
+ * Anything that opens a network connection, including a WebSocket client (tungstenite's connect, connect_async and
+ * client_async: the server only accepts). Allowed only in src-tauri/src/commands/updates.rs.
+ */
 export const NET =
-  /\b(reqwest|TcpStream|TcpSocket|UdpSocket|UnixStream|UnixDatagram|updater_builder|hyper::client|ureq|isahc|surf)\b|\.updater\(\)/;
+  /\b(reqwest|TcpStream|TcpSocket|UdpSocket|UnixStream|UnixDatagram|updater_builder|hyper::client|ureq|isahc|surf|connect_async|client_async)\b|\btungstenite::(client::)?connect\b|\.updater\(\)/;
+
+/**
+ * A WebSocket address in the UI that isn't the page's own server. The overlay connects with `ws://${location.host}/…`;
+ * any other ws:// or wss:// address (another program on the PC, or the internet) is refused. The overlay page has no
+ * security policy of its own to stop it, so this check is the guard.
+ */
+export const UI_SOCKET = /\bwss?:\/\/(?!\$\{location\.host\})/;
 
 /** Anything that writes a file. Never allowed in keyboard/ or server.rs. */
 export const WRITE =

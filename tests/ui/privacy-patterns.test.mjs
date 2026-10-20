@@ -7,6 +7,7 @@ import {
   LOG,
   MAC_ACTIVE,
   NET,
+  UI_SOCKET,
   WRITE,
   joinSplitPaths,
   withoutTestModules,
@@ -23,6 +24,29 @@ test('network code is caught, including the ways the outside review found missin
     assert.match(line, NET, line);
   }
   assert.doesNotMatch('let listener = TcpListener::bind(addr)', NET); // listening has its own rule
+});
+
+test('a WebSocket client in Rust is network code too (the server only accepts)', () => {
+  for (const line of [
+    'let (socket, _) = tokio_tungstenite::connect_async("ws://127.0.0.1:4455").await?;',
+    'tokio_tungstenite::client_async(request, stream)',
+    'let (socket, _) = tungstenite::connect(url)?;',
+    'let (socket, _) = tungstenite::client::connect(url)?;',
+  ]) {
+    assert.match(line, NET, line);
+  }
+  assert.doesNotMatch('let ws = tokio_tungstenite::accept_async(stream).await?;', NET);
+});
+
+test('the UI may open a WebSocket to its own server only', () => {
+  assert.doesNotMatch('const address = `ws://${location.host}/ws`;', UI_SOCKET);
+  for (const line of [
+    "new WebSocket('ws://127.0.0.1:4455')",
+    'new WebSocket("wss://example.com/feed")',
+    'const obs = `ws://localhost:${port}`;',
+  ]) {
+    assert.match(line, UI_SOCKET, line);
+  }
 });
 
 test('file writes are caught, including File::options and write_all', () => {

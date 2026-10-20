@@ -5,7 +5,7 @@
 //   * does more than listen on macOS: a key-event tap that is not listen-only, or injected key events
 //   * does more than read the keyboards on Linux: grabbing one, virtual devices, sent events, or evdev outside linux_devices.rs
 //   * logs/prints anything (a log line is how keystrokes usually leak)
-//   * makes the UI call an external address
+//   * makes the UI call an external address, or open a WebSocket to anything but its own server
 //   * registers global shortcuts anywhere but hotkeys.rs (which registers only the one the user chose)
 // Run:  node tools/check-privacy.mjs      (also runs in CI)
 import { createHash } from 'node:crypto';
@@ -17,6 +17,7 @@ import {
   LOG,
   MAC_ACTIVE,
   NET,
+  UI_SOCKET,
   WRITE,
   joinSplitPaths,
   withoutTestModules,
@@ -83,6 +84,10 @@ for (const f of walk('ui', ['.js', '.html'])) {
     bad(file, n, 'tracking/XHR API in the UI'),
   );
   scan(file, text, /\bfetch\(\s*['"`]https?:/, (n) => bad(file, n, 'fetch() to an absolute address'));
+  scan(file, text, UI_SOCKET, (n, l) => {
+    if (!/^\s*(\/\/|\*|<!--)/.test(l))
+      bad(file, n, "WebSocket to another address than the page's own server: " + l.trim().slice(0, 80));
+  });
 }
 
 // ------------------------------------------------------------------ the copied libraries (Preact, htm)

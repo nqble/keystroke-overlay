@@ -155,7 +155,7 @@ anywhere you paste it. Treat the link like a password, keep it off your stream, 
 You do not have to take our word for any of this.
 
 1. **Read the code.** It is small. These searches in `src-tauri/src/` show everything:
-   - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket" src-tauri/src` → only `commands/updates.rs`
+   - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket|connect_async" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
    - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), the crash note and the downgrade copy (`crash.rs`, `downgrade.rs`), and the Debug self-test's tiny
      `.write-test` file (two bytes), created and deleted at once
