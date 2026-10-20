@@ -98,7 +98,13 @@ const SCREENS = [
   ]),
 ];
 
+// A spot with nothing that reacts to hover (the bottom of the tab list). The Animation tab's cards play their demo from a
+// JavaScript timer while the mouse is over them, which FREEZE_CSS can't stop, so wherever the PC's real pointer happened
+// to rest changed the picture. Moving the page's mouse here first makes every run the same.
+const NOTHING_TO_HOVER = { x: 10, y: WINDOW.height - 10 };
+
 const takePicture = async (clipTo = null) => {
+  await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...NOTHING_TO_HOVER });
   await p.ev(`document.activeElement && document.activeElement.blur && document.activeElement.blur()`);
   await sleep(400);
   const clip = clipTo
