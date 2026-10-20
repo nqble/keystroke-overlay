@@ -2,6 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  GAMEPAD_LIB,
+  GAMEPAD_NO_RUMBLE,
+  GAMEPAD_RUMBLE,
   LINUX_ACTIVE,
   LINUX_DEVICES,
   LOG,
@@ -106,4 +109,35 @@ test('the read-only Linux capture the app really uses is allowed', () => {
     assert.doesNotMatch(line, LINUX_ACTIVE, line);
   }
   assert.match('use evdev::raw_stream::RawDevice;', LINUX_DEVICES);
+});
+
+test('the controller library is found however it is named', () => {
+  for (const line of [
+    'let built = gilrs::GilrsBuilder::new()',
+    'use gilrs::{Button, Event};',
+    'gilrs_core::Gilrs::new()',
+  ]) {
+    assert.match(line, GAMEPAD_LIB, line);
+  }
+  assert.doesNotMatch('let mut gilrs = open_gilrs()?;', GAMEPAD_LIB); // a variable, not the library
+});
+
+test('sending anything to a controller is caught', () => {
+  for (const line of [
+    '.with_force_feedback(true)',
+    '.with_force_feedback( true )',
+    'use gilrs::ff::{BaseEffect, EffectBuilder};',
+    'let effect = EffectBuilder::new().finish(&mut gilrs)?;',
+    'gamepad.set_ff_state(true);',
+    'let rumble: Effect = make();',
+  ]) {
+    assert.match(line, GAMEPAD_RUMBLE, line);
+  }
+});
+
+test('force feedback switched off is what gamepad/mod.rs must say, and is allowed', () => {
+  assert.match('        .with_force_feedback(false)', GAMEPAD_NO_RUMBLE);
+  assert.doesNotMatch('        .with_force_feedback(false)', GAMEPAD_RUMBLE);
+  assert.doesNotMatch('.with_force_feedback(true)', GAMEPAD_NO_RUMBLE);
+  assert.doesNotMatch('let diff::Changes = side_effect(x);', GAMEPAD_RUMBLE); // ff inside other words
 });

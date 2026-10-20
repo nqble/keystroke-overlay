@@ -6,7 +6,7 @@
 export const NET =
   /\b(reqwest|TcpStream|TcpSocket|UdpSocket|UnixStream|UnixDatagram|updater_builder|hyper::client|ureq|isahc|surf)\b|\.updater\(\)/;
 
-/** Anything that writes a file. Never allowed in keyboard/ or server.rs. */
+/** Anything that writes a file. Never allowed in keyboard/, gamepad/ or server.rs. */
 export const WRITE =
   /\b(fs::write|fs::copy|fs::rename|fs::create_dir(?:_all)?|File::create|File::options|OpenOptions|tokio::fs|write_all)\b/;
 
@@ -28,7 +28,25 @@ export const LINUX_ACTIVE = /\.grab\s*\(|RawDevice::open|Device::open|\bVirtualD
 /** The keyboard-device library. Allowed only in src-tauri/src/keyboard/linux_devices.rs, which opens devices read-only. */
 export const LINUX_DEVICES = /\bevdev::/;
 
-/** Logging and printing: a log line is how keystrokes usually leak. Never allowed. */
+/**
+ * The controller library (gilrs, only in a build with the cargo feature `gamepad`). Allowed only in
+ * src-tauri/src/gamepad/mod.rs, so one file shows everything the app asks of it.
+ */
+export const GAMEPAD_LIB = /\bgilrs(_core)?::/;
+
+/**
+ * Sending anything to a controller: turning gilrs's force feedback (rumble) on, or using its effects. Never allowed. With
+ * force feedback on, gilrs also starts a thread that wakes every 50 ms forever.
+ */
+export const GAMEPAD_RUMBLE = /\.with_force_feedback\s*\(\s*true|\bff::|\bset_ff_state\b|\bEffect(Builder)?\b/;
+
+/** What gamepad/mod.rs must say when it builds gilrs: force feedback off (gilrs's own default is on). */
+export const GAMEPAD_NO_RUMBLE = /\.with_force_feedback\s*\(\s*false\s*\)/;
+
+/**
+ * Logging and printing: a log line is how keystrokes usually leak. Never allowed. Not installing a logger is also what
+ * keeps the libraries' own log lines silent: gilrs, for example, logs every controller event at trace level.
+ */
 export const LOG = /\b(println!|eprintln!|print!|eprint!|dbg!|log::|tracing::|env_logger)/;
 
 /** Joins a path that rustfmt or a person split over lines ("std::fs\n    ::write"), so the line-by-line patterns see it. */

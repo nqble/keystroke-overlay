@@ -190,7 +190,7 @@ rule (`x.Y.0` = Stable, `x.y.Z` = Latest) and the one-click GitHub release workf
 ## Guard rails
 
 `npm run check:privacy` (also in CI) fails the build if network code appears outside `commands/updates.rs`, a server binds
-anything but `127.0.0.1`, the keyboard/server code writes files, anything logs or prints, or the UI calls an external address.
+anything but `127.0.0.1`, the keyboard/controller/server code writes files, the controller library is used outside `gamepad/mod.rs` or with force feedback, anything logs or prints, or the UI calls an external address.
 Its patterns live in `tools/privacy-patterns.mjs` with their own tests; it is a line-by-line tripwire, not a proof.
 `npm test` runs it together with the every-system check (tools/check-systems.mjs), the Rust unit tests and the JS unit tests in `tests/ui/` (settings migration/validation, key naming and tracking, Raw Input decoding,
 update URLs, release notes). `npm run test:e2e` builds a throwaway copy of the app and drives it for real (settings window, injected

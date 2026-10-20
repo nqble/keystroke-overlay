@@ -1,7 +1,8 @@
 // Enforces the promises in PRIVACY.md. Fails (exit 1) if the code ever:
 //   * uses the network anywhere except src-tauri/src/commands/updates.rs
 //   * listens on anything but 127.0.0.1, or listens outside server.rs
-//   * writes files from the keyboard hook or the overlay server
+//   * writes files from the keyboard hook, the controller code or the overlay server
+//   * uses the controller library (gilrs) outside gamepad/mod.rs, or sends anything to a controller (force feedback)
 //   * does more than listen on macOS: a key-event tap that is not listen-only, or injected key events
 //   * does more than read the keyboards on Linux: grabbing one, virtual devices, sent events, or evdev outside linux_devices.rs
 //   * logs/prints anything (a log line is how keystrokes usually leak)
@@ -12,6 +13,9 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import {
+  GAMEPAD_LIB,
+  GAMEPAD_NO_RUMBLE,
+  GAMEPAD_RUMBLE,
   LINUX_ACTIVE,
   LINUX_DEVICES,
   LOG,
@@ -40,6 +44,7 @@ const scan = (file, text, re, test) =>
   });
 
 // ------------------------------------------------------------------ Rust
+const GAMEPAD_FILE = 'src-tauri/src/gamepad/mod.rs';
 // The patterns (NET, WRITE, LOG) are in tools/privacy-patterns.mjs, with tests. This is a tripwire, not a proof.
 for (const f of walk('src-tauri/src', ['.rs'])) {
   // test modules may use the disk
@@ -53,8 +58,15 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
     else if (/bind\(/.test(l) && !/127\.0\.0\.1/.test(l)) bad(file, n, 'server must bind 127.0.0.1 only');
   });
   scan(file, text, WRITE, (n) => {
-    if (/\/keyboard\/|\/server\.rs$/.test(file)) bad(file, n, 'keyboard/server code must never write files');
+    if (/\/keyboard\/|\/gamepad\/|\/server\.rs$/.test(file))
+      bad(file, n, 'keyboard/controller/server code must never write files');
   });
+  scan(file, text, GAMEPAD_LIB, (n) => {
+    if (file !== GAMEPAD_FILE) bad(file, n, 'the controller library used outside gamepad/mod.rs');
+  });
+  scan(file, text, GAMEPAD_RUMBLE, (n) => bad(file, n, 'nothing may be sent to a controller (force feedback)'));
+  if (file === GAMEPAD_FILE && GAMEPAD_LIB.test(text) && !GAMEPAD_NO_RUMBLE.test(text))
+    bad(file, 1, 'gamepad/mod.rs must build gilrs with .with_force_feedback(false)');
   scan(file, text, /global_shortcut|GlobalShortcutExt/, (n) => {
     const allowed = ['src-tauri/src/hotkeys.rs', 'src-tauri/src/main.rs']; // main.rs only loads the plugin
     if (!allowed.includes(file)) bad(file, n, 'global shortcuts outside hotkeys.rs');
@@ -138,5 +150,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, macOS capture listen-only, Linux capture read-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/controller/server code, the controller library only in gamepad/mod.rs with force feedback off, macOS capture listen-only, Linux capture read-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
 );
