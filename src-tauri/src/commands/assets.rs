@@ -132,6 +132,38 @@ pub async fn import_preset(app: AppHandle) -> Result<Option<Value>, String> {
 }
 
 // ---------------------------------------------------------------- layouts the user made (stored in layouts/<id>.json)
+/// How many layouts of their own a user may have. Keep in step with MAX_LAYOUTS in ui/settings/state.js.
+const MAX_USER_LAYOUTS: usize = 20;
+
+/// A layout id made from a name: lower case letters, digits and dashes, at most 30 long ("My Board!" → "my-board").
+fn slug(name: &str) -> String {
+    let cleaned: String = name
+        .to_lowercase()
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
+        .collect::<String>()
+        .trim_matches('-')
+        .chars()
+        .take(30)
+        .collect();
+    if cleaned.is_empty() {
+        "layout".into()
+    } else {
+        cleaned
+    }
+}
+
+/// `base`, or `base-2`, `base-3`, ... : the first id no layout has yet, so a new layout never replaces another.
+fn free_id(base: &str, is_taken: impl Fn(&str) -> bool) -> String {
+    let mut id = base.to_string();
+    let mut suffix = 2;
+    while is_taken(&id) {
+        id = format!("{base}-{suffix}");
+        suffix += 1;
+    }
+    id
+}
+
 /// Makes a new layout that starts as a copy of the full-size keyboard, selects it, and returns its id.
 #[tauri::command]
 pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Result<String, String> {
@@ -140,27 +172,10 @@ pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Resul
         return Err("Enter a layout name".into());
     }
     let all = server::layouts(&st.shared.paths);
-    if all.iter().filter(|l| l["user"] == true).count() >= 20 {
-        return Err("Max layouts reached (20)".into());
+    if all.iter().filter(|l| l["user"] == true).count() >= MAX_USER_LAYOUTS {
+        return Err(format!("Max layouts reached ({MAX_USER_LAYOUTS})"));
     }
-    let base: String = name
-        .to_lowercase()
-        .chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
-        .collect::<String>()
-        .trim_matches('-')
-        .to_string();
-    let base = if base.is_empty() {
-        "layout".to_string()
-    } else {
-        base.chars().take(30).collect()
-    };
-    let mut id = base.clone();
-    let mut suffix = 2;
-    while all.iter().any(|l| l["id"] == id.as_str()) {
-        id = format!("{base}-{suffix}");
-        suffix += 1;
-    }
+    let id = free_id(&slug(&name), |id| all.iter().any(|l| l["id"] == id));
     let full = all
         .iter()
         .find(|l| l["id"] == "full")
@@ -220,24 +235,6 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
 
 // ---------------------------------------------------------------- export / import of the layouts the user made
 use crate::app_info::LAYOUTS_FILE_TAG as FILE_TAG;
-const MAX_USER_LAYOUTS: usize = 20;
-
-fn slug(name: &str) -> String {
-    let cleaned: String = name
-        .to_lowercase()
-        .chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
-        .collect::<String>()
-        .trim_matches('-')
-        .chars()
-        .take(30)
-        .collect();
-    if cleaned.is_empty() {
-        "layout".into()
-    } else {
-        cleaned
-    }
-}
 
 /// The document written by "Export layouts": every layout the user made plus their key edits (hidden keys, labels).
 pub fn export_doc(all: &[Value], settings: &Value) -> Result<Value, String> {
@@ -294,12 +291,9 @@ pub fn import_doc(
             skipped += 1;
             continue;
         }
-        let base = slug(item["id"].as_str().unwrap_or(&name));
-        let (mut id, mut suffix) = (base.clone(), 2);
-        while have.contains(&id) {
-            id = format!("{base}-{suffix}");
-            suffix += 1;
-        }
+        let id = free_id(&slug(item["id"].as_str().unwrap_or(&name)), |id| {
+            have.iter().any(|taken| taken == id)
+        });
         let doc = serde_json::json!({ "id": id, "name": name, "keys": keys });
         std::fs::write(
             dir.join(format!("{id}.json")),
@@ -414,6 +408,15 @@ mod layout_file_tests {
         assert_eq!(added[0].1["disabledKeys"], json!(["KeyA"]));
         assert!(import_doc(&json!({ "nothing": 1 }), &[], &dir).is_err());
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_new_layout_id_comes_from_its_name_and_never_reuses_one() {
+        assert_eq!(slug("My Board!"), "my-board");
+        assert_eq!(slug("日本語"), "layout");
+        let taken = ["my-board", "my-board-2"];
+        assert_eq!(free_id("my-board", |id| taken.contains(&id)), "my-board-3");
+        assert_eq!(free_id("other", |id| taken.contains(&id)), "other");
     }
 
     #[test]
