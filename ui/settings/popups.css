@@ -304,3 +304,17 @@
   width: 100%;
   margin-top: var(--space-6);
 }
+/* New layout's "From a KLE file…" and the Import from KLE popup (kle-import-popup.js) */
+.from-kle {
+  margin-top: var(--space-12);
+}
+#dBody .from-kle p {
+  margin: var(--space-4) 0 0;
+}
+.kle-import-picture {
+  display: block;
+  margin-bottom: var(--space-12);
+}
+.kle-import-picture .layout-picture {
+  height: 96px;
+}

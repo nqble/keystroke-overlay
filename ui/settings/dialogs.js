@@ -1,9 +1,10 @@
 // =====================================================================================================================
-//  The small dialogs built on popup.js: New layout (with the 20-layout limit and Other layouts), Reset all settings, and
-//  a plain "are you sure" for things that are hard to undo by hand.
+//  The small dialogs built on popup.js: New layout (with the 20-layout limit, From a KLE file… and Other layouts), Reset
+//  all settings, and a plain "are you sure" for things that are hard to undo by hand.
 // =====================================================================================================================
 import { $, call, el, invoke, toast } from './helpers.js';
 import { html, render as drawPreact } from './html.js';
+import { FromKleFile } from './kle-import-popup.js';
 import { otherLayouts, shownLayouts } from './layout-order.js';
 import { OtherLayouts } from './other-layouts.js';
 import { dialog } from './popup.js';
@@ -13,8 +14,9 @@ import { MAX_LAYOUTS, settings, layouts, setLayouts, setObsUrl, setSelectedKey, 
 import { TEXT } from './text.js';
 
 /**
- * New layout: a name for a layout of your own (unless you have MAX_LAYOUTS already), and below it "Other layouts", the
- * built-in ones not on the Layout tab, each with an Add button that puts it back at the end (layout-order.js).
+ * New layout: a name for a layout of your own (unless you have MAX_LAYOUTS already) or From a KLE file…
+ * (kle-import-popup.js), and below them "Other layouts", the built-in ones not on the Layout tab, each with an Add
+ * button that puts it back at the end (layout-order.js).
  */
 export function addLayoutDialog() {
   const full = layouts.filter((l) => l.user).length >= MAX_LAYOUTS;
@@ -39,12 +41,13 @@ export function addLayoutDialog() {
       return false;
     }
   };
+  const fromKle = el('div');
   const library = el('div');
   const close = dialog({
     title: 'New layout',
     body: [
       el('p', { textContent: full ? TEXT.layoutLimitReached(MAX_LAYOUTS) : TEXT.newLayoutHelp }),
-      ...(full ? [] : [nameInput]),
+      ...(full ? [] : [nameInput, fromKle]),
       library,
     ],
     buttons: full
@@ -59,6 +62,7 @@ export function addLayoutDialog() {
     close();
     changed(true);
   };
+  drawPreact(html`<${FromKleFile} />`, fromKle);
   drawPreact(
     html`<${OtherLayouts} choices=${otherLayouts(layouts, settings.layout.order)} onAdd=${addBuiltIn} />`,
     library,

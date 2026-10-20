@@ -126,6 +126,8 @@ Rules:
 | `layout-cards`, `layout-count` | The Layout tab's card grid, and its "Your layouts: N / 20" counter |
 | `layout-menu` | A layout card's "⋯" button |
 | `other-layouts-toggle`, `other-layouts`, `other-layout-add` | New layout popup: the "Other layouts" toggle, its list, one card's Add |
+| `dialog-from-kle` | New layout popup: the **From a KLE file…** button (opens the file picker) |
+| `kle-import-name`, `kle-import-create` | The Import from KLE popup: its Name box and its Create layout button (Cancel is `dialog-cancel`) |
 | `animation-cards`, `animation-card-<id>` | The Animation tab's card gallery, and one animation's card |
 | `animation-fine-tune` | Its Fine-tune card (Speed, Strength, Easing) |
 | `first-run`, `first-run-close`, `first-run-copy`, `first-run-size`, `first-run-done`, `general-first-run` | First run setup: the screen, its ✕, Copy, the size, the "all set" line, and General's button |
