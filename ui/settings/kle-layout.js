@@ -96,8 +96,16 @@ export function layoutFromKle(text, fileName = '') {
   if (placed.length > MAX_LAYOUT_KEYS) return { problem: 'tooManyKeys', count: placed.length };
   const keys = linkKeys(placed);
   const linked = keys.filter((key) => !key.code.startsWith(PLACEHOLDER_PREFIX)).length;
-  const report = { keys: keys.length, linked, notLinked: keys.length - linked, straightened, leftOut };
+  const unlit = unlitNames(keys);
+  const report = { keys: keys.length, linked, notLinked: keys.length - linked, unlit, straightened, leftOut };
   return { name: layoutName(kle.name, fileName), keys, report };
+}
+
+/** The labels of the keys that can't light up (Fn, macro keys), each once, in reading order; '' for a blank key. */
+function unlitNames(keys) {
+  const unlinked = keys.filter((key) => key.code.startsWith(PLACEHOLDER_PREFIX));
+  const names = unlinked.map((key) => key.label ?? '');
+  return [...new Set(names)];
 }
 
 /** The file's own name, else the file name without ".json", else "Imported layout"; at most MAX_NAME_LENGTH long. */

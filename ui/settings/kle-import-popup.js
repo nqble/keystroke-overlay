@@ -20,7 +20,14 @@ const TEXT = {
   name: 'Name',
   keys: (count) => `${plural(count, 'key')}.`,
   linked: (count) => `${count} linked to your keyboard.`,
-  notLinked: (count) => `${count} not linked yet. You'll link them on the Keys tab.`,
+  // Keys the app can't name (Fn is handled inside the keyboard and never reaches the computer; a second Q can't be told
+  // from the first) are kept, so the board looks like the real one, and said here by name before the layout is made.
+  unlit: (count, names) =>
+    count === 1
+      ? `1 key can't light up: ${names}. The app can't tell which key it is (Fn, for example, never reaches your computer), so it's shown but stays unlit.`
+      : `${count} keys can't light up: ${names}. The app can't tell which keys they are (Fn, for example, never reaches your computer), so they're shown but stay unlit.`,
+  blankKey: 'a blank key',
+  andMore: (count) => `and ${count} more`,
   straightened: (count) => `${plural(count, 'turned key')} shown straight.`,
   leftOut: (count) => `${plural(count, 'key')} left out: decorations and extra layout choices.`,
   cancel: 'Cancel',
@@ -99,10 +106,22 @@ function showImportPopup(layout) {
   nameField.current.select();
 }
 
+// Enough names to recognize the keys without the line running on.
+const MAX_UNLIT_NAMES = 4;
+
+/** "Fn, Vol+ and a blank key"; past MAX_UNLIT_NAMES, "…, and 3 more". */
+function unlitList(names) {
+  const readable = names.map((name) => name || TEXT.blankKey);
+  const shown = readable.slice(0, MAX_UNLIT_NAMES);
+  const hidden = readable.length - shown.length;
+  if (hidden) shown.push(TEXT.andMore(hidden));
+  return shown.join(', ');
+}
+
 /** The lines under the Name box: always the keys and how many are linked, the rest only when it happened. */
 function reportLines(report) {
   const lines = [TEXT.keys(report.keys), TEXT.linked(report.linked)];
-  if (report.notLinked) lines.push(TEXT.notLinked(report.notLinked));
+  if (report.notLinked) lines.push(TEXT.unlit(report.notLinked, unlitList(report.unlit)));
   if (report.straightened) lines.push(TEXT.straightened(report.straightened));
   if (report.leftOut) lines.push(TEXT.leftOut(report.leftOut));
   return lines;

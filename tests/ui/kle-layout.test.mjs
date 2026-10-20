@@ -41,6 +41,7 @@ for (const [file, id] of [
       keys: original.keys.length,
       linked: original.keys.length,
       notLinked: 0,
+      unlit: [],
       straightened: 0,
       leftOut: 0,
     });
@@ -107,6 +108,7 @@ test('unknown legends and second copies become placeholders, numbered in reading
     ['Fn', 'Q', 'Vol+', 'Q', 'F13'],
   );
   assert.deepEqual([result.report.linked, result.report.notLinked], [1, 4]);
+  assert.deepEqual(result.report.unlit, ['Fn', 'Vol+', 'Q', 'F13']);
 });
 
 test('the best-ranked legend wins; on a tie, the first in reading order', () => {

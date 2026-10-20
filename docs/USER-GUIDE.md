@@ -161,8 +161,9 @@ the New layout popup click **From a KLE file…** and pick the file. A small pop
 change it) and how many keys were linked to your keyboard; **Create layout** makes it and opens the **Keys** tab. Keys
 keep their places and sizes. Turned keys (thumb clusters, Alice-style boards) are placed straight at the same spot, and
 odd-shaped keys such as an ISO Enter become one rectangle. Decorations, faint "ghost" keys and the file's colors and fonts
-are left out. A key the app can't link (an **Fn** key, a macro key, a blank key) is still drawn, but it never lights up;
-the Keys tab shows it as `Unlinked1`, `Unlinked2`, ... (linking such a key by pressing it comes in a later version). The
+are left out. A key the app can't link (an **Fn** key, a macro key, a blank key) is still drawn, so the board looks like
+yours, but it never lights up; the popup names these keys before you create the layout, and the Keys tab shows them as
+`Unlinked1`, `Unlinked2`, ... (delete one there if you'd rather not see it). The
 file itself is only read: nothing is sent anywhere, and the app never opens the KLE website.
 
 **Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (the copy gets its own file; its name stays the same), and they count toward the 20-layout limit.
