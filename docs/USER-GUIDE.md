@@ -61,44 +61,79 @@ tested by this project; if one doesn't work, [open an issue](https://github.com/
 ## Using two PCs (game on one, OBS on the other)
 
 Keystroke Overlay only talks to `127.0.0.1`, which means "this PC", so OBS has to run on the **same PC as the app**. If you play on
-PC A and stream with OBS on PC B, there is a way to make it work **without changing the app**: carry the OBS URL from PC B to PC A
-through an **SSH tunnel**. An SSH tunnel is an encrypted pipe between two computers; the program `ssh` builds it, not Keystroke Overlay.
-Run it over a private network you control, such as [Tailscale](https://tailscale.com).
+PC A and stream with OBS on PC B, you can still use it **without changing the app**: carry the OBS URL from PC B to PC A through a
+private, encrypted connection that you set up yourself. Both ways below were tested on a Windows PC A and a Mac PC B over
+[Tailscale](https://tailscale.com) (a private network between your own devices): a key-protected request took about 18 ms.
 
-**What you need (one-time setup)**
-- Tailscale on both PCs, signed in to the same account, so each PC has a private name (this page calls them `gaming-pc` and `stream-pc`).
-- An SSH server on PC A (the gaming PC). On Windows 10/11 it is the optional feature **OpenSSH Server** (Settings → System → Optional features).
-- Keystroke Overlay running on PC A as normal. Nothing to install or change on PC B except OBS.
+| | **SSH tunnel** (recommended) | **Tailscale port forward** |
+|---|---|---|
+| PC A (gaming PC) needs | Tailscale and an SSH server | Tailscale |
+| PC B (OBS) needs | Tailscale and `ssh` (built into Windows, macOS and Linux) | Tailscale and `socat` (Mac or Linux) |
+| Who can reach the app's port | Only someone who can log in to PC A | Every device on your Tailscale network (the secure link's key still protects your key presses) |
+| Each time you stream | Start the tunnel in a terminal on PC B | Nothing on PC A once set up; start `socat` on PC B |
 
-**Each time you stream**
-1. On PC A, open the app: **General → Connection**, tick **Secure my OBS URL**, and press **Copy secure link**. Keep this link private.
-2. On PC B, open a terminal and start the tunnel (use your Windows user name on PC A):
+**Before either way**
+- Install Tailscale on both PCs and sign in to the same account, so each PC gets a private name (this page calls them `gaming-pc`
+  and `stream-pc`; the Tailscale app shows the real ones).
+- On PC A, open the app: **General → Connection**, tick **Secure my OBS URL**, and press **Copy secure link**. Keep this link private.
+- **If PC B runs Keystroke Overlay too,** its app already uses port 7878, so give PC A's app another port first (**General →
+  Connection → Port**, for example 7880) and use that number everywhere below. A page that lights up from PC B's own keyboard is
+  PC B's app, not the tunnel.
+
+### Way 1: an SSH tunnel
+
+An SSH tunnel is an encrypted pipe between two computers; the program `ssh` builds it, not Keystroke Overlay.
+
+1. **Once, on PC A:** turn on an SSH server. On Windows 10/11, open PowerShell as administrator and run
+   `Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0`, then `Start-Service sshd` (Windows adds the firewall rule
+   itself). On a Mac: **System Settings → General → Sharing → Remote Login**. On Linux: install `openssh-server`.
+2. **Each time, on PC B:** open a terminal and start the tunnel, with your user name on PC A:
 
    ```
    ssh -N -L 7878:127.0.0.1:7878 your-user@gaming-pc
    ```
 
-   `-L 7878:127.0.0.1:7878` means "send anything that arrives at port 7878 on this PC to port 7878 on PC A". `-N` means "only build
-   the tunnel, don't open a shell". Leave the window open while you stream.
-3. On PC B, add the OBS source as in [Add it to OBS](#add-it-to-obs), but paste the link you copied in step 1. It looks like
+   `-L 7878:127.0.0.1:7878` means "send anything that arrives at port 7878 on this PC to port 7878 on PC A", and `-N` means "only
+   build the tunnel, don't open a shell". The first time, answer `yes` to the question about the PC's key. Leave the window open
+   while you stream; closing it stops the tunnel and the overlay goes blank.
+3. On PC B, add the OBS source as in [Add it to OBS](#add-it-to-obs), but paste the link you copied on PC A. It looks like
    `http://localhost:7878/?key=…`.
 
-**Good to know**
-- **Keep both port numbers the same as the app's port** (**General → Connection → Port**, default 7878). The app only answers requests addressed to
-  `localhost:<its port>`, so a different number on PC B would be refused.
-- **Keep the secure link on.** Without it, any program on either PC that can reach the port could read your key presses. With it, the
-  stream and data are refused without the private key (`?key=…`), as described in [Secure link](#secure-link-optional). If you use **Make a new key**,
-  copy the new link into OBS again.
-- **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only and never accepts connections from other computers
-  (the SSH server on PC A hands the data over locally), and the app itself still uses the network for nothing except update checks.
-  Your key presses travel only through the encrypted tunnel you started, between your own two PCs.
-- **Safety of the tunnel is your job.** Use a normal SSH login (a key or password) and let only your own devices reach the SSH port, for
-  example with Tailscale access rules. **Pause overlay** still works, because the pause happens in the app on PC A.
+Things that tripped up the test: a **user name with a space** needs quotes (`"Your Name"@gaming-pc`); on Windows the password is
+the **Windows account password, not a PIN**; and the local port on PC B must be free (stop anything else listening on it first).
+
+### Way 2: Tailscale's port forward
+
+Tailscale passes the app's port to your other devices, and `socat` on PC B makes it reachable as `localhost` again (the app only
+answers requests addressed to `localhost`).
+
+1. **Once, on PC A** (the PC that runs the app, not PC B): open a terminal and run
+   `tailscale serve --bg --tcp 7878 tcp://127.0.0.1:7878`. It stays on until you run `tailscale serve reset`.
+2. **Each time, on PC B:** install `socat` once (on a Mac with Homebrew: `brew install socat`), then run
+   `socat TCP-LISTEN:7878,fork,bind=127.0.0.1 TCP:gaming-pc:7878` and leave the window open.
+3. Add the OBS source on PC B with the link you copied, as in Way 1.
+
+Tailscale's **HTTPS** address for a PC (`https://gaming-pc.<your-tailnet>.ts.net`, from `tailscale serve --bg 7878`) **doesn't
+work**: the app refuses requests addressed to any name but `localhost`. That is on purpose; the app has no built-in network mode.
+
+### Good to know
+- **Keep both port numbers the same as PC A's app port** (**General → Connection → Port**, default 7878). The app only answers
+  requests addressed to `localhost:<its port>`, so a different number on PC B would be refused.
+- **Keep the secure link on.** Without it, anything that can reach the port could read your key presses. With it, the stream and
+  data are refused without the private key (`?key=…`), as described in [Secure link](#secure-link-optional). If you use **Make a new
+  key**, copy the new link into OBS again.
+- **After changing the address or the key, reload the source in OBS** (right-click it → **Refresh cache of current page**). In the
+  test, a page opened before the key was right drew the keyboard but never lit up until it was reloaded.
+- **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only (the SSH server or Tailscale on PC A hands the
+  data over locally), and the app itself uses the network only for update checks. Your key presses travel only through the
+  encrypted connection you set up, between your own devices.
+- **Safety of the connection is your job.** Use a normal SSH login, and let only your own devices reach PC A, for example with
+  Tailscale access rules. If you set up an SSH server only for this, you can turn it off afterwards (Windows, as administrator:
+  `Stop-Service sshd; Set-Service sshd -StartupType Disabled`). **Pause overlay** still works, because the pause happens on PC A.
 - **Fonts come from the computer that shows the overlay.** OBS draws the overlay with the fonts installed on PC B. If the
   font you picked isn't there, it falls back to Segoe UI, then to that computer's own system font (San Francisco on a
   Mac). Pick a font both PCs have, or add a font file in **Style → Text → Add font file…**: the app hands its own fonts to OBS, so
   they look the same everywhere.
-- Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
   [for-claude/proposals/done/tailscale-dual-pc.md](for-claude/proposals/done/tailscale-dual-pc.md).
