@@ -177,7 +177,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 | **Style** | A theme gallery, My presets as cards with a "Save current look" card, then short sections: Colors, Shape, Text (font picker, **Add font file…**, **Your fonts**), Size. **Reset ▾**. | built (Preact; Reset ▾ has \"Back to the default look\"; the app doesn't record which theme was chosen, so \"Back to the chosen theme\" waits for that) |
 | **Animation** | A gallery of animation cards that demo only while hovered or focused; then Speed, Strength (only for animations that use it) and Easing as a segmented switch. | built (Preact; cards demo at the default speed and strength so they compare like for like) |
 | **Fonts** | Removed as a tab: fonts are in Style → Text. | built |
-| **General** | Section cards: **Connection** (the OBS URL box with Copy, port, secure link, and **First run setup**), **Keyboard input**, **Pause shortcut**, **Startup**, **Updates**, and a collapsed **Advanced** (Debug mode, Restart server, Open data folder, Reset all settings, Quit app). | built (Preact) |
+| **General** | Section cards: **Connection** (the OBS URL box with Copy, port, secure link, and **First run setup**), **OBS scenes** (a switch and **Edit scenes…**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and a collapsed **Advanced** (Debug mode, Restart server, Open data folder, Reset all settings, Quit app). | built (Preact) |
 | **Debug** | Only with Debug mode on. Cards for the app's state, the log and self-tests; **Copy bug report** copies the scrubbed report (`debug-report.js`, `BUG_REPORT_FORMAT`). | built (one file per card in `debug/`) |
 
 ### Layouts
