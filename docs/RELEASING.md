@@ -96,11 +96,12 @@ try it without releasing: Actions → **Linux app** → Run workflow, and downlo
 What to know:
 - Key capture works on **X11 desktops**, and on **Wayland desktops** for users in the `input` group ([LINUX-PORT.md](LINUX-PORT.md)).
 - **In-app updates on Linux (AppImage only).** After attaching the files, `linux-publish` signs the AppImage with the
-  update key and adds a `linux-x86_64` entry (its signature and download link) to `latest.json` and, for a Stable release,
+  update key and adds `linux-x86_64-appimage` and `linux-x86_64` entries (the same signature and download link) to `latest.json` and, for a Stable release,
   to `stable.json`. The build job never sees the key: `linux-publish` runs in the `release` environment, so **GitHub asks
   for your approval a second time** (once for the Windows job, once for this one), and only the signing step is given the
   key. The step refuses to touch a manifest that belongs to another version. The .deb can't update itself; it stays a
-  download. An AppImage that is not run as an AppImage (copied elsewhere) may not be able to replace itself.
+  download, and a copy installed from it says so when you check for updates (the app only checks on Linux when it runs as
+  an AppImage, so it is never offered the AppImage). An AppImage that is not run as an AppImage (copied elsewhere) may not be able to replace itself.
 - **The first release that carries them (v2.0):** the workflow builds and is tested in CI on every pull request and push to the work branches, but `linux-publish` first runs with this release, so check the release page afterwards (or try it first: Run
   workflow, which counts as posting on GitHub: Jordan's OK), and mention the Linux downloads in that release's CHANGELOG entry.
 - If the Linux job fails, the Windows release is already published. Fix the cause and re-run only the failed jobs; the

@@ -20,7 +20,7 @@ name: Release
 #
 # The Linux downloads work the same way: linux-app.yml builds the AppImage and the .deb (no secrets) and linux-publish
 # attaches them. linux-publish then signs the AppImage with the update key (it runs in the "release" environment, so it
-# waits for Jordan's approval like the Windows job, and only the signing step sees the key) and adds a linux-x86_64 entry to
+# waits for Jordan's approval like the Windows job, and only the signing step sees the key) and adds linux-x86_64 entries to
 # latest.json and, for a Stable release, to stable.json: Linux users who run the AppImage update in the app. The .deb stays
 # a download (docs/RELEASING.md, Linux download).
 #
@@ -259,7 +259,9 @@ jobs:
           add_linux() { # $1 = release tag that holds the manifest, $2 = manifest file name
             mkdir -p manifests && gh release download "$1" -p "$2" -D manifests --clobber --repo "${{ github.repository }}"
             [ "$(jq -r .version "manifests/$2")" = "$V" ] || { echo "::error::$2 is for another version. Left alone."; exit 1; }
-            jq --arg sig "$SIGNATURE" --arg url "$URL" '.platforms["linux-x86_64"] = {signature: $sig, url: $url}' "manifests/$2" > "manifests/$2.new"
+            # two keys with the same file: the updater looks for linux-x86_64-appimage first and then linux-x86_64; a copy
+            # installed from the .deb never asks (the app says it can't update itself)
+            jq --arg sig "$SIGNATURE" --arg url "$URL" '{signature: $sig, url: $url} as $entry | .platforms["linux-x86_64-appimage"] = $entry | .platforms["linux-x86_64"] = $entry' "manifests/$2" > "manifests/$2.new"
             mv "manifests/$2.new" "manifests/$2"
             gh release upload "$1" "manifests/$2" --clobber --repo "${{ github.repository }}"
           }
