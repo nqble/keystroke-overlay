@@ -270,7 +270,10 @@ type TextRule = fn(&str) -> bool;
 const FREE_FORM: &[(&str, CleanFreeForm)] = &[("layout.profiles", clean_profiles)];
 
 /// Lists with a rule of their own; any other list is a list of short texts (`clean_strings`).
-const LIST_RULES: &[(&str, CleanFreeForm)] = &[("layout.order", crate::layout_order::clean_order)];
+const LIST_RULES: &[(&str, CleanFreeForm)] = &[
+    ("layout.order", crate::layout_order::clean_order),
+    ("obs.scenes.rules", crate::obs_scenes::clean_scene_rules),
+];
 
 /// Numbers that must be one of a fixed set of choices; anything else goes back to the default.
 const NUMBER_CHOICES: &[(&str, &[f64])] = &[("layout.editor.snap", &SNAP_CHOICES)];

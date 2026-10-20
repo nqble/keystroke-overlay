@@ -27,6 +27,7 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
              "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0,
              "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language and Win/Alt/Ctrl follow the system (⌘ ⌥ ⌃ on a Mac); "layout": the files' labels
   "hotkeys": { "enabled": false, "pause": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP"; registered only when on and set
+  "obs": { "scenes": { "enabled": false, "rules": [] } },   // per OBS scene: { "scene": "Chat", "show": false, "layout": "" }; at most 20 rules, names up to 100 characters, each scene once (case ignored); layout "" = the chosen layout
   "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
 }
 ```

@@ -38,7 +38,7 @@ for (const [name, id] of Object.entries(TAB_IDS)) {
 check(
   'General cards are in the tidy order (ui-design-v2.md)',
   JSON.stringify(await p.q(`[...document.querySelectorAll('#pane .section-title')].map(h => h.textContent)`)) ===
-    JSON.stringify(['Connection', 'Keyboard input', 'Startup', 'Updates', 'Advanced']),
+    JSON.stringify(['Connection', 'OBS scenes', 'Keyboard input', 'Startup', 'Pause shortcut', 'Updates', 'Advanced']),
 );
 
 // the overlay as OBS loads it (no ?preview) skips the theme files; the settings preview still loads them
@@ -76,22 +76,25 @@ check(
     `(() => { const r = document.querySelector('${byTest('window-buttons')}').getBoundingClientRect(); return r.right >= innerWidth - 1 && r.top <= 1 && !!document.querySelector('${byTest('window-minimize')}') && !!document.querySelector('${byTest('window-maximize')}') && !!document.querySelector('${byTest('window-close')}'); })()`,
   ),
 );
+// The two icons are drawn in index.html; windowbar.js shows the right one with the `maximized` class and renames the
+// button, so the test follows both the class and the name a screen reader says.
 check(
-  'maximize toggles (and the glyph follows), restore goes back',
+  'maximize toggles (and the icon and name follow), restore goes back',
   await (async () => {
     const state = () => p.q(`window.__TAURI__.window.getCurrentWindow().isMaximized()`);
     const maximize = byTest('window-maximize');
     await p.ev(`document.querySelector('${maximize}').click()`);
     await sleep(700);
-    const on = await state(),
-      glyph1 = await p.q(`document.querySelector('${maximize}').textContent.charCodeAt(0).toString(16)`);
+    const look = () =>
+      p.q(
+        `(() => { const b = document.querySelector('${maximize}'); return b.classList.contains('maximized') + ' ' + b.ariaLabel; })()`,
+      );
+    const on = await state();
+    const lookWhenOn = await look();
     await p.ev(`document.querySelector('${maximize}').click()`);
     await sleep(700);
     return (
-      on === true &&
-      glyph1 === 'e923' &&
-      (await state()) === false &&
-      (await p.q(`document.querySelector('${maximize}').textContent.charCodeAt(0).toString(16)`)) === 'e922'
+      on === true && lookWhenOn === 'true Restore' && (await state()) === false && (await look()) === 'false Maximize'
     );
   })(),
 );

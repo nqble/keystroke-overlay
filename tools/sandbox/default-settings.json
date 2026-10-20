@@ -47,6 +47,12 @@
     "enabled": false,
     "pause": ""
   },
+  "obs": {
+    "scenes": {
+      "enabled": false,
+      "rules": []
+    }
+  },
   "animation": {
     "type": "none",
     "speed": 120,

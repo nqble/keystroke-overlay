@@ -1,6 +1,6 @@
 # Proposal: talking to OBS from the app through obs-websocket
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Not planned; kept as documentation** (Jordan, 2026-10-20: redundant with the browser-source events, kept for others to try)
 
 Whether the app (the Rust side, not the overlay page) should connect to OBS's built-in WebSocket server to read scene
 changes or control OBS, what it would cost against the project's principles, and the smallest safe design if Jordan says yes.

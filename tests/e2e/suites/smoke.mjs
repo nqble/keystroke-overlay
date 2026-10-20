@@ -11,9 +11,10 @@ await sleep(2500);
 const { invoke: inv, q } = p;
 
 // ---- window + UI
+// v2.0 has five tabs (Layout, Keys, Style, Animation, General): Fonts moved into Style. The list is ui/settings/tabs/index.js.
 check(
-  'settings UI rendered (6 tabs, content)',
-  (await q(`document.querySelectorAll('${byTest('tab')}').length`)) === 6 &&
+  'settings UI rendered (5 tabs, content)',
+  (await q(`document.querySelectorAll('${byTest('tab')}').length`)) === 5 &&
     (await q(`document.querySelector('${byTest('pane')}').children.length`)) > 0,
 );
 check(

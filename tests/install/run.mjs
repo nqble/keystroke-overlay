@@ -21,7 +21,7 @@ import {
 import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { connect, check, finish, sleep } from '../e2e/lib/cdp.mjs';
+import { byTest, connect, check, finish, sleep } from '../e2e/lib/cdp.mjs';
 import { acquire } from '../lib/lock.mjs';
 import { APP } from '../../tools/app-config.mjs';
 
@@ -248,7 +248,7 @@ try {
   check(
     'settings window shows the current UI (dashed + card, General sections)',
     (await p.q(`!!document.querySelector('nav button') && (document.querySelector('nav button').click(), true)`)) &&
-      (await p.q(`!!document.querySelector('.card.add')`)),
+      (await p.q(`!!document.querySelector('${byTest('layout-add')}')`)), // the dashed + card on the Layout tab
   );
   p.close();
   killTest();

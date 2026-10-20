@@ -21,16 +21,16 @@ Each plan starts with a **Status** line (queued, in progress, done or superseded
 - [done/v2-tab-restructure.md](proposals/done/v2-tab-restructure.md): the v2.0 tab restructure (tabs, cards, the Layout and Animation tabs; done)
 - From the open-source research of 2026-10-19 (all proposed, none approved; one file each, to work through one at a time):
   - [obs-source-events.md](proposals/obs-source-events.md): scene awareness through the OBS Browser source's own page events (no network)
-  - [kle-import.md](proposals/kle-import.md): turn a Keyboard Layout Editor (KLE) file into a layout (steps 1–7 and 9
-    built as a trial on the branch advisor/kle-import, not merged)
-  - [keyboard-files.md](proposals/keyboard-files.md): import VIA, QMK and NohBoard keyboard files, after KLE
+  - [kle-import.md](proposals/kle-import.md): turn a Keyboard Layout Editor (KLE) file into a layout (built on the
+    branch advisor/kle-import; ships with v2.0 after its design pass)
+  - [keyboard-files.md](proposals/keyboard-files.md): import VIA, QMK and NohBoard keyboard files, after KLE (NohBoard only, Windows only; VIA and QMK dropped)
   - [controllers-gilrs.md](proposals/controllers-gilrs.md): controller input, gilrs compared with our own code
-  - [mouse-input.md](proposals/mouse-input.md): mouse buttons and wheel with our own capture code
-  - [obs-websocket.md](proposals/obs-websocket.md): talking to OBS from the app (recommended: not yet)
-  - [stream-deck-companion.md](proposals/stream-deck-companion.md): Stream Deck control through Bitfocus Companion
-  - [analog-keys-wooting.md](proposals/analog-keys-wooting.md): analog key pressure with the Wooting Analog SDK
+  - [mouse-input.md](proposals/mouse-input.md): mouse buttons and wheel with our own capture code (open idea, not v2.0)
+  - [obs-websocket.md](proposals/obs-websocket.md): talking to OBS from the app (not planned; kept as documentation)
+  - [stream-deck-companion.md](proposals/stream-deck-companion.md): Stream Deck control through Bitfocus Companion (open idea, not v2.0)
+  - [analog-keys-wooting.md](proposals/analog-keys-wooting.md): analog key pressure with the Wooting Analog SDK (open research)
   - [accessibility-checks.md](proposals/accessibility-checks.md): automatic accessibility checks with axe-core in the e2e tests
-  - [two-pc-ndi.md](proposals/two-pc-ndi.md): a second two-PC route, sending the overlay as video with NDI (docs only)
+  - [two-pc-ndi.md](proposals/two-pc-ndi.md): a second two-PC route, sending the overlay as video with NDI (docs only) (kept as documentation only)
 - [good-first-issues.md](proposals/good-first-issues.md): draft "good first issue" tickets (not posted)
 - [done/key-editor-polish.md](proposals/done/key-editor-polish.md): the first key editor plan, superseded by the design spec
 

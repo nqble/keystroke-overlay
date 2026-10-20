@@ -2,8 +2,9 @@ name: Linux app
 
 # Builds the Linux downloads (x86-64): an AppImage, which runs on most distributions as one file, and a .deb for Debian and
 # Ubuntu, with the third-party notices beside them, handed on as the workflow artifact "linux-app". Key capture works on
-# X11 desktops; Wayland support is being built (docs/LINUX-PORT.md). The app does not update itself on Linux yet: the
-# update manifests have no Linux entry, so Linux users download each new version (docs/RELEASING.md, Linux download).
+# X11 desktops, and on Wayland for users in the input group (docs/LINUX-PORT.md). Linux updates are signed afterwards, not here:
+# release.yml's linux-publish signs the finished AppImage with the update key and adds a Linux entry to the update
+# manifests (docs/RELEASING.md, Linux download).
 #
 # Two callers, like mac-app.yml: ci.yml builds it on every change, so a break shows up before release day, and
 # release.yml builds it after the Windows release is published and attaches the files to that release. It uses no secrets
@@ -42,7 +43,7 @@ jobs:
           cargo install cargo-about --version 0.9.2 --locked --features cli
           node tools/notices.mjs --target x86_64-unknown-linux-gnu --out build/THIRD-PARTY-NOTICES.html
 
-      # The update signing key is not given to this job: Linux updates are not installed by the app yet.
+      # The update signing key is not given to this job: linux-publish (release.yml) signs the finished AppImage.
       - name: Build the AppImage and the .deb
         run: npx tauri build --bundles appimage,deb --config '{"bundle":{"createUpdaterArtifacts":false}}'
 

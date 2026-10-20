@@ -41,9 +41,10 @@ keystroke-overlay/
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
+│       ├── obs_scenes.rs   cleans the OBS scene rules (obs.scenes); the overlay follows them inside OBS (ui/overlay/obs-source.js)
 │       ├── app_info.rs     the app's name, repository and identifiers (must match app.config.json; npm run check:config)
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
-│       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
+│       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup (tests in settings/tests.rs)
 │       ├── sanitize.rs     cleaning settings from outside: types, ranges and rules, one table line per setting
 │       ├── downgrade.rs    going back a version and forward again without losing settings (settings.vN.json)
 │       ├── state.rs        shared app state + small helpers
@@ -67,7 +68,7 @@ keystroke-overlay/
     │   ├── layouts/*.json     one file per keyboard layout
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
-    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), structure.js (when the keys are rebuilt)
+    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), structure.js (when the keys are rebuilt), obs-source.js (OBS scene rules, inside OBS only)
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png
@@ -84,6 +85,7 @@ keystroke-overlay/
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved and resized keys; the snap helpers
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
         ├── dialogs.js     New layout (with From a KLE file…) and Reset all settings, built on popup.js
+        ├── obs-scenes-popup.js  the Edit scenes popup (General → OBS scenes); its row rules in obs-scene-rules.js
         ├── first-run.js   the first run setup screen (new installs; General → First run setup opens it again)
         ├── other-layouts.js  "Other layouts" in the New layout popup: built-in layouts not on the Layout tab
         ├── layout-order.js  which layouts the Layout tab shows and in what order; moving and dropping (tested)
@@ -131,6 +133,7 @@ keystroke-overlay/
 key press → capture method on its own thread:
               Standard      WH_KEYBOARD_LL hook (tiny callback, never blocks input)
               Compatibility Raw Input (registers to receive a copy of keyboard input; nothing sits in the input path)
+              (Windows; on Linux XInput2 or the keyboard devices, on a Mac a listen-only event tap: keyboard/)
           → KeyTracker (drops OS repeats, releases keys that are really up) → channel → dispatcher thread (tracks held keys; drops everything while paused)
           → tokio broadcast → each WebSocket client (/ws on 127.0.0.1)
           → overlay page (OBS) toggles a CSS class on the key; CSS transitions do the animation
@@ -151,9 +154,10 @@ key press → capture method on its own thread:
 
 ## Threads and idle cost
 
-Capture thread (hook or Raw Input), dispatcher thread, two async worker threads (tokio), plus Tauri's own: ~9 threads at idle, ~13 MB working set,
-0.0% CPU. The settings window is created on demand and fully destroyed on close (the web view's processes exit), after which
-the app trims its working set.
+Capture thread (hook or Raw Input on Windows, XInput2 or the keyboard devices on Linux, the event tap on a Mac), dispatcher thread, two async worker threads (tokio), plus Tauri's own. On Windows, with the settings window closed (a v2.0 release build, measured 2026-10-20): 12 threads,
+about 3 MB working set (1.2 MB private), 0 ms of CPU over 2 minutes. The settings window is created on demand and fully
+destroyed on close (its WebView2 processes exit within about 10 seconds), after which the app trims its working set. On a
+Mac the system's web framework stays loaded, so the app holds much more at rest: see [MAC-PORT.md](MAC-PORT.md).
 
 ## Settings
 
@@ -199,4 +203,4 @@ key presses through both input methods, a signed update download); it cleans up 
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4.0, for developers; the first Linux download comes with v2.0) and Wayland capture in `keyboard/linux_devices.rs` (v2.0; [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, not released yet; [MAC-PORT.md](MAC-PORT.md)).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4.0, for developers; the first Linux download comes with v2.0) and Wayland capture in `keyboard/linux_devices.rs` (v2.0; [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, the Apple Silicon download; [MAC-PORT.md](MAC-PORT.md)).

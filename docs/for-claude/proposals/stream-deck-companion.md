@@ -1,6 +1,6 @@
 # Proposal: Stream Deck control through Bitfocus Companion
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Open idea, not for v2.0** (Jordan, 2026-10-20: a good idea; how it is built, and whether it fits inside the app, is still to be worked out)
 
 How a Stream Deck button could pause, resume or switch the overlay's layout, without weakening the privacy promises. It
 compares three routes and recommends one: a small local control endpoint on the app's own server that Companion's

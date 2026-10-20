@@ -84,6 +84,8 @@ plain, additive changes:
 "hotkeys": { "enabled": false, "pause": "" },   // built (hotkeys.rs); add "nextLayout": "" when that is built, and make
                                                 //   set_pause_hotkey merge into this object instead of replacing it
 "window":  { "enabled": false, "x": 0, "y": 0, "clickThrough": true, "alwaysOnTop": true }
+"obs":     { "scenes": { "enabled": false, "rules": [] } }   // built on advisor/obs-scenes (obs_scenes.rs); a later
+                                                //   obs-websocket feature adds to "obs" instead of a new name
 ```
 
 Shapes may change while designing a feature, but keep these top-level names and the "off by default" values. The
@@ -100,6 +102,8 @@ keyboard's input method stays at `general.inputMethod`.
 ### Global hotkeys
 - Use Tauri's global-shortcut plugin (cross-platform), not our own hook. Ask Jordan before adding it.
 - Actions: pause/resume the overlay, next/previous layout, open settings. Empty (off) until the user sets them.
+- The plugin is loaded only once a hotkey is set (`hotkeys.rs`): on Linux X11 it wakes 20 times a second, so loading it at start-up
+  broke the ~0% idle promise for everyone without a hotkey.
 - Hotkeys never turn privacy features off (secure link, pause state shown in the tray) without the user seeing it.
 
 ### Overlay window outside OBS

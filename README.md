@@ -28,7 +28,7 @@
 
 ## Why Keystroke Overlay
 
-- 🪶 **Light.** About 3 MB of memory and ~0% CPU when idle. The installer is about 2.3 MB.
+- 🪶 **Light.** About 3 MB of memory on Windows and ~0% CPU when idle. The installer is about 2.3 MB.
 - 🎮 **Works in games.** It sees your keys while a game has focus, and has a Compatibility mode for games that block
   the usual method. [Games tested so far](docs/GAMES.md).
 - 🎨 **Yours to design.** Pick a keyboard or build your own, then choose a theme, fine-tune every color and add an
@@ -68,8 +68,10 @@ only the graphics card's cheapest effects, so streams stay smooth.
 
 ## Get started
 
-1. **Download** the installer from [Releases](https://github.com/nqble/keystroke-overlay/releases/latest) and run it. If Windows
-   shows a SmartScreen warning, click **More info → Run anyway** (releases are not code-signed yet).
+1. **Download** it from [Releases](https://github.com/nqble/keystroke-overlay/releases/latest) and run it: the installer on
+   Windows, the Apple Silicon app on a Mac, the `.deb` or AppImage on Linux. Releases are not code-signed yet, so on Windows
+   click **More info → Run anyway** if SmartScreen warns, and on a Mac allow the first launch in **System Settings → Privacy &
+   Security → Open Anyway** ([details](docs/USER-GUIDE.md#on-a-mac)).
 2. **Copy the OBS URL.** The app opens on three short setup steps the first time.
 3. **In OBS:** Sources → **+** → **Browser**, paste the link and set the size the app shows. Done.
 
@@ -86,7 +88,7 @@ troubleshooting.
 This app has to read your keyboard to work, so here is exactly what happens:
 
 ```
-your keyboard → Windows → Keystroke Overlay (in memory) → a page on YOUR PC (127.0.0.1) → OBS
+your keyboard → your system → Keystroke Overlay (in memory) → a page on YOUR PC (127.0.0.1) → OBS
 ```
 
 - Keys are **never written to disk, logged or sent** over the network.
@@ -122,8 +124,10 @@ npm run build        # installer in src-tauri/target/release/bundle/nsis/
 
 ### On a Mac
 
-To build the Mac app yourself (each release also has an Apple Silicon download; tested on a MacBook Air, M1), you need the
-Xcode Command Line Tools, [Rust](https://rustup.rs) and [Node.js](https://nodejs.org) 20+.
+From v2.0 each release has an **Apple Silicon download**. It isn't notarized, so the first launch needs **Open Anyway**
+in System Settings → Privacy & Security, and macOS asks for keyboard access again after every update: the steps are in
+[the user guide](docs/USER-GUIDE.md#on-a-mac). Or build it yourself; you need the Xcode Command Line Tools,
+[Rust](https://rustup.rs) and [Node.js](https://nodejs.org) 20+.
 
 ```bash
 git clone https://github.com/nqble/keystroke-overlay.git
@@ -134,7 +138,7 @@ npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":fals
 
 First launch, keyboard access and troubleshooting: [docs/USER-GUIDE.md](docs/USER-GUIDE.md#on-a-mac).
 
-Built with [Tauri](https://tauri.app) (Rust + WebView2), plain JavaScript with [Preact](https://preactjs.com) in the
+Built with [Tauri](https://tauri.app) (Rust + the system's own web view), plain JavaScript with [Preact](https://preactjs.com) in the
 settings window, and the help of [Claude Code](https://claude.com/claude-code).
 
 ## Contributing

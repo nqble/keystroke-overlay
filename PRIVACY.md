@@ -35,7 +35,13 @@ layout is a fact about the keyboard, not about anything you type, and it stays i
 
 From v2.0 you can also set a **pause shortcut** (General → Pause shortcut, off by default). The app then asks the system (Windows,
 macOS or Linux) to tell it about that one key combination only; it sees no other key that way, and registers nothing while the
-shortcut is off. The check in `tools/check-privacy.mjs` makes sure shortcuts are registered only in `hotkeys.rs` (`main.rs` only loads the plugin).
+shortcut is off. The shortcut plugin isn't even loaded until you set a shortcut (and once loaded it stays until the app
+quits). The check in `tools/check-privacy.mjs` makes sure shortcuts and the plugin live only in `hotkeys.rs`.
+
+With **OBS scenes** on (**General → OBS scenes**, off by default), the overlay page that OBS shows asks OBS which
+scene is on air, inside OBS, to follow the rules you wrote (hide the keys, or show another layout). The scene's name stays
+in that page: it is never saved, logged or sent anywhere, not even to the app. Only the rules you write are saved, with
+your other settings.
 
 Use **Pause overlay** (tray menu) whenever you are about to type something private on stream. While paused, the app
 forwards nothing at all.
@@ -112,7 +118,8 @@ Exactly three things, all with GitHub (`github.com`, `api.github.com`, and GitHu
 1. **Update check** — fetches a small manifest file (`latest.json` or `stable.json`) from this project's GitHub releases.
    Runs when you click *Check now*, and — if you leave *Check automatically* on — 45 seconds after the app
    starts, then about once an hour while it runs (and when the settings window opens). The setting is on by default;
-   turn it off and the app **never** checks by itself.
+   turn it off and the app **never** checks by itself. A Linux copy installed from the .deb never checks at all (it can't
+   update itself); a Mac checks but finds no Mac entry, so it points you to the Releases page.
 2. **Update download** — only after you click *Update now*. The download is verified against a signing key built into
    the app; a file that does not match is rejected and never run.
 3. **Release notes** — the "What's new" window / *Release notes* fetches the notes for one version from

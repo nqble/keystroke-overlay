@@ -46,7 +46,7 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
 }
 
 /// What the window says when the update check fails. A Mac gets its own words: the update file on GitHub only has entries
-/// the in-app installer can use (Windows), so on a Mac the check always fails, and the honest advice is to download the
+/// the in-app installer can use (Windows and the Linux AppImage), so on a Mac the check always fails, and the honest advice is to download the
 /// new version from the Releases page.
 fn check_failed_text(system: &str, channel: &str, error: &str) -> String {
     if system == "macos" {
@@ -58,10 +58,28 @@ fn check_failed_text(system: &str, channel: &str, error: &str) -> String {
     format!("Couldn't check for updates ({error}). You may be offline, or no {channel} release has been published yet.")
 }
 
+/// Whether this copy can install an update itself. On Linux only an AppImage can replace itself (the update file on GitHub is
+/// an AppImage); a copy installed from the .deb cannot, and would otherwise be offered the AppImage and fail.
+fn updates_in_app(system: &str, appimage: bool) -> bool {
+    system != "linux" || appimage
+}
+
+/// What the window says on a Linux copy that is not an AppImage.
+fn not_an_appimage_text() -> String {
+    format!(
+        "This copy was installed as a package (.deb), so it can't update itself: only the AppImage does. Get new versions from the Releases page ({}).",
+        releases_url()
+    )
+}
+
 async fn do_check(app: &AppHandle) -> Result<Value, String> {
     if let Some(fake) = crate::debug::fake_update() {
         crate::debug::log("update check skipped: a fake update is showing (Debug tab)");
         return Ok(fake);
+    }
+    if !updates_in_app(platform::name(), std::env::var_os("APPIMAGE").is_some()) {
+        crate::debug::log("update check skipped: this Linux copy is not an AppImage");
+        return Err(not_an_appimage_text());
     }
     let channel = channel_of(app);
     let upd = updater_for(app, &channel)?;
@@ -290,6 +308,15 @@ mod tests {
         assert!(checks.load(Ordering::SeqCst) > 0, "turning it on starts checking");
         looping.abort();
     }
+    #[test]
+    fn only_an_appimage_updates_itself_on_linux() {
+        assert!(!updates_in_app("linux", false), "a .deb copy can't replace itself");
+        assert!(updates_in_app("linux", true));
+        assert!(updates_in_app("windows", false));
+        assert!(updates_in_app("macos", false));
+        assert!(not_an_appimage_text().contains("AppImage") && not_an_appimage_text().contains("Releases page"));
+    }
+
     #[test]
     fn a_failed_check_on_a_mac_points_to_the_releases_page() {
         let text = check_failed_text("macos", "latest", "None of the fallback platforms were found");

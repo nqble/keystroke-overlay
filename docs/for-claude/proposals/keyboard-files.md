@@ -1,6 +1,6 @@
 # Proposal: Import VIA, QMK and NohBoard keyboard files
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **NohBoard only, Windows only; VIA and QMK dropped** (Jordan, 2026-10-20: VIA and QMK files rarely say which key is which, so most keys would need linking by hand, which isn't the seamless result the app aims for. NohBoard files are made on Windows and imported on Windows, so its import is a Windows-only feature that hides itself on other systems. Waits for the KLE decision. The VIA and QMK sections below are kept as research)
 
 Lets someone start a layout from the keyboard file they already have: a VIA definition, a QMK `info.json` /
 `keyboard.json`, or a NohBoard `keyboard.json`. Builds on [kle-import.md](kle-import.md), which must come first: this plan

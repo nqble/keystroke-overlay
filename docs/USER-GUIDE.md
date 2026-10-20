@@ -41,50 +41,99 @@ These OBS settings make the biggest difference to how smooth the overlay looks a
 - **Shutdown source when not visible:** turn it on if the overlay is only in some of your scenes. It stops using CPU while
   hidden and reconnects in a moment when the scene shows again.
 - **Refresh browser when scene becomes active:** leave it off. The overlay updates itself; reloading only adds a short gap.
+- **A different overlay per scene:** turn on **General → OBS scenes**, click **Edit scenes…** and list the scenes by name: for each, **Hide the
+  overlay** keeps the keys out of that scene, and **Show:** a layout draws that layout there. **Save** keeps the list. Names must match OBS's (upper and lower case don't
+  matter). In OBS, right-click the Browser source, choose **Properties** and set **Page permissions** to **Read access to
+  user information**, so the overlay knows the scene as soon as OBS starts; without it, it follows from the first scene
+  switch on. The Browser source's box keeps one size, so a smaller layout is drawn larger to fill it. The live preview in
+  the settings window always shows your chosen layout. **Pause overlay** still hides everything.
 - **Hardware acceleration:** in OBS, **Settings → Advanced → Sources → Enable Browser Source Hardware Acceleration** should be
   on (it is by default). The overlay's animations are designed to run on the graphics card.
+
+### Other streaming apps
+
+The overlay is an ordinary web page, so any streaming app that can show one should work the same way: Streamlabs
+Desktop (**Browser Source**), XSplit (**Webpage**), vMix (**Web Browser** input), Meld Studio (**Browser**), and others.
+Paste the OBS URL, set the size the app shows, and leave the background transparent. Two things are OBS-only:
+**General → OBS scenes** (it listens for OBS's scene changes) and the **Page permissions** setting. These apps aren't
+tested by this project; if one doesn't work, [open an issue](https://github.com/nqble/keystroke-overlay/issues) naming it.
 
 ## Using two PCs (game on one, OBS on the other)
 
 Keystroke Overlay only talks to `127.0.0.1`, which means "this PC", so OBS has to run on the **same PC as the app**. If you play on
-PC A and stream with OBS on PC B, there is a way to make it work **without changing the app**: carry the OBS URL from PC B to PC A
-through an **SSH tunnel**. An SSH tunnel is an encrypted pipe between two computers; the program `ssh` builds it, not Keystroke Overlay.
-Run it over a private network you control, such as [Tailscale](https://tailscale.com).
+PC A and stream with OBS on PC B, you can still use it **without changing the app**: carry the OBS URL from PC B to PC A through a
+private, encrypted connection that you set up yourself. Both ways below were tested on a Windows PC A and a Mac PC B over
+[Tailscale](https://tailscale.com) (a private network between your own devices): a key-protected request took about 18 ms.
 
-**What you need (one-time setup)**
-- Tailscale on both PCs, signed in to the same account, so each PC has a private name (this page calls them `gaming-pc` and `stream-pc`).
-- An SSH server on PC A (the gaming PC). On Windows 10/11 it is the optional feature **OpenSSH Server** (Settings → System → Optional features).
-- Keystroke Overlay running on PC A as normal. Nothing to install or change on PC B except OBS.
+| | **SSH tunnel** (recommended) | **Tailscale port forward** |
+|---|---|---|
+| PC A (gaming PC) needs | Tailscale and an SSH server | Tailscale |
+| PC B (OBS) needs | Tailscale and `ssh` (built into Windows, macOS and Linux) | Tailscale and `socat` (Mac or Linux) |
+| Who can reach the app's port | Only someone who can log in to PC A | Every device on your Tailscale network (the secure link's key still protects your key presses) |
+| Each time you stream | Start the tunnel in a terminal on PC B | Nothing on PC A once set up; start `socat` on PC B |
 
-**Each time you stream**
-1. On PC A, open the app: **General → Connection**, tick **Secure my OBS URL**, and press **Copy secure link**. Keep this link private.
-2. On PC B, open a terminal and start the tunnel (use your Windows user name on PC A):
+**Before either way**
+- Install Tailscale on both PCs and sign in to the same account, so each PC gets a private name (this page calls them `gaming-pc`
+  and `stream-pc`; the Tailscale app shows the real ones).
+- On PC A, open the app: **General → Connection**, tick **Secure my OBS URL**, and press **Copy secure link**. Keep this link private.
+- **If PC B runs Keystroke Overlay too,** its app already uses port 7878, so give PC A's app another port first (**General →
+  Connection → Port**, for example 7880) and use that number everywhere below. A page that lights up from PC B's own keyboard is
+  PC B's app, not the tunnel.
+
+### Way 1: an SSH tunnel
+
+An SSH tunnel is an encrypted pipe between two computers; the program `ssh` builds it, not Keystroke Overlay.
+
+1. **Once, on PC A:** turn on an SSH server. On Windows 10/11, open PowerShell as administrator and run
+   `Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0`, then `Start-Service sshd` (Windows adds the firewall rule
+   itself). On a Mac: **System Settings → General → Sharing → Remote Login**. On Linux: install `openssh-server`.
+2. **Each time, on PC B:** open a terminal and start the tunnel, with your user name on PC A:
 
    ```
    ssh -N -L 7878:127.0.0.1:7878 your-user@gaming-pc
    ```
 
-   `-L 7878:127.0.0.1:7878` means "send anything that arrives at port 7878 on this PC to port 7878 on PC A". `-N` means "only build
-   the tunnel, don't open a shell". Leave the window open while you stream.
-3. On PC B, add the OBS source as in [Add it to OBS](#add-it-to-obs), but paste the link you copied in step 1. It looks like
+   `-L 7878:127.0.0.1:7878` means "send anything that arrives at port 7878 on this PC to port 7878 on PC A", and `-N` means "only
+   build the tunnel, don't open a shell". The first time, answer `yes` to the question about the PC's key. Leave the window open
+   while you stream; closing it stops the tunnel and the overlay goes blank.
+3. On PC B, add the OBS source as in [Add it to OBS](#add-it-to-obs), but paste the link you copied on PC A. It looks like
    `http://localhost:7878/?key=…`.
 
-**Good to know**
-- **Keep both port numbers the same as the app's port** (**General → Connection → Port**, default 7878). The app only answers requests addressed to
-  `localhost:<its port>`, so a different number on PC B would be refused.
-- **Keep the secure link on.** Without it, any program on either PC that can reach the port could read your key presses. With it, the
-  stream and data are refused without the private key (`?key=…`), as described in [Secure link](#secure-link-optional). If you use **Make a new key**,
-  copy the new link into OBS again.
-- **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only and never accepts connections from other computers
-  (the SSH server on PC A hands the data over locally), and the app itself still uses the network for nothing except update checks.
-  Your key presses travel only through the encrypted tunnel you started, between your own two PCs.
-- **Safety of the tunnel is your job.** Use a normal SSH login (a key or password) and let only your own devices reach the SSH port, for
-  example with Tailscale access rules. **Pause overlay** still works, because the pause happens in the app on PC A.
+Things that tripped up the test: a **user name with a space** needs quotes (`"Your Name"@gaming-pc`); on Windows the password is
+the **Windows account password, not a PIN**; and the local port on PC B must be free (stop anything else listening on it first).
+
+### Way 2: Tailscale's port forward
+
+Tailscale passes the app's port to your other devices, and `socat` on PC B makes it reachable as `localhost` again (the app only
+answers requests addressed to `localhost`).
+
+1. **Once, on PC A** (the PC that runs the app, not PC B): open a terminal and run
+   `tailscale serve --bg --tcp 7878 tcp://127.0.0.1:7878`. It stays on until you run `tailscale serve reset`.
+2. **Each time, on PC B:** install `socat` once (on a Mac with Homebrew: `brew install socat`), then run
+   `socat TCP-LISTEN:7878,fork,bind=127.0.0.1 TCP:gaming-pc:7878` and leave the window open.
+3. Add the OBS source on PC B with the link you copied, as in Way 1.
+
+Tailscale's **HTTPS** address for a PC (`https://gaming-pc.<your-tailnet>.ts.net`, from `tailscale serve --bg 7878`) **doesn't
+work**: the app refuses requests addressed to any name but `localhost`. That is on purpose; the app has no built-in network mode.
+
+### Good to know
+- **Keep both port numbers the same as PC A's app port** (**General → Connection → Port**, default 7878). The app only answers
+  requests addressed to `localhost:<its port>`, so a different number on PC B would be refused.
+- **Keep the secure link on.** Without it, anything that can reach the port could read your key presses. With it, the stream and
+  data are refused without the private key (`?key=…`), as described in [Secure link](#secure-link-optional). If you use **Make a new
+  key**, copy the new link into OBS again.
+- **After changing the address or the key, reload the source in OBS** (right-click it → **Refresh cache of current page**). In the
+  test, a page opened before the key was right drew the keyboard but never lit up until it was reloaded.
+- **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only (the SSH server or Tailscale on PC A hands the
+  data over locally), and the app itself uses the network only for updates and release notes. Your key presses travel only through the
+  encrypted connection you set up, between your own devices.
+- **Safety of the connection is your job.** Use a normal SSH login, and let only your own devices reach PC A, for example with
+  Tailscale access rules. If you set up an SSH server only for this, you can turn it off afterwards (Windows, as administrator:
+  `Stop-Service sshd; Set-Service sshd -StartupType Disabled`). **Pause overlay** still works, because the pause happens on PC A.
 - **Fonts come from the computer that shows the overlay.** OBS draws the overlay with the fonts installed on PC B. If the
   font you picked isn't there, it falls back to Segoe UI, then to that computer's own system font (San Francisco on a
   Mac). Pick a font both PCs have, or add a font file in **Style → Text → Add font file…**: the app hands its own fonts to OBS, so
   they look the same everywhere.
-- Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
   [for-claude/proposals/done/tailscale-dual-pc.md](for-claude/proposals/done/tailscale-dual-pc.md).
@@ -97,7 +146,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** slides keys together to close the space left by hidden or moved keys, keeping the shape. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts, and where **Key labels** chooses between the letters your keyboard prints (**My keyboard**) and the layout file's own. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
-| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
+| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **OBS scenes**, **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
 
@@ -123,7 +172,7 @@ Under **General → Connection** (**Secure my OBS URL**) you can choose how lock
 | | What it means |
 |---|---|
 | **Off (default)** | Simple link, nothing extra to do. Other programs running on your PC could read your key presses through it. |
-| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
+| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
 
 **Make a new key** creates a fresh key and cuts off every link made with the old one.
 
@@ -139,13 +188,19 @@ Right-click the tray icon for quick actions without opening settings:
 
 ## Updating
 
-While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window an **Update ready** chip also appears at the top right. Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Updates → Check now** any time.
+While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window an **Update ready** chip also appears at the top right. Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Updates → Check now** any time. On a Mac, and with the Linux .deb, new versions are a download from the Releases page instead (see [On a Mac](#on-a-mac) and [On Linux](#on-linux)).
 
 **Update channel** (General → Updates). Version numbers look like `x.y.z`: **the middle number is Stable, the last number is Latest.**
 - **Stable (recommended)** — the main, well-tested releases (the middle number goes up: 1.2.0, 1.3.0, …).
 - **Latest** — every release as soon as it is published, including the small fixes in between (1.2.1, 1.2.2, …).
 
 After an update, a **What's new** window shows the release notes once. You can reopen them anytime with **General → Updates → Release notes**.
+
+**Using it offline.** The app never needs the internet: capturing keys, the overlay, OBS and every setting work without
+it. To make sure it never goes online, turn off **General → Updates → Check automatically**; then it only contacts
+GitHub when you click **Check now**, **Update now** or **Release notes**. You can also block it in your firewall. You then
+update by downloading a new version from the [Releases](https://github.com/nqble/keystroke-overlay/releases) page
+yourself. [PRIVACY.md](../PRIVACY.md) lists each request.
 
 ## Make your own layout
 
@@ -197,7 +252,7 @@ keys are held *right now*, so a key can never look stuck. Use **Pause overlay** 
 
 ### Where your keystrokes go
 ```
-your keyboard → Windows → Keystroke Overlay (in memory) → a web page on YOUR PC (127.0.0.1) → OBS on your PC
+your keyboard → your system → Keystroke Overlay (in memory) → a web page on YOUR PC (127.0.0.1) → OBS on your PC
 ```
 Every step happens on your computer, in memory. The moment a key is released, the event is gone.
 
@@ -228,16 +283,17 @@ use updates you can block the app in your firewall and everything else keeps wor
 
 ### Limits, stated plainly
 - The app can see **every** key while it runs, including in password boxes. That is inherent to the job, so use **Pause overlay**.
-- The local overlay server does **not** authenticate other *programs* on the same PC, including other Windows users logged in at the
+- The local overlay server does **not** authenticate other *programs* on the same PC, including other users logged in at the
   same time. A program already running as you could receive key events from it (though it could also install its own keyboard hook).
   You can close this gap with the optional **Secure link** (General → Connection → Secure my OBS URL): your OBS URL then carries a private key and
   the app refuses everything without it. It is off by default, so the link stays simple, and turning it on means pasting the new link into OBS once.
-- Three components are outside our control: **Microsoft Edge WebView2** (draws the settings window; Microsoft's diagnostic-data
-  settings apply to it), **OBS**, and **Windows** itself.
+- Three components are outside our control: the system's web view that draws the settings window (**Microsoft Edge WebView2** on Windows,
+  where Microsoft's diagnostic-data settings apply to it; WKWebView on a Mac; WebKitGTK on Linux), **OBS**, and the
+  operating system itself.
 
 ### Don't trust — verify
 - **Read the code.** It's small, and the network code is in exactly one file (`src-tauri/src/commands/updates.rs`).
-- **Watch it.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on `127.0.0.1` and nothing else.
+- **Watch it.** With the app running, `netstat -ano | findstr <its process id>` on Windows, `lsof -iTCP -a -p <pid>` on a Mac or `ss -tlnp` on Linux shows one listening socket on `127.0.0.1` and nothing else.
 - **Block it.** Deny the app internet access in your firewall: the overlay keeps working, only updates stop.
 - **Let the computer check.** `npm run check:privacy` (it also runs on every change on GitHub) fails the build if network access,
   file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. It is a tripwire
@@ -277,7 +333,7 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
 - **The F row.** On a Mac laptop, F1 to F12 only light up while you hold **Fn**. Without it they are brightness and volume
   keys, which macOS doesn't send as F keys.
 - **Key names.** The overlay shows your own keyboard's names: ⌘ ⌥ ⌃, **delete** and **return**. To use the layout file's
-  names instead, set **Style → Key labels** to **Layout file**.
+  names instead, set **Style → Text → Key labels** to **Layout file**.
 - **Passwords.** While a password box has focus, macOS blocks key capture on purpose, so passwords can never reach the
   overlay. If the app says capture is blocked and it doesn't clear, lock and unlock the screen, or quit the app that is
   holding it.
@@ -295,8 +351,9 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
 ## On Linux
 
 The Linux version is early (v2.0 and later). Each release has two downloads for 64-bit PCs: the **AppImage** (one file
-for most distributions: make it executable and open it) and the **.deb** for Debian and Ubuntu. The app doesn't update
-itself on Linux yet: download each new version. The plan and what has been tested: [LINUX-PORT.md](LINUX-PORT.md).
+for most distributions: make it executable and open it) and the **.deb** for Debian and Ubuntu. The AppImage
+updates itself in the app, like the Windows version; a copy installed from the .deb doesn't (it tells you so when you
+check for updates): download each new version of it. The plan and what has been tested: [LINUX-PORT.md](LINUX-PORT.md).
 
 - **X11 desktops** need nothing more: keys show straight away.
 - **Wayland desktops** (the default on recent Ubuntu, Fedora and others) don't let one app see another app's keys, so
@@ -310,6 +367,10 @@ itself on Linux yet: download each new version. The plan and what has been teste
 
 - **OBS source is blank:** make sure the app is running (tray icon) and the URL in OBS matches the port in settings. Right-click the source in OBS and choose **Refresh cache of current page**.
 - **OBS runs on a different PC from the game:** the OBS URL only works on the PC that runs the app. See [Using two PCs](#using-two-pcs-game-on-one-obs-on-the-other).
+- **A scene rule does nothing:** the name in **General → OBS scenes** must match the scene's name in OBS exactly
+  (upper and lower case don't matter; spaces do). If you renamed the scene in OBS, rename it in the app too: the app
+  can't see OBS's list of scenes. If the rule only works after you switch scenes once, set the Browser source's **Page
+  permissions** to **Read access to user information** (right-click the source → **Properties**).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Connection → Port** (then **Apply**), then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Check [the games tested so far](GAMES.md), then open an issue naming the game and its anti-cheat.
 - **Your antivirus flags the app:** check the file came from this project's
