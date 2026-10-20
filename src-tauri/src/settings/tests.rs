@@ -925,6 +925,21 @@ mod layout_key_tests {
     }
 
     #[test]
+    fn layout_key_codes_are_letters_and_digits_only() {
+        let raw = json!([
+            { "code": "<img src=x>", "x": 0, "y": 0 },
+            { "code": "Key A", "x": 0, "y": 0 },
+            { "code": "Key\u{0}A", "x": 0, "y": 0 },
+            { "code": "KeyÄ", "x": 0, "y": 0 },
+            { "code": "Unlinked3", "x": 1, "y": 0 }
+        ]);
+        assert_eq!(
+            clean_layout_keys(&raw),
+            vec![json!({ "code": "Unlinked3", "x": 1.0, "y": 0.0 })]
+        );
+    }
+
+    #[test]
     fn layout_keys_are_limited_rounded_and_unique() {
         let raw = json!([
             { "code": "KeyA", "x": -1e9, "y": 1e9, "w": 0.1, "h": 1e9 },

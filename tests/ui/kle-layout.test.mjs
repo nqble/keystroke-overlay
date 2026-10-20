@@ -229,3 +229,24 @@ test('a file that is not JSON, not KLE, empty or too big says so', () => {
   assert.deepEqual(fromRows(rows), { problem: 'tooManyKeys', count: MAX_LAYOUT_KEYS + 1 });
   assert.equal(fromRows(rows.slice(1)).keys.length, MAX_LAYOUT_KEYS);
 });
+
+test('a huge file is refused before its keys are placed, without overflowing the stack', () => {
+  const row = Array.from({ length: 300_000 }, () => 'A');
+  const result = fromRows([row]);
+  assert.equal(result.problem, 'tooManyKeys');
+  assert.equal(result.count, 300_000);
+});
+
+test('a long hostile legend is read quickly', () => {
+  const legend = '<i class '.repeat(20_000);
+  const started = Date.now();
+  fromRows([[legend]]);
+  assert.ok(Date.now() - started < 1000);
+});
+
+test('keys far from the origin are moved no further than a layout may hold them', () => {
+  const result = fromRows([['A'], [{ x: 500, y: 500 }, 'B']]);
+  for (const key of result.keys) {
+    assert.ok(key.x <= 100 && key.y <= 100);
+  }
+});

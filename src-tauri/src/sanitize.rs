@@ -153,13 +153,17 @@ const MAX_LABEL_LENGTH: usize = 16;
 /// The longest key code, in bytes (the same rule as the key edits above).
 const MAX_CODE_LENGTH: usize = 40;
 
+/// A key code is ASCII letters and digits only ("KeyA", "Numpad7", "Unlinked3"): a file from outside can't slip markup,
+/// spaces or control characters into a code that the overlay later uses as a name.
+fn is_key_code(code: &str) -> bool {
+    !code.is_empty() && code.len() <= MAX_CODE_LENGTH && code.chars().all(|c| c.is_ascii_alphanumeric())
+}
+
 /// One key of a layout file from outside, cleaned: its code, x and y (limited to MIN_POSITION..MAX_POSITION), w and h
 /// when given (limited to MIN_KEY_WIDTH..MAX_KEY_WIDTH), all rounded to 2 decimals, and its label cut to
 /// MAX_LABEL_LENGTH characters. None when the code or the place is missing or broken.
 fn clean_layout_key(raw_key: &Value) -> Option<Value> {
-    let code = raw_key["code"]
-        .as_str()
-        .filter(|code| !code.is_empty() && code.len() <= MAX_CODE_LENGTH)?;
+    let code = raw_key["code"].as_str().filter(|code| is_key_code(code))?;
     let finite = |field: &str| raw_key[field].as_f64().filter(|n| n.is_finite());
     let place = |units: f64| round_to_hundredths(units.clamp(MIN_POSITION, MAX_POSITION));
     let mut key = json!({ "code": code, "x": place(finite("x")?), "y": place(finite("y")?) });

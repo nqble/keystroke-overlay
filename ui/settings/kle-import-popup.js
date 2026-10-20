@@ -62,7 +62,13 @@ async function pickKleFile() {
     return;
   }
   if (!source) return;
-  const result = layoutFromKle(source.text, source.fileName);
+  let result;
+  try {
+    result = layoutFromKle(source.text, source.fileName);
+  } catch {
+    // a file the reader didn't foresee must not leave the popup stuck; say it can't be used, like broken JSON
+    result = { problem: 'brokenFile' };
+  }
   if (result.problem) {
     toast(problemText(result), true);
     return;

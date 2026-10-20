@@ -11,7 +11,7 @@
 // =====================================================================================================================
 import { readKle, KleFormatError } from './kle.js';
 import { RANK, SIDED_KEYS, iconCode, isKnownKey, legendMatch } from './key-names.js';
-import { MIN_KEY_WIDTH, round2 } from './profiles.js';
+import { MAX_POSITION, MIN_KEY_WIDTH, round2 } from './profiles.js';
 
 const TEXT = {
   defaultName: 'Imported layout',
@@ -19,6 +19,12 @@ const TEXT = {
 
 /** The most keys a layout may have. Keep in step with MAX_LAYOUT_KEYS in src-tauri/src/sanitize.rs. */
 export const MAX_LAYOUT_KEYS = 300;
+// A file with far more keys than a layout may hold is refused before any key is placed, so a huge file can't freeze the
+// window. Keys left out (decals, ghosts) make the raw count larger than the placed one, hence the room to spare.
+const MAX_RAW_KEYS = MAX_LAYOUT_KEYS * 4;
+// Legends longer than this are cut before they are read: real legends are a few characters, and a cap keeps every
+// regular expression below fast on hostile text.
+const MAX_LEGEND_SOURCE = 200;
 /** The longest key label. Keep in step with MAX_LABEL_LENGTH in src-tauri/src/sanitize.rs. */
 export const MAX_LABEL_LENGTH = 16;
 /** The longest layout name. Keep in step with create_layout and add_layout (src-tauri/src/commands/). */
@@ -84,6 +90,7 @@ export function layoutFromKle(text, fileName = '') {
     if (error instanceof KleFormatError) return { problem: 'notKle' };
     throw error;
   }
+  if (kle.keys.length > MAX_RAW_KEYS) return { problem: 'tooManyKeys', count: kle.keys.length };
   const { placed, straightened, leftOut } = placeKeys(kle.keys);
   if (!placed.length) return { problem: 'noKeys' };
   if (placed.length > MAX_LAYOUT_KEYS) return { problem: 'tooManyKeys', count: placed.length };
@@ -148,16 +155,20 @@ export function straighten({ x, y, w, h, r, rx, ry }) {
 
 /** Move the keys so the layout's top-left is 0, 0 (like the built-in layouts), rounded to 2 decimals. */
 function moveToOrigin(keys) {
-  const left = Math.min(...keys.map((key) => key.x));
-  const top = Math.min(...keys.map((key) => key.y));
+  const left = smallest(keys.map((key) => key.x));
+  const top = smallest(keys.map((key) => key.y));
   return keys.map((key) => ({
     ...key,
-    x: round2(key.x - left),
-    y: round2(key.y - top),
+    x: round2(Math.min(key.x - left, MAX_POSITION)),
+    y: round2(Math.min(key.y - top, MAX_POSITION)),
     w: round2(key.w),
     h: round2(key.h),
   }));
 }
+
+// reduce instead of Math.min(...values): spreading thousands of values into one call can overflow the stack
+const smallest = (values) => values.reduce((low, value) => Math.min(low, value), Infinity);
+const largest = (values) => values.reduce((high, value) => Math.max(high, value), -Infinity);
 
 const inReadingOrder = (keys) => [...keys].sort((a, b) => a.y - b.y || a.x - b.x);
 
@@ -191,7 +202,8 @@ function iconIn(raw) {
 
 /** One legend: { text } as written (cleaned), and the code its icon names, if any. */
 export function cleanLegend(raw) {
-  return { text: cleanText(raw), icon: iconIn(raw) };
+  const capped = raw.slice(0, MAX_LEGEND_SOURCE);
+  return { text: cleanText(capped), icon: iconIn(capped) };
 }
 
 // ---- Picking each key's code ----------------------------------------------------------------------------------------
@@ -247,7 +259,7 @@ function useNumberPad(keys) {
 
 /** "Shift", "Ctrl", "Alt" and "Win" become their Left or Right key by place (step 5); explicit sides win. */
 function pickSides(keys) {
-  const layoutWidth = Math.max(...keys.map((key) => key.x + key.w));
+  const layoutWidth = largest(keys.map((key) => key.x + key.w));
   const centerX = (key) => key.x + key.w / 2;
   for (const [generic, [leftCode, rightCode]] of Object.entries(SIDED_KEYS)) {
     const unsided = keys.filter((key) => key.code === generic).sort((a, b) => centerX(a) - centerX(b));
@@ -270,7 +282,7 @@ function pickSides(keys) {
 /** A blank key at least 3 keys wide in the lowest row is the space bar (KLE space bars are usually blank). */
 function findSpaceBar(keys) {
   if (keys.some((key) => key.code === 'Space')) return;
-  const lowestTop = Math.max(...keys.map((key) => key.y));
+  const lowestTop = largest(keys.map((key) => key.y));
   const isBlank = (key) => key.legends.every((legend) => !legend.text && !legend.icon);
   const spaceBar = keys.find(
     (key) => isBlank(key) && key.w >= SPACE_BAR_MIN_WIDTH && key.y >= lowestTop - LOWEST_ROW_TOLERANCE,
