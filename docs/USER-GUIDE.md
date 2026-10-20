@@ -340,8 +340,9 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
 ## On Linux
 
 The Linux version is early (v2.0 and later). Each release has two downloads for 64-bit PCs: the **AppImage** (one file
-for most distributions: make it executable and open it) and the **.deb** for Debian and Ubuntu. The app doesn't update
-itself on Linux yet: download each new version. The plan and what has been tested: [LINUX-PORT.md](LINUX-PORT.md).
+for most distributions: make it executable and open it) and the **.deb** for Debian and Ubuntu. The AppImage
+updates itself in the app, like the Windows version; a copy installed from the .deb doesn't (it tells you so when you
+check for updates): download each new version of it. The plan and what has been tested: [LINUX-PORT.md](LINUX-PORT.md).
 
 - **X11 desktops** need nothing more: keys show straight away.
 - **Wayland desktops** (the default on recent Ubuntu, Fedora and others) don't let one app see another app's keys, so

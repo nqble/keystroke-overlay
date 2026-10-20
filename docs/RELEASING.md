@@ -90,15 +90,18 @@ What to know:
 Every release also gets `Keystroke-Overlay_<version>_linux-x86_64.AppImage` (one file that runs on most distributions)
 and `Keystroke-Overlay_<version>_linux-amd64.deb` (Debian and Ubuntu) attached, with no extra step. After the Windows
 release is published, the Release workflow runs `.github/workflows/linux-app.yml` on Ubuntu 22.04 (no secrets, no build
-cache), and `linux-publish` attaches both files to the same release. `ci.yml` runs the same workflow on every change. To
+cache), and `linux-publish` attaches both files to the same release and signs the AppImage for the updater. `ci.yml` runs the same workflow on every change. To
 try it without releasing: Actions → **Linux app** → Run workflow, and download the `linux-app` artifact.
 
 What to know:
 - Key capture works on **X11 desktops**, and on **Wayland desktops** for users in the `input` group ([LINUX-PORT.md](LINUX-PORT.md)).
-- **No in-app updates on Linux yet.** `latest.json` and `stable.json` have no `linux` entries, so Linux users download
-  each new version. TODO (Jordan, awake): to switch updates on, sign the AppImage in `linux-app.yml` (drop
-  `createUpdaterArtifacts: false` and give it the signing key) and add a `linux-x86_64` entry to both manifests. Changing
-  the manifests affects every installed copy, so it is Jordan's call. The .deb can't update itself; it stays a download.
+- **In-app updates on Linux (AppImage only).** After attaching the files, `linux-publish` signs the AppImage with the
+  update key and adds `linux-x86_64-appimage` and `linux-x86_64` entries (the same signature and download link) to `latest.json` and, for a Stable release,
+  to `stable.json`. The build job never sees the key: `linux-publish` runs in the `release` environment, so **GitHub asks
+  for your approval a second time** (once for the Windows job, once for this one), and only the signing step is given the
+  key. The step refuses to touch a manifest that belongs to another version. The .deb can't update itself; it stays a
+  download, and a copy installed from it says so when you check for updates (the app only checks on Linux when it runs as
+  an AppImage, so it is never offered the AppImage). An AppImage that is not run as an AppImage (copied elsewhere) may not be able to replace itself.
 - **The first release that carries them (v2.0):** the workflow builds and is tested in CI on every pull request and push to the work branches, but `linux-publish` first runs with this release, so check the release page afterwards (or try it first: Run
   workflow, which counts as posting on GitHub: Jordan's OK), and mention the Linux downloads in that release's CHANGELOG entry.
 - If the Linux job fails, the Windows release is already published. Fix the cause and re-run only the failed jobs; the
