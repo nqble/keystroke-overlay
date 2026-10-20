@@ -1,4 +1,4 @@
-# Key editor: design spec (makeover planned for v1.4, reference for the v2.0 redesign)
+# Key editor: design spec (built in v1.4.0, reference for the v2.0 redesign)
 
 Status: approved by Jordan, designed in the Advisory Session. **Built** in three parts (M4.1 to M4.3) on `v1.4.0-dev`, and
 merged into v2.0: the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use, the
@@ -47,7 +47,7 @@ they are useful and are hidden otherwise.
    hint line (the Mac F row needing Fn is explained in the user guide). Each chip has a
    tooltip with the full sentence. The words per system are in `ui/settings/system-words.js`.
 
-**Removed:** the help paragraph, the on-screen arrow buttons, the "Whole key" tickbox, the Snap-size menu, the always-visible
+**Removed:** the help paragraph, the on-screen arrow buttons, the "Whole key" checkbox, the Snap-size menu, the always-visible
 Align / Space-evenly groups, the selection summary + Clear selection row, and the old row of reset buttons (Enable all,
 Disable all, Reset all labels, Tidy up, Reset positions, Revert to Default).
 

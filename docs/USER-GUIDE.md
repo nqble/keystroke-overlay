@@ -93,7 +93,7 @@ Run it over a private network you control, such as [Tailscale](https://tailscale
 - Closing the terminal window on PC B stops the tunnel, and the overlay goes blank until you start it again.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
-  [docs/for-claude/proposals/tailscale-dual-pc.md](for-claude/proposals/tailscale-dual-pc.md).
+  [for-claude/proposals/done/tailscale-dual-pc.md](for-claude/proposals/done/tailscale-dual-pc.md).
 
 ## Settings
 
@@ -140,7 +140,7 @@ Right-click the tray icon for quick actions without opening settings:
 - **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume. You can also set a key combination for it that works from any app, even in a game: **General → Pause shortcut** (off until you set one).
 - **Layout** — switch between layouts.
 - **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
-- **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to General → Updates.
+- **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to **General → Updates**.
 - **Open settings**, **Copy OBS URL**, **Quit**.
 
 ## Updating
