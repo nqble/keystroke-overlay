@@ -141,16 +141,6 @@ pub(crate) const TOO_BIG_FOR_A_LAYOUT: &str = "That file is too big to be a layo
 /// New layout popup's name box (ui/settings/dialogs.js).
 const MAX_NAME_LENGTH: usize = 30;
 
-/// A layout name as the app keeps it: trimmed, without control characters, at most MAX_NAME_LENGTH long.
-pub(crate) fn clean_layout_name(raw_name: &str) -> String {
-    raw_name
-        .trim()
-        .chars()
-        .filter(|c| !c.is_control())
-        .take(MAX_NAME_LENGTH)
-        .collect()
-}
-
 /// A layout id made from a name: lower case letters, digits and dashes, at most 30 long ("My Board!" → "my-board").
 pub(crate) fn slug(name: &str) -> String {
     let cleaned: String = name
@@ -169,21 +159,10 @@ pub(crate) fn slug(name: &str) -> String {
     }
 }
 
-/// `base`, or `base-2`, `base-3`, ... : the first id no layout has yet, so a new layout never replaces another.
-pub(crate) fn free_id(base: &str, is_taken: impl Fn(&str) -> bool) -> String {
-    let mut id = base.to_string();
-    let mut suffix = 2;
-    while is_taken(&id) {
-        id = format!("{base}-{suffix}");
-        suffix += 1;
-    }
-    id
-}
-
 /// Makes a new layout that starts as a copy of the full-size keyboard, selects it, and returns its id.
 #[tauri::command]
 pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Result<String, String> {
-    let name = clean_layout_name(&name);
+    let name = layout_name(&name);
     if name.is_empty() {
         return Err("Enter a layout name".into());
     }
@@ -191,7 +170,7 @@ pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Resul
     if all.iter().filter(|l| l["user"] == true).count() >= MAX_USER_LAYOUTS {
         return Err(format!("Max layouts reached ({MAX_USER_LAYOUTS})"));
     }
-    let id = free_id(&slug(&name), |id| all.iter().any(|l| l["id"] == id));
+    let id = unused_id(&slug(&name), |candidate| all.iter().any(|l| l["id"] == candidate));
     let full = all
         .iter()
         .find(|l| l["id"] == "full")
@@ -252,6 +231,26 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
 // ---------------------------------------------------------------- export / import of the layouts the user made
 use crate::app_info::LAYOUTS_FILE_TAG as FILE_TAG;
 
+/// A layout name as the app keeps it: no control characters, no spaces at the ends, at most MAX_NAME_LENGTH long.
+pub(crate) fn layout_name(raw: &str) -> String {
+    raw.trim()
+        .chars()
+        .filter(|c| !c.is_control())
+        .take(MAX_NAME_LENGTH)
+        .collect()
+}
+
+/// `base`, or `base-2`, `base-3`, ... : the first of these that `taken` says is free.
+pub(crate) fn unused_id(base: &str, taken: impl Fn(&str) -> bool) -> String {
+    let mut id = base.to_string();
+    let mut suffix = 2;
+    while taken(&id) {
+        id = format!("{base}-{suffix}");
+        suffix += 1;
+    }
+    id
+}
+
 /// The document written by "Export layouts": every layout the user made plus their key edits (hidden keys, labels).
 pub fn export_doc(all: &[Value], settings: &Value) -> Result<Value, String> {
     let mine: Vec<&Value> = all.iter().filter(|l| l["user"] == true).collect();
@@ -294,15 +293,14 @@ pub fn import_doc(
     let (mut out, mut skipped) = (Vec::new(), 0);
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     for item in items.iter().take(MAX_USER_LAYOUTS) {
-        let name = clean_layout_name(item["name"].as_str().unwrap_or("Imported layout"));
+        let name = layout_name(item["name"].as_str().unwrap_or("Imported layout"));
         let keys = crate::sanitize::clean_layout_keys(&item["keys"]);
         if keys.is_empty() || name.is_empty() || count >= MAX_USER_LAYOUTS {
             skipped += 1;
             continue;
         }
-        let id = free_id(&slug(item["id"].as_str().unwrap_or(&name)), |id| {
-            have.iter().any(|taken| taken == id)
-        });
+        let base = slug(item["id"].as_str().unwrap_or(&name));
+        let id = unused_id(&base, |candidate| have.iter().any(|existing| existing == candidate));
         let doc = serde_json::json!({ "id": id, "name": name, "keys": keys });
         std::fs::write(
             dir.join(format!("{id}.json")),
@@ -424,8 +422,8 @@ mod layout_file_tests {
         assert_eq!(slug("My Board!"), "my-board");
         assert_eq!(slug("日本語"), "layout");
         let taken = ["my-board", "my-board-2"];
-        assert_eq!(free_id("my-board", |id| taken.contains(&id)), "my-board-3");
-        assert_eq!(free_id("other", |id| taken.contains(&id)), "other");
+        assert_eq!(unused_id("my-board", |id| taken.contains(&id)), "my-board-3");
+        assert_eq!(unused_id("other", |id| taken.contains(&id)), "other");
     }
 
     #[test]

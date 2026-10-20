@@ -15,7 +15,7 @@ checks the rules marked **(checked)**; the rest are for reviewers.
   | **OBS URL** (the address you paste into OBS; the button is **Copy OBS URL**) (checked) | OBS link, overlay link, overlay address |
   | **secure link** (the optional feature that adds a private key to the OBS URL) | protected link, private link |
   | **settings window** | settings page, app window |
-  | **tray menu**, **tray icon** (on a Mac, the **menu bar**; v2.0 keeps each system's words in `ui/settings/system-words.js`) | system tray menu, notification area |
+  | **tray menu**, **tray icon** (on a Mac, the **menu bar**; from v2.0 the app keeps each system's words in one file) | system tray menu, notification area |
   | **Standard** and **Compatibility** (the two keyboard input methods) | hook mode, Raw Input mode |
   | **overlay** (what OBS shows) and **live preview** (the copy in the settings window) | widget, preview window |
   | **layout** (a keyboard: Full size, TKL…) and **key** | board, button |

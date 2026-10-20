@@ -136,7 +136,7 @@ key press → capture method on its own thread:
           → overlay page (OBS) toggles a CSS class on the key; CSS transitions do the animation
 ```
 
-- The method is chosen in General → Keyboard input (`general.inputMethod`: `hook` default, `rawinput`) and can be switched
+- The method is chosen in **General → Keyboard input** (`general.inputMethod`: `hook` default, `rawinput`) and can be switched
   live: `Bus::set_method` stops the old source, releases any held keys, starts the new one, and falls back to the old one if
   the new one can't start. The framework's own Raw Input registration is disabled at startup (`device_event_filter(Always)`)
   because registrations are per process and would compete with ours.

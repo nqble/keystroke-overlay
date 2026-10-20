@@ -97,7 +97,7 @@ Until you approve, nothing is built or published, and your key stays locked. If 
 1. The robot runs the tests, builds the installer, signs it, and publishes the release (about 8 to 10 minutes so far). You can watch it on the same page.
 2. A new release appears under **Releases** on GitHub with the installer and the changelog text as the notes.
 3. If the version ends in `.0` (like 1.2.0), or you ticked **"Also make this the Stable version"**, it also updates the **Stable** channel.
-4. People using the app see the update button the next time they open settings.
+4. People using the app get it through the hourly update check: a dot on the tray icon and an update button in the settings window.
 
 ### If something goes wrong
 

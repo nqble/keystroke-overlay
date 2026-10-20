@@ -33,16 +33,13 @@ dialogs and closing with Escape, and the Keys tab's key map, which is fully keyb
 | 7 | The general dialog doesn't move focus into itself, Tab can reach the page behind it, and focus isn't returned afterwards | 2.4.3 | Aim for | Shared dialog building block: focus the first button, keep Tab inside, restore focus on close | Fixed in v1.4.0 |
 | 8 | Messages at the bottom ("Preset saved") aren't announced and vanish after 2.6 s | 4.1.3 | Aim for | `role="status"` on the toast; keep error messages until dismissed | Fixed in v1.4.0 |
 | 9 | The tab bar doesn't say which tab is current | 4.1.2 | Aim for | `aria-current="page"` on the active tab button | Fixed in v1.4.0 |
-Also worth noting: hidden keys in the Keys tab are drawn at 0.28 opacity (2.30:1). Inactive things are exempt from the
-contrast rule, but about 0.45 would be easier to read.
 
 ## What is left
 
 All nine issues above are fixed in v1.4.0. Still to do:
 - A hands-on screen-reader pass (NVDA or Narrator) of the whole settings window.
-- Hidden keys in the Keys tab are still drawn at 0.28 opacity; about 0.45 would be easier to read.
-- The key editor makeover (docs/design/key-editor.md) is built keyboard-usable and named from the start, keeping the key
-  map's current keyboard support.
+- Hidden keys in the Keys tab are drawn at 0.28 opacity (2.30:1). Inactive things are exempt from the contrast rule, but
+  about 0.45 would be easier to read.
 
 ## Checking it (optional, a few minutes)
 

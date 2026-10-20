@@ -16,7 +16,7 @@ Each plan starts with a **Status** line (queued, in progress, done or superseded
 - [done/ui-foundation.md](proposals/done/ui-foundation.md): hooks, screenshot tests, design tokens, shared building blocks (done)
 - [done/loading-and-lifetime.md](proposals/done/loading-and-lifetime.md): keeping tabs alive, cached lists, overlay performance (done, with the measured decisions)
 - [reuse-prep.md](proposals/reuse-prep.md): preparing the code to be reused in other programs, after v2.0
-- [tailscale-dual-pc.md](proposals/tailscale-dual-pc.md): dual-PC streaming through Tailscale Serve (proposed, not decided)
+- [done/tailscale-dual-pc.md](proposals/done/tailscale-dual-pc.md): a built-in dual-PC mode through Tailscale Serve (set aside: the SSH tunnel in the user guide instead)
 - [done/v2-preact.md](proposals/done/v2-preact.md): moving the settings window to Preact with htm, for v2.0 (done)
 - [done/v2-tab-restructure.md](proposals/done/v2-tab-restructure.md): the v2.0 tab restructure (tabs, cards, the Layout and Animation tabs; done)
 - From the open-source research of 2026-10-19 (all proposed, none approved; one file each, to work through one at a time):

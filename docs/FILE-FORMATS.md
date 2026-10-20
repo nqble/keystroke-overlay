@@ -89,7 +89,7 @@ gets a placeholder `code`, `Unlinked` and a number (`Unlinked1`, `Unlinked2`, ..
 like any key and never lights up, because no capture method produces such a name. The names are reserved
 ([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change.
 
-**Exported layout file** (Layout tab → Export, and what Import reads):
+**Exported layout file** (**Layout → Export to file…**, and what **Import from file…** reads):
 
 ```json
 { "format": "keystroke-overlay-layouts", "version": 1,

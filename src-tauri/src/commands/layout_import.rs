@@ -5,7 +5,7 @@
 //! cleans every key (`clean_layout_keys` in sanitize.rs). The other layout commands are in assets.rs.
 //! Plan: docs/for-claude/proposals/kle-import.md.
 
-use super::assets::{clean_layout_name, free_id, slug, MAX_LAYOUT_FILE_BYTES, MAX_USER_LAYOUTS, TOO_BIG_FOR_A_LAYOUT};
+use super::assets::{layout_name, slug, unused_id, MAX_LAYOUT_FILE_BYTES, MAX_USER_LAYOUTS, TOO_BIG_FOR_A_LAYOUT};
 use crate::sanitize::clean_layout_keys;
 use crate::server;
 use crate::state::AppState;
@@ -40,7 +40,7 @@ pub async fn pick_layout_source(app: AppHandle) -> Result<Option<Value>, String>
 /// layouts. The same rules as a layout made with New layout: a name, at most MAX_USER_LAYOUTS of your own, a fresh id.
 /// Returns the new layout's id.
 pub fn write_new_layout(name: &str, keys: &Value, existing: &[Value], dir: &std::path::Path) -> Result<String, String> {
-    let name = clean_layout_name(name);
+    let name = layout_name(name);
     if name.is_empty() {
         return Err("Enter a layout name".into());
     }
@@ -51,7 +51,7 @@ pub fn write_new_layout(name: &str, keys: &Value, existing: &[Value], dir: &std:
     if keys.is_empty() {
         return Err("This layout has no keys".into());
     }
-    let id = free_id(&slug(&name), |id| existing.iter().any(|l| l["id"] == id));
+    let id = unused_id(&slug(&name), |candidate| existing.iter().any(|l| l["id"] == candidate));
     let doc = json!({ "id": id, "name": name, "keys": keys });
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     std::fs::write(
