@@ -21,10 +21,10 @@ export const byTest = (name, extra = '') => `[data-test="${name}"]${extra}`;
 /** Like byTest, but matches every hook whose name starts with `prefix`, e.g. all generated controls ('control-'). */
 export const byTestStart = (prefix, extra = '') => `[data-test^="${prefix}"]${extra}`;
 
-/** Connect to the test app's settings window. */
-export async function connect() {
+/** Waits (up to 20 seconds) for the test app's settings window to show up on the debug port; returns its target. */
+async function findSettingsWindow() {
   let target;
-  for (let i = 0; i < 80 && !target; i++) {
+  for (let attempt = 0; attempt < 80 && !target; attempt++) {
     try {
       target = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(
         (x) => x.type === 'page' && x.url.includes('tauri.localhost'),
@@ -35,6 +35,49 @@ export async function connect() {
     if (!target) await sleep(250);
   }
   if (!target) throw new Error('settings window not found on the debug port (is the test app running?)');
+  return target;
+}
+
+/** The value an evaluation returned, or an error carrying the page's exception text. */
+function valueOrThrow(answer) {
+  if (answer.result.exceptionDetails)
+    throw new Error(
+      JSON.stringify(answer.result.exceptionDetails.exception?.description ?? answer.result.exceptionDetails.text),
+    );
+  return answer.result.result.value;
+}
+
+/**
+ * Run JavaScript in a page that runs in its own browser process (site isolation), so it is a separate debug target:
+ * attach to it directly, ask once, and close.
+ */
+async function evalInSeparateTarget(originPart, body) {
+  const target = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(
+    (x) => x.type !== 'page' && (x.url || '').includes(originPart),
+  );
+  if (!target) throw new Error('no page found for ' + originPart);
+  const socket = new WebSocket(target.webSocketDebuggerUrl);
+  await new Promise((r) => (socket.onopen = r));
+  const answer = await new Promise((res) => {
+    socket.onmessage = (e) => {
+      const m = JSON.parse(e.data);
+      if (m.id === 1) res(m);
+    };
+    socket.send(
+      JSON.stringify({
+        id: 1,
+        method: 'Runtime.evaluate',
+        params: { expression: `(async()=>{${body}})()`, awaitPromise: true, returnByValue: true },
+      }),
+    );
+  });
+  socket.close();
+  return valueOrThrow(answer);
+}
+
+/** Connect to the test app's settings window. */
+export async function connect() {
+  const target = await findSettingsWindow();
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((r) => (ws.onopen = r));
   let id = 0;
@@ -60,16 +103,13 @@ export async function connect() {
     });
   /** Run JavaScript in the settings page (async body, use `return`). */
   const ev = async (body) => {
-    const r = await send('Runtime.evaluate', {
-      expression: `(async()=>{${body}})()`,
-      awaitPromise: true,
-      returnByValue: true,
-    });
-    if (r.result.exceptionDetails)
-      throw new Error(
-        JSON.stringify(r.result.exceptionDetails.exception?.description ?? r.result.exceptionDetails.text),
-      );
-    return r.result.result.value;
+    return valueOrThrow(
+      await send('Runtime.evaluate', {
+        expression: `(async()=>{${body}})()`,
+        awaitPromise: true,
+        returnByValue: true,
+      }),
+    );
   };
   /** Call a Tauri command; resolves to {ok} or {err}. */
   const invoke = (cmd, args) =>
@@ -82,46 +122,16 @@ export async function connect() {
     const c = [...contexts]
       .reverse()
       .find((c) => (c.origin || '').includes(originPart) && c.auxData?.isDefault !== false);
-    if (c) {
-      const r = await send('Runtime.evaluate', {
-        expression: `(async()=>{${body}})()`,
-        awaitPromise: true,
-        returnByValue: true,
-        contextId: c.id,
-      });
-      if (r.result.exceptionDetails)
-        throw new Error(
-          JSON.stringify(r.result.exceptionDetails.exception?.description ?? r.result.exceptionDetails.text),
-        );
-      return r.result.result.value;
-    }
-    // When the frame runs in its own browser process (site isolation), it is a separate debug target: attach to it
-    // directly.
-    const t = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(
-      (x) => x.type !== 'page' && (x.url || '').includes(originPart),
-    );
-    if (!t) throw new Error('no page found for ' + originPart);
-    const w2 = new WebSocket(t.webSocketDebuggerUrl);
-    await new Promise((r) => (w2.onopen = r));
-    const out = await new Promise((res) => {
-      w2.onmessage = (e) => {
-        const m = JSON.parse(e.data);
-        if (m.id === 1) res(m);
-      };
-      w2.send(
-        JSON.stringify({
-          id: 1,
-          method: 'Runtime.evaluate',
-          params: { expression: `(async()=>{${body}})()`, awaitPromise: true, returnByValue: true },
+    if (c)
+      return valueOrThrow(
+        await send('Runtime.evaluate', {
+          expression: `(async()=>{${body}})()`,
+          awaitPromise: true,
+          returnByValue: true,
+          contextId: c.id,
         }),
       );
-    });
-    w2.close();
-    if (out.result.exceptionDetails)
-      throw new Error(
-        JSON.stringify(out.result.exceptionDetails.exception?.description ?? out.result.exceptionDetails.text),
-      );
-    return out.result.result.value;
+    return evalInSeparateTarget(originPart, body);
   };
   return { ev, evIn, send, invoke, q: (expr) => ev(`return ${expr}`), close: () => ws.close() };
 }
