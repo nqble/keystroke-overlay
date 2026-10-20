@@ -1,6 +1,7 @@
 # Proposal: Import from KLE
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Proposed**; steps 1–7 and 9 built as a trial on the branch advisor/kle-import (not merged); linking keys
+(steps 8, 10, 11) not built yet. (2026-10-19, Advisory session research; not approved)
 
 Lets someone turn a layout they drew on keyboard-layout-editor.com (KLE) into one of their own layouts in one step, and then
 link any key the app couldn't recognize on the Keys tab. It is the base for the other keyboard files in
