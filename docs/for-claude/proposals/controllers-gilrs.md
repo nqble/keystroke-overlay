@@ -58,7 +58,7 @@ fit gilrs's code (a stop signal for the XInput thread and the macOS run loop, a 
 "input only" open on Linux). gilrs is MIT/Apache-2.0 and active (releases in 2026-01 and 2026-05), so sending them upstream
 is realistic; until they are released we would have to wait, or pin a reviewed fork (open question 2).
 
-## Step 1: the spike (built, waiting for Jordan's measurements)
+## Step 1: the spike (built; Windows idle numbers in, controller checks still open)
 
 On the branch `advisor/controllers`, not merged. How to run it and the measurement checklist:
 [DEBUGGING.md, Trying the controller spike](../../DEBUGGING.md#trying-the-controller-spike).
@@ -89,7 +89,19 @@ controller test could not run here):
 
 The ignored test `count_threads_over_on_off_cycles` shows the same: one more `gilrs` thread after every on/off (2 → 22
 threads over 20 cycles). This confirms the Linux row of "What gilrs does on each system": the udev thread is not stopped
-with gilrs. Windows and macOS need Jordan's machines (DEBUGGING.md's checklist).
+with gilrs. macOS needs Jordan's Mac (DEBUGGING.md's checklist); Windows is below, without a controller.
+
+**Measured on Windows** (2026-10-20, Windows 11 Home 10.0.22631, Intel i7-10700F, 16 logical processors; a debug build run with `npm run dev:debug`-style `tauri dev --features gamepad` from `advisor/controllers` at `eabdb45`; **no controller was connected**, the settings window was closed, the PC was idle; threads from the process's thread list, wakeups from the `\Thread(keyoverlay*)\Context Switches/sec` counter averaged over 10 s, 20 s after the window was closed; thread numbers are Windows indexes, the names are not available):
+
+| | Threads | CPU in 60 s idle | Threads waking more than 0.2 times a second | Context switches a second, all threads |
+|---|---|---|---|---|
+| Built with the feature, `KEYOVERLAY_GAMEPAD` not set | 16 (15 a minute later) | 0 ms | 0 | 0 |
+| `KEYOVERLAY_GAMEPAD=1` | 20 (17 a minute later) | 0 ms | 2: one at about 97 a second, one at 1.2 | about 98 |
+| `KEYOVERLAY_GAMEPAD=cycle` (20 on/off cycles, then on) | 37 (36 a minute later) | 0 ms | 22: **about 20 threads each at 98 to 100 a second** | about 2045 |
+
+What this says: with the feature built in but not switched on, nothing changes (the same idle as a normal build). With it on and no controller, the XInput polling thread wakes about 100 times a second (the advisor's expectation), about 98 switches a second in total. **Each on/off cycle on Windows leaves one polling thread behind that keeps waking about 100 times a second** (22 busy threads after 20 cycles, about 2045 switches a second): unlike the Linux leftovers, which sleep, these do not. So gilrs's XInput backend has no way to stop, and an on/off switch in the settings window would pile up threads unless the thread is started once and kept (or the backend is fixed upstream). CPU time rounds to 0 ms because the measurement's clock moves in 15.6 ms steps: the switch counts are the useful number; a per-second CPU figure needs a tool with finer resolution (Process Explorer or a performance trace).
+
+**Not measured (needs a controller and Jordan, who has no controller at hand):** one connected controller untouched; whether A shows as `PadA` in the Key monitor; the trial layout lighting in the overlay; buttons with a full-screen game in front; macOS.
 
 **Dependency impact measured** (`cargo tree -e normal`, with and without `--features gamepad`; the default build is
 unchanged, only `Cargo.lock` gains the entries):
