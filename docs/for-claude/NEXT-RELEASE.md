@@ -14,8 +14,7 @@ becomes the draft notes for the version after it.
 
 ## Draft release notes for v2.0.0 (for Jordan to read; moves into CHANGELOG.md on release day)
 
-Written 2026-10-20 from the commits on `advisor/v2.0`. Not final: KLE import is added once its design pass is done, and
-the Performance numbers come from a `tests/bench/run.mjs` run of v1.4.0 and v2.0 on the same PC before the release (the
+Written 2026-10-20 from the commits on `advisor/v2.0`. Not final: the Performance numbers come from a `tests/bench/run.mjs` run of v1.4.0 and v2.0 on the same PC before the release (the
 ones below are single measurements, not a benchmark).
 
 ```markdown
@@ -26,6 +25,8 @@ ones below are single measurements, not a benchmark).
 - **A new settings window.** Every tab has been redesigned: layout cards you can reorder and hide, a theme gallery and preset cards on the Style tab (with Fonts now part of it), animation cards that play their own animation when you point at them, and General in tidy section cards.
 - **Eight more built-in layouts:** 60%, 65%, 75%, 96%, full-size ISO, TKL ISO, Arrows and Numpad, under **Other layouts** in the New layout popup.
 - **A first-run setup** walks new users through adding the overlay to OBS.
+- **Import a keyboard from KLE.** Drew your board on keyboard-layout-editor.com? **+ New layout → From a KLE file** turns it into a layout with the same keys, places and sizes, and links each key by its label. Keys the computer never sees, like Fn, stay on the board, drawn dashed in the preview so you know before you create it.
+- **New layout has three ways to start:** Blank, Built-in, or From a KLE file.
 - **OBS scene rules.** Hide the overlay, or show a different layout, in the OBS scenes you choose (**General → OBS scenes → Edit scenes…**). Off until you turn it on.
 - **A pause shortcut** that works from any app, even in a game (**General → Pause shortcut**). Off until you set one.
 - **Key labels follow your keyboard language,** live, on Windows, Mac and Linux, so an AZERTY or QWERTZ keyboard shows its own letters.
