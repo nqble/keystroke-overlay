@@ -1,6 +1,6 @@
 # Proposal: mouse buttons and wheel
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved, nothing built)
+Status: **Open idea** (Jordan, 2026-10-20: wanted eventually, likely not in v2.0; the design of mouse buttons and wheel is still to be worked out; nothing built)
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../../design/future-inputs.md) for the names, the protocol, the settings

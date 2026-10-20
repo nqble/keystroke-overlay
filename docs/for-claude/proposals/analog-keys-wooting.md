@@ -1,6 +1,6 @@
 # Proposal: analog key pressure with the Wooting Analog SDK
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Open research** (Jordan, 2026-10-20: niche; kept as research that eases a future build, or a path for others to try)
 
 How the overlay could show how far each key is pressed on Hall-effect ("analog") keyboards, using the Wooting Analog SDK
 that the user installs, without breaking the idle-CPU and privacy promises.
