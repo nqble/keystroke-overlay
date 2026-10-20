@@ -1,8 +1,8 @@
 # Libraries copied into the settings window
 
-Copied by `tools/vendor.mjs` (versions and fingerprints in `VENDOR.json`); never edit these files by hand. Both licences
-are permissive and fit this MIT project; each library's full licence text is copied next to it (`*.LICENSE.txt`), as both
-licences require. Plan: [docs/proposals/v2-preact.md](../../../docs/proposals/v2-preact.md).
+Copied by `tools/vendor.mjs` (versions and fingerprints in `VENDOR.json`); never edit these files by hand. Both licenses
+are permissive and fit this MIT project; each library's full license text is copied next to it (`*.LICENSE.txt`), as both
+licenses require. Plan: [docs/for-claude/proposals/done/v2-preact.md](../../../docs/for-claude/proposals/done/v2-preact.md).
 
 | Library | Version | Licence | Source |
 |---|---|---|---|
