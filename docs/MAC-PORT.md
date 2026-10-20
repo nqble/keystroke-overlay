@@ -191,7 +191,7 @@ connected.
 
 Read from the `auto-launch` crate source (the autostart plugin uses `MacosLauncher::LaunchAgent`): turning it on writes
 `~/Library/LaunchAgents/<app name>.plist` pointing at the running app and its `--autostart` argument; turning it off removes
-that file. Jordan turned it on in the real app: the app then appeared in System Settings under the background items ("Allow in the Background"), not in the "Open at Login" list at the top, which is how macOS lists a LaunchAgent; whether it starts after a real log in was not tried. To check by hand: open
+that file. Jordan turned it on in the real app: the app then appeared in System Settings under the background items ("Allow in the Background"), not in the "Open at Login" list at the top, which is how macOS lists a LaunchAgent; after a real log in it started and stayed in the menu bar without opening the settings window, which is intended (`open_window_at_launch` in `main.rs` skips the window for an `--autostart` start). To check by hand: open
 General, scroll to Startup, turn **Open at login** on, look for the file with `ls ~/Library/LaunchAgents | grep -i keystroke`,
 turn it off, and look again (it should be gone). A login item points at the app's current location, so it breaks if the app is
 moved or rebuilt elsewhere.
