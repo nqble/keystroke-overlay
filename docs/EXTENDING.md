@@ -5,7 +5,9 @@ and not a general plugin system: [decision 0006](decisions/0006-layouts-themes-a
 
 ## 1. A layout
 **In the app:** Layout tab → the dashed **+ New layout** card → name it. It starts as the full-size keyboard; hide the keys you don't
-want in the Keys tab. **By hand:** write a JSON file; format in [FILE-FORMATS.md](FILE-FORMATS.md). To ship it with the
+want in the Keys tab. **From a KLE file:** the same popup's **From a KLE file…** makes one from a keyboard drawn on
+keyboard-layout-editor.com (reading: `ui/settings/kle.js` and `kle-layout.js`; the legend table that links keys:
+`ui/settings/key-names.js`). **By hand:** write a JSON file; format in [FILE-FORMATS.md](FILE-FORMATS.md). To ship it with the
 app, put it in `ui/overlay/layouts/`: it appears in the New layout popup's "Other layouts" by itself. To show it on
 new installs, add its id to `DEFAULT_ORDER` in `src-tauri/src/layout_order.rs`.
 

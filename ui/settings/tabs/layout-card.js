@@ -19,14 +19,22 @@ const WORDS = {
   remove: 'Delete…',
 };
 
-/** The layout's keys as small rectangles, scaled to fit the card (only geometry is set here; blocks.css colors them). */
-export function LayoutPicture({ keys }) {
+// The label size inside a key of the picture, in key units (the picture's viewBox is one unit per key).
+const PICTURE_LABEL_SIZE = 0.3;
+
+/**
+ * The layout's keys as small rectangles, scaled to fit (only geometry is set here; blocks.css colors them). `labels`
+ * writes each key's label in it (the Import from KLE popup); `marked` is a set of codes drawn dashed (keys that can't
+ * light up).
+ */
+export function LayoutPicture({ keys, labels = false, marked = null }) {
   const width = Math.max(1, ...keys.map((key) => key.x + (key.w ?? 1)));
   const height = Math.max(1, ...keys.map((key) => key.y + (key.h ?? 1)));
   return html`<svg class="layout-picture" viewBox=${`0 0 ${width} ${height}`} aria-hidden="true">
     ${keys.map(
       (key) =>
         html`<rect
+          class=${marked?.has(key.code) ? 'marked' : null}
           x=${key.x + 0.06}
           y=${key.y + 0.06}
           width=${(key.w ?? 1) - 0.12}
@@ -34,6 +42,22 @@ export function LayoutPicture({ keys }) {
           rx="0.12"
         />`,
     )}
+    ${
+      labels
+        ? keys.map(
+            (key) =>
+              html`<text
+                x=${key.x + (key.w ?? 1) / 2}
+                y=${key.y + (key.h ?? 1) / 2}
+                font-size=${PICTURE_LABEL_SIZE}
+                text-anchor="middle"
+                dominant-baseline="central"
+              >
+                ${key.label ?? ''}
+              </text>`,
+          )
+        : null
+    }
   </svg>`;
 }
 

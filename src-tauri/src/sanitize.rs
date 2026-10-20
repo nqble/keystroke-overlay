@@ -1,6 +1,7 @@
 //! Cleaning settings that come from outside (a hand-edited settings.json, an imported preset or layout): anything of
 //! the wrong type goes back to its default, numbers are kept in range, and text, colors and ids are checked, so no file
 //! can break the overlay. `sanitize` walks the defaults; the tables of special rules sit right above `clean_value`.
+//! `clean_layout_keys` does the same for the keys of a layout file from outside (Import…, a KLE file).
 //! Defaults, migrations, loading and saving are in settings.rs, which also holds the tests.
 use serde_json::{json, Map, Value};
 
@@ -143,6 +144,58 @@ fn clean_sizes(value: Option<&Value>) -> Value {
         }
     }
     Value::Object(out)
+}
+
+/// The most keys a layout file may have. Keep in step with MAX_LAYOUT_KEYS in ui/settings/kle-layout.js.
+pub(crate) const MAX_LAYOUT_KEYS: usize = 300;
+/// The longest key label, in characters. Keep in step with MAX_LABEL_LENGTH in ui/settings/kle-layout.js.
+const MAX_LABEL_LENGTH: usize = 16;
+/// The longest key code, in bytes (the same rule as the key edits above).
+const MAX_CODE_LENGTH: usize = 40;
+
+/// A key code is ASCII letters and digits only ("KeyA", "Numpad7", "Unlinked3"): a file from outside can't slip markup,
+/// spaces or control characters into a code that the overlay later uses as a name.
+fn is_key_code(code: &str) -> bool {
+    !code.is_empty() && code.len() <= MAX_CODE_LENGTH && code.chars().all(|c| c.is_ascii_alphanumeric())
+}
+
+/// One key of a layout file from outside, cleaned: its code, x and y (limited to MIN_POSITION..MAX_POSITION), w and h
+/// when given (limited to MIN_KEY_WIDTH..MAX_KEY_WIDTH), all rounded to 2 decimals, and its label cut to
+/// MAX_LABEL_LENGTH characters. None when the code or the place is missing or broken.
+fn clean_layout_key(raw_key: &Value) -> Option<Value> {
+    let code = raw_key["code"].as_str().filter(|code| is_key_code(code))?;
+    let finite = |field: &str| raw_key[field].as_f64().filter(|n| n.is_finite());
+    let place = |units: f64| round_to_hundredths(units.clamp(MIN_POSITION, MAX_POSITION));
+    let mut key = json!({ "code": code, "x": place(finite("x")?), "y": place(finite("y")?) });
+    for field in ["w", "h"] {
+        if let Some(length) = finite(field) {
+            key[field] = json!(round_to_hundredths(length.clamp(MIN_KEY_WIDTH, MAX_KEY_WIDTH)));
+        }
+    }
+    if let Some(label) = raw_key["label"].as_str() {
+        key["label"] = json!(label.chars().take(MAX_LABEL_LENGTH).collect::<String>());
+    }
+    Some(key)
+}
+
+/// The keys of a layout that comes from outside (an imported file, a KLE file): the first MAX_LAYOUT_KEYS entries of
+/// the list, each cleaned by `clean_layout_key`. A broken key is dropped, and so is a key whose code an earlier key
+/// already has: the overlay finds keys by code, and key edits are saved by code, so a code may appear only once.
+/// Without the limits, a key at x 1e9 would make the Keys tab's board a billion keys wide.
+pub fn clean_layout_keys(raw_keys: &Value) -> Vec<Value> {
+    let mut seen_codes = std::collections::HashSet::new();
+    let mut keys = Vec::new();
+    for raw_key in raw_keys.as_array().into_iter().flatten().take(MAX_LAYOUT_KEYS) {
+        let Some(key) = clean_layout_key(raw_key) else {
+            continue;
+        };
+        // clean_layout_key always gives the key a text code, so the fallback is never used
+        let code = key["code"].as_str().unwrap_or_default().to_string();
+        if seen_codes.insert(code) {
+            keys.push(key);
+        }
+    }
+    keys
 }
 
 /// One layout style's edits: only the parts that have something in them, so untouched profiles stay small.

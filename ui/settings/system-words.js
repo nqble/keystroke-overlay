@@ -14,6 +14,12 @@ const WORDS = {
   trayName: { windows: 'tray', macos: 'menu bar', linux: 'tray' },
   // the modifiers a shortcut needs, in words, for the pause shortcut's hint
   modifiers: { windows: 'Ctrl, Alt or Win', macos: '⌘, ⌥ or ⌃', linux: 'Ctrl, Alt or Super' },
+  // what the Control, Alt and Meta keys are called, for key names such as "Left Ctrl" (ui/settings/key-names.js)
+  modifierKeys: {
+    windows: { Control: 'Ctrl', Alt: 'Alt', Meta: 'Win' },
+    macos: { Control: '⌃ Control', Alt: '⌥ Option', Meta: '⌘ Command' },
+    linux: { Control: 'Ctrl', Alt: 'Alt', Meta: 'Super' },
+  },
   // the Keys tab's hint line: how to add a key to the selection, and the key that hides keys (a Mac calls it "delete")
   dragHint: {
     windows: 'Drag a key to move it. Ctrl-click to add.',

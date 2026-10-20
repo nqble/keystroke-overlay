@@ -1,6 +1,9 @@
 # Proposal: Import from KLE
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Proposed**; steps 1–7 and 9 built as a trial on the branch advisor/kle-import (not merged). Jordan decided
+(2026-10-20) that keys the app can't link stay in the layout, unlit, and the import popup names them before the layout is
+made; linking a key by pressing it (steps 8, 10, 11) is a possible later addition, not needed to ship. Whether KLE import
+ships is still Jordan's call.
 
 Lets someone turn a layout they drew on keyboard-layout-editor.com (KLE) into one of their own layouts in one step, and then
 link any key the app couldn't recognize on the Keys tab. It is the base for the other keyboard files in
@@ -13,8 +16,8 @@ link any key the app couldn't recognize on the Keys tab. It is the base for the 
 2. Every key whose legend names a key the app can see (`Esc`, `Q`, `!` over `1`, `Shift`, `↑`, `Num Lock`, ...) is linked
    to it by itself. Most standard 60%, TKL and full-size files need nothing else.
 3. Keys the app could not link (an `Fn` key, a macro key, a blank key, a key with an icon it doesn't know) are kept in the
-   layout, drawn like any other key, and marked **Not linked** on the Keys tab, where you link each one by pressing it or
-   picking it from a list.
+   layout, drawn like any other key so the board looks like the real one, never light up, and are named in the import
+   popup before the layout is made ("1 key can't light up: Fn. …").
 4. Everything the file contains is cleaned by the app's Rust side before it is saved, exactly as for **Import…** today.
 
 ## Non-goals
@@ -45,7 +48,8 @@ link any key the app couldn't recognize on the Keys tab. It is the base for the 
    layout"), and up to four short lines:
    - "61 keys."
    - "58 linked to your keyboard." (always shown)
-   - "3 not linked yet. You'll link them on the Keys tab." (only when some aren't)
+   - "1 key can't light up: Fn. The app can't tell which key it is (Fn, for example, never reaches your computer), so
+     it's shown but stays unlit." (only when some aren't; up to four names, then "and N more")
    - "8 turned keys shown straight." / "4 keys left out: decorations and extra layout choices." (only when it happened)
 
    Buttons: **Cancel** and **Create layout** (primary).

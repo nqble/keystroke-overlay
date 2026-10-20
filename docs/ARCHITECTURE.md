@@ -59,6 +59,7 @@ keystroke-overlay/
 │           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart, input method, secure link, reset, first run, copy, quit
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
+│           ├── layout_import.rs  a layout from a keyboard file the user picks (KLE): the file picker and add_layout (keys cleaned by sanitize.rs)
 │           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
 │           ├── actions.rs    pause / layout / restart wrappers
 │           └── updates.rs    update check + install, release notes, "What's new"
@@ -83,11 +84,15 @@ keystroke-overlay/
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved and resized keys; the snap helpers
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
-        ├── dialogs.js     New layout and Reset all settings, built on popup.js
+        ├── dialogs.js     New layout (Start from: Blank, Built-in, From a KLE file) and Reset all settings, built on popup.js
         ├── obs-scenes-popup.js  the Edit scenes popup (General → OBS scenes); its row rules in obs-scene-rules.js
         ├── first-run.js   the first run setup screen (new installs; General → First run setup opens it again)
-        ├── other-layouts.js  "Other layouts" in the New layout popup: built-in layouts not on the Layout tab
+        ├── other-layouts.js  New layout's Built-in choice: built-in layouts not on the Layout tab
         ├── layout-order.js  which layouts the Layout tab shows and in what order; moving and dropping (tested)
+        ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
+        ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
+        ├── kle-layout.js  KLE keys → a layout: places (turned keys straightened), each key's code from its legends, Unlinked<n> placeholders (tested)
+        ├── kle-import-popup.js  New layout's From a KLE file choice and the Import from KLE popup (picture, name, what was found)
         ├── menu.js        the small "⋯" and right-click menus; no browser right-click menu, no dragging except layout cards
         ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
         ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup

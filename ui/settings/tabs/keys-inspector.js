@@ -5,6 +5,7 @@
 // =====================================================================================================================
 import { useId } from '../blocks.js';
 import { html, useLayoutEffect, useRef } from '../html.js';
+import { PLACEHOLDER_PREFIX } from '../kle-layout.js';
 import { changed } from '../preview.js';
 import {
   MAX_KEY_WIDTH,
@@ -96,6 +97,14 @@ function ShowBox({ checked, indeterminate = false, onChange }) {
   </label>`;
 }
 
+const CANT_LIGHT_UP = "can't light up";
+
+/** "Key: KeyA"; a key imported from KLE that the app couldn't link shows its label instead of its placeholder code. */
+function keyTitle(layoutKey) {
+  if (!layoutKey.code.startsWith(PLACEHOLDER_PREFIX)) return `Key: ${layoutKey.code}`;
+  return `${layoutKey.label || 'Blank key'} · ${CANT_LIGHT_UP}`;
+}
+
 /** The inspector for one key: show or hide it, give it a label, set its width, height and exact place. */
 function KeyInspector({ layoutKey, profile, overlaps }) {
   const code = layoutKey.code;
@@ -120,7 +129,7 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
   const edited = !!(profile.positions[code] || profile.sizes[code]);
   return html`<div class="editor" data-test="key-editor">
     <div class="inspector-title">
-      <b data-test="key-editor-title">Key: ${code}</b>
+      <b data-test="key-editor-title">${keyTitle(layoutKey)}</b>
       <${ShowBox} checked=${!profile.disabledKeys.includes(code)} onChange=${(shown) => setShown([code], shown)} />
     </div>
     <${Row} label="Label" fieldId=${ids.label}>

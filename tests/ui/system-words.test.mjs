@@ -40,6 +40,12 @@ test('the pause shortcut hint names the right modifiers', () => {
   assert.equal(systemWord('modifiers', 'windows'), 'Ctrl, Alt or Win');
 });
 
+test('each system names the Control, Alt and Meta keys its own way', () => {
+  assert.deepEqual(systemWord('modifierKeys', 'windows'), { Control: 'Ctrl', Alt: 'Alt', Meta: 'Win' });
+  assert.equal(systemWord('modifierKeys', 'macos').Meta, '⌘ Command');
+  assert.equal(systemWord('modifierKeys', 'linux').Meta, 'Super');
+});
+
 test('the Keys tab hint uses Command-click and "delete" on a Mac', () => {
   assert.match(systemWord('dragHint', 'macos'), /⌘-click/);
   assert.match(systemWord('dragHint', 'windows'), /Ctrl-click/);

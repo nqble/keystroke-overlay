@@ -142,7 +142,7 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Other layouts** in the New layout popup. **Import… / Export…** share your layouts as a file. |
+| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20), starting **Blank**, from a **Built-in** layout, or **From a KLE file** (a keyboard you drew on keyboard-layout-editor.com). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Built-in** in the New layout popup. **Import… / Export…** share your layouts as a file. |
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** slides keys together to close the space left by hidden or moved keys, keeping the shape. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts, and where **Key labels** chooses between the letters your keyboard prints (**My keyboard**) and the layout file's own. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
@@ -207,9 +207,20 @@ yourself. [PRIVACY.md](../PRIVACY.md) lists each request.
 **In the app (easiest):** open the **Layout** tab and click the dashed **+ New layout** card. Give it a name and it starts as a copy of the
 full-size keyboard. Then, in the **Keys** tab, hide the keys you don't want and relabel the ones you do. You can make up to **20**
 layouts (a counter shows how many you've used). To remove one, open its **⋯** menu (or right-click it) and choose **Delete…**.
-Built-in layouts can be hidden the same way (**Hide**) and brought back from **Other layouts** in the New layout popup, which
+Built-in layouts can be hidden the same way (**Hide**) and brought back from **Built-in** in the New layout popup, which
 also has more keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad). Drag the cards, or press **Alt+←** / **Alt+→**, to put
 them in the order you like; the tray menu uses the same order.
+
+**From a keyboard you drew on keyboard-layout-editor.com (KLE):** save it there with **Download → Download JSON**, then in
+the New layout popup choose **From a KLE file** and click **Choose file…**. A popup shows the layout with its key labels,
+its name (you can change it) and one line on what was found ("61 keys · 60 light up · 1 can't: Fn"); **Create layout**
+makes it and opens the **Keys** tab, and **Back** returns to New layout. Keys
+keep their places and sizes. Turned keys (thumb clusters, Alice-style boards) are placed straight at the same spot, and
+odd-shaped keys such as an ISO Enter become one rectangle. Decorations, faint "ghost" keys and the file's colors and fonts
+are left out. A key the app can't link (an **Fn** key, a macro key, a blank key) is still drawn, so the board looks like
+yours, but it never lights up; the popup draws these keys dashed and names them before you create the layout, and the Keys tab
+calls them, for example, "Fn · can't light up" (delete one there if you'd rather not see it). The
+file itself is only read: nothing is sent anywhere, and the app never opens the KLE website.
 
 **Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (the copy gets its own file; its name stays the same), and they count toward the 20-layout limit.
 
