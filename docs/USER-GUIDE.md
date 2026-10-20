@@ -50,6 +50,14 @@ These OBS settings make the biggest difference to how smooth the overlay looks a
 - **Hardware acceleration:** in OBS, **Settings → Advanced → Sources → Enable Browser Source Hardware Acceleration** should be
   on (it is by default). The overlay's animations are designed to run on the graphics card.
 
+### Other streaming apps
+
+The overlay is an ordinary web page, so any streaming app that can show one should work the same way: Streamlabs
+Desktop (**Browser Source**), XSplit (**Webpage**), vMix (**Web Browser** input), Meld Studio (**Browser**), and others.
+Paste the OBS URL, set the size the app shows, and leave the background transparent. Two things are OBS-only:
+**General → OBS scenes** (it listens for OBS's scene changes) and the **Page permissions** setting. These apps aren't
+tested by this project; if one doesn't work, [open an issue](https://github.com/nqble/keystroke-overlay/issues) naming it.
+
 ## Using two PCs (game on one, OBS on the other)
 
 Keystroke Overlay only talks to `127.0.0.1`, which means "this PC", so OBS has to run on the **same PC as the app**. If you play on
@@ -152,6 +160,12 @@ While the app runs it quietly checks GitHub about once an hour, so a new version
 - **Latest** — every release as soon as it is published, including the small fixes in between (1.2.1, 1.2.2, …).
 
 After an update, a **What's new** window shows the release notes once. You can reopen them anytime with **General → Updates → Release notes**.
+
+**Using it offline.** The app never needs the internet: capturing keys, the overlay, OBS and every setting work without
+it. To make sure it never goes online, turn off **General → Updates → Check automatically**; then it only contacts
+GitHub when you click **Check now**, **Update now** or **Release notes**. You can also block it in your firewall. You then
+update by downloading a new version from the [Releases](https://github.com/nqble/keystroke-overlay/releases) page
+yourself. [PRIVACY.md](../PRIVACY.md) lists each request.
 
 ## Make your own layout
 
