@@ -28,7 +28,7 @@
 
 ## Why Keystroke Overlay
 
-- 🪶 **Light.** About 3 MB of memory and ~0% CPU when idle. The installer is about 2.3 MB.
+- 🪶 **Light.** About 3 MB of memory on Windows and ~0% CPU when idle. The installer is about 2.3 MB.
 - 🎮 **Works in games.** It sees your keys while a game has focus, and has a Compatibility mode for games that block
   the usual method. [Games tested so far](docs/GAMES.md).
 - 🎨 **Yours to design.** Pick a keyboard or build your own, then choose a theme, fine-tune every color and add an
@@ -88,7 +88,7 @@ troubleshooting.
 This app has to read your keyboard to work, so here is exactly what happens:
 
 ```
-your keyboard → Windows → Keystroke Overlay (in memory) → a page on YOUR PC (127.0.0.1) → OBS
+your keyboard → your system → Keystroke Overlay (in memory) → a page on YOUR PC (127.0.0.1) → OBS
 ```
 
 - Keys are **never written to disk, logged or sent** over the network.
@@ -138,7 +138,7 @@ npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":fals
 
 First launch, keyboard access and troubleshooting: [docs/USER-GUIDE.md](docs/USER-GUIDE.md#on-a-mac).
 
-Built with [Tauri](https://tauri.app) (Rust + WebView2), plain JavaScript with [Preact](https://preactjs.com) in the
+Built with [Tauri](https://tauri.app) (Rust + the system's own web view), plain JavaScript with [Preact](https://preactjs.com) in the
 settings window, and the help of [Claude Code](https://claude.com/claude-code).
 
 ## Contributing

@@ -1,9 +1,9 @@
 # Linux port
 
-Status: **in progress.** Keyboard capture works on **X11 desktops** (from v1.4) and, on v2.0, on
+Status: **shipped in v2.0 (early).** Keyboard capture works on **X11 desktops** (from v1.4) and, on v2.0, on
 **Wayland desktops** by reading the keyboard devices (built, unit-tested, and passing in CI on a virtual Wayland desktop since 2026-10-18).
-From v2.0, every release attaches an **AppImage and a .deb** ([RELEASING.md](RELEASING.md), Linux download); in-app updates on Linux
-are prepared but off. This page is the state and the plan, so anyone on Linux can pick up the next step. For working on the
+From v2.0, every release attaches an **AppImage and a .deb** ([RELEASING.md](RELEASING.md), Linux download); the AppImage updates
+itself in the app, the .deb is a download. This page is the state and the plan, so anyone on Linux can pick up the next step. For working on the
 code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
 
 ## What already works on Linux
@@ -18,7 +18,7 @@ code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
 | Keyboard capture, Wayland | built on v2.0: the Standard method reads the keyboard devices (`keyboard/linux_devices.rs`), which needs the `input` group; the settings window explains it |
 | Key labels that follow the keyboard layout, live | works on X11 (`keyboard/x11_labels.rs`, XKB): tested against Xvfb by changing the key map (also in CI); switching between two layout groups not yet seen, because Xvfb does not switch groups for typed keys. On Wayland the labels come from XWayland when it runs, otherwise the layout's own labels |
 | Linux words in the settings window ("Start at login", Super) and Debug-tab memory | works (`ui/settings/system-words.js`, `platform::process_stats`) |
-| Downloads, updates | an AppImage and a .deb on every release from v2.0 (`.github/workflows/linux-app.yml`); no in-app updates yet |
+| Downloads, updates | an AppImage and a .deb on every release from v2.0 (`.github/workflows/linux-app.yml`); the AppImage updates in the app (signed by `linux-publish`), the .deb is download only |
 | Memory given back after the settings window closes | works (`platform::trim_memory`, glibc's `malloc_trim`) |
 
 ## How keys are read
@@ -65,10 +65,10 @@ and `_linux-amd64.deb` on Ubuntu 22.04 with no secrets; `release.yml` attaches t
 (`linux-publish`), and `ci.yml` builds them on every change. The steps and what to know are in
 [RELEASING.md](RELEASING.md), Linux download. Built locally: both bundles, and the AppImage starts.
 
-**In-app updates on Linux (prepared, off, Jordan to switch on):** Tauri's updater can update the AppImage (not the .deb),
-with the same update key. To switch it on: sign the AppImage in `linux-app.yml` (remove `createUpdaterArtifacts: false`
-and pass the signing key like the Windows job), and add a `linux-x86_64` entry to `latest.json` and `stable.json` in
-`tools/release.mjs`. That changes what every installed copy sees, so it waits for Jordan.
+**In-app updates on Linux (from v2.0, AppImage only):** `linux-app.yml` builds without the key; then `linux-publish` in
+`release.yml` signs the finished AppImage and adds `linux-x86_64-appimage` and `linux-x86_64` entries to `latest.json` (and
+`stable.json` for a Stable release). A copy installed from the .deb never checks (`updates_in_app` in
+`commands/updates.rs`) and says to download new versions instead. Details: [RELEASING.md](RELEASING.md), Linux download.
 
 **Stage B, Wayland:** the capture above.
 

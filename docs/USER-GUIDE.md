@@ -125,7 +125,7 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
 - **After changing the address or the key, reload the source in OBS** (right-click it → **Refresh cache of current page**). In the
   test, a page opened before the key was right drew the keyboard but never lit up until it was reloaded.
 - **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only (the SSH server or Tailscale on PC A hands the
-  data over locally), and the app itself uses the network only for update checks. Your key presses travel only through the
+  data over locally), and the app itself uses the network only for updates and release notes. Your key presses travel only through the
   encrypted connection you set up, between your own devices.
 - **Safety of the connection is your job.** Use a normal SSH login, and let only your own devices reach PC A, for example with
   Tailscale access rules. If you set up an SSH server only for this, you can turn it off afterwards (Windows, as administrator:
@@ -172,7 +172,7 @@ Under **General → Connection** (**Secure my OBS URL**) you can choose how lock
 | | What it means |
 |---|---|
 | **Off (default)** | Simple link, nothing extra to do. Other programs running on your PC could read your key presses through it. |
-| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
+| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
 
 **Make a new key** creates a fresh key and cuts off every link made with the old one.
 
@@ -188,7 +188,7 @@ Right-click the tray icon for quick actions without opening settings:
 
 ## Updating
 
-While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window an **Update ready** chip also appears at the top right. Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Updates → Check now** any time.
+While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window an **Update ready** chip also appears at the top right. Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Updates → Check now** any time. On a Mac, and with the Linux .deb, new versions are a download from the Releases page instead (see [On a Mac](#on-a-mac) and [On Linux](#on-linux)).
 
 **Update channel** (General → Updates). Version numbers look like `x.y.z`: **the middle number is Stable, the last number is Latest.**
 - **Stable (recommended)** — the main, well-tested releases (the middle number goes up: 1.2.0, 1.3.0, …).
@@ -242,7 +242,7 @@ keys are held *right now*, so a key can never look stuck. Use **Pause overlay** 
 
 ### Where your keystrokes go
 ```
-your keyboard → Windows → Keystroke Overlay (in memory) → a web page on YOUR PC (127.0.0.1) → OBS on your PC
+your keyboard → your system → Keystroke Overlay (in memory) → a web page on YOUR PC (127.0.0.1) → OBS on your PC
 ```
 Every step happens on your computer, in memory. The moment a key is released, the event is gone.
 
@@ -273,16 +273,17 @@ use updates you can block the app in your firewall and everything else keeps wor
 
 ### Limits, stated plainly
 - The app can see **every** key while it runs, including in password boxes. That is inherent to the job, so use **Pause overlay**.
-- The local overlay server does **not** authenticate other *programs* on the same PC, including other Windows users logged in at the
+- The local overlay server does **not** authenticate other *programs* on the same PC, including other users logged in at the
   same time. A program already running as you could receive key events from it (though it could also install its own keyboard hook).
   You can close this gap with the optional **Secure link** (General → Connection → Secure my OBS URL): your OBS URL then carries a private key and
   the app refuses everything without it. It is off by default, so the link stays simple, and turning it on means pasting the new link into OBS once.
-- Three components are outside our control: **Microsoft Edge WebView2** (draws the settings window; Microsoft's diagnostic-data
-  settings apply to it), **OBS**, and **Windows** itself.
+- Three components are outside our control: the system's web view that draws the settings window (**Microsoft Edge WebView2** on Windows,
+  where Microsoft's diagnostic-data settings apply to it; WKWebView on a Mac; WebKitGTK on Linux), **OBS**, and the
+  operating system itself.
 
 ### Don't trust — verify
 - **Read the code.** It's small, and the network code is in exactly one file (`src-tauri/src/commands/updates.rs`).
-- **Watch it.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on `127.0.0.1` and nothing else.
+- **Watch it.** With the app running, `netstat -ano | findstr <its process id>` on Windows, `lsof -iTCP -a -p <pid>` on a Mac or `ss -tlnp` on Linux shows one listening socket on `127.0.0.1` and nothing else.
 - **Block it.** Deny the app internet access in your firewall: the overlay keeps working, only updates stop.
 - **Let the computer check.** `npm run check:privacy` (it also runs on every change on GitHub) fails the build if network access,
   file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. It is a tripwire
@@ -322,7 +323,7 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
 - **The F row.** On a Mac laptop, F1 to F12 only light up while you hold **Fn**. Without it they are brightness and volume
   keys, which macOS doesn't send as F keys.
 - **Key names.** The overlay shows your own keyboard's names: ⌘ ⌥ ⌃, **delete** and **return**. To use the layout file's
-  names instead, set **Style → Key labels** to **Layout file**.
+  names instead, set **Style → Text → Key labels** to **Layout file**.
 - **Passwords.** While a password box has focus, macOS blocks key capture on purpose, so passwords can never reach the
   overlay. If the app says capture is blocked and it doesn't clear, lock and unlock the screen, or quit the app that is
   holding it.

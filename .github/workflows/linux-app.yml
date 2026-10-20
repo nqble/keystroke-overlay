@@ -2,7 +2,7 @@ name: Linux app
 
 # Builds the Linux downloads (x86-64): an AppImage, which runs on most distributions as one file, and a .deb for Debian and
 # Ubuntu, with the third-party notices beside them, handed on as the workflow artifact "linux-app". Key capture works on
-# X11 desktops; Wayland support is being built (docs/LINUX-PORT.md). Linux updates are signed afterwards, not here:
+# X11 desktops, and on Wayland for users in the input group (docs/LINUX-PORT.md). Linux updates are signed afterwards, not here:
 # release.yml's linux-publish signs the finished AppImage with the update key and adds a Linux entry to the update
 # manifests (docs/RELEASING.md, Linux download).
 #

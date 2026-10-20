@@ -78,8 +78,7 @@ What to know:
   permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
   are in docs/MAC-PORT.md.
 - **The first release that carries the zip (v2.0):** the workflow builds in CI on every pull request and push to the work branches (green since October 2026), but its release jobs (attaching the zip) first run with this release, so check the release page afterwards (or try it first: Actions →
-  **Mac app** → Run workflow, which counts as posting on GitHub: Jordan's OK). Add one Mac line to the README's "Get
-  started" pointing to the user guide's On a Mac section, and say in that release's CHANGELOG entry that a Mac download
+  **Mac app** → Run workflow, which counts as posting on GitHub: Jordan's OK). Say in that release's CHANGELOG entry that a Mac download
   (Apple Silicon, Open Anyway on first launch) is attached.
 - If the Mac job fails, the Windows release is already published. Fix the cause, then re-run only the failed jobs; the
   upload replaces any earlier zip (`--clobber`).
