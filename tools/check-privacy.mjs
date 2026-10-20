@@ -57,7 +57,7 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
     if (/\/keyboard\/|\/server\.rs$/.test(file)) bad(file, n, 'keyboard/server code must never write files');
   });
   scan(file, text, /global_shortcut|GlobalShortcutExt/, (n) => {
-    const allowed = ['src-tauri/src/hotkeys.rs', 'src-tauri/src/main.rs']; // main.rs only loads the plugin
+    const allowed = ['src-tauri/src/hotkeys.rs']; // it also loads the plugin, only once a shortcut is set
     if (!allowed.includes(file)) bad(file, n, 'global shortcuts outside hotkeys.rs');
   });
   scan(file, text, MAC_ACTIVE, (n) =>
