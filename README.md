@@ -68,8 +68,10 @@ only the graphics card's cheapest effects, so streams stay smooth.
 
 ## Get started
 
-1. **Download** the installer from [Releases](https://github.com/nqble/keystroke-overlay/releases/latest) and run it. If Windows
-   shows a SmartScreen warning, click **More info → Run anyway** (releases are not code-signed yet).
+1. **Download** it from [Releases](https://github.com/nqble/keystroke-overlay/releases/latest) and run it: the installer on
+   Windows, the Apple Silicon app on a Mac, the `.deb` or AppImage on Linux. Releases are not code-signed yet, so on Windows
+   click **More info → Run anyway** if SmartScreen warns, and on a Mac allow the first launch in **System Settings → Privacy &
+   Security → Open Anyway** ([details](docs/USER-GUIDE.md#on-a-mac)).
 2. **Copy the OBS URL.** The app opens on three short setup steps the first time.
 3. **In OBS:** Sources → **+** → **Browser**, paste the link and set the size the app shows. Done.
 
