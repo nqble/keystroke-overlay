@@ -1,6 +1,6 @@
 # Proposal: controller input with gilrs
 
-Status: **Proposed** (2026-10-19, Advisory session research; Jordan asked to try it, not approved as a dependency yet)
+Status: **Proposed; step 1 (the spike, behind the off-by-default cargo feature `gamepad`) built on the branch advisor/controllers for Jordan's measurements (not merged); gilrs not approved as a dependency yet**
 
 This plan says how game controllers (gamepads) would reach the overlay through the `gilrs` library: buttons as keys, sticks
 and triggers as analog values. It follows [design/future-inputs.md](../../design/future-inputs.md) for the names, the
@@ -57,6 +57,68 @@ So gilrs as published fits our rules only on Linux, and even there it can't be s
 fit gilrs's code (a stop signal for the XInput thread and the macOS run loop, a waker for the Linux `epoll`, and an
 "input only" open on Linux). gilrs is MIT/Apache-2.0 and active (releases in 2026-01 and 2026-05), so sending them upstream
 is realistic; until they are released we would have to wait, or pin a reviewed fork (open question 2).
+
+## Step 1: the spike (built, waiting for Jordan's measurements)
+
+On the branch `advisor/controllers`, not merged. How to run it and the measurement checklist:
+[DEBUGGING.md, Trying the controller spike](../../DEBUGGING.md#trying-the-controller-spike).
+
+**What was built:** `gamepad/names.rs` (the name table, from an enum of our own, in every build), `gamepad/held.rs` (which
+buttons are held, released when a controller goes away or capture stops; every build), and `gamepad/mod.rs` (only with
+the cargo feature `gamepad`): `start(tx) -> Handle` and `Handle::stop()`, gilrs built with `with_force_feedback(false)` and
+`set_axis_to_btn(0.5, 0.4)`, buttons sent as key events into the keyboard's channel through a new
+`Bus::event_sender()` (also only with the feature). It starts only when `KEYOVERLAY_GAMEPAD=1` (or `cycle`: 20 on/off
+cycles first) is set at launch; there is no settings switch. The privacy check gained the rules listed under Privacy below
+(gilrs only in `gamepad/mod.rs`, no force feedback, `with_force_feedback(false)` required, no file writes in `gamepad/`).
+
+**Left for later on purpose:** sticks and triggers as moving values (`analog.rs`, the `a` message, `server.rs`): too big for
+the spike, which sends buttons only (a trigger counts as a button past 0.5, released below 0.4). The built-in
+`controller.json` layout: every file in `ui/overlay/layouts/` is built into every app, so it would appear in Other layouts
+of the shipped app with nothing able to light it; the trial uses a layout to import instead (DEBUGGING.md), and the file
+comes with step 7. The stop wait: published gilrs offers no waker, so the thread waits at most one second at a time
+(open question 3).
+
+**Measured on Linux** (a container: no controller, no `/dev/uinput`, no udev daemon, Xvfb, debug build; so the virtual
+controller test could not run here):
+
+| | Threads | CPU in 10 s idle | Wakes in 10 s idle |
+|---|---|---|---|
+| Built with the feature, `KEYOVERLAY_GAMEPAD` not set | 30 | 1 tick (10 ms) | no `gamepad` or `gilrs` thread |
+| `KEYOVERLAY_GAMEPAD=1` | 32 (+ `gamepad`, + gilrs's udev thread) | 3 ticks | `gamepad` 10 (the one-second stop check), `gilrs` 0 |
+| `KEYOVERLAY_GAMEPAD=cycle` | 52 (**+ 20 `gilrs` threads left behind**) | 3 ticks | as above; the leftover threads sleep |
+
+The ignored test `count_threads_over_on_off_cycles` shows the same: one more `gilrs` thread after every on/off (2 → 22
+threads over 20 cycles). This confirms the Linux row of "What gilrs does on each system": the udev thread is not stopped
+with gilrs. Windows and macOS need Jordan's machines (DEBUGGING.md's checklist).
+
+**Dependency impact measured** (`cargo tree -e normal`, with and without `--features gamepad`; the default build is
+unchanged, only `Cargo.lock` gains the entries):
+
+| System | New crates |
+|---|---|
+| Linux | `gilrs`, `gilrs-core`, `vec_map`, `inotify`, `inotify-sys`, `libudev-sys` (6; the build needs `libudev-dev` and `pkg-config`) |
+| Windows | `gilrs`, `gilrs-core`, `vec_map`, `rusty-xinput`, `lazy_static`, `winapi` (6: `winapi` is in our lock file but not in today's Windows build, so it is new code there) |
+| macOS | `gilrs`, `gilrs-core`, `vec_map`, `objc2-io-kit` (4) |
+
+Licenses (crate metadata): gilrs, gilrs-core, vec_map, winapi `MIT/Apache-2.0`; lazy_static `MIT OR Apache-2.0`; inotify and
+inotify-sys `ISC`; libudev-sys `MIT`; rusty-xinput and objc2-io-kit `Zlib OR Apache-2.0 OR MIT`. All are already in
+`src-tauri/about.toml`'s accepted list. Build scripts: gilrs's only filters SDL_GameControllerDB into `OUT_DIR`;
+libudev-sys's runs pkg-config and test-compiles with `rustc` in `OUT_DIR`; inotify-sys has one.
+
+**If the feature were ever in a release** (nothing changed in the release setup now):
+- `tools/notices.mjs` runs `cargo about generate` without features, so the notices would leave gilrs out: it would need
+  `--features gamepad` (or the feature on by default by then).
+- The embedded SDL_GameControllerDB (zlib) is not in any crate's license field, so cargo-about won't list it. The zlib
+  license asks for no notice in a binary, but a line for it in `src-tauri/about.hbs` (or a `clarify` entry in `about.toml`)
+  is the honest credit.
+- Linux: `libudev-dev` and `pkg-config` in the Linux CI and CROSS-PLATFORM.md's `apt-get` line; `libudev1` in the .deb's
+  dependencies; the AppImage must not bundle libudev.
+- PRIVACY.md's paragraph (Privacy below), including the Linux write access, if gilrs still opens controllers that way.
+
+**Found on the way, not from gilrs:** on Linux X11 the app wakes about 20 times a second while idle with or without this
+feature: the `global-hotkey` crate behind `tauri-plugin-global-shortcut` runs a thread that sleeps 50 ms in a loop
+(`events_processor`, global-hotkey 0.8.0 `platform_impl/x11/mod.rs`), started when the plugin loads even with no pause
+shortcut set. A `blocking` pool thread (from zbus) also wakes twice a second.
 
 ## How it works
 
@@ -255,12 +317,12 @@ future-inputs.md §2):
 | System | New crates | Already in our build (no new code) |
 |---|---|---|
 | Every system | `gilrs`, `gilrs-core`, `vec_map` (0.8.2, MIT/Apache, no dependencies) | `uuid`, `log`, `fnv` |
-| Windows, `xinput` (the one we'd use) | + `rusty-xinput` (1.3.0, 2023), `lazy_static` | `winapi` 0.3.9 (already in the lock file through `dlopen2` and `libloading`) |
+| Windows, `xinput` (the one we'd use) | + `rusty-xinput` (1.3.0, 2023), `lazy_static`, `winapi` 0.3.9 (in the lock file through `dlopen2` and `libloading`, but not built for Windows today: measured in step 1) | none |
 | Windows, `wgi` (the default, not usable for us) | none | `windows` 0.62.2 with five more features (`Gaming_Input`, …): no new crate, but more of `windows` is compiled |
 | Linux | + `inotify` (0.11.x), `inotify-sys`, `libudev-sys` (0.1.4, 2018) | `nix` 0.31.3 (already built for `os_info`; gilrs adds its `ioctl` and `event` features, which pull nothing new), `libc` |
 | macOS | + `objc2-io-kit` (0.3.2, features `std`, `libc`, `hid`) | `objc2-core-foundation` 0.3.2, `bitflags`, `libc` |
 
-So: **3 new crates on Windows (5 with the `xinput` feature we need), 6 on Linux, 4 on macOS.** Two more costs:
+So: **3 new crates on Windows (6 with the `xinput` feature we need), 6 on Linux, 4 on macOS.** Two more costs:
 
 - **Linux links the system's `libudev`** through `libudev-sys`: the build needs `libudev-dev` and `pkg-config` (the Linux CI,
   CROSS-PLATFORM.md's `apt-get` line and the .deb's dependencies gain them; `libudev1` is on every systemd desktop). The
@@ -378,7 +440,8 @@ Each step is one small commit (Conventional Commits, `npm test` and the checks b
 1. **Spike behind a cargo feature** `gamepad` (off by default, so the shipped app doesn't change): `gilrs` as an optional
    dependency with `default-features = false, features = ["xinput"]`, a throwaway Debug-only switch, the names table, and the
    measurements: idle CPU, thread count over 20 on/off cycles, a game in front on Windows, Linux uaccess, macOS Input
-   Monitoring. **Jordan reviews the numbers and approves (or not) the dependency** before step 2.
+   Monitoring. **Jordan reviews the numbers and approves (or not) the dependency** before step 2. Built on the branch
+   advisor/controllers (see "Step 1: the spike" above); the measurements are still to do.
 2. Upstream merge requests to gilrs (stop signal for XInput and macOS, a waker, input-only open on Linux), or the decision to
    write our own per system.
 3. `gamepad/names.rs` and `gamepad/analog.rs` with their unit tests (plain logic, no gilrs).
