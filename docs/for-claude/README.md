@@ -22,7 +22,7 @@ Each plan starts with a **Status** line (queued, in progress, done or superseded
 - From the open-source research of 2026-10-19 (all proposed, none approved; one file each, to work through one at a time):
   - [obs-source-events.md](proposals/obs-source-events.md): scene awareness through the OBS Browser source's own page events (no network)
   - [kle-import.md](proposals/kle-import.md): turn a Keyboard Layout Editor (KLE) file into a layout
-  - [keyboard-files.md](proposals/keyboard-files.md): import VIA, QMK and NohBoard keyboard files, after KLE
+  - [keyboard-files.md](proposals/keyboard-files.md): import VIA, QMK and NohBoard keyboard files, after KLE (NohBoard only, Windows only; VIA and QMK dropped)
   - [controllers-gilrs.md](proposals/controllers-gilrs.md): controller input, gilrs compared with our own code
   - [mouse-input.md](proposals/mouse-input.md): mouse buttons and wheel with our own capture code (open idea, not v2.0)
   - [obs-websocket.md](proposals/obs-websocket.md): talking to OBS from the app (not planned; kept as documentation)
