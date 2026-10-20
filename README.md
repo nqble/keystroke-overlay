@@ -124,8 +124,10 @@ npm run build        # installer in src-tauri/target/release/bundle/nsis/
 
 ### On a Mac
 
-To build the Mac app yourself (each release also has an Apple Silicon download; tested on a MacBook Air, M1), you need the
-Xcode Command Line Tools, [Rust](https://rustup.rs) and [Node.js](https://nodejs.org) 20+.
+From v2.0 each release has an **Apple Silicon download**. It isn't notarized, so the first launch needs **Open Anyway**
+in System Settings → Privacy & Security, and macOS asks for keyboard access again after every update: the steps are in
+[the user guide](docs/USER-GUIDE.md#on-a-mac). Or build it yourself; you need the Xcode Command Line Tools,
+[Rust](https://rustup.rs) and [Node.js](https://nodejs.org) 20+.
 
 ```bash
 git clone https://github.com/nqble/keystroke-overlay.git
