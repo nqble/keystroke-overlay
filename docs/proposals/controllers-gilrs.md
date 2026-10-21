@@ -449,7 +449,7 @@ Each step is one small commit (Conventional Commits, `npm test` and the checks b
 
 ## Effort
 
-About **6 to 9 working days** with gilrs once its stop problems are solved (spike 1–2, Rust 2, overlay 1, UI 1, tests and
+About **6 to 9 working sessions** (a rough estimate) with gilrs once its stop problems are solved (spike 1–2, Rust 2, overlay 1, UI 1, tests and
 CI 1–2, docs 1). Writing our own instead adds about 2 days for Windows and Linux and 2 to 3 for macOS, minus the upstream
 work.
 

@@ -343,7 +343,7 @@ Each step one small commit, checks between steps, stop and report on any failure
 
 ## Effort
 
-About **6 to 8 working days**: Windows with tests 2, overlay and UI 1–2, Linux (both methods and CI) 2, macOS 1, docs 1.
+About **6 to 8 working sessions** (a rough estimate): Windows with tests 2, overlay and UI 1–2, Linux (both methods and CI) 2, macOS 1, docs 1.
 
 ## Open questions
 
