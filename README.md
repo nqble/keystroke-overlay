@@ -22,9 +22,7 @@
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
-<!-- DEMO: the gameplay video goes here: about 20 s of the overlay in a real game, recorded in OBS (10 s of play, then
-     10 s in a practice range). Drag the .mp4 into GitHub's editor and keep the link it makes. The feature clips go in
-     their own sections below. -->
+<!-- DEMO: a short gameplay video of the overlay in OBS goes here. -->
 
 ## Why Keystroke Overlay
 
@@ -43,7 +41,7 @@
 Full size, TKL, 60% to 96%, ISO, gameplay clusters and numpads, or a layout of your own. Drag the cards into the order
 you like; the tray menu follows it.
 
-<!-- MEDIA: Layout tab, cards being dragged and the Other layouts list (docs/media/layouts.webp) -->
+<!-- MEDIA: Layout tab, cards being dragged and New layout's Built-in list (docs/media/layouts.webp) -->
 
 ### Key editor
 

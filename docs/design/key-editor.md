@@ -5,12 +5,12 @@ merged into v2.0: the editor in its own module (`ui/settings/editor/`, section 9
 board with zoom and pan, selected keys, the inspector to the right of the editor, the toolbar with undo, redo, Snap and Grid,
 the layout style switch, Close gaps, the Reset menu and the Even grid tip. On v2.0 the zoom and pan gestures also cover
 trackpads (section 3). The Keys tab is a Preact component on v2.0 (the board itself stays plain page code). Still to do: the accessibility pass and the
-differences listed under "Spec and code differ" below. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe).
+differences listed under "Where the spec and the code differ" below. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe).
 
 Built after the UI foundation (done: test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
 tokens and shared building blocks only. The colors below are today's values; map each one to its purpose token.
 
-## Spec and code differ (to decide)
+## Where the spec and the code differ
 
 Found in the docs check of 2026-10-18. Each is either a spec to update or code to change; the maintainer decides which.
 - Heading: the spec has "Keys" with the layout name under it; the code shows one heading "Keys — <layout name>".
