@@ -145,8 +145,7 @@ settings window, and the help of [Claude Code](https://claude.com/claude-code).
 
 Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). How the code is organized:
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Adding a layout, theme or animation is one file:
-[docs/EXTENDING.md](docs/EXTENDING.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md). Maintaining the
-project without coding: [docs/OPEN-SOURCE-GUIDE.md](docs/OPEN-SOURCE-GUIDE.md).
+[docs/EXTENDING.md](docs/EXTENDING.md). Debugging tools: [docs/DEBUGGING.md](docs/DEBUGGING.md).
 
 ## Code signing
 

@@ -1,9 +1,9 @@
-# Linux port
+# The Linux version
 
 Status: **shipped in v2.0 (early).** Keyboard capture works on **X11 desktops** (from v1.4) and, on v2.0, on
 **Wayland desktops** by reading the keyboard devices (built, unit-tested, and passing in CI on a virtual Wayland desktop since 2026-10-18).
 From v2.0, every release attaches an **AppImage and a .deb** ([RELEASING.md](RELEASING.md), Linux download); the AppImage updates
-itself in the app, the .deb is a download. This page is the state and the plan, so anyone on Linux can pick up the next step. For working on the
+itself in the app, the .deb is a download. This page is what works, how, and what is still open, so anyone on Linux can pick up the next step. For working on the
 code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
 
 ## What already works on Linux
@@ -42,7 +42,7 @@ Linux has two kinds of desktop, and they treat global key listening very differe
 
 Wayland deliberately stops apps from seeing other apps' keys, and there is no portal for "all keys" (the GlobalShortcuts
 portal only covers shortcuts an app registers). The one way that works on every Wayland desktop is reading the keyboard
-devices directly, which `keyboard/linux_devices.rs` does with the `evdev` crate (approved by Jordan):
+devices directly, which `keyboard/linux_devices.rs` does with the `evdev` crate:
 
 - On a Wayland desktop (`WAYLAND_DISPLAY` set, or `XDG_SESSION_TYPE=wayland`) the Standard method is this one, shown as
   "Standard (keyboard devices)"; on X11 it stays XInput2.
@@ -60,7 +60,7 @@ devices directly, which `keyboard/linux_devices.rs` does with the `evdev` crate 
 
 ### Linux packaging and release
 
-**Stage A (built, October 2026):** `.github/workflows/linux-app.yml` builds `Keystroke-Overlay_<version>_linux-x86_64.AppImage`
+**Downloads:** `.github/workflows/linux-app.yml` builds `Keystroke-Overlay_<version>_linux-x86_64.AppImage`
 and `_linux-amd64.deb` on Ubuntu 22.04 with no secrets; `release.yml` attaches them after the Windows release
 (`linux-publish`), and `ci.yml` builds them on every change. The steps and what to know are in
 [RELEASING.md](RELEASING.md), Linux download. Built locally: both bundles, and the AppImage starts.
@@ -69,8 +69,6 @@ and `_linux-amd64.deb` on Ubuntu 22.04 with no secrets; `release.yml` attaches t
 `release.yml` signs the finished AppImage and adds `linux-x86_64-appimage` and `linux-x86_64` entries to `latest.json` (and
 `stable.json` for a Stable release). A copy installed from the .deb never checks (`updates_in_app` in
 `commands/updates.rs`) and says to download new versions instead. Details: [RELEASING.md](RELEASING.md), Linux download.
-
-**Stage B, Wayland:** the capture above.
 
 ### Automated Linux tests
 

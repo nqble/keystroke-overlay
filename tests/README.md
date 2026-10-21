@@ -71,17 +71,17 @@ the privacy, format, style, docs, config and type checks, syntax checks, clippy,
 A picture of every settings screen (each tab, the Keys tab with one key and with several keys selected, and the New layout
 popup), plus the overlay itself in each built-in theme (default, glass, minecraft, minimal-light, neon) with W and Space held,
 compared with the picture saved last time, so a look that changes by accident is caught. The overlay pictures show what OBS
-shows: the settings window's work must never change them, and changing them needs Jordan's explicit OK with before and after.
+shows: the settings window's work must never change them, and changing them needs the maintainer's explicit OK, with before and after pictures.
 
 - `npm run test:visual` builds the test copy of the app (like the end-to-end tests), takes the pictures and compares them with
   `tests/visual/baselines/`. It prints which screens changed. For each changed screen it writes pictures to `tests/visual/diff/`
   (not saved in git): `name.diff.png` marks the changed pixels and `name.new.png` is what the window looks like now.
 - `npm run test:visual -- --update` replaces the baselines with the new pictures. Do this **only when the look was changed on
-  purpose**, and show Jordan the before and after pictures first (the old ones are in git, the new ones are in the working tree).
+  purpose**, and show the before and after pictures in the pull request first (the old ones are in git, the new ones are in the working tree).
 - The window is given a fixed size (1060 by 1100) and 100% scaling. Things that change between runs (the version, the overlay
   size text, animations, the blinking text cursor) are frozen or hidden. Two runs on the same PC give identical pictures, so
   only 20 differing pixels are allowed per screen.
-- The baselines come from Jordan's PC and are **local**: they are not part of CI, and another PC (different Windows text
+- The baselines come from one Windows PC (the maintainer's) and are **local**: they are not part of CI, and another PC (different Windows text
   smoothing or display scaling) will give slightly different pictures, so re-take them there with `--update`.
 - It is an optional suite: `npm run test:e2e` (all suites) does not run it, because its baselines belong to one machine.
 - To add a screen, add a line to `SCREENS` in `tests/visual/visual.mjs` and run `--update` once.

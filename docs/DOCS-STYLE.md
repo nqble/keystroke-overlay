@@ -1,6 +1,6 @@
 # How the docs are written
 
-One voice for every document and for the app's own text, whoever writes it: a person, or any of the Claude sessions on
+One voice for every document and for the app's own text, whoever writes it: a person or a Claude session, on
 any branch. When two branches are merged, their docs should read as if one person wrote them. `npm run check:docs`
 checks the rules marked **(checked)**; the rest are for reviewers.
 

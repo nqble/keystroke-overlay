@@ -25,10 +25,10 @@ Two different signatures, both needed:
 
 **Status: not active.** SignPath Foundation declined the application on 2026-10-18 (not enough public visibility yet)
 and invited a new one later, so releases are unsigned ([decision 0012](decisions/0012-releases-stay-unsigned-for-now.md)).
-The steps below are kept for when Jordan applies again.
+The steps below are kept for a new application.
 
 The release workflow is ready for it: until `SIGNPATH_ORGANIZATION_ID` is set it builds unsigned, as before. To turn
-it on (Jordan, once):
+it on (the maintainer, once):
 1. **Apply** at signpath.org with this repository. They check it is open source (MIT), public, built on GitHub
    Actions, and has the code signing policy in README.md (the "Code signing" section). Approval can take a few weeks.
 2. Turn on **two-factor login** on GitHub and SignPath for everyone who can change the repository (they require it).
@@ -44,8 +44,8 @@ it on (Jordan, once):
        </zip-file>
      </artifact-configuration>
      ```
-   - the **release-signing** policy, with GitHub as its trusted build system and Jordan as approver (every signing
-     request then waits for Jordan to approve it in SignPath, like the "release" environment on GitHub);
+   - the **release-signing** policy, with GitHub as its trusted build system and the maintainer as approver (every
+     signing request then waits for the maintainer's approval in SignPath, like the "release" environment on GitHub);
    - an **API token** for a CI user that may submit signing requests.
 4. On GitHub → Settings → Secrets and variables → Actions:
    - secret `SIGNPATH_API_TOKEN`;
@@ -70,7 +70,7 @@ it without releasing: Actions → **Mac app** → Run workflow, and download the
 What to know:
 - The app is **not signed or notarized by Apple**. The workflow signs the whole app ad hoc (which Apple Silicon needs) and
   checks that signature. On first launch macOS blocks it; the person clicks **Open Anyway** in System Settings → Privacy &
-  Security. Signing and notarizing would need an Apple Developer account (US$99 a year); Jordan chose the free route,
+  Security. Signing and notarizing would need an Apple Developer account (US$99 a year); the project uses the free route,
   so they are not planned.
 - **No in-app updates on a Mac.** `latest.json` and `stable.json` have no `darwin` entries, on purpose, and the app says
   so when a Mac checks. Mac users download the new zip.
@@ -78,7 +78,7 @@ What to know:
   permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
   are in docs/MAC-PORT.md.
 - **The first release that carries the zip (v2.0):** the workflow builds in CI on every pull request and push to the work branches (green since October 2026), but its release jobs (attaching the zip) first run with this release, so check the release page afterwards (or try it first: Actions →
-  **Mac app** → Run workflow, which counts as posting on GitHub: Jordan's OK). Say in that release's CHANGELOG entry that a Mac download
+  **Mac app** → Run workflow). Say in that release's CHANGELOG entry that a Mac download
   (Apple Silicon, Open Anyway on first launch) is attached.
 - If the Mac job fails, the Windows release is already published. Fix the cause, then re-run only the failed jobs; the
   upload replaces any earlier zip (`--clobber`).
@@ -102,7 +102,7 @@ What to know:
   download, and a copy installed from it says so when you check for updates (the app only checks on Linux when it runs as
   an AppImage, so it is never offered the AppImage). An AppImage that is not run as an AppImage (copied elsewhere) may not be able to replace itself.
 - **The first release that carries them (v2.0):** the workflow builds and is tested in CI on every pull request and push to the work branches, but `linux-publish` first runs with this release, so check the release page afterwards (or try it first: Run
-  workflow, which counts as posting on GitHub: Jordan's OK), and mention the Linux downloads in that release's CHANGELOG entry.
+  workflow), and mention the Linux downloads in that release's CHANGELOG entry.
 - If the Linux job fails, the Windows release is already published. Fix the cause and re-run only the failed jobs; the
   upload replaces any earlier files (`--clobber`).
 
@@ -122,7 +122,7 @@ What to know:
 
 The repository has a **Release** workflow (`.github/workflows/release.yml`) that does everything below by itself.
 
-One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): an environment named `release` with yourself as a
+One-time setup: an environment named `release` with yourself as a
 **required reviewer** (every release then waits for your approval before the signing key is used), holding both secrets:
 `TAURI_SIGNING_PRIVATE_KEY` (the text of your `updater.key`) and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (the key's password;
 see "Signing key password" below). Keep both in the `release` environment, not at the repository level: an environment
@@ -134,10 +134,10 @@ Action it uses is pinned to an exact commit, and Dependabot (`.github/dependabot
 one has a new version, for you to review; and it uses no shared build cache, so nothing another workflow left behind can end
 up inside a signed installer.
 
-Each release (or just tell Claude "release v1.2.0": it can start the workflow for you with the GitHub command-line tool, and you only
-have to approve it — from the website or the GitHub phone app):
+Each release (a coding assistant such as Claude Code can do steps 1 and 2 with the GitHub command-line tool; the person
+releasing then only approves it, from the website or the GitHub phone app):
 1. Raise the version (`package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`;
-   the release reads it from `tauri.conf.json`) and add the CHANGELOG entry — Claude can do both.
+   the release reads it from `tauri.conf.json`) and add the CHANGELOG entry.
 2. GitHub → **Actions → Release → Run workflow** → type the version to confirm → **Run** (or push a tag named `v<version>`).
 3. It checks the version/tag/CHANGELOG match and that the release doesn't already exist, runs `npm test`, builds and signs the
    installer, creates the GitHub release with the CHANGELOG text as the notes (the update manifests `latest.json` and `stable.json` carry the same full text, because the in-app update dialog shows the manifest's notes), and — for `x.y.0` versions — updates the Stable channel.
@@ -147,7 +147,7 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## Signing key password
 
-The update key has a password (since October 2026), kept in Jordan's password manager and in the `release` environment's secret
+The update key has a password (since October 2026), kept in the maintainer's password manager and in the `release` environment's secret
 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Without it the key can't sign anything, and nobody can recover it.
 
 To change the password, change it on the **same** key: that keeps the public key, so every installed copy keeps

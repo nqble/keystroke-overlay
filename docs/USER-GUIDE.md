@@ -313,7 +313,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 ## On a Mac
 
 The Mac version needs macOS 11 or newer (the app is built for that), and has only been tried on the newest macOS (26), on an Apple
-Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download on the Releases page; you can also build the app yourself (the steps are in the [README](../README.md#building-from-source)). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
+Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download on the Releases page; you can also build the app yourself (the steps are in the [README](../README.md#building-from-source)). How it works and what has been tested: [MAC-PORT.md](MAC-PORT.md).
 
 - **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
   Launchpad. While the settings window is open, the app also shows in the Dock.

@@ -1,8 +1,7 @@
 # UI Design, Version 2
 
-Status: **approved by Jordan, for v2.0.** This is the one design reference for the settings window. It replaces
-`v2-redesign.md`. When code and this file disagree, one of them is a bug: fix it, or ask Jordan. The pictures are on
-the Claude Design canvas (https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE), one board per screen. The Keys tab has
+Status: **approved, for v2.0.** This is the one design reference for the settings window. It replaces
+`v2-redesign.md`. When code and this file disagree, one of them is a bug: fix it, or ask the maintainer in an issue. The Keys tab has
 its own detailed spec, [key-editor.md](key-editor.md), which follows this file. The audit that led here is
 [ui-audit.md](ui-audit.md); the build order is [v2-tab-restructure.md](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/v2-tab-restructure.md) (in git history).
 
@@ -16,7 +15,7 @@ Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (appr
   existing one. The key editor is the reference.
 - **Fast.** Only `transform` and `opacity` animate. Nothing runs while idle: no timers, and only passive listeners.
 - **One place to change.** Layouts, themes and animations stay one plain file each (section 12).
-- **Every design change keeps the code clean and efficient** (Jordan's rule). Before a design is approved, check what
+- **Every design change keeps the code clean and efficient.** Before a design is approved, check what
   it costs to build: it fits the existing files and building blocks (a new part gets its own small JS and CSS file,
   no file past about 400 lines, no function past about 40), it adds nothing that runs while idle, and it follows
   CLAUDE.md. A design that would need clever or tangled code is redesigned, not built that way.

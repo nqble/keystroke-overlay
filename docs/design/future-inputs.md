@@ -1,7 +1,7 @@
 # Future inputs and features: the plan to follow
 
-Status: **design only, except the pause shortcut** (built in v2.0: `hotkeys.pause`, src-tauri/src/hotkeys.rs; next/previous layout and open settings are not built). **None of the rest is promised.** Jordan may add some of these later
-(mouse clicks and controller input are candidates for v2.0). This page fixes the decisions that are hard to change later,
+Status: **design only, except the pause shortcut** (built in v2.0: `hotkeys.pause`, src-tauri/src/hotkeys.rs; next/previous layout and open settings are not built). **None of the rest is promised;** mouse buttons and controller
+input are the likeliest next ones (proposals in [../proposals/](../proposals/README.md)). This page fixes the decisions that are hard to change later,
 so whoever builds one of these features, a person or a Claude session, builds it the same way. Read it before starting
 any of them, and update it if a decision changes.
 
@@ -70,7 +70,7 @@ Today `keyboard::Bus` runs one keyboard capture method. When the first new input
 - The dispatcher, the held-keys set, pause and the WebSocket stay as they are: they already work on names.
 - The keyboard's two methods (Standard / Compatibility) stay a keyboard-only choice.
 - Likely system APIs, for whoever builds it: Windows mouse via a low-level mouse hook or Raw Input (buttons only); Windows
-  controllers via XInput / Windows.Gaming.Input; Linux via evdev; macOS via IOKit / GameController. Ask Jordan before
+  controllers via XInput / Windows.Gaming.Input; Linux via evdev; macOS via IOKit / GameController. Ask the maintainer before
   adding a dependency (CLAUDE.md §7).
 
 ## 5. Settings: reserved sections
@@ -100,7 +100,7 @@ keyboard's input method stays at `general.inputMethod`.
 - Stored: only the rules the user writes. The detected name is never saved, logged or sent anywhere, overlay included.
 
 ### Global hotkeys
-- Use Tauri's global-shortcut plugin (cross-platform), not our own hook. Ask Jordan before adding it.
+- Use Tauri's global-shortcut plugin (cross-platform), not our own hook (already a dependency for the pause shortcut).
 - Actions: pause/resume the overlay, next/previous layout, open settings. Empty (off) until the user sets them.
 - The plugin is loaded only once a hotkey is set (`hotkeys.rs`): on Linux X11 it wakes 20 times a second, so loading it at start-up
   broke the ~0% idle promise for everyone without a hotkey.
@@ -123,7 +123,7 @@ keyboard's input method stays at `general.inputMethod`.
 
 ## 8. Building one of these: checklist
 
-1. Re-read this page and CLAUDE.md; propose the plan to Jordan (it's a big change, CLAUDE.md §7).
+1. Re-read this page and CLAUDE.md; propose the plan to the maintainer in an issue (it's a big change, CLAUDE.md §7).
 2. Names (§2), protocol (§3), settings section (§5), privacy rules (§7): use them as written or update this page first.
 3. Windows first, behind the seam, with a fallback elsewhere; the setting is off by default.
 4. Tests: name-table unit tests, settings migration and sanitizer tests, an e2e for the feature, and benchmarks showing
