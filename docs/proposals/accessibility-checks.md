@@ -1,6 +1,6 @@
 # Proposal: automatic accessibility checks with axe-core in the end-to-end tests
 
-Status: **Proposed** (2026-10-19, Advisory session research; not approved)
+Status: **Proposed** (2026-10-19); not approved yet.
 
 How the e2e tests could check the settings window for accessibility problems on every run, with
 [axe-core](https://github.com/dequelabs/axe-core), without loosening the window's content-security policy and without
@@ -59,7 +59,7 @@ What it never does: change `tauri.conf.json`, call `Page.setBypassCSP`, add a `<
 
 ### How axe gets into the repository
 
-Copied in, like Preact and htm ([v2-preact.md](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/v2-preact.md)), by `tools/vendor.mjs`:
+Copied in, like Preact and htm ([decision 0013](../decisions/0013-preact-with-htm-for-the-settings-window.md)), by `tools/vendor.mjs`:
 
 - `LIBRARIES` gets an entry for `axe-core` at an exact version, with the files `axe.min.js`, `LICENSE` and
   `LICENSE-3RD-PARTY.txt`, and a **target folder** per library (today the tool has one `VENDOR_DIR`): `ui/settings/vendor/`
@@ -177,7 +177,7 @@ results hold page structure and `data-test` names, never key presses. `npm run c
 - [ARCHITECTURE.md](../ARCHITECTURE.md): the folder map's `tests/` line and the `vendor.mjs` description ("copies Preact,
   htm and, for the tests, axe-core").
 - CONTRIBUTING.md, if it lists the checks to run before a change to the settings window.
-- `docs/for-claude/README.md`: this plan's line and status.
+- [docs/proposals/README.md](README.md): this proposal's status (and, once built, delete the proposal).
 
 ## Risks
 
@@ -185,7 +185,7 @@ results hold page structure and `data-test` names, never key presses. `npm run c
   an exception list.
 - **False positives in Basic.** If axe flags something that is fine (for example a Preact pattern it misreads), the rule
   for that one element is turned off in the suite's options with a comment that says why and links the axe issue; never a
-  whole rule, and Jordan sees it in review.
+  whole rule, and the maintainer sees it in review.
 - **axe updates move results.** New rules land in the "aim for" group automatically (only listed ids fail), so an update
   can't suddenly fail the suite unless a Basic rule gets stricter; updates are a reviewed `tools/vendor.mjs` run.
 - **Runtime:** about 1 to 3 seconds per screen, so 30 to 60 seconds for the suite.
@@ -195,7 +195,7 @@ results hold page structure and `data-test` names, never key presses. `npm run c
 
 Each step its own commit, all checks between steps.
 
-1. Jordan approves axe-core as a development dependency (CLAUDE.md section 7) and the copied-file route. Then:
+1. The maintainer approves axe-core as a development dependency (CLAUDE.md section 7) and the copied-file route. Then:
    `tools/vendor.mjs` with target folders, the axe copy, `vendor.test.mjs`, `.prettierignore`, the privacy-check line.
 2. `a11y.mjs` on the five tabs only, Basic group printed but not failing yet; run it, list what it finds in
    ACCESSIBILITY.md, and fix the Basic findings (one commit per fix, with the test that fails without it, as CLAUDE.md asks).
@@ -208,7 +208,7 @@ Each step its own commit, all checks between steps.
 About 1 to 2 days for steps 1, 3, 4 and 5. Step 2 depends on what the first run finds: likely a few hours, more if contrast
 or landmark work is taken on at the same time (it doesn't have to be).
 
-## Open questions for Jordan
+## Open questions
 
 1. May axe-core (MPL-2.0) be added as a development-only dependency?
 2. Copied file in `tests/e2e/vendor/` (proposed: pinned, fingerprinted, no download for anyone else) or an npm

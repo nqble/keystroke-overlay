@@ -1,16 +1,18 @@
 # Proposal: talking to OBS from the app through obs-websocket
 
-Status: **Not planned; kept as documentation** (Jordan, 2026-10-20: redundant with the browser-source events, kept for others to try)
+Status: **Not planned; kept as documentation** (2026-10-20). It mostly repeats what the Browser source's events already
+give (the OBS scenes rules, built in v2.0). It stays here for anyone who wants to try it.
 
 Whether the app (the Rust side, not the overlay page) should connect to OBS's built-in WebSocket server to read scene
-changes or control OBS, what it would cost against the project's principles, and the smallest safe design if Jordan says yes.
+changes or control OBS, what it would cost against the project's principles, and the smallest safe design if the maintainer ever agrees to it.
 
 ## Recommendation
 
-**Don’t build this yet.** Build scene awareness inside the overlay first ([obs-source-events.md](obs-source-events.md)): it
-covers the main wish (the keys follow the OBS scene) with no network code, no password and no setup in OBS.
+**Don’t build this yet.** Scene awareness inside the overlay is built in v2.0 (**General → OBS scenes**; see
+[obs-source-events.md](obs-source-events.md)): it covers the main wish (the keys follow the OBS scene) with no network
+code, no password and no setup in OBS.
 
-Revisit obs-websocket only if Jordan wants an app-side behavior the overlay can't give. The one that would justify it is
+Revisit obs-websocket only if the project wants an app-side behavior the overlay can't give. The one that would justify it is
 **"pause per scene"**: the app stops forwarding keys entirely while a listed scene is on (a real privacy feature, because
 with the overlay-only design a hidden overlay still receives the keys). If that is wanted, build only the **smallest safe
 design** below: read-only, loopback only, one event, no OBS control, behind a decision record, off by default.
@@ -19,7 +21,7 @@ Why not yet, in one line each:
 
 | | |
 |---|---|
-| Principle 1 (privacy) | It is network code outside `commands/updates.rs`, which CLAUDE.md and `npm run check:privacy` forbid today. Changing that needs a decision record and Jordan's word. |
+| Principle 1 (privacy) | It is network code outside `commands/updates.rs`, which CLAUDE.md and `npm run check:privacy` forbid today. Changing that needs a decision record and the maintainer's approval. |
 | The secret | The obs-websocket password gives **full control of OBS**, including reading the stream key (`GetStreamServiceSettings`). The app would have to keep it safe. |
 | Setup | The WebSocket server is **off by default** in OBS; the user turns it on and copies a password. Turning it on opens a port on every network interface (see "What OBS does"). |
 | Principle 3 (idle cost) | A client that waits for OBS to start is a timer while idle, unless the connection is triggered by something else (solved below, but it is one more moving part). |
@@ -53,10 +55,10 @@ Why not yet, in one line each:
 | Network code in the app | **None** | A WebSocket client (loopback) |
 | Secret to keep | **None** | The obs-websocket password (full control of OBS) |
 | Setup in OBS | none (optional Page permissions) | enable the WebSocket server, copy the password into the app |
-| Dependencies | **None** | `tokio-tungstenite`, `sha2`, `base64` as direct dependencies (all three are already compiled into the app through axum and others, so no extra code in the build; still Jordan's call, CLAUDE.md section 7) |
+| Dependencies | **None** | `tokio-tungstenite`, `sha2`, `base64` as direct dependencies (all three are already compiled into the app through axum and others, so no extra code in the build; still the maintainer's call, CLAUDE.md section 7) |
 | Testable in e2e | Only the app side; OBS itself by hand | **Fully**, against a fake obs-websocket server in Node |
 | Decision record | No | **Yes** (principle 1 changes) |
-| Effort | 3–4.5 days | about 6–9 days, plus review |
+| Effort | Built in v2.0 | about 6–9 days, plus review |
 
 ## What OBS does (researched)
 
@@ -93,7 +95,7 @@ Every message is JSON in a text frame: `{ "op": <number>, "d": { … } }` (subpr
    reconnect".
 
 **A test vector.** The protocol doc's two examples don't belong together: its Identify example
-(`Dj6cLS+jrNA0HpCArRg0Z/Fc+YHdt2FQfAvgD1mip6Y=`) is *not* the answer to its Hello example (I computed it). Following the
+(`Dj6cLS+jrNA0HpCArRg0Z/Fc+YHdt2FQfAvgD1mip6Y=`) is *not* the answer to its Hello example (checked by following the documented steps). Following the
 documented steps with password `supersecretpassword`, salt `lM1GncleQOaCu9lT1yeUZhFYnqhsLLP1G5lAGo3ixaI=` and challenge
 `+IxH4CnCiqpX1rM9scsNynZzbOe4KhDeYcTNS3PDaeY=` gives `1Ct943GAT+6YQUUX47Ia/ncufilbe6+oD6lY+5kaCu4=` (Python `hashlib` and
 `base64`). Cross-check it with an official client library (obs-websocket-js) before using it in a Rust test.
@@ -114,7 +116,7 @@ matters).
 `ExitStarted` needs the `General` bit; instead of subscribing to it, treat the socket closing as "OBS is gone". So
 `eventSubscriptions: 4` is enough.
 
-## The smallest safe design (only if Jordan says yes)
+## The smallest safe design (only if the maintainer agrees)
 
 ### Shape
 
@@ -149,11 +151,11 @@ starts until the overlay shows. The card's **Connect** button covers that case.
 
 ### Settings
 
-Added to the `obs` section reserved by [obs-source-events.md](obs-source-events.md):
+Added to the `obs` section that the OBS scenes rules already use:
 
 ```jsonc
 "obs": {
-  "scenes": { "enabled": false, "rules": [ … ] },        // shared with the overlay-only design
+  "scenes": { "enabled": false, "rules": [ … ] },        // the OBS scenes rules, built in v2.0
   "websocket": { "enabled": false, "port": 4455 }        // off by default; port 1024–65535 (RANGES + RESET_WHEN_INVALID)
 }
 ```
@@ -177,8 +179,8 @@ dependency with code per system and a Secret Service on Linux. Open question 4.
 
 ### What the user sees
 
-A part of the **OBS scenes** card on the **General** tab (from [obs-source-events.md](obs-source-events.md)), under
-the rules, shown only while the scene rules are on:
+A part of the **OBS scenes** card on the **General** tab, under **Edit scenes…**, shown only while the scene rules are
+on:
 
 | Where | Text |
 |---|---|
@@ -214,8 +216,8 @@ Hooks: `toggle-obs-websocket-enabled`, `obs-websocket-port`, `obs-websocket-pass
 
 ## Settings and protocol changes
 
-- Settings: `obs.websocket` above, additive (same downgrade question as in [obs-source-events.md](obs-source-events.md),
-  open question 4 there).
+- Settings: `obs.websocket` above, additive. An older version that doesn't know it must keep it when it rewrites the
+  file (CLAUDE.md section 4: a downgrade must never lose a user's settings).
 - Protocol: one additive message, `{"t":"scene","name":"<scene name>"}`, sent only while the feature is on and connected;
   `{"t":"scene","name":null}` when the scene is unknown again. Documented in [PROTOCOL.md](../PROTOCOL.md). It does
   carry the scene name to every overlay client; with the secure link off, any local program can read it (the same limit
@@ -223,7 +225,7 @@ Hooks: `toggle-obs-websocket-enabled`, `obs-websocket-port`, `obs-websocket-pass
 
 ## Privacy impact
 
-This is the part that needs Jordan's decision. Today's promise: "Only `src-tauri/src/commands/updates.rs` may use the
+This is the part that needs the maintainer's decision. Today's promise: "Only `src-tauri/src/commands/updates.rs` may use the
 network" (CLAUDE.md principle 1, ARCHITECTURE.md, PRIVACY.md "How to check it yourself").
 
 What changes:
@@ -234,11 +236,11 @@ What changes:
 
 ### Decision record (needed before any code)
 
-`docs/decisions/0014-an-optional-local-client-for-obs-websocket.md` (the next free number today): context (pause per
+`docs/decisions/0015-an-optional-local-client-for-obs-websocket.md` (the next free number at the time of writing): context (pause per
 scene), decision (one module, loopback only, read-only, off by default, password in its own file), why (and what we gave up:
 "one file uses the network" becomes "one file uses the internet, one other talks only to this computer"), consequences
 (the privacy check's rules below; any further request type needs a change to this record). Also a row in
-[decisions/README.md](../decisions/README.md), and CLAUDE.md principle 1 reworded by Jordan, for example: "Only
+[decisions/README.md](../decisions/README.md), and CLAUDE.md principle 1 reworded by the maintainer, for example: "Only
 `commands/updates.rs` may use the internet; only `obs_ws.rs` may connect to another program on this computer, and only to
 127.0.0.1."
 
@@ -282,12 +284,12 @@ disk", and the extra `grep` result under "How to check it yourself". "When the a
 
 ## Docs to update in the same commits
 
-[PRIVACY.md](../../PRIVACY.md) (above), CLAUDE.md principle 1 (Jordan's own wording), the decision record and
+[PRIVACY.md](../../PRIVACY.md) (above), CLAUDE.md principle 1 (the maintainer's wording), the decision record and
 [decisions/README.md](../decisions/README.md), [ARCHITECTURE.md](../ARCHITECTURE.md) (folder map, "Updates", "Guard
 rails"), [PROTOCOL.md](../PROTOCOL.md) (`scene`), [FILE-FORMATS.md](../FILE-FORMATS.md) (`obs.websocket`, the
 password file), [USER-GUIDE.md](../USER-GUIDE.md) (setup and the network warning),
 [tests/README.md](../../tests/README.md) (hooks, suite), [design/future-inputs.md](../design/future-inputs.md)
-(`obs.websocket` under the reserved `obs`), and [for-claude/README.md](../README.md).
+(`obs.websocket` under `obs`), and [docs/proposals/README.md](README.md).
 
 ## Risks
 
@@ -303,11 +305,11 @@ password file), [USER-GUIDE.md](../USER-GUIDE.md) (setup and the network warning
 
 ## Work order (if approved; small commits, all checks between them)
 
-1. `docs(decisions): optional local obs-websocket client`: decision record 0014 (Status: Proposed), README row. Jordan
-   approves it and rewords CLAUDE.md principle 1.
+1. `docs(decisions): optional local obs-websocket client`: the decision record (Status: Proposed), README row. The
+   maintainer approves it and rewords CLAUDE.md principle 1.
 2. `test(privacy): catch websocket clients in the privacy check`: gaps 5 and 6, with tests (worth doing even if the rest
    is never built).
-3. `build(deps): add tokio-tungstenite, sha2 and base64 directly`: after Jordan's OK; the reason in the body.
+3. `build(deps): add tokio-tungstenite, sha2 and base64 directly`: after the maintainer's OK; the reason in the body.
 4. `feat(obs): local obs-websocket client, read-only`: `obs_ws.rs` with unit tests, the privacy-check rules 1–4, the
    password file and commands; not yet started by anything.
 5. `feat(settings): obs websocket setting, off by default`: defaults, sanitizer, tests, sandbox, FILE-FORMATS.md.
@@ -316,19 +318,19 @@ password file), [USER-GUIDE.md](../USER-GUIDE.md) (setup and the network warning
 8. `feat(general): obs websocket part of the obs scenes card`: hooks, sandbox, tests/README.md.
 9. `test(e2e): obs websocket suite with a fake obs server`.
 10. `docs: obs websocket in the privacy page and user guide`, then the benchmark before and after, the manual OBS
-    checks, the visual review with Jordan.
+    checks, the visual review with the maintainer.
 
 ## Effort
 
 About **6–9 days**: decision and privacy-check work 1 day; the client, auth and password file with tests 2–3 days; the
 trigger, dispatcher check and protocol message 1 day; the card 1 day; the fake server and e2e suite 1–2 days; docs, benchmark
-and manual OBS checks on two systems 1 day. Plus Jordan's review of the decision and the extra-care files. All of it
-comes after [obs-source-events.md](obs-source-events.md), which it builds on.
+and manual OBS checks on two systems 1 day. Plus the maintainer's review of the decision and the extra-care files. It builds on the OBS scenes rules, which are
+built in v2.0.
 
-## Open questions for Jordan
+## Open questions
 
 1. **Do it at all?** Is "pause per scene" (no key leaves the app in a listed scene) worth a second network-capable module
-   and a stored OBS password? If not, mark this proposal "not built" and keep it as background.
+   and a stored OBS password? Today's answer is no (see the status line).
 2. **Principle 1:** if yes, how should CLAUDE.md say it? (A suggestion is under "Decision record".)
 3. **Dependencies:** OK to add `tokio-tungstenite`, `sha2` and `base64` directly? They are already compiled into the app
    through other crates.
