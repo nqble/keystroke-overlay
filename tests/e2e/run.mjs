@@ -79,12 +79,16 @@ const dirSize = (d) => {
 };
 
 let mock;
-async function main() {
+
+/** Stops with a clear message when a port the tests need is already in use (usually a previous run). */
+async function checkPortsFree() {
   for (const port of [7879, 7999, 9222])
     if (await portBusy(port))
       throw new Error(`Port ${port} is busy. Close whatever uses it (a previous test run?) and try again.`);
-  mkdirSync(WORK, { recursive: true });
+}
 
+/** A throwaway signing key, a harmless fake installer signed with it, and the config that makes the test copy look old. */
+function prepareUpdateFixtures() {
   // ---- test signing key + a harmless fake installer, signed with it
   log('Preparing a throwaway signing key and fake installer');
   const key = join(WORK, 'test.key'),
@@ -112,7 +116,10 @@ async function main() {
       },
     }),
   );
+}
 
+/** Builds the isolated test copy and starts the fake update server. */
+function buildTestCopy() {
   // ---- build the isolated test copy (the slow part, ~3-4 min the first time)
   log(`Building the test copy of v${VERSION} (into ${WORK})`);
   const b = run('npx', ['tauri', 'build', '--no-bundle', '--config', `"${join(WORK, 'cfg.json')}"`], {
@@ -126,56 +133,65 @@ async function main() {
   copyFileSync(join(WORK, 'target', 'release', 'keyoverlay.exe'), EXE);
 
   mock = spawn(process.execPath, [join(HERE, 'lib', 'mock-updates.mjs'), WORK], { stdio: 'ignore' });
+}
 
-  // ---- run the suites
+/** Runs one suite against a fresh app with a fresh data folder. Returns true when the suite passed. */
+async function runSuite(name) {
+  log(`Suite: ${name}`);
+  lock?.stage(`suite ${name}`);
+  killApp();
+  await sleep(1500);
+  rmSync(DATA, { recursive: true, force: true });
+  mkdirSync(DATA, { recursive: true });
+  const autoCheck = name === 'smoke'; // the smoke suite needs the background update check; the key suite doesn't
+  writeFileSync(
+    join(DATA, 'settings.json'),
+    JSON.stringify({
+      version: 2,
+      general: { port: 7879, lastSeenVersion: VERSION, autoCheckUpdates: autoCheck },
+      layout: { id: 'tkl', profiles: {} },
+    }),
+  );
+  spawnSync(
+    'powershell.exe',
+    [
+      '-NoProfile',
+      '-Command',
+      `$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS='--remote-debugging-port=9222'; Start-Process '${EXE}'`,
+    ],
+    { stdio: 'ignore' },
+  );
+  for (let i = 0; i < 80; i++) {
+    if (
+      await fetch('http://localhost:7879/api/config')
+        .then((r) => r.ok)
+        .catch(() => false)
+    )
+      break;
+    await sleep(250);
+  }
+  const r = spawnSync(
+    process.execPath,
+    [name === 'visual' ? join(ROOT, 'tests/visual/visual.mjs') : join(HERE, 'suites', `${name}.mjs`)],
+    {
+      cwd: ROOT,
+      stdio: 'inherit',
+      env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA },
+    },
+  );
+  return r.status === 0;
+}
+
+async function main() {
+  await checkPortsFree();
+  mkdirSync(WORK, { recursive: true });
+  prepareUpdateFixtures();
+  buildTestCopy();
   const failed = [];
   for (const name of [...SUITES, ...OPTIONAL_SUITES].filter(
     (s) => only === s || (only === 'all' && !OPTIONAL_SUITES.includes(s)),
-  )) {
-    log(`Suite: ${name}`);
-    lock?.stage(`suite ${name}`);
-    killApp();
-    await sleep(1500);
-    rmSync(DATA, { recursive: true, force: true });
-    mkdirSync(DATA, { recursive: true });
-    const autoCheck = name === 'smoke'; // the smoke suite needs the background update check; the key suite doesn't
-    writeFileSync(
-      join(DATA, 'settings.json'),
-      JSON.stringify({
-        version: 2,
-        general: { port: 7879, lastSeenVersion: VERSION, autoCheckUpdates: autoCheck },
-        layout: { id: 'tkl', profiles: {} },
-      }),
-    );
-    spawnSync(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-Command',
-        `$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS='--remote-debugging-port=9222'; Start-Process '${EXE}'`,
-      ],
-      { stdio: 'ignore' },
-    );
-    for (let i = 0; i < 80; i++) {
-      if (
-        await fetch('http://localhost:7879/api/config')
-          .then((r) => r.ok)
-          .catch(() => false)
-      )
-        break;
-      await sleep(250);
-    }
-    const r = spawnSync(
-      process.execPath,
-      [name === 'visual' ? join(ROOT, 'tests/visual/visual.mjs') : join(HERE, 'suites', `${name}.mjs`)],
-      {
-        cwd: ROOT,
-        stdio: 'inherit',
-        env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA },
-      },
-    );
-    if (r.status !== 0) failed.push(name);
-  }
+  ))
+    if (!(await runSuite(name))) failed.push(name);
   return failed;
 }
 
