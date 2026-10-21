@@ -50,13 +50,19 @@ const read = () => {
   }
 };
 
-/** Why the lock is not usable: null if it is held by a live owner, otherwise a short reason. */
-function staleReason(l) {
+/**
+ * The rule for taking over a lock, with the clock and the "is that process alive" answer passed in so it can be tested:
+ * null while a live owner holds it, otherwise a short reason. Order matters: an unreadable file, then age, then the owner.
+ */
+export function staleReasonAt(l, now, ownerAlive) {
   if (!l) return 'the lock file was unreadable';
-  if (Date.now() - new Date(l.started).getTime() > MAX_AGE_MS) return 'it was older than 3 hours';
-  if (!pidAlive(l.pid)) return `its owner (process ${l.pid}) is no longer running`;
+  if (now - new Date(l.started).getTime() > MAX_AGE_MS) return 'it was older than 3 hours';
+  if (!ownerAlive(l.pid)) return `its owner (process ${l.pid}) is no longer running`;
   return null;
 }
+
+/** Why the lock is not usable right now: null if it is held by a live owner, otherwise a short reason. */
+const staleReason = (l) => staleReasonAt(l, Date.now(), pidAlive);
 
 /** A readable description of the current holder, for the people (and AI sessions) waiting behind it. */
 export function describe(l) {
@@ -72,8 +78,9 @@ export function describe(l) {
   ].join('\n');
 }
 
-export async function acquire(label, { expectedMinutes = 0 } = {}) {
-  const info = {
+/** What is written into the lock file: who holds it, since when, and how to find them. */
+function describeSelf(label, expectedMinutes) {
+  return {
     label,
     expectedMinutes,
     pid: process.pid,
@@ -94,7 +101,12 @@ export async function acquire(label, { expectedMinutes = 0 } = {}) {
     user: userInfo().username,
     host: hostname(),
   };
-  const write = () => writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2));
+}
+
+const writeInfo = (info) => writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2));
+
+/** Waits until the lock file can be created for `info`. Returns true if it had to wait (and said so). */
+async function waitForTurn(info) {
   const t0 = Date.now();
   let lastReport = 0,
     announced = false;
@@ -115,12 +127,14 @@ export async function acquire(label, { expectedMinutes = 0 } = {}) {
         continue;
       }
       if (process.env.KO_TEST_LOCK === 'fail') {
-        console.error(`[test lock] another test run is in progress, and KO_TEST_LOCK=fail:\n${describe(l)}`);
+        console.error(`[test lock] another test run is in progress, and KO_TEST_LOCK=fail:
+${describe(l)}`);
         process.exit(3);
       }
       if (!announced || Date.now() - lastReport > REPORT_MS) {
         console.log(
-          `[test lock] waiting for another test run to finish (they share ports and the keyboard):\n${describe(l)}`,
+          `[test lock] waiting for another test run to finish (they share ports and the keyboard):
+${describe(l)}`,
         );
         announced = true;
         lastReport = Date.now();
@@ -133,6 +147,11 @@ export async function acquire(label, { expectedMinutes = 0 } = {}) {
     }
   }
   if (announced) console.log(`[test lock] it's my turn now (waited ${ago(Date.now() - t0)}).`);
+  return announced;
+}
+
+/** Makes sure the lock file is removed when this process ends, however it ends; returns the handle for the caller. */
+function armRelease(info) {
   let released = false;
   const release = () => {
     if (released) return;
@@ -154,10 +173,16 @@ export async function acquire(label, { expectedMinutes = 0 } = {}) {
   return {
     stage: (s) => {
       info.stage = s;
-      if (!released) write();
+      if (!released) writeInfo(info);
     },
     release,
   };
+}
+
+export async function acquire(label, { expectedMinutes = 0 } = {}) {
+  const info = describeSelf(label, expectedMinutes);
+  await waitForTurn(info);
+  return armRelease(info);
 }
 
 // ---- command line: show or clear

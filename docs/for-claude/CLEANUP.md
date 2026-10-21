@@ -57,10 +57,10 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 | File | Findings | Fix | Risk | Coverage |
 |---|---|---|---|---|
-| `tests/e2e/suites/keys-editor.mjs` (1199) | Over ~400 lines. 6 lines with several statements. | Split by feature (selection, moving, arrange, history, resize) when the makeover rewrites these tests. | low | n/a (it is the test) |
-| `tests/e2e/lib/cdp.mjs` | `connect` 103 lines. 12 one-letter names. | Split (launch, wait for target, message plumbing). Rename. | medium | good (every e2e uses it) |
-| `tests/e2e/run.mjs` | `main` 93 lines. | Split (build, start, run suites, clean up). | medium | good |
-| `tests/lib/lock.mjs` | `acquire` 87 lines. | Split (try, wait, stale-lock check). | medium | weak: add a unit test for the stale-lock rule first |
+| `tests/e2e/suites/keys-editor.mjs` (1379) | Over ~400 lines. 6 lines with several statements. | Split by feature (selection, moving, arrange, history, resize) when the makeover rewrites these tests. | low | n/a (it is the test) |
+| `tests/e2e/lib/cdp.mjs` | **Done 2026-10-20:** `connect` went from 103 to 59 lines (`findSettingsWindow`, `valueOrThrow` replacing three copies of the exception check, `evalInSeparateTarget`). The one-letter names in what I touched are renamed; a few remain elsewhere in the file. | none | medium | good (every e2e uses it) |
+| `tests/e2e/run.mjs` | **Done 2026-10-20:** `main` is short; `checkPortsFree`, `prepareUpdateFixtures`, `buildTestCopy` and `runSuite` do the work. | none | medium | good |
+| `tests/lib/lock.mjs` | **Done 2026-10-20:** the stale-lock rule is a pure function with a unit test (`tests/ui/lock.test.mjs`, 7 cases); `acquire` is split into `describeSelf`, `waitForTurn` and `armRelease`. | none | medium | good (unit test + the e2e runs take the lock) |
 | `tools/dev-debug.mjs` | **Fixed 2026-10-19:** `npm run dev:debug` failed on Windows (the `--config` JSON lost its quotes under the shell); the argument is now stringified twice so it survives. | none | low | checked by hand |
 | `tools/devbuild.mjs` | **Done 2026-10-19:** `verifyBuild` is split into `buildVerifyCopy`, `startVerifyCopy`, `waitForWindow` and `checkWindow` (checked with `npm run devbuild -- --verify`). The one-letter names there are gone. | none | low | checked by hand |
 | `tools/gen-layouts.mjs` | **Done 2026-10-19:** `main` is split into `functionRow`, `typingRows`, `navigationCluster` and `mainBlock`; the output is byte-identical to before. | none | low | compared before and after |
@@ -82,8 +82,8 @@ high (delicate code: the keyboard hook, the tray, threads). **Coverage** is how 
 
 | File | Findings | Fix | Risk | Coverage |
 |---|---|---|---|---|
-| `tray.rs` (362) | `build` 96 lines. Unnamed 100 ms retry sleep. 1 line with several statements. | Name the sleep and add why-comments. Split `build` only if it is plain menu construction (no lock or thread changes); ask Jordan first. | high | medium (soak test, tray deadlock test) |
-| `keyboard/rawinput.rs` | `start` 75 lines. 1 line with several statements. | Comments only, unless something is actually wrong. | high | good (decoding unit tests, input-method e2e) |
+| `tray.rs` | **Done 2026-10-20, the safe half only (Jordan chose it):** `build` is now `build_menu` and `build_icons` (plain construction, no lock held, no thread started) plus a shorter `build` that keeps the click handler and the storing exactly as before. The click handler stays inside `build`; splitting it was left undone on purpose (it takes locks and starts threads). The 100 ms retry sleep is named (`TRAY_RETRY_DELAY`). | none | high | medium (soak test, tray deadlock test) |
+| `keyboard/rawinput.rs` | **Done 2026-10-20 (comments only):** why-comments on `start`, the thread-local state, `RIDEV_INPUTSINK` and the clean-up. No code changed. | none | high | good (decoding unit tests, input-method e2e) |
 | `keyboard/keymap.rs` | `code_name` 114 lines, but it is one lookup table. | Fine as a table. Make sure the numpad keys are all present (spec §11, right-hand layouts). | low | good |
 | `keyboard/tracker.rs` | `handle` 44 lines (just over). | Fine. Optionally extract the stuck-key check. | high | good |
 | `keyboard/hook.rs`, `keyboard/mod.rs` | Fine (1 line with several statements in `mod.rs`). | Split that line. | low | good |

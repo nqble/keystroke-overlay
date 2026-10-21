@@ -55,11 +55,19 @@ pub fn decode(vkey: u16, make: u16, flags: u16) -> Option<(u32, u32, bool, bool)
     ))
 }
 
+/// Starts the Compatibility input method: a thread with an invisible message-only window that asks Windows for a copy of
+/// every keyboard event (Raw Input). Nothing sits in the input path (unlike the keyboard hook), which is why some games
+/// that block hooks allow it. The thread reports through `ready_rx` whether it came up, so a failure (no window, or Windows
+/// refusing the registration) reaches the caller as an error and the previous method can be kept (`Bus::set_method`).
+/// The returned `Handle` stops the thread and removes the registration.
 pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
     let (ready_tx, ready_rx) = sync_channel::<Result<u32, String>>(1);
     let join = std::thread::Builder::new()
         .name("key-rawinput".into())
         .spawn(move || unsafe {
+            // The window procedure has no arguments to carry state in, so the tracker and the sender live in this thread's
+            // thread-local STATE. `true` = check the real key state of held keys on every event, so a key whose release
+            // was missed cannot stay lit.
             STATE.with(|s| *s.borrow_mut() = Some((KeyTracker::new(true), tx)));
             let hinst = GetModuleHandleW(None).ok().map(|m| m.into());
             let class = w!("KeystrokeOverlayRawInput");
@@ -90,7 +98,8 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
                     return;
                 }
             };
-            // Keyboard = usage page 1 (generic desktop), usage 6.
+            // Keyboard = usage page 1 (generic desktop), usage 6. RIDEV_INPUTSINK: keep receiving keys while another
+            // program (a game) has the focus; without it this window, which is never in front, would hear nothing.
             let dev = RAWINPUTDEVICE {
                 usUsagePage: 1,
                 usUsage: 6,
@@ -110,7 +119,8 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
                 let _ = TranslateMessage(&msg);
                 DispatchMessageW(&msg);
             }
-            // Clean up so a later switch back (or to the hook) starts from a clean slate.
+            // The loop above ends when the Handle posts WM_QUIT. Registrations are per process, so remove ours (and the
+            // window) here: a later switch back to this method, or over to the hook, starts from a clean slate.
             let remove = RAWINPUTDEVICE {
                 usUsagePage: 1,
                 usUsage: 6,
