@@ -1,6 +1,7 @@
 # Proposal: Stream Deck control through Bitfocus Companion
 
-Status: **Open idea, not for v2.0** (Jordan, 2026-10-20: a good idea; how it is built, and whether it fits inside the app, is still to be worked out)
+Status: **Open idea** (2026-10-20): wanted, not planned for a release yet (not for v2.0). How it is built, and whether it
+fits inside the app, is still open.
 
 How a Stream Deck button could pause, resume or switch the overlay's layout, without weakening the privacy promises. It
 compares three routes and recommends one: a small local control endpoint on the app's own server that Companion's
@@ -179,7 +180,7 @@ other control surfaces.
 | `tools/sandbox/fake-app.js` | A state with control on, for the sandbox and the screenshots |
 | `tools/check-privacy.mjs` (+ `privacy-patterns.mjs` and its tests) | New rule: `control.rs` must not use `bus.tx`, `.subscribe(`, `held` or `snapshot`; listening stays in `server.rs` only; file writes stay out of `control.rs` (it calls the tray's code, which calls `settings::save`) |
 | `tests/e2e/suites/control.mjs` (new) and `tests/e2e/run.mjs` | The suite below, added to `SUITES` |
-| `tests/visual/visual.mjs` | The General tab with control on, if the screen changes (Jordan sees before and after) |
+| `tests/visual/visual.mjs` | The General tab with control on, if the screen changes (before and after shown in the pull request) |
 
 `keyboard/` is not touched.
 
@@ -188,7 +189,7 @@ other control surfaces.
 This adds a way **in** (local programs can send three kinds of commands), not a way out. It doesn't send key presses
 anywhere and doesn't use the network, so the rules of [decision 0005](../decisions/0005-keystrokes-live-in-memory-only.md)
 hold unchanged. It does change two documented promises, so it needs a **decision record** first (the next free number,
-0014 at the time of writing):
+0015 at the time of writing):
 
 - [PROTOCOL.md](../PROTOCOL.md) says "Read-only by design: … Nothing a client sends changes the app", and `server.rs` says
   "Read-only HTTP API … All writes go through Tauri IPC". Both become "read-only, except the optional control routes".
@@ -246,7 +247,7 @@ Security notes for the second look CLAUDE.md asks for on `server.rs` changes:
 - [FILE-FORMATS.md](../FILE-FORMATS.md): the `control` section.
 - [future-inputs.md](../design/future-inputs.md) section 5: reserve `control`.
 - [tests/README.md](../../tests/README.md): the `control` suite and the two new hooks.
-- `docs/for-claude/README.md`: this plan's line and status.
+- [docs/proposals/README.md](README.md): this proposal's status (once built, the proposal is deleted).
 
 ## Risks
 
@@ -256,13 +257,13 @@ Security notes for the second look CLAUDE.md asks for on `server.rs` changes:
 - **The key in Companion's configuration.** Documented; see the open question on headers.
 - **Support questions about Companion.** The guide says what the app does and links Companion's own help for the rest.
 - **Scope creep** ("also change the theme from the Stream Deck"). Each new action is one row in the table and one test,
-  but each widens the surface: keep the list short and decided by Jordan.
+  but each widens the surface: keep the list short and decided by the maintainer.
 
 ## Work order
 
 Each step is its own commit, with `npm test`, the format, type, docs and style checks, and clippy between steps.
 
-1. Decision record and the PROTOCOL.md section, for Jordan's review before code.
+1. Decision record and the PROTOCOL.md section, for the maintainer's review before code.
 2. `layout_order::step()` and `tray::set_pause_inner` / `step_layout_inner`, with unit tests (no visible change).
 3. `control.rs` with its unit tests, `server.rs` wiring, the setting's default (off), the privacy-check rule and its tests.
 4. The settings window switch, address and Copy, the sandbox state, and the screenshot check.
@@ -278,9 +279,9 @@ Each step is its own commit, with `npm test`, the format, type, docs and style c
 | (b): Companion module on top of (a) | 3 to 5 days, plus Bitfocus review time |
 | (c): Elgato plugin on top of (a) | 4 to 6 days, plus marketplace review and an Elgato account |
 
-## Open questions for Jordan
+## Open questions
 
-1. Is a write path into the local server acceptable at all, given PROTOCOL.md's "read-only by design"? (It needs your
+1. Is a write path into the local server acceptable at all, given PROTOCOL.md's "read-only by design"? (It needs a
    decision record either way.)
 2. Should the control routes need the secure link, as proposed, or have their own separate key, so the OBS URL saved in
    OBS's scene files can't also control the app?
@@ -289,5 +290,5 @@ Each step is its own commit, with `npm test`, the format, type, docs and style c
 4. Which actions: only pause and layout as proposed, or also "set layout by id" (needs the id in the request) or "open the
    settings window"?
 5. Which version: a v2.x release after v2.0 ships, or later?
-6. If people ask for a dedicated Companion module later, should it live under your GitHub account or under Bitfocus (their
-   process puts it in their organization, with you as maintainer)?
+6. If people ask for a dedicated Companion module later, should it live under the project's GitHub account or under Bitfocus
+   (their process puts it in their organization, with this project's maintainer as its maintainer)?
