@@ -12,12 +12,12 @@ import {
 } from '../../ui/settings/debug-report.js';
 
 test('scrub removes the user name from home-folder paths on every system', () => {
-  assert.equal(scrub('C:\\Users\\jordan\\AppData'), 'C:\\Users\\<you>\\AppData');
-  assert.equal(scrub('C:/Users/jordan/AppData'), 'C:/Users/<you>/AppData');
-  assert.equal(scrub('/home/jordan/.config/x'), '/home/<you>/.config/x');
-  assert.equal(scrub('/Users/jordan/Library'), '/Users/<you>/Library');
-  assert.equal(scrub('"d:\\users\\Jordan P"'), '"d:\\users\\<you> P"');
-  assert.equal(scrub(JSON.stringify('C:\\Users\\jordan\\x')), '"C:\\\\Users\\\\<you>\\\\x"'); // inside JSON text
+  assert.equal(scrub('C:\\Users\\sam\\AppData'), 'C:\\Users\\<you>\\AppData');
+  assert.equal(scrub('C:/Users/sam/AppData'), 'C:/Users/<you>/AppData');
+  assert.equal(scrub('/home/sam/.config/x'), '/home/<you>/.config/x');
+  assert.equal(scrub('/Users/sam/Library'), '/Users/<you>/Library');
+  assert.equal(scrub('"d:\\users\\Sam P"'), '"d:\\users\\<you> P"');
+  assert.equal(scrub(JSON.stringify('C:\\Users\\sam\\x')), '"C:\\\\Users\\\\<you>\\\\x"'); // inside JSON text
 });
 
 test('scrub leaves other text alone', () => {
@@ -51,7 +51,7 @@ const facts = {
     inputError: 'hook failed',
     layout: 'tkl',
     uptimeSecs: 840,
-    dataDir: 'C:\\Users\\jordan\\AppData',
+    dataDir: 'C:\\Users\\sam\\AppData',
   },
   lastUpdate: { available: false, version: '1.4.0', channel: 'stable' },
   selfTest: [
@@ -105,7 +105,7 @@ test('a crash in the last run is the first problem listed, and is in the JSON', 
 });
 
 test('the bug report never carries the user name', () => {
-  assert.doesNotMatch(bugReport(facts), /jordan/);
+  assert.doesNotMatch(bugReport(facts), /sam/);
 });
 
 test('memory and handles say so when a system does not measure them', () => {

@@ -2,7 +2,7 @@ KLE test fixtures: where each file comes from, and under which license
 =======================================================================
 
 Small files in the format of keyboard-layout-editor.com (KLE), used by the unit tests of "Import from KLE"
-(tests/ui/kle.test.mjs, tests/ui/kle-layout.test.mjs; the plan is docs/for-claude/proposals/kle-import.md).
+(tests/ui/kle.test.mjs, tests/ui/kle-layout.test.mjs; the format is in docs/FILE-FORMATS.md).
 Collected 2026-10-19. This is a .txt file, not .md, because markdown may only live where CLAUDE.md section 3 says
 (npm run check:docs).
 

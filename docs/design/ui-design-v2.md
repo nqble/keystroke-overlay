@@ -5,7 +5,7 @@ Status: **approved, for v2.0.** This is the one design reference for the setting
 its own detailed spec, [key-editor.md](key-editor.md), which follows this file. The audit that led here is
 [ui-audit.md](ui-audit.md); the build order is [v2-tab-restructure.md](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/v2-tab-restructure.md) (in git history).
 
-Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (approved, not built yet).
+Each part says whether it is **built** (in v2.0) or **designed** (approved, not built yet).
 
 ## 1. Principles
 

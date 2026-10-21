@@ -63,7 +63,7 @@ is realistic; until they are released we would have to wait, or pin a reviewed f
 
 ## Step 1: the spike (built on a branch, not merged)
 
-The spike is on the branch `advisor/controllers`, behind the cargo feature `gamepad` (off by default). It is not merged,
+The spike is on a separate work branch, behind the cargo feature `gamepad` (off by default). It is not merged,
 and gilrs is not approved as a dependency.
 
 **What it has:** `gamepad/names.rs` (the name table), `gamepad/held.rs` (which buttons are held; released when a
