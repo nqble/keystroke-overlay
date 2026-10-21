@@ -1,6 +1,7 @@
 # Proposal: mouse buttons and wheel
 
-Status: **Open idea** (Jordan, 2026-10-20: wanted eventually, likely not in v2.0; the design of mouse buttons and wheel is still to be worked out; nothing built)
+Status: **Open idea** (2026-10-20): wanted, not planned for a release yet (likely not v2.0). How mouse buttons and the
+wheel should look is still open. Nothing is built.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -58,7 +59,7 @@ A sibling folder of `keyboard/` for the new input kind (future-inputs.md §1.4):
 CLAUDE.md §4 today names only `platform.rs` and `keyboard/` for system code: it needs one line for the input folders
 (open question 1). The Linux device helpers that both keyboards and mice need (`open_read_only`, the `poll` binding, the wake
 pipe) move out of `keyboard/linux_devices.rs` into one shared place instead of being copied; that move is a small refactor
-to agree with Jordan first (CLAUDE.md §7, open question 2).
+to agree with the maintainer first (CLAUDE.md §7, open question 2).
 
 ### Start and stop
 
@@ -305,7 +306,8 @@ are injected only into that window (in a browser they would navigate).
 - [USER-GUIDE.md](../USER-GUIDE.md) and README.md: the switch and the Mouse layout.
 - [decisions/0003-two-keyboard-input-methods.md](../decisions/0003-two-keyboard-input-methods.md) stays as it is; a new
   decision record says why Windows mouse capture uses Raw Input and no hook.
-- [EXTENDING.md](../EXTENDING.md), `tests/README.md`, CLAUDE.md §4 (with Jordan), this plan's status and the for-claude list.
+- [EXTENDING.md](../EXTENDING.md), `tests/README.md`, CLAUDE.md §4 (the maintainer's call), and this proposal's status in
+  [docs/proposals/README.md](README.md) (once built, the proposal is deleted).
 
 ## Risks
 
@@ -326,24 +328,24 @@ are injected only into that window (in a browser they would navigate).
 Each step one small commit, checks between steps, stop and report on any failure.
 
 1. **Spike on Windows** behind a cargo feature `mouse` (off): `mouse/rawinput.rs` and `names.rs`, a Debug-only switch, the
-   measurements (idle, moving at 1,000 Hz, thread count over on/off). Jordan reviews before step 2.
+   measurements (idle, moving at 1,000 Hz, thread count over on/off). The maintainer reviews the numbers before step 2.
 2. `names.rs` and `wheel.rs` with unit tests.
 3. Settings default and sanitizer, with tests.
 4. `Bus` mouse slot and the command.
 5. Privacy rules and tests; PRIVACY.md (second look).
 6. Overlay `taps.js` with tests (fixes PrintScreen too); the Mouse layout.
-7. The settings window switch, hooks, visual baselines shown to Jordan.
+7. The settings window switch, hooks, visual baselines (before and after shown in the pull request).
 8. Windows e2e `inputs` suite and benchmarks.
-9. Linux: the shared helper move (own commit, agreed with Jordan), `mouse/linux_devices.rs` with `EVIOCSMASK`, `mouse/x11.rs`,
+9. Linux: the shared helper move (own commit, agreed with the maintainer), `mouse/linux_devices.rs` with `EVIOCSMASK`, `mouse/x11.rs`,
    the CI steps.
 10. macOS: `mouse/macos.rs`, the Mac checklist.
 11. Docs and this plan's status.
 
 ## Effort
 
-About **6 to 8 working sessions**: Windows with tests 2, overlay and UI 1–2, Linux (both methods and CI) 2, macOS 1, docs 1.
+About **6 to 8 working days**: Windows with tests 2, overlay and UI 1–2, Linux (both methods and CI) 2, macOS 1, docs 1.
 
-## Open questions for Jordan
+## Open questions
 
 1. CLAUDE.md §4: may `mouse/` (and `gamepad/`) hold system code, as future-inputs.md §1.4 allows?
 2. May the Linux device helpers move out of `keyboard/linux_devices.rs` into a shared file, so mice and keyboards use one copy?

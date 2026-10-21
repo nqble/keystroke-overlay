@@ -1,6 +1,8 @@
 # Proposal: a second two-PC route, sending the overlay as video with NDI (DistroAV)
 
-Status: **Kept as documentation only** (Jordan, 2026-10-20: NDI is widely used but redundant next to the SSH tunnel; not added to the user guide, and untested because only one PC is available. The steps and the privacy warning stay here for others to try)
+Status: **Not planned; kept as documentation only** (2026-10-20). NDI is widely used, but it does the same job as the SSH
+tunnel, so it is not added to the user guide. It is untested so far, because testing it needs two PCs. The steps and the
+privacy warning stay here for anyone who wants to try them.
 
 A documentation-only proposal: a second way to use the overlay with two PCs, next to the SSH tunnel in the user guide.
 OBS on the gaming PC draws the overlay and sends it as video over the local network with NDI; OBS on the streaming PC
@@ -16,7 +18,7 @@ receives it. The app doesn't change.
 ## Non-goals
 
 - No app change, no built-in network mode, no NDI code in the app (the app would need the proprietary NDI SDK and would
-  start sending pictures of key presses itself; both are against principle 1 in CLAUDE.md).
+  start sending pictures of key presses itself; both are against the first principle in CLAUDE.md, privacy first).
 - No NDI across the internet, over Tailscale, or between different networks (NDI Bridge, NDI Discovery Server): out of
   scope for the guide.
 - No support for NDI or DistroAV problems beyond these steps; the guide links their own help.
@@ -141,8 +143,7 @@ and OBS on the other PC shows it as a browser source. It is not recommended in t
 | `docs/USER-GUIDE.md` | "Using two PCs" becomes two parts: "With an SSH tunnel" (today's text, unchanged) and "With NDI (DistroAV)" (the steps, transparency, good to know, the privacy warning), with the "When to recommend which" table above both; the contents list at the top follows |
 | `PRIVACY.md` | The one line in "Things outside this app's control" |
 | `docs/decisions/ideas-not-decided.md` | The dual-PC bullet mentions that two no-code routes are documented |
-| `docs/for-claude/proposals/tailscale-dual-pc.md` | Its update note links the NDI section too |
-| `docs/for-claude/README.md` | This plan's line and status |
+| `docs/proposals/README.md` | This proposal's status; once the section is in the user guide, the proposal is deleted |
 
 No decision record is needed: the app doesn't change, and [decision 0002](../decisions/0002-local-only-server-and-optional-secure-link.md)
 stays true (the app never listens on the network). README's feature list can say "two PCs: see the user guide" if it
@@ -185,22 +186,22 @@ The files listed under "Files to change"; nothing else.
 
 ## Work order
 
-1. Jordan agrees to document a second route.
+1. The maintainer agrees to document a second route (today the answer is no; see the status line). Ask in an issue.
 2. Hands-on test on two PCs (above); write down versions and numbers.
 3. Write the USER-GUIDE.md section and the table, using the measured numbers; the PRIVACY.md line; the
-   ideas-not-decided.md and tailscale-dual-pc.md notes.
+   ideas-not-decided.md note.
 4. `npm run check:docs`; one commit (`docs(guide): add a two-pc route with ndi`).
 
 ## Effort
 
 About half a day: 1 to 2 hours for the hands-on test with two PCs, 2 to 3 hours to write and check the docs.
 
-## Open questions for Jordan
+## Open questions
 
 1. Is it fine for the guide to recommend a route that needs proprietary software (the NDI Runtime) when the user installs
    it themselves?
 2. Should the NDI route come first or second in the guide? (Proposed: the table first, then the SSH tunnel, then NDI, so
    the encrypted route stays the default for anyone unsure.)
-3. Are two PCs available for the hands-on test, and is a Mac needed for it?
+3. Who can run the hands-on test on two PCs, and does it need a Mac as well?
 4. Should the guide mention "NDI is a registered trademark of Vizrt" as NDI's brand rules ask of products? (Probably not
    needed in a how-to; to check.)

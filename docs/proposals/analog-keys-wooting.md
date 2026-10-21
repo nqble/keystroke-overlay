@@ -1,6 +1,7 @@
 # Proposal: analog key pressure with the Wooting Analog SDK
 
-Status: **Open research** (Jordan, 2026-10-20: niche; kept as research that eases a future build, or a path for others to try)
+Status: **Open research** (2026-10-20): a niche feature, not planned for a release. Kept as research that makes a future
+build easier, or a path for a contributor to try.
 
 How the overlay could show how far each key is pressed on Hall-effect ("analog") keyboards, using the Wooting Analog SDK
 that the user installs, without breaking the idle-CPU and privacy promises.
@@ -154,7 +155,7 @@ Under the reserved `inputs` section ([future-inputs.md section 5](../design/futu
 
 - Additive, so no migration; a default in `settings.rs`, `look` as a choice (`fill` | `fade`) in `sanitize.rs`, a line in
   `CONTROLS` for the look, used in `overlay.js`, the sandbox copy (the steps in [EXTENDING.md](../EXTENDING.md)).
-- **Settings window:** a card **Analog keys** (General, or Style → Text if Jordan prefers it with the looks): the switch, the
+- **Settings window:** a card **Analog keys** (General, or Style → Text next to the looks; open question 4): the switch, the
   look, and a status line: "Not installed: install Wootility or the Wooting Analog SDK" (with the SDK's install page),
   "No analog keyboard found" with **Look again**, or "Found: Wooting 60HE". The board's name is the only device fact
   shown; it is never saved or sent to the overlay.
@@ -224,7 +225,7 @@ No hardware is needed for any automatic test.
 - **E2E** (a new suite, or a part of `smoke`): with the Debug test switch feeding the fake source, the overlay WebSocket gets
   the `a` messages, the live preview's key gets `--press`, pause stops them, and with the feature off there are none and no
   new thread (thread count compared with the feature off).
-- **Screenshots:** one overlay picture with W at 0.5 in the Fill look (the overlay pictures need Jordan's OK).
+- **Screenshots:** one overlay picture with W at 0.5 in the Fill look (changing the overlay pictures needs the maintainer's OK).
 - **Benchmark** (`tests/bench/run.mjs`): with the feature off, nothing changes (threads, memory, idle CPU). Measured on a PC
   with a Wooting board: CPU with the feature on, a board present and hands off the keyboard (budget: under 0.5% of one core,
   to be confirmed by measuring), and back to 0.0% when OBS closes.
@@ -242,6 +243,7 @@ No hardware is needed for any automatic test.
   turn it on, the looks, Linux's udev rule.
 - [ARCHITECTURE.md](../ARCHITECTURE.md) (the new files), [FILE-FORMATS.md](../FILE-FORMATS.md) (the setting),
   [CROSS-PLATFORM.md](../CROSS-PLATFORM.md) (macOS later), the README feature list.
+- [docs/proposals/README.md](README.md): this proposal's status (once built, the proposal is deleted).
 
 ## Risks
 
@@ -259,7 +261,8 @@ No hardware is needed for any automatic test.
 
 Each step its own commit, all checks between steps, stop on any failure.
 
-1. Decision record, the future-inputs.md and PROTOCOL.md changes, for Jordan's review. Ask about `libloading`.
+1. Decision record, the future-inputs.md and PROTOCOL.md changes, for the maintainer's review. Ask about `libloading`
+   (CLAUDE.md section 7: dependencies need the maintainer's approval).
 2. `hid_keys.rs` and the `AnalogSource` trait with `FakeAnalogSource`, the change filter, unit tests.
 3. The overlay side: `a` messages, `--press`, both looks, the UI unit test, the preview (driven by the fake source).
 4. The setting (off), the settings card with its status, the Debug test switch, the e2e checks.
@@ -273,10 +276,10 @@ Each step its own commit, all checks between steps, stop on any failure.
 About 6 to 10 days for Windows and Linux: 1 for names and the fake source, 2 for the overlay and settings, 2 to 3 for the
 loader and the start and stop rules, 1 to 2 for tests and measuring, 1 for docs. macOS is extra and depends on signing.
 
-## Open questions for Jordan
+## Open questions
 
 1. Is loading a user-installed native library (and its plugins) into the app acceptable at all, given it sits next to
-   the keyboard capture? It needs your decision record either way.
+   the keyboard capture? It needs a decision record either way.
 2. May the app add `libloading` (ISC license) for loading on every system, or should the first version be Windows-only
    with the `windows` crate's `LoadLibraryExW`, which is already in the build?
 3. Is "SDK runs while an overlay is connected and a board is present" a fair reading of "about 0% CPU at idle", given
@@ -285,4 +288,4 @@ loader and the start and stop rules, 1 to 2 for tests and measuring, 1 for docs.
 4. Where does the card go: General, or Style next to the looks?
 5. Should the overlay show pressure on top of the existing animation (the proposal) or replace the press animation while
    analog is on?
-6. Which version, and is a Wooting board available for the manual test?
+6. Which version, and who has a Wooting board for the manual test?

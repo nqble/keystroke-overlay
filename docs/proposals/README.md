@@ -12,12 +12,12 @@ the top and a line in this list.
 
 | Proposal | What it is | Status |
 |---|---|---|
-| [mouse-input.md](mouse-input.md) | Mouse buttons and wheel on the overlay (never the pointer's position) | Wanted; the design of how it looks is open |
-| [controllers-gilrs.md](controllers-gilrs.md) | Game controller input, with the gilrs library compared to our own code | A spike exists; idle cost measured on Windows |
-| [keyboard-files.md](keyboard-files.md) | Import NohBoard keyboard files (Windows only) | Planned after KLE import |
+| [mouse-input.md](mouse-input.md) | Mouse buttons and wheel on the overlay (never the pointer's position) | Open idea: wanted; how it looks is open |
+| [controllers-gilrs.md](controllers-gilrs.md) | Game controller input, with the gilrs library compared to our own code | Proposed; a spike exists, idle cost measured on Windows and Linux |
+| [keyboard-files.md](keyboard-files.md) | Import NohBoard keyboard files (Windows only) | Planned; builds on KLE import (built in v2.0) |
 | [obs-source-events.md](obs-source-events.md) | OBS scene awareness through the Browser source's page API | Scene rules built in v2.0; pausing while hidden is open |
 | [accessibility-checks.md](accessibility-checks.md) | Automatic accessibility checks (axe-core) in the end-to-end tests | Proposed |
-| [stream-deck-companion.md](stream-deck-companion.md) | Stream Deck control through Bitfocus Companion | Open idea |
+| [stream-deck-companion.md](stream-deck-companion.md) | Stream Deck control through Bitfocus Companion | Open idea: wanted; how it is built is open |
 | [analog-keys-wooting.md](analog-keys-wooting.md) | Analog key pressure (Wooting Analog SDK) | Open research |
 | [obs-websocket.md](obs-websocket.md) | The app talking to OBS through obs-websocket | Not planned; kept as documentation |
 | [two-pc-ndi.md](two-pc-ndi.md) | Two PCs with NDI video instead of a tunnel | Not planned; kept as documentation |
