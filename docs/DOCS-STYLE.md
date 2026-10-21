@@ -4,6 +4,22 @@ One voice for every document and for the app's own text, whoever writes it: a pe
 any branch. When two branches are merged, their docs should read as if one person wrote them. `npm run check:docs`
 checks the rules marked **(checked)**; the rest are for reviewers.
 
+## Who you're writing for
+
+Everything in the repository is read by people who have never met the maintainer: users, contributors, and the Claude
+sessions they run (decision [0014](decisions/0014-the-repository-is-written-for-everyone.md)). Write for them, never as a
+note to the maintainer or to one session (checked, every tracked text file):
+
+| Don't write | Write |
+|---|---|
+| the maintainer's name (only the copyright and trademark lines carry it) | **the maintainer** |
+| a session's name ("the Mac session") | **a Claude session**, or say what the work is |
+| one person's branch (`advisor/…`) | **a work branch**, or link the pull request |
+| the old `docs/for-claude/` folder | `docs/proposals/`, or a link to an old commit (`…/blob/<commit>/docs/for-claude/…`) |
+| a private `claude.ai/artifact/…` link | a file in the repository, or an issue |
+
+Working notes for your own setup (queues, drafts, handoffs) live outside the repository.
+
 ## Words
 
 - **American spelling** (checked): color, center, behavior, license, gray, canceled, labeled, organize. Code names keep

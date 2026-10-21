@@ -6,6 +6,8 @@
 //   node tools/check-docs.mjs
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { audienceProblems } from './audience-rules.mjs';
 import { wordProblems } from './word-rules.mjs';
 
 const SKIP = new Set(['node_modules', 'target', '.git', 'release', 'vendor']); // vendor: copied libraries, kept as copied
@@ -98,6 +100,33 @@ for (const file of worded) {
     });
 }
 
+// Written for everyone (decision 0014): no doc, comment or config speaks to the maintainer's own setup. Every tracked
+// text file is read; the exemptions below name the rules a file may break, and why.
+const TEXT_FILE = /\.(md|txt|js|mjs|rs|toml|json|ya?ml|html|css|sh|ps1)$|^LICENSE$/;
+const AUDIENCE_EXEMPT = {
+  LICENSE: ['name'], // the copyright holder
+  'README.md': ['name'], // the copyright and trademark notices
+  'src-tauri/tauri.conf.json': ['name'], // the publisher and copyright shown by the installer
+  'docs/decisions/0011-working-notes-are-public-in-one-folder.md': ['notes-folder'], // the replaced decision
+  'docs/decisions/0014-the-repository-is-written-for-everyone.md': ['notes-folder'], // says what was moved
+  'tools/audience-rules.mjs': ['name', 'session', 'branch', 'notes-folder', 'private-link'], // the rules themselves
+  'docs/DOCS-STYLE.md': ['session', 'notes-folder', 'private-link'], // names what not to write
+  'tests/ui/audience-rules.test.mjs': ['name', 'session', 'branch', 'notes-folder', 'private-link'],
+  // For now only: the comments name who approves a release. Remove this line when they are rewritten.
+  '.github/workflows/release.yml': ['name'],
+};
+const tracked = execFileSync('git', ['ls-files'], { encoding: 'utf8' }).split('\n');
+const audienceChecked = tracked.filter((file) => TEXT_FILE.test(file) && !file.includes('/vendor/'));
+for (const file of audienceChecked) {
+  if (!existsSync(file) || file.endsWith('package-lock.json')) continue;
+  const skip = AUDIENCE_EXEMPT[file] ?? [];
+  readFileSync(file, 'utf8')
+    .split('\n')
+    .forEach((line, index) => {
+      for (const problem of audienceProblems(line, skip)) problems.push(`${file}:${index + 1}: ${problem}`);
+    });
+}
+
 if (problems.length) {
   console.error(
     problems.slice(0, 40).join('\n') + (problems.length > 40 ? `\n... and ${problems.length - 40} more` : ''),
@@ -106,5 +135,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  `docs check passed: ${files.length} markdown files, all in the right place, listed and with working links; wording rules kept`,
+  `docs check passed: ${files.length} markdown files, all in the right place, listed and with working links; wording rules kept; ${audienceChecked.length} files written for everyone`,
 );
