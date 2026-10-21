@@ -10,7 +10,7 @@ shipping anything new to users.
 
 - A new e2e suite, `a11y`, opens every tab and the main popups of the **real** settings window (WebView2, the test copy of
   the app) and runs axe-core on each.
-- It **fails** on the two basics that [ACCESSIBILITY.md](../../ACCESSIBILITY.md) and CLAUDE.md section 5 call firm:
+- It **fails** on the two basics that [ACCESSIBILITY.md](../ACCESSIBILITY.md) and CLAUDE.md section 5 call firm:
   everything clickable works with the keyboard, and every control has a name.
 - It **reports, without failing,** everything in the "aim for" group (contrast, landmarks, headings, target size), so
   regressions show up but never block a change.
@@ -59,7 +59,7 @@ What it never does: change `tauri.conf.json`, call `Page.setBypassCSP`, add a `<
 
 ### How axe gets into the repository
 
-Copied in, like Preact and htm ([v2-preact.md](done/v2-preact.md)), by `tools/vendor.mjs`:
+Copied in, like Preact and htm ([v2-preact.md](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/v2-preact.md)), by `tools/vendor.mjs`:
 
 - `LIBRARIES` gets an entry for `axe-core` at an exact version, with the files `axe.min.js`, `LICENSE` and
   `LICENSE-3RD-PARTY.txt`, and a **target folder** per library (today the tool has one `VENDOR_DIR`): `ui/settings/vendor/`
@@ -170,11 +170,11 @@ results hold page structure and `data-test` names, never key presses. `npm run c
 
 ## Docs to update
 
-- [ACCESSIBILITY.md](../../ACCESSIBILITY.md): the **Automatic checks** section, the **axe rule** column, the first run's
+- [ACCESSIBILITY.md](../ACCESSIBILITY.md): the **Automatic checks** section, the **axe rule** column, the first run's
   findings.
-- [tests/README.md](../../../tests/README.md): the `a11y` suite in the list and in the suite names; that axe is a copied file
+- [tests/README.md](../../tests/README.md): the `a11y` suite in the list and in the suite names; that axe is a copied file
   in `tests/e2e/vendor/`, updated with `tools/vendor.mjs`.
-- [ARCHITECTURE.md](../../ARCHITECTURE.md): the folder map's `tests/` line and the `vendor.mjs` description ("copies Preact,
+- [ARCHITECTURE.md](../ARCHITECTURE.md): the folder map's `tests/` line and the `vendor.mjs` description ("copies Preact,
   htm and, for the tests, axe-core").
 - CONTRIBUTING.md, if it lists the checks to run before a change to the settings window.
 - `docs/for-claude/README.md`: this plan's line and status.

@@ -85,7 +85,7 @@ Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
 `x`, `y` are the key's position and `w`, `h` its size, in key units (1 = one normal key). `code` is a key name from the
 [protocol](PROTOCOL.md). The app keeps at most **20** layouts you made.
 
-A layout made **From a KLE file…** is an ordinary layout file. A key the import couldn't link to a key of the keyboard
+A layout made **From a KLE file** (New layout) is an ordinary layout file. A key the import couldn't link to a key of the keyboard
 gets a placeholder `code`, `Unlinked` and a number (`Unlinked1`, `Unlinked2`, ..., unique in the layout): it is drawn
 like any key and never lights up, because no capture method produces such a name. The names are reserved
 ([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change.

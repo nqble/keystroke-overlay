@@ -3,7 +3,7 @@
 Status: **Proposed** (2026-10-19, Advisory session research; Jordan asked to try it, not approved as a dependency yet)
 
 This plan says how game controllers (gamepads) would reach the overlay through the `gilrs` library: buttons as keys, sticks
-and triggers as analog values. It follows [design/future-inputs.md](../../design/future-inputs.md) for the names, the
+and triggers as analog values. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the
 protocol, the settings and the privacy rules. It was written from gilrs's source code (read, not built); the measurements
 it asks for come in step 1, a spike behind a cargo feature. **The short answer from reading the code:** gilrs maps controllers
 well, but on every system it breaks at least one of our idle or start/stop rules as it is (see "What gilrs does on each
@@ -345,15 +345,15 @@ with no controller, on with an idle controller, and after 20 on/off switches.
 
 ## Docs to update
 
-- [design/future-inputs.md](../../design/future-inputs.md): status (controllers built), the trigger release value, "first
+- [design/future-inputs.md](../design/future-inputs.md): status (controllers built), the trigger release value, "first
   controller" rule, the resync rule.
-- [PROTOCOL.md](../../PROTOCOL.md): `a` is sent; the resync after `snap`.
-- [PRIVACY.md](../../../PRIVACY.md): the paragraph above, the diagram, the check list in "How to check it yourself".
-- [ARCHITECTURE.md](../../ARCHITECTURE.md): `gamepad/` in the folder map, the travel diagram, threads.
-- [CROSS-PLATFORM.md](../../CROSS-PLATFORM.md) and [LINUX-PORT.md](../../LINUX-PORT.md): `libudev-dev`, what works where, `uaccess`.
-- [FILE-FORMATS.md](../../FILE-FORMATS.md) and `docs/schemas/layout.schema.json`: `code` may be a controller name.
-- [USER-GUIDE.md](../../USER-GUIDE.md) and README.md: the switch, the Controller layout, which controllers work.
-- [EXTENDING.md](../../EXTENDING.md): where a new input source goes.
+- [PROTOCOL.md](../PROTOCOL.md): `a` is sent; the resync after `snap`.
+- [PRIVACY.md](../../PRIVACY.md): the paragraph above, the diagram, the check list in "How to check it yourself".
+- [ARCHITECTURE.md](../ARCHITECTURE.md): `gamepad/` in the folder map, the travel diagram, threads.
+- [CROSS-PLATFORM.md](../CROSS-PLATFORM.md) and [LINUX-PORT.md](../LINUX-PORT.md): `libudev-dev`, what works where, `uaccess`.
+- [FILE-FORMATS.md](../FILE-FORMATS.md) and `docs/schemas/layout.schema.json`: `code` may be a controller name.
+- [USER-GUIDE.md](../USER-GUIDE.md) and README.md: the switch, the Controller layout, which controllers work.
+- [EXTENDING.md](../EXTENDING.md): where a new input source goes.
 - `tests/README.md`: hooks, the `inputs` suite, the Linux job's new steps.
 - CLAUDE.md §4 (with Jordan): the input folders.
 - This plan's status, and docs/for-claude/README.md's list.

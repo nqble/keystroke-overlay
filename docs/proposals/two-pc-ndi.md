@@ -144,7 +144,7 @@ and OBS on the other PC shows it as a browser source. It is not recommended in t
 | `docs/for-claude/proposals/tailscale-dual-pc.md` | Its update note links the NDI section too |
 | `docs/for-claude/README.md` | This plan's line and status |
 
-No decision record is needed: the app doesn't change, and [decision 0002](../../decisions/0002-local-only-server-and-optional-secure-link.md)
+No decision record is needed: the app doesn't change, and [decision 0002](../decisions/0002-local-only-server-and-optional-secure-link.md)
 stays true (the app never listens on the network). README's feature list can say "two PCs: see the user guide" if it
 mentions two PCs at all.
 

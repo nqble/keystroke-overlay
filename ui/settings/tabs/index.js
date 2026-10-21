@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  Every tab, in the order the tab bar shows them: the one place to add, remove or reorder a tab (docs/EXTENDING.md).
 //  A tab is its own file in this folder plus one line here. `render` returns the tab's content as a Preact element
-//  (docs/for-claude/proposals/done/v2-preact.md), which settings.js draws.
+//  (docs/decisions/0013-preact-with-htm-for-the-settings-window.md), which settings.js draws.
 //  `debugOnly` tabs show only in Debug mode, and their code loads only then. `hidesPreview` hides the live preview
 //  above the tabs while the tab is open (the Keys tab shows the keyboard itself).
 // =====================================================================================================================

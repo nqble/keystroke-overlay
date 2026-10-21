@@ -3,7 +3,7 @@
 //  of keys, each with its place and size in keys (absolute, from the top-left), its rotation, its flags and its 12
 //  legends in reading order. Plain logic with no imports, so tests/ui/kle.test.mjs runs it with Node.
 //  kle-layout.js turns these keys into a layout of ours; the popup is kle-import-popup.js. The format is described in
-//  docs/for-claude/proposals/kle-import.md (Format details).
+//  docs/FILE-FORMATS.md (layouts from a KLE file).
 //
 //  A port of `deserialize` from kle-serial 0.15.1 (https://github.com/ijprest/kle-serial), which says it is the same
 //  code KLE itself uses, with one change: giving `rx` or `ry` also moves the cursor to (rx, ry), as KLE itself and

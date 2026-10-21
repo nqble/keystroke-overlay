@@ -3,7 +3,7 @@
 Status: **Open idea** (Jordan, 2026-10-20: wanted eventually, likely not in v2.0; the design of mouse buttons and wheel is still to be worked out; nothing built)
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
-no new dependency. It follows [design/future-inputs.md](../../design/future-inputs.md) for the names, the protocol, the settings
+no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
 and above all the privacy rule: **buttons and wheel notches only, never the pointer position or movement** (its §7).
 `rdev` (github.com/Narsil/rdev, MIT) was read as a reference only; it is not proposed as a dependency (see "Dependency review").
 
@@ -295,17 +295,17 @@ are injected only into that window (in a browser they would navigate).
 
 ## Docs to update
 
-- [design/future-inputs.md](../../design/future-inputs.md): status (mouse built), `MIN_TAP_MS`, the trackpad rule, physical buttons.
-- [PROTOCOL.md](../../PROTOCOL.md): mouse names are sent; taps (a `d` straight after a `u`) are normal.
-- [PRIVACY.md](../../../PRIVACY.md): the paragraph, the diagram, the grep in "How to check it yourself".
-- [ARCHITECTURE.md](../../ARCHITECTURE.md): `mouse/` in the folder map, the travel diagram, threads.
-- [CROSS-PLATFORM.md](../../CROSS-PLATFORM.md), [LINUX-PORT.md](../../LINUX-PORT.md), [MAC-PORT.md](../../MAC-PORT.md): what works
+- [design/future-inputs.md](../design/future-inputs.md): status (mouse built), `MIN_TAP_MS`, the trackpad rule, physical buttons.
+- [PROTOCOL.md](../PROTOCOL.md): mouse names are sent; taps (a `d` straight after a `u`) are normal.
+- [PRIVACY.md](../../PRIVACY.md): the paragraph, the diagram, the grep in "How to check it yourself".
+- [ARCHITECTURE.md](../ARCHITECTURE.md): `mouse/` in the folder map, the travel diagram, threads.
+- [CROSS-PLATFORM.md](../CROSS-PLATFORM.md), [LINUX-PORT.md](../LINUX-PORT.md), [MAC-PORT.md](../MAC-PORT.md): what works
   where, the input group for mice, the tap's mask.
-- [FILE-FORMATS.md](../../FILE-FORMATS.md) and `docs/schemas/layout.schema.json`: `code` may be a mouse name.
-- [USER-GUIDE.md](../../USER-GUIDE.md) and README.md: the switch and the Mouse layout.
-- [decisions/0003-two-keyboard-input-methods.md](../../decisions/0003-two-keyboard-input-methods.md) stays as it is; a new
+- [FILE-FORMATS.md](../FILE-FORMATS.md) and `docs/schemas/layout.schema.json`: `code` may be a mouse name.
+- [USER-GUIDE.md](../USER-GUIDE.md) and README.md: the switch and the Mouse layout.
+- [decisions/0003-two-keyboard-input-methods.md](../decisions/0003-two-keyboard-input-methods.md) stays as it is; a new
   decision record says why Windows mouse capture uses Raw Input and no hook.
-- [EXTENDING.md](../../EXTENDING.md), `tests/README.md`, CLAUDE.md §4 (with Jordan), this plan's status and the for-claude list.
+- [EXTENDING.md](../EXTENDING.md), `tests/README.md`, CLAUDE.md §4 (with Jordan), this plan's status and the for-claude list.
 
 ## Risks
 

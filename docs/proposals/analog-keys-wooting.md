@@ -93,7 +93,7 @@ Point 4 is the hard one, because finding boards is what the SDK does. The plan:
 
 **Reading the values.** While the SDK runs, one thread of ours calls `wooting_analog_read_full_buffer` 60 times a second
 (`ANALOG_READS_PER_SECOND = 60`, the "about 60 per second per control" limit in
-[future-inputs.md section 3](../../design/future-inputs.md)). It rounds each value to 2 decimals, compares with the last
+[future-inputs.md section 3](../design/future-inputs.md)). It rounds each value to 2 decimals, compares with the last
 value it sent for that key, and sends only the changes. A key that comes back at 0.0 is sent once as 0 and then forgotten.
 When nothing changes, nothing is sent; the thread itself still wakes 60 times a second while the four conditions hold. That
 is the price of a polling-only SDK, and the reason the conditions are strict. The benchmark measures it (budget below).
@@ -108,8 +108,8 @@ against it.
 
 ### Protocol
 
-Follow the analog rules reserved in [future-inputs.md section 3](../../design/future-inputs.md) and
-[PROTOCOL.md](../../PROTOCOL.md):
+Follow the analog rules reserved in [future-inputs.md section 3](../design/future-inputs.md) and
+[PROTOCOL.md](../PROTOCOL.md):
 
 ```json
 {"t":"a","k":"KeyW","v":0.42}
@@ -146,14 +146,14 @@ Only `transform` and `opacity` move, as the overlay's rule says.
 
 ### Settings
 
-Under the reserved `inputs` section ([future-inputs.md section 5](../../design/future-inputs.md)):
+Under the reserved `inputs` section ([future-inputs.md section 5](../design/future-inputs.md)):
 
 ```json
 "inputs": { "analog": { "enabled": false, "look": "fill" } }
 ```
 
 - Additive, so no migration; a default in `settings.rs`, `look` as a choice (`fill` | `fade`) in `sanitize.rs`, a line in
-  `CONTROLS` for the look, used in `overlay.js`, the sandbox copy (the steps in [EXTENDING.md](../../EXTENDING.md)).
+  `CONTROLS` for the look, used in `overlay.js`, the sandbox copy (the steps in [EXTENDING.md](../EXTENDING.md)).
 - **Settings window:** a card **Analog keys** (General, or Style → Text if Jordan prefers it with the looks): the switch, the
   look, and a status line: "Not installed: install Wootility or the Wooting Analog SDK" (with the SDK's install page),
   "No analog keyboard found" with **Look again**, or "Found: Wooting 60HE". The board's name is the only device fact
@@ -167,14 +167,14 @@ Under the reserved `inputs` section ([future-inputs.md section 5](../../design/f
 | Linux | Yes, without plug-in notifications | The `.deb` installs the SDK; reading the boards needs the maker's udev rule (Wooting documents one); **Look again** instead of a notification |
 | macOS | Later | The SDK is a manual copy into `/usr/local/lib`, the docs mention Gatekeeper warnings, only an `x86_64-apple-darwin` download is named (Apple silicon to check), and a signed app with the hardened runtime can't load another team's library without an entitlement. "Not available on this system yet" until checked |
 
-Code goes behind the seam ([CROSS-PLATFORM.md](../../CROSS-PLATFORM.md)): the loader and device notifications in
+Code goes behind the seam ([CROSS-PLATFORM.md](../CROSS-PLATFORM.md)): the loader and device notifications in
 `keyboard/analog.rs` and `platform.rs`, a fallback that says "not available on this system yet" elsewhere.
 
 ## Files to change
 
 | File | Change |
 |---|---|
-| `src-tauri/src/keyboard/analog.rs` (new) | The source: load the library from the fixed path, check the version, start and stop the SDK, the 60-a-second reader, the change filter. `start(tx) -> Handle` and `Handle::stop()` like the other sources ([future-inputs.md section 4](../../design/future-inputs.md)) |
+| `src-tauri/src/keyboard/analog.rs` (new) | The source: load the library from the fixed path, check the version, start and stop the SDK, the 60-a-second reader, the change filter. `start(tx) -> Handle` and `Handle::stop()` like the other sources ([future-inputs.md section 4](../design/future-inputs.md)) |
 | `src-tauri/src/keyboard/analog_source.rs` (new) | The `AnalogSource` trait (`read(&mut Vec<(u16, f32)>)`, `boards()`), the real SDK behind it, and a `FakeAnalogSource` for tests |
 | `src-tauri/src/keyboard/hid_keys.rs` (new) | HID usage → DOM `code` names, with tests |
 | `src-tauri/src/keyboard/mod.rs` | `Bus` gets an `analog_tx` channel and the current values; pause clears them; the source starts and stops with the watch counter |
@@ -190,7 +190,7 @@ Code goes behind the seam ([CROSS-PLATFORM.md](../../CROSS-PLATFORM.md)): the lo
 ## Privacy
 
 Key pressure is key data, so it is held to the same rules as key presses
-([decision 0005](../../decisions/0005-keystrokes-live-in-memory-only.md)): only which key and how far, only in memory,
+([decision 0005](../decisions/0005-keystrokes-live-in-memory-only.md)): only which key and how far, only in memory,
 only to the local overlay, never logged, never stored, nothing while paused.
 
 What is new, and needs a **decision record** (the next free number) plus a PRIVACY.md section:
@@ -234,14 +234,14 @@ No hardware is needed for any automatic test.
 ## Docs to update
 
 - The decision record and its line in `docs/decisions/README.md`.
-- [future-inputs.md](../../design/future-inputs.md): add "Analog keyboard keys" to the names table (same names as the
+- [future-inputs.md](../design/future-inputs.md): add "Analog keyboard keys" to the names table (same names as the
   keyboard) and `inputs.analog` to section 5; say that analog keys send no `d` / `u`; update the status line.
-- [PROTOCOL.md](../../PROTOCOL.md): `t: "a"` for keys, the `analog` field in `snap`.
-- [PRIVACY.md](../../../PRIVACY.md): the analog section above.
-- [USER-GUIDE.md](../../USER-GUIDE.md): "Analog keyboards": install Wootility (or the SDK), add plugins for other boards,
+- [PROTOCOL.md](../PROTOCOL.md): `t: "a"` for keys, the `analog` field in `snap`.
+- [PRIVACY.md](../../PRIVACY.md): the analog section above.
+- [USER-GUIDE.md](../USER-GUIDE.md): "Analog keyboards": install Wootility (or the SDK), add plugins for other boards,
   turn it on, the looks, Linux's udev rule.
-- [ARCHITECTURE.md](../../ARCHITECTURE.md) (the new files), [FILE-FORMATS.md](../../FILE-FORMATS.md) (the setting),
-  [CROSS-PLATFORM.md](../../CROSS-PLATFORM.md) (macOS later), the README feature list.
+- [ARCHITECTURE.md](../ARCHITECTURE.md) (the new files), [FILE-FORMATS.md](../FILE-FORMATS.md) (the setting),
+  [CROSS-PLATFORM.md](../CROSS-PLATFORM.md) (macOS later), the README feature list.
 
 ## Risks
 

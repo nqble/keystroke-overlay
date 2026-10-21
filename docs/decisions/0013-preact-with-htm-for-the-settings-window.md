@@ -24,4 +24,4 @@ change a file, reload, see it. The overlay OBS shows stays plain JavaScript with
 - 0001 still holds for the overlay, and for "no build step" everywhere.
 - Plain logic stays in plain, unit-tested functions; components only draw.
 - Updating the libraries is a dependency change: run `tools/vendor.mjs` with the new version and review it like any other.
-- The full plan and its measurements: [../for-claude/proposals/done/v2-preact.md](../for-claude/proposals/done/v2-preact.md).
+- The full plan and its measurements: [v2-preact.md](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/v2-preact.md) (in git history).

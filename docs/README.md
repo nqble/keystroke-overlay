@@ -34,8 +34,7 @@ CODE_OF_CONDUCT) and [CLAUDE.md](../CLAUDE.md), the rules for Claude sessions.
 - [design/](design): approved designs: [ui-design-v2.md](design/ui-design-v2.md), [key-editor.md](design/key-editor.md),
   [future-inputs.md](design/future-inputs.md); the audit behind them: [ui-audit.md](design/ui-audit.md)
 
-## For Claude sessions
+## Proposals
 
-- [for-claude/](for-claude/README.md): the working notes of the Claude sessions that help build this project (plans, the
-  cleanup audit, the draft notes of the release in progress). They are public on purpose, but written for the sessions and
-  the maintainer: contributors can ignore them.
+- [proposals/](proposals/README.md): plans for features and changes not built yet, each with its status and open
+  questions. Anyone can pick one up.

@@ -4,7 +4,7 @@
 //  ghosts and tiny keys, and picks each key's code and label from its legends with the tables in key-names.js. A key it
 //  can't link keeps its place with a placeholder code (Unlinked1, Unlinked2, ...), which never lights up. The Rust side
 //  cleans the keys again before saving (clean_layout_keys in src-tauri/src/sanitize.rs). Plain logic, tested by
-//  tests/ui/kle-layout.test.mjs; the popup is kle-import-popup.js; the plan is docs/for-claude/proposals/kle-import.md.
+//  tests/ui/kle-layout.test.mjs; the popup is kle-import-popup.js; the file format is in docs/FILE-FORMATS.md.
 //
 //  Not built yet (a later step of the plan): matching letters and punctuation to what the user's own keyboard prints
 //  (a German file's "Z" to KeyY), and linking a key by hand on the Keys tab.

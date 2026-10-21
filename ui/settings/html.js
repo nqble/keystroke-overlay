@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  Preact with htm: the one place screens import them from (docs/for-claude/proposals/done/v2-preact.md). Write markup as
+//  Preact with htm: the one place screens import them from (docs/decisions/0013-preact-with-htm-for-the-settings-window.md). Write markup as
 //    html`<button class="primary" onClick=${copy}>${TEXT.copy}</button>`
 //  and keep state with the hooks. The libraries are copies in ./vendor/ (pinned, never fetched); update them only with
 //  tools/vendor.mjs. Plain logic stays in plain, unit-tested functions; components only draw.

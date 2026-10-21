@@ -11,9 +11,8 @@ keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md  app.config.json (the app's name, repository, identifiers)
 ├── .github/            workflows: CI, one-click Release, E2E (Windows), Mac app build, Linux app build and Linux tests, CodeQL, security scan; issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
-│                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
-│                       (plans in for-claude/proposals/, finished ones in proposals/done/, the cleanup audit, release drafts;
-│                       public on purpose); schemas/ holds the JSON schemas for layout and preset files
+│                       design/ holds approved designs; proposals/ holds plans for things not built yet;
+│                       schemas/ holds the JSON schemas for layout and preset files
 ├── assets/             logo/: the logo as SVG (app, devbuild, tray); the app's icons are made from it
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock), linux/ (the key-stream and key-label check the Linux CI runs); see tests/README.md. Rust unit tests live next to the code

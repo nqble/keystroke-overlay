@@ -1,5 +1,5 @@
 # 0011: The Claude sessions' working notes are public, in one folder, with a placement rule
-Status: Accepted
+Status: Superseded by [0014](0014-the-repository-is-written-for-everyone.md) (2026-10-21)
 Date: 2026-10-18
 
 ## Context

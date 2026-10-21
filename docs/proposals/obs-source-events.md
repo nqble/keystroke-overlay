@@ -107,7 +107,7 @@ From libobs's source callbacks as obs-browser uses them (`info.show` / `info.hid
 `CefBrowserHost::WasHidden(true)` and frees the source's texture. CEF's documentation for `WasHidden` says painting stops
 while hidden. With **Shutdown source when not visible** on, OBS destroys the page instead, and loads it again when it
 shows. The user guide already recommends that option ([USER-GUIDE.md, Keep it smooth and light in
-OBS](../../USER-GUIDE.md#keep-it-smooth-and-light-in-obs)). Whether `WasHidden` also sets `document.visibilityState` to
+OBS](../USER-GUIDE.md#keep-it-smooth-and-light-in-obs)). Whether `WasHidden` also sets `document.visibilityState` to
 `hidden` in OBS's CEF is likely but **(verify in OBS)**.
 
 So on a hidden source the overlay's remaining work per key is: receive the WebSocket frame, `JSON.parse`, one
@@ -123,9 +123,9 @@ partial `window.obsstudio` **(not checked)**, which is why every call is guarded
 
 ### Expected result
 
-Small. The overlay already has no timers or polling while connected ([overlay.js](../../../ui/overlay/overlay.js) header,
+Small. The overlay already has no timers or polling while connected ([overlay.js](../../ui/overlay/overlay.js) header,
 ARCHITECTURE.md "The overlay animates only transform and opacity and has no timers while connected"), and OBS already stops
-painting it. Like the measured decisions in [done/loading-and-lifetime.md](done/loading-and-lifetime.md) (section B), the
+painting it. Like the measured decisions in [loading-and-lifetime.md](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/loading-and-lifetime.md) (section B), the
 likely outcome is "measured, not built". The measurement is still worth an hour, because the result belongs in this plan.
 
 ### How to measure (Windows, by hand: the e2e tests can't run OBS)
@@ -133,7 +133,7 @@ likely outcome is "measured, not built". The measurement is still worth an hour,
 1. Install the app, and in OBS 28 or later make scene **A** with one Browser source of the OBS URL (full-size layout, an
    animation with a glow) and an empty scene **B**. Close the Multiview and any projector; studio mode off.
 2. Find OBS's page processes: `obs-browser-page.exe` (several; the renderer of this source is one of them). Sum their CPU
-   time with a short PowerShell line in the style of [tests/bench/tree.ps1](../../../tests/bench/tree.ps1)
+   time with a short PowerShell line in the style of [tests/bench/tree.ps1](../../tests/bench/tree.ps1)
    (`Get-Process obs-browser-page | Measure-Object CPU -Sum`).
 3. For each case, read the CPU time, send 8,000 key presses with
    `powershell -File tests/e2e/lib/inject.ps1 -scenario flood -n 8000` (it presses Right Ctrl only), read again:
@@ -144,7 +144,7 @@ likely outcome is "measured, not built". The measurement is still worth an hour,
 4. Five runs per case, the median. Also note OBS's own **Docks → Stats** (CPU usage, average time to render a frame).
 5. Then build the change (below) on a branch and repeat the hidden case.
 
-The [overlay-speed](../../../tests/e2e/suites/overlay-speed.mjs) e2e suite can't measure this: it reaches the live
+The [overlay-speed](../../tests/e2e/suites/overlay-speed.mjs) e2e suite can't measure this: it reaches the live
 preview, which is never hidden by OBS, and the key handler isn't reachable from outside the page without a test-only hook,
 which we don't want in the page OBS loads.
 
@@ -154,7 +154,7 @@ saving is above the run-to-run noise. Otherwise write the numbers into this plan
 ### What the change would be (only if the measurement says so)
 
 - In `ui/overlay/obs-source.js` (below), `obsSourceVisibleChanged` reports `visible`.
-- In [overlay.js](../../../ui/overlay/overlay.js), `setKey` keeps updating the `held` set while hidden (cheap, and needed so
+- In [overlay.js](../../ui/overlay/overlay.js), `setKey` keeps updating the `held` set while hidden (cheap, and needed so
   no key looks stuck) but skips `classList.toggle`. On visible again, one pass sets `down` on exactly the held keys
   (the same loop `snapshot()` uses).
 - Pause on **visible false only**, never on *active false*: a preview or Multiview still shows the overlay.
@@ -167,7 +167,7 @@ saving is above the run-to-run noise. Otherwise write the numbers into this plan
 ### What the user sees
 
 A card on the **General** tab, after **Connection**: **OBS scenes** (file `ui/settings/tabs/general-obs-scenes.js`, a
-Preact component like [general-hotkey.js](../../../ui/settings/tabs/general-hotkey.js)). Proposed words, kept in the file's
+Preact component like [general-hotkey.js](../../ui/settings/tabs/general-hotkey.js)). Proposed words, kept in the file's
 `WORDS` block:
 
 | Where | Text |
@@ -189,14 +189,14 @@ keyboard and a screen reader (CLAUDE.md section 5).
 `system-words.js` is needed; `npm run check:systems` will confirm. On Linux, OBS's Browser source also works under Wayland
 (obs-browser's README excludes only docks and service integration there).
 
-**Test hooks** (added to the table in [tests/README.md](../../../tests/README.md)): `general-obs-scenes`,
+**Test hooks** (added to the table in [tests/README.md](../../tests/README.md)): `general-obs-scenes`,
 `toggle-obs-scenes-enabled`, `obs-scene-rule` + `data-index`, `obs-scene-name`, `obs-scene-show`, `obs-scene-layout`,
 `obs-scene-remove`, `obs-scene-add`.
 
 ### Settings
 
 A top-level `obs` section, off by default, with the rule shape kept parallel to the reserved `games.rules`
-([design/future-inputs.md section 5](../../design/future-inputs.md#5-settings-reserved-sections)) so one rule editor could
+([design/future-inputs.md section 5](../design/future-inputs.md#5-settings-reserved-sections)) so one rule editor could
 later serve both:
 
 ```jsonc
@@ -214,20 +214,20 @@ later serve both:
 - `layout`: a layout id, or `""` for the layout chosen in the settings window. An id that no longer exists counts as `""`.
 - The first rule whose name matches wins; a scene with no rule shows the chosen layout.
 
-Where it goes, following [EXTENDING.md section 4](../../EXTENDING.md#4-a-setting):
+Where it goes, following [EXTENDING.md section 4](../EXTENDING.md#4-a-setting):
 
-1. `defaults()` in [settings.rs](../../../src-tauri/src/settings.rs): the section above.
-2. [sanitize.rs](../../../src-tauri/src/sanitize.rs): one line in `LIST_RULES`,
+1. `defaults()` in [settings.rs](../../src-tauri/src/settings.rs): the section above.
+2. [sanitize.rs](../../src-tauri/src/sanitize.rs): one line in `LIST_RULES`,
    `("obs.scenes.rules", clean_scene_rules)`. The function keeps at most `MAX_SCENE_RULES = 20` rules (must match the
    card's limit), drops non-objects, a missing or empty `scene`, a `scene` over 100 characters or with control characters,
    and later duplicates of the same name; `show` that isn't a boolean becomes `true`; `layout` that isn't `""` or `is_id`
    becomes `""`; unknown fields are dropped. The scene name is only ever compared, never put into HTML or CSS, so plain text
    is safe.
-3. [tools/sandbox/default-settings.json](../../../tools/sandbox/default-settings.json): the same default (a Rust test fails
+3. [tools/sandbox/default-settings.json](../../tools/sandbox/default-settings.json): the same default (a Rust test fails
    until it matches).
 4. The overlay already receives the whole public settings in `cfg` and `/api/config`
    (`public_settings()` in settings.rs strips only the link key), so **no protocol or server change** is needed.
-5. Reserve `obs` in [design/future-inputs.md section 5](../../design/future-inputs.md#5-settings-reserved-sections) in the
+5. Reserve `obs` in [design/future-inputs.md section 5](../design/future-inputs.md#5-settings-reserved-sections) in the
    same commit, so a later obs-websocket feature (if ever) adds to `obs` instead of inventing another name.
 
 **Migration:** none is needed to read the data: it is additive, and an older file gets the defaults
@@ -261,7 +261,7 @@ export function sceneView(settings, sceneName, layouts) { … }
    is ignored: the scene stays unknown until the first `obsSceneChanged`. If an `obsSceneChanged` already arrived before
    the answer, the answer is ignored, so a late reply never overwrites a newer scene.
 
-In [overlay.js](../../../ui/overlay/overlay.js) (about 20 lines; it is 365 lines today and must stay under ~400):
+In [overlay.js](../../ui/overlay/overlay.js) (about 20 lines; it is 365 lines today and must stay under ~400):
 
 - Keep `currentScene` (starts `null`). `onScene` stores it and calls `apply(settings)` again.
 - `apply()` asks `sceneView()` which layout to use and passes the chosen id to `profileOf`, `structureKey` and `build`
@@ -274,7 +274,7 @@ In [overlay.js](../../../ui/overlay/overlay.js) (about 20 lines; it is 365 lines
   **General → Connection**.
 - The scene name is kept only in that one variable: never logged (no `console.*`), never stored, never sent.
 
-[ui/globals.d.ts](../../../ui/globals.d.ts) gets a small type for `window.obsstudio` and the three events, so
+[ui/globals.d.ts](../../ui/globals.d.ts) gets a small type for `window.obsstudio` and the three events, so
 `npm run check:types` passes.
 
 ### Behavior worth knowing (and saying in the user guide)
@@ -282,7 +282,7 @@ In [overlay.js](../../../ui/overlay/overlay.js) (about 20 lines; it is 365 lines
 - **Starting scene:** with the default Page permissions, the overlay follows the scene from the first switch on; until then
   it shows the chosen layout. Level 2 fixes that. The overlay never asks for more than level 2.
 - **Size:** the Browser source's box has one size. A scene layout that is smaller or larger than the chosen one is scaled to
-  fit that box by `fitInBox()` ([fit.js](../../../ui/overlay/fit.js)), so a WASD layout in a box sized for a full keyboard
+  fit that box by `fitInBox()` ([fit.js](../../ui/overlay/fit.js)), so a WASD layout in a box sized for a full keyboard
   is drawn large (open question 5).
 - **Studio mode:** `obsSceneChanged` reports the *program* scene (it uses `obs_frontend_get_current_scene`), so in studio
   mode the preview shows the overlay as the program scene's rule says **(verify in OBS)**.
@@ -306,17 +306,17 @@ In [overlay.js](../../../ui/overlay/overlay.js) (about 20 lines; it is 365 lines
 | File | Change | Part |
 |---|---|---|
 | `ui/overlay/obs-source.js` | **Added**: `watchObs`, `sceneRule`, `sceneView`; header comment pointing to this plan and PRIVACY.md | a, b |
-| [ui/overlay/overlay.js](../../../ui/overlay/overlay.js) | call `watchObs` (not in the preview); `apply()` uses `sceneView()`; one visibility switch for pause and scene; (a) skip drawing while hidden | a, b |
-| [ui/globals.d.ts](../../../ui/globals.d.ts) | types for `window.obsstudio` and the events | a, b |
-| [src-tauri/src/settings.rs](../../../src-tauri/src/settings.rs) | `obs` default; maybe `CURRENT_VERSION` 4 + an empty migration step | b |
-| [src-tauri/src/sanitize.rs](../../../src-tauri/src/sanitize.rs) | `clean_scene_rules`, `MAX_SCENE_RULES`, one `LIST_RULES` line | b |
-| [src-tauri/src/settings/tests.rs](../../../src-tauri/src/settings/tests.rs) | defaults, cleaning and (if bumped) migration tests | b |
-| [tools/sandbox/default-settings.json](../../../tools/sandbox/default-settings.json) | the default | b |
-| [tools/sandbox/fake-app.js](../../../tools/sandbox/fake-app.js) | one state with two rules, for the UI sandbox | b |
+| [ui/overlay/overlay.js](../../ui/overlay/overlay.js) | call `watchObs` (not in the preview); `apply()` uses `sceneView()`; one visibility switch for pause and scene; (a) skip drawing while hidden | a, b |
+| [ui/globals.d.ts](../../ui/globals.d.ts) | types for `window.obsstudio` and the events | a, b |
+| [src-tauri/src/settings.rs](../../src-tauri/src/settings.rs) | `obs` default; maybe `CURRENT_VERSION` 4 + an empty migration step | b |
+| [src-tauri/src/sanitize.rs](../../src-tauri/src/sanitize.rs) | `clean_scene_rules`, `MAX_SCENE_RULES`, one `LIST_RULES` line | b |
+| [src-tauri/src/settings/tests.rs](../../src-tauri/src/settings/tests.rs) | defaults, cleaning and (if bumped) migration tests | b |
+| [tools/sandbox/default-settings.json](../../tools/sandbox/default-settings.json) | the default | b |
+| [tools/sandbox/fake-app.js](../../tools/sandbox/fake-app.js) | one state with two rules, for the UI sandbox | b |
 | `ui/settings/tabs/general-obs-scenes.js` | **Added**: the card | b |
-| [ui/settings/tabs/general.js](../../../ui/settings/tabs/general.js) | one line: `<${ObsScenes} />` after `Connection`; the subtitle "Connection, startup and updates." stays | b |
+| [ui/settings/tabs/general.js](../../ui/settings/tabs/general.js) | one line: `<${ObsScenes} />` after `Connection`; the subtitle "Connection, startup and updates." stays | b |
 | `tests/ui/obs-source.test.mjs` | **Added**: unit tests with a fake `window.obsstudio` | a, b |
-| `tests/e2e/suites/obs-scenes.mjs` + `SUITES` in [tests/e2e/run.mjs](../../../tests/e2e/run.mjs) | **Added**: the e2e suite | b |
+| `tests/e2e/suites/obs-scenes.mjs` + `SUITES` in [tests/e2e/run.mjs](../../tests/e2e/run.mjs) | **Added**: the e2e suite | b |
 
 No change to `server.rs`, `keyboard/`, `tools/check-privacy.mjs` or the protocol.
 
@@ -378,15 +378,15 @@ or later, ideally also the latest OBS:
 
 | Doc | Change |
 |---|---|
-| [FILE-FORMATS.md](../../FILE-FORMATS.md) | `obs.scenes` in the settings shape, and the cleaning limits (20 rules, 100 characters, layout ids) |
-| [USER-GUIDE.md](../../USER-GUIDE.md) | under **Add it to OBS**, a short "Change the overlay per scene" part with the Page permissions step; the General row of the Settings table gets **OBS scenes** |
-| [PRIVACY.md](../../../PRIVACY.md) | under "What the app can see": "From v2.x, if you turn on **General → OBS scenes**, the overlay asks OBS which scene is on, inside OBS, to follow your rules. The scene's name stays in the overlay page: it is never saved, logged or sent anywhere, not even to the app. Only the rules you write are saved." (extra care: CLAUDE.md section 8) |
-| [design/future-inputs.md](../../design/future-inputs.md) | reserve `obs` in section 5 |
-| [ARCHITECTURE.md](../../ARCHITECTURE.md) | folder map: `ui/overlay/obs-source.js`, `tabs/general-obs-scenes.js` |
-| [tests/README.md](../../../tests/README.md) | the hooks, and the `obs-scenes` suite in the list |
-| [decisions/ideas-not-decided.md](../../decisions/ideas-not-decided.md) | "OBS scene awareness" links to this plan |
+| [FILE-FORMATS.md](../FILE-FORMATS.md) | `obs.scenes` in the settings shape, and the cleaning limits (20 rules, 100 characters, layout ids) |
+| [USER-GUIDE.md](../USER-GUIDE.md) | under **Add it to OBS**, a short "Change the overlay per scene" part with the Page permissions step; the General row of the Settings table gets **OBS scenes** |
+| [PRIVACY.md](../../PRIVACY.md) | under "What the app can see": "From v2.x, if you turn on **General → OBS scenes**, the overlay asks OBS which scene is on, inside OBS, to follow your rules. The scene's name stays in the overlay page: it is never saved, logged or sent anywhere, not even to the app. Only the rules you write are saved." (extra care: CLAUDE.md section 8) |
+| [design/future-inputs.md](../design/future-inputs.md) | reserve `obs` in section 5 |
+| [ARCHITECTURE.md](../ARCHITECTURE.md) | folder map: `ui/overlay/obs-source.js`, `tabs/general-obs-scenes.js` |
+| [tests/README.md](../../tests/README.md) | the hooks, and the `obs-scenes` suite in the list |
+| [decisions/ideas-not-decided.md](../decisions/ideas-not-decided.md) | "OBS scene awareness" links to this plan |
 | [for-claude/README.md](../README.md) | lists this plan (already with the plan's own commit); its status line when done |
-| [NEXT-RELEASE.md](../NEXT-RELEASE.md) | the feature line for the release notes |
+| `CHANGELOG.md` | the feature line for the release notes |
 
 ## Risks
 

@@ -3,7 +3,7 @@
 //  the layout's picture (keys that can't light up drawn dashed), a Name box and what the import found, then Create
 //  layout, or Back to New layout. The file is picked and the layout
 //  saved by the Rust side (src-tauri/src/commands/layout_import.rs); reading the file and linking its keys is plain
-//  logic in kle.js and kle-layout.js. Built on dialog() from popup.js. Plan: docs/for-claude/proposals/kle-import.md.
+//  logic in kle.js and kle-layout.js. Built on dialog() from popup.js. How it works for users: docs/USER-GUIDE.md.
 // =====================================================================================================================
 import { addLayoutDialog } from './dialogs.js';
 import { call, el, invoke, plural, toast } from './helpers.js';

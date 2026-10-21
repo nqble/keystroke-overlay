@@ -15,7 +15,7 @@ these is chosen, it gets its own numbered decision record and leaves this page.
 ## Possible features (see the roadmap discussion)
 - Mouse clicks and gamepad inputs; an optional click-through on-screen overlay window for capture tools that cannot show a
   web page; a shortcut/ticker display mode; per-app profiles and auto-pause; an opt-in dual-PC mode through Tailscale Serve with an allowed-host setting, see
-  [../for-claude/proposals/done/tailscale-dual-pc.md](../for-claude/proposals/done/tailscale-dual-pc.md) (set aside for the documented SSH tunnel); OBS scene awareness (being tried: [../for-claude/proposals/obs-source-events.md](../for-claude/proposals/obs-source-events.md)); Stream Deck / hotkey control.
+  [the two-PC plan](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/tailscale-dual-pc.md) (set aside for the documented SSH tunnel); OBS scene awareness (being tried: [../proposals/obs-source-events.md](../proposals/obs-source-events.md)); Stream Deck / hotkey control.
 - **Portable mode**, if people ask for it: settings and layouts kept in a folder next to the app instead of the system's
   data folder, so it runs from a USB stick or a synced folder with nothing installed. Open questions: how updates
   replace a portable copy, and how a portable copy and an installed one on the same PC stay apart. No network change.

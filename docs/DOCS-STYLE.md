@@ -30,7 +30,7 @@ checks the rules marked **(checked)**; the rest are for reviewers.
 
 ## Shape
 
-- Each document starts with one or two lines saying what it is for. Plans in `docs/for-claude/` also have a **Status**
+- Each document starts with one or two lines saying what it is for. Proposals in `docs/proposals/` also have a **Status**
   line.
 - Headings in sentence case ("Add it to OBS", not "Add It To OBS").
 - Commands and file names in `code`; buttons, tabs and menu items in **bold**.

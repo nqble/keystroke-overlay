@@ -136,7 +136,7 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
   they look the same everywhere.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
-  [for-claude/proposals/done/tailscale-dual-pc.md](for-claude/proposals/done/tailscale-dual-pc.md).
+  [the two-PC plan](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/tailscale-dual-pc.md) (in git history).
 
 ## Settings
 

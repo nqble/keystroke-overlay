@@ -3,7 +3,7 @@
 //! out as a new layout of the user's own. The reading and the key matching are plain JavaScript in the window
 //! (ui/settings/kle.js, kle-layout.js; the popup is kle-import-popup.js); this side never trusts what comes back and
 //! cleans every key (`clean_layout_keys` in sanitize.rs). The other layout commands are in assets.rs.
-//! Plan: docs/for-claude/proposals/kle-import.md.
+//! The layout file format: docs/FILE-FORMATS.md.
 
 use super::assets::{layout_name, slug, unused_id, MAX_LAYOUT_FILE_BYTES, MAX_USER_LAYOUTS, TOO_BIG_FOR_A_LAYOUT};
 use crate::sanitize::clean_layout_keys;

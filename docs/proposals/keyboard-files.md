@@ -3,7 +3,7 @@
 Status: **NohBoard only, Windows only; VIA and QMK dropped** (Jordan, 2026-10-20: VIA and QMK files rarely say which key is which, so most keys would need linking by hand, which isn't the seamless result the app aims for. NohBoard files are made on Windows and imported on Windows, so its import is a Windows-only feature that hides itself on other systems. Waits for the KLE decision. The VIA and QMK sections below are kept as research)
 
 Lets someone start a layout from the keyboard file they already have: a VIA definition, a QMK `info.json` /
-`keyboard.json`, or a NohBoard `keyboard.json`. Builds on [kle-import.md](kle-import.md), which must come first: this plan
+`keyboard.json`, or a NohBoard `keyboard.json`. Builds on KLE import (built in v2.0: `ui/settings/kle.js`, `kle-layout.js`, `kle-import-popup.js`): this plan
 reuses its popup, its Rust cleaning, its key linking on the Keys tab and its legend table.
 
 ## Goal
@@ -21,7 +21,7 @@ reuses its popup, its Rust cleaning, its key linking on the Keys tab and its leg
 
 - No firmware features: layers, macros, encoders (knobs), RGB, matrix rows and columns are not kept.
 - No mouse elements from NohBoard yet (`MouseKey`, `MouseScroll`, `MouseSpeedIndicator`): they wait for mouse support
-  ([design/future-inputs.md](../../design/future-inputs.md)), which reserves `MouseLeft` and the other names.
+  ([design/future-inputs.md](../design/future-inputs.md)), which reserves `MouseLeft` and the other names.
 - No rotation (QMK says its `r`, `rx`, `ry` are "currently not implemented"; VIA's come from KLE): turned keys are placed
   straight at the same center, as in kle-import.md.
 - No download of definitions from VIA's or QMK's websites, and no list of keyboards to pick from: the app stays offline.

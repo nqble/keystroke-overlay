@@ -134,7 +134,7 @@ matters).
 ### When it connects (no polling)
 
 The app connects **when the first OBS overlay connects to it** (the `OverlayCount` watch in
-[server.rs](../../../src-tauri/src/server.rs) goes from 0 to 1): if an overlay page is loaded in OBS, OBS is running. Also
+[server.rs](../../src-tauri/src/server.rs) goes from 0 to 1): if an overlay page is loaded in OBS, OBS is running. Also
 once when the user turns the feature on, and when they save a password.
 
 - Connection refused (the WebSocket server is off) → no retry until the next trigger. The card says so.
@@ -200,24 +200,24 @@ Hooks: `toggle-obs-websocket-enabled`, `obs-websocket-port`, `obs-websocket-pass
 | File | Change |
 |---|---|
 | `src-tauri/src/obs_ws.rs` | **Added**: the client, the handshake, `ALLOWED_REQUESTS`, the password file, the commands `set_obs_password`, `clear_obs_password`, `obs_connect`; unit tests for the auth string and message parsing |
-| [src-tauri/src/main.rs](../../../src-tauri/src/main.rs) | `mod obs_ws;` and the commands in `generate_handler!` |
-| [src-tauri/src/state.rs](../../../src-tauri/src/state.rs) | the current scene (`Option<String>`, memory only) and `set_obs_scene` |
-| [src-tauri/src/keyboard/mod.rs](../../../src-tauri/src/keyboard/mod.rs) | one check beside the pause check (extra care: CLAUDE.md section 8) |
-| [src-tauri/src/server.rs](../../../src-tauri/src/server.rs) | the 0 → 1 overlay trigger; the `scene` message (extra care) |
-| [src-tauri/src/settings.rs](../../../src-tauri/src/settings.rs), [sanitize.rs](../../../src-tauri/src/sanitize.rs), [settings/tests.rs](../../../src-tauri/src/settings/tests.rs) | `obs.websocket` default, its port range, tests |
-| [src-tauri/Cargo.toml](../../../src-tauri/Cargo.toml) | `tokio-tungstenite`, `sha2`, `base64` as direct dependencies, at the versions already in `Cargo.lock` (0.29, 0.10, 0.22), with the reason in the commit message |
-| [tools/check-privacy.mjs](../../../tools/check-privacy.mjs) + [tools/privacy-patterns.mjs](../../../tools/privacy-patterns.mjs) + [tests/ui/privacy-patterns.test.mjs](../../../tests/ui/privacy-patterns.test.mjs) | the rules below (extra care) |
-| [ui/overlay/overlay.js](../../../ui/overlay/overlay.js) | handle `{"t":"scene"}` |
+| [src-tauri/src/main.rs](../../src-tauri/src/main.rs) | `mod obs_ws;` and the commands in `generate_handler!` |
+| [src-tauri/src/state.rs](../../src-tauri/src/state.rs) | the current scene (`Option<String>`, memory only) and `set_obs_scene` |
+| [src-tauri/src/keyboard/mod.rs](../../src-tauri/src/keyboard/mod.rs) | one check beside the pause check (extra care: CLAUDE.md section 8) |
+| [src-tauri/src/server.rs](../../src-tauri/src/server.rs) | the 0 → 1 overlay trigger; the `scene` message (extra care) |
+| [src-tauri/src/settings.rs](../../src-tauri/src/settings.rs), [sanitize.rs](../../src-tauri/src/sanitize.rs), [settings/tests.rs](../../src-tauri/src/settings/tests.rs) | `obs.websocket` default, its port range, tests |
+| [src-tauri/Cargo.toml](../../src-tauri/Cargo.toml) | `tokio-tungstenite`, `sha2`, `base64` as direct dependencies, at the versions already in `Cargo.lock` (0.29, 0.10, 0.22), with the reason in the commit message |
+| [tools/check-privacy.mjs](../../tools/check-privacy.mjs) + [tools/privacy-patterns.mjs](../../tools/privacy-patterns.mjs) + [tests/ui/privacy-patterns.test.mjs](../../tests/ui/privacy-patterns.test.mjs) | the rules below (extra care) |
+| [ui/overlay/overlay.js](../../ui/overlay/overlay.js) | handle `{"t":"scene"}` |
 | `ui/settings/tabs/general-obs-scenes.js` | the WebSocket part of the card |
-| [tools/sandbox/fake-app.js](../../../tools/sandbox/fake-app.js), [default-settings.json](../../../tools/sandbox/default-settings.json) | the commands and states |
-| `tests/e2e/lib/fake-obs.mjs`, `tests/e2e/suites/obs-websocket.mjs`, [tests/e2e/run.mjs](../../../tests/e2e/run.mjs) | **Added**: a fake obs-websocket server on 127.0.0.1 and the suite |
+| [tools/sandbox/fake-app.js](../../tools/sandbox/fake-app.js), [default-settings.json](../../tools/sandbox/default-settings.json) | the commands and states |
+| `tests/e2e/lib/fake-obs.mjs`, `tests/e2e/suites/obs-websocket.mjs`, [tests/e2e/run.mjs](../../tests/e2e/run.mjs) | **Added**: a fake obs-websocket server on 127.0.0.1 and the suite |
 
 ## Settings and protocol changes
 
 - Settings: `obs.websocket` above, additive (same downgrade question as in [obs-source-events.md](obs-source-events.md),
   open question 4 there).
 - Protocol: one additive message, `{"t":"scene","name":"<scene name>"}`, sent only while the feature is on and connected;
-  `{"t":"scene","name":null}` when the scene is unknown again. Documented in [PROTOCOL.md](../../PROTOCOL.md). It does
+  `{"t":"scene","name":null}` when the scene is unknown again. Documented in [PROTOCOL.md](../PROTOCOL.md). It does
   carry the scene name to every overlay client; with the secure link off, any local program can read it (the same limit
   PRIVACY.md already states for key events).
 
@@ -238,7 +238,7 @@ What changes:
 scene), decision (one module, loopback only, read-only, off by default, password in its own file), why (and what we gave up:
 "one file uses the network" becomes "one file uses the internet, one other talks only to this computer"), consequences
 (the privacy check's rules below; any further request type needs a change to this record). Also a row in
-[decisions/README.md](../../decisions/README.md), and CLAUDE.md principle 1 reworded by Jordan, for example: "Only
+[decisions/README.md](../decisions/README.md), and CLAUDE.md principle 1 reworded by Jordan, for example: "Only
 `commands/updates.rs` may use the internet; only `obs_ws.rs` may connect to another program on this computer, and only to
 127.0.0.1."
 
@@ -282,11 +282,11 @@ disk", and the extra `grep` result under "How to check it yourself". "When the a
 
 ## Docs to update in the same commits
 
-[PRIVACY.md](../../../PRIVACY.md) (above), CLAUDE.md principle 1 (Jordan's own wording), the decision record and
-[decisions/README.md](../../decisions/README.md), [ARCHITECTURE.md](../../ARCHITECTURE.md) (folder map, "Updates", "Guard
-rails"), [PROTOCOL.md](../../PROTOCOL.md) (`scene`), [FILE-FORMATS.md](../../FILE-FORMATS.md) (`obs.websocket`, the
-password file), [USER-GUIDE.md](../../USER-GUIDE.md) (setup and the network warning),
-[tests/README.md](../../../tests/README.md) (hooks, suite), [design/future-inputs.md](../../design/future-inputs.md)
+[PRIVACY.md](../../PRIVACY.md) (above), CLAUDE.md principle 1 (Jordan's own wording), the decision record and
+[decisions/README.md](../decisions/README.md), [ARCHITECTURE.md](../ARCHITECTURE.md) (folder map, "Updates", "Guard
+rails"), [PROTOCOL.md](../PROTOCOL.md) (`scene`), [FILE-FORMATS.md](../FILE-FORMATS.md) (`obs.websocket`, the
+password file), [USER-GUIDE.md](../USER-GUIDE.md) (setup and the network warning),
+[tests/README.md](../../tests/README.md) (hooks, suite), [design/future-inputs.md](../design/future-inputs.md)
 (`obs.websocket` under the reserved `obs`), and [for-claude/README.md](../README.md).
 
 ## Risks

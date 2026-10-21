@@ -22,7 +22,7 @@ Generic HTTP module (or any other local tool) can call.
   through the SSH tunnel two-PC users already run, which forwards the whole port; see below).
 - **No settings changes from outside** beyond the layout choice: no style, no secure link, no port, no Debug mode.
 - **No Companion "feedbacks" pushed from the app** in the first version (no new WebSocket for controllers).
-- Not a replacement for the global pause shortcut ([future-inputs.md, Global hotkeys](../../design/future-inputs.md)); both
+- Not a replacement for the global pause shortcut ([future-inputs.md, Global hotkeys](../design/future-inputs.md)); both
   stay.
 
 ## How it works
@@ -58,7 +58,7 @@ Every successful answer is `200` with the state after the action, and nothing el
 ```
 
 **The rules, in the order the server applies them.** Steps 1 to 3 are the guard every request already passes
-([PROTOCOL.md](../../PROTOCOL.md)); steps 4 to 9 are new and apply to `/control/*` only.
+([PROTOCOL.md](../PROTOCOL.md)); steps 4 to 9 are new and apply to `/control/*` only.
 
 | # | Check | Refused with |
 |---|---|---|
@@ -89,7 +89,7 @@ Every successful answer is `200` with the state after the action, and nothing el
 - **Other tools.** The same address works for anything on the PC that can send a POST: the Elgato app through a
   web-request plugin, Touch Portal, Streamer.bot, a script with `curl -X POST`. The guide names Companion and gives the
   plain request; it doesn't document each tool.
-- **Two PCs.** With the SSH tunnel from [User guide: Using two PCs](../../USER-GUIDE.md#using-two-pcs-game-on-one-obs-on-the-other),
+- **Two PCs.** With the SSH tunnel from [User guide: Using two PCs](../USER-GUIDE.md#using-two-pcs-game-on-one-obs-on-the-other),
   Companion on the streaming PC can call `http://127.0.0.1:7878/control/…` through the same tunnel, because it forwards the
   whole port. Nothing extra is needed in the app; the guide says so in one line.
 
@@ -105,8 +105,8 @@ Every successful answer is `200` with the state after the action, and nothing el
   tray and the Layout tab show, wrapping around. A plain function with unit tests. The reserved `hotkeys.nextLayout` can use
   the same function later.
 - **Setting:** `control: { "enabled": false }`, a new top-level section (reserve the name in
-  [future-inputs.md section 5](../../design/future-inputs.md) in the same change). Additive, so no migration; a default in
-  `settings.rs`, the sandbox copy in `tools/sandbox/default-settings.json` ([EXTENDING.md](../../EXTENDING.md), a setting).
+  [future-inputs.md section 5](../design/future-inputs.md) in the same change). Additive, so no migration; a default in
+  `settings.rs`, the sandbox copy in `tools/sandbox/default-settings.json` ([EXTENDING.md](../EXTENDING.md), a setting).
 - **Settings window:** in **General → Connection**, under the secure link, a switch **Control from a Stream Deck or
   Companion** (`toggle-control-enabled`). It can only be turned on while the secure link is on; while the secure link is
   off it says why. When on, it shows the control address hidden like the secure link, with a **Copy** button
@@ -186,13 +186,13 @@ other control surfaces.
 ## Privacy
 
 This adds a way **in** (local programs can send three kinds of commands), not a way out. It doesn't send key presses
-anywhere and doesn't use the network, so the rules of [decision 0005](../../decisions/0005-keystrokes-live-in-memory-only.md)
+anywhere and doesn't use the network, so the rules of [decision 0005](../decisions/0005-keystrokes-live-in-memory-only.md)
 hold unchanged. It does change two documented promises, so it needs a **decision record** first (the next free number,
 0014 at the time of writing):
 
-- [PROTOCOL.md](../../PROTOCOL.md) says "Read-only by design: … Nothing a client sends changes the app", and `server.rs` says
+- [PROTOCOL.md](../PROTOCOL.md) says "Read-only by design: … Nothing a client sends changes the app", and `server.rs` says
   "Read-only HTTP API … All writes go through Tauri IPC". Both become "read-only, except the optional control routes".
-- [Decision 0002](../../decisions/0002-local-only-server-and-optional-secure-link.md) is about who can reach the server;
+- [Decision 0002](../decisions/0002-local-only-server-and-optional-secure-link.md) is about who can reach the server;
   the new record says the control routes are local-only, need the secure link and the feature switch, refuse browsers
   (no `Origin`), and can never read keys.
 
@@ -235,17 +235,17 @@ Security notes for the second look CLAUDE.md asks for on `server.rs` changes:
 ## Docs to update
 
 - The decision record (next free number) and its line in `docs/decisions/README.md`; the "Stream Deck / hotkey control"
-  bullet in [ideas-not-decided.md](../../decisions/ideas-not-decided.md) leaves that page.
-- [PROTOCOL.md](../../PROTOCOL.md): a "Control routes (optional)" section with the table, the answers and the refusals; the
+  bullet in [ideas-not-decided.md](../decisions/ideas-not-decided.md) leaves that page.
+- [PROTOCOL.md](../PROTOCOL.md): a "Control routes (optional)" section with the table, the answers and the refusals; the
   "Read-only by design" line.
-- [PRIVACY.md](../../../PRIVACY.md) as above, and the README's privacy lines if they say "read-only".
-- [USER-GUIDE.md](../../USER-GUIDE.md): a "Control it from a Stream Deck" section: option 0 (the Elgato app's Hotkey action
+- [PRIVACY.md](../../PRIVACY.md) as above, and the README's privacy lines if they say "read-only".
+- [USER-GUIDE.md](../USER-GUIDE.md): a "Control it from a Stream Deck" section: option 0 (the Elgato app's Hotkey action
   and the pause shortcut), the Companion recipe with the base URL and the six actions, `127.0.0.1` not `localhost`, keep
   the key private, the one line about two PCs.
-- [ARCHITECTURE.md](../../ARCHITECTURE.md): `control.rs` in the folder map, and the secure-link bullet's protected paths.
-- [FILE-FORMATS.md](../../FILE-FORMATS.md): the `control` section.
-- [future-inputs.md](../../design/future-inputs.md) section 5: reserve `control`.
-- [tests/README.md](../../../tests/README.md): the `control` suite and the two new hooks.
+- [ARCHITECTURE.md](../ARCHITECTURE.md): `control.rs` in the folder map, and the secure-link bullet's protected paths.
+- [FILE-FORMATS.md](../FILE-FORMATS.md): the `control` section.
+- [future-inputs.md](../design/future-inputs.md) section 5: reserve `control`.
+- [tests/README.md](../../tests/README.md): the `control` suite and the two new hooks.
 - `docs/for-claude/README.md`: this plan's line and status.
 
 ## Risks

@@ -2,7 +2,7 @@
 // (obs-browser's page API: the obsSceneChanged event and window.obsstudio.getCurrentScene). overlay.js uses these
 // functions to hide the keys or show another layout in the scenes the user listed. Outside OBS (a browser, the live
 // preview) there is no window.obsstudio and nothing here does anything. The scene's name stays in the page: it is never
-// stored, logged or sent, not even to the app (PRIVACY.md). Plan: docs/for-claude/proposals/obs-source-events.md.
+// stored, logged or sent, not even to the app (PRIVACY.md). Proposal: docs/proposals/obs-source-events.md.
 // No imports, so the tests can load it on its own.
 
 /**

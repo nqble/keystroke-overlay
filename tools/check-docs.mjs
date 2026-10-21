@@ -1,6 +1,6 @@
 // Keeps the documentation tidy (runs in CI):
 //   * every markdown file lives in a place the placement table in CLAUDE.md allows;
-//   * every file in docs/ and docs/for-claude/ is listed in that folder's README;
+//   * every file in docs/ and docs/proposals/ is listed in that folder's README;
 //   * every relative link in a markdown file points at something that exists;
 //   * the docs and the app's own text follow the wording rules in docs/DOCS-STYLE.md (tools/word-rules.mjs).
 //   node tools/check-docs.mjs
@@ -23,7 +23,8 @@ function markdownFiles(dir = '.') {
   return found;
 }
 
-// Where a markdown file may live. Anything else is a new document in the wrong place: put it in docs/for-claude/.
+// Where a markdown file may live. Anything else is a new document in the wrong place: a plan for something not built yet
+// goes in docs/proposals/; notes for one person's own setup don't belong in the repository at all.
 const ROOT_FILES = new Set([
   'README.md',
   'CHANGELOG.md',
@@ -41,14 +42,13 @@ const allowed = (file) =>
   /^docs\/[^/]+\.md$/.test(file) ||
   file.startsWith('docs/decisions/') ||
   file.startsWith('docs/design/') ||
-  file.startsWith('docs/for-claude/');
+  file.startsWith('docs/proposals/');
 
 const files = markdownFiles();
 for (const file of files)
-  if (!allowed(file))
-    problems.push(`${file}: a markdown file in the wrong place (new working documents go in docs/for-claude/)`);
+  if (!allowed(file)) problems.push(`${file}: a markdown file in the wrong place (a plan goes in docs/proposals/)`);
 
-// Every file in docs/ (and docs/for-claude/) must be named in that folder's README.
+// Every file in docs/ (and docs/proposals/) must be named in that folder's README.
 function mustBeListed(folder, readme, skip = () => false) {
   if (!existsSync(readme)) return problems.push(`${readme}: missing`);
   const index = readFileSync(readme, 'utf8');
@@ -62,10 +62,9 @@ function mustBeListed(folder, readme, skip = () => false) {
 mustBeListed(
   'docs/',
   'docs/README.md',
-  (file) =>
-    file.startsWith('docs/for-claude/') || file.startsWith('docs/decisions/') || file.startsWith('docs/design/'),
+  (file) => file.startsWith('docs/proposals/') || file.startsWith('docs/decisions/') || file.startsWith('docs/design/'),
 );
-mustBeListed('docs/for-claude/', 'docs/for-claude/README.md');
+mustBeListed('docs/proposals/', 'docs/proposals/README.md');
 
 // Relative links must point at something that exists.
 const link = /\]\(([^)\s#]+)(#[^)\s]*)?\)/g;
