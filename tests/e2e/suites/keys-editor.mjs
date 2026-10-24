@@ -48,6 +48,22 @@ const eventually = async (fn, ms = 4000) => {
 // ---- a layout like the user's: the full-size copy with only W A S D and Space left
 const id = (await p.invoke('create_layout', { name: 'Editor Test' })).ok;
 const keep = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'];
+// save edits to the test layout's profile behind the window's back (hidden keys kept unless given)
+const saveProfileEdits = async (edits) => {
+  const current = (await state()).settings;
+  await p.invoke('save_settings', {
+    settings: {
+      ...current,
+      layout: {
+        ...current.layout,
+        profiles: {
+          ...current.layout.profiles,
+          [id]: { disabledKeys: current.layout.profiles[id]?.disabledKeys ?? [], labels: {}, ...edits },
+        },
+      },
+    },
+  });
+};
 const full = (await p.invoke('list_layouts')).ok.find((l) => l.id === id);
 const S0 = (await state()).settings;
 await p.invoke('save_settings', {
@@ -639,21 +655,6 @@ const previewWidth = (code) =>
       `const e = document.querySelector('[data-code="${code}"]'); return e ? parseFloat(e.style.width) : null`,
     )
     .catch(() => null);
-const saveProfileEdits = async (edits) => {
-  const current = (await state()).settings;
-  await p.invoke('save_settings', {
-    settings: {
-      ...current,
-      layout: {
-        ...current.layout,
-        profiles: {
-          ...current.layout.profiles,
-          [id]: { disabledKeys: current.layout.profiles[id]?.disabledKeys ?? [], labels: {}, ...edits },
-        },
-      },
-    },
-  });
-};
 await saveProfileEdits({ styles: { shape: { sizes: { KeyW: { w: 3 } } } } });
 const wide = await eventually(async () => {
   const [w, a] = [await previewWidth('KeyW'), await previewWidth('KeyA')];
