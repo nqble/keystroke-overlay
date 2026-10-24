@@ -770,8 +770,8 @@ for (let i = 0; i < 12; i++) await wheel(centreOfW.x, centreOfW.y, -400);
 await sleep(300);
 const maxZoom = await boardInfo();
 check(
-  'zoom stops at 200%',
-  maxZoom.zoom <= 2.0001 && maxZoom.label === '200%',
+  'zoom stops at 300%',
+  maxZoom.zoom <= 3.0001 && maxZoom.label === '300%',
   JSON.stringify([maxZoom.zoom, maxZoom.label]),
 );
 for (let i = 0; i < 20; i++) await wheel(centreOfW.x, centreOfW.y, 400);

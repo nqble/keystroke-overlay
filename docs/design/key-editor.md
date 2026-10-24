@@ -96,7 +96,7 @@ over the board, and holding stops when the window loses focus.
   still (on a Mac the plain wheel pans instead, see the table above).
 - Speed: factor = e^(−deltaY × 0.0012), about 12% per wheel notch. Smoothed by a 150ms ease-out transition on the board
   layer's `transform` (`--duration-medium`; a trackpad stream skips it, see view-gestures.js), so it feels soft but never laggy.
-- Range: from "the board just fills the box" (cover) up to 200%. You can never zoom out far enough to see outside the board.
+- Range: from "the board just fills the box" (cover) up to 300%. You can never zoom out far enough to see outside the board.
 - Zoom control in the box's bottom-right corner: [−] [100%] [+]. Clicking the percentage resets to 100% and centers the board.
   The ± buttons zoom about the box center by ×1.2.
 - The wheel listener must be **non-passive** (`addEventListener('wheel', fn, { passive: false })`) so the window does not

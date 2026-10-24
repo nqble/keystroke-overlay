@@ -89,3 +89,8 @@ test('panBy moves the view by the scroll and keeps only the board in the box', (
   assert.deepEqual(panBy(start, 500, 500, view, content), { zoom: 1, panX: 0, panY: 0 });
   assert.deepEqual(panBy(start, -9999, -9999, view, content), { zoom: 1, panX: -400, panY: -200 });
 });
+
+test('the editor zooms in to 300%, enough to place a key by eye', () => {
+  const start = centredView(VIEW, CONTENT);
+  assert.equal(zoomAt(start, 100, { x: 400, y: 200 }, VIEW, CONTENT).zoom, 3);
+});

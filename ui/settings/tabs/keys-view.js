@@ -7,7 +7,7 @@
 //  A view state is { zoom, panX, panY }: the board's top-left corner sits at (panX, panY) inside the box.
 // =====================================================================================================================
 
-export const ZOOM_MAX = 2;
+export const ZOOM_MAX = 3; // 300%; docs/design/key-editor.md (Zoom) and the e2e "zoom stops at" check say the same
 
 /** One mouse-wheel notch (deltaY 100) zooms about 12%: factor = e^(−deltaY × WHEEL_SPEED). */
 export const WHEEL_SPEED = 0.0012;
