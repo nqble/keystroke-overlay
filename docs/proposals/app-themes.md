@@ -1,0 +1,53 @@
+# Proposal: themes for the settings window
+
+Status: **Approved, planned for after v2.0** (2026-10-24): themes change the settings window only, and a custom theme
+sets a few base colors. Nothing is built.
+
+Lets a person change how the settings window looks: pick a built-in theme from a gallery, or make their own by changing
+a few base colors. The overlay OBS shows keeps its own themes (`ui/overlay/themes/`), as today. Inspired by the wide
+range of built-in themes in Monkeytype (monkeytype.com); no theme files or code are taken from it (it is GPL-3.0, this
+app is MIT), and the docs thank it.
+
+## What the person sees
+
+- **General → Appearance** (or a section of the Style tab; decided while designing): a gallery of theme cards, the same
+  cards as the Style tab's themes, each showing its colors. Clicking one changes the whole window at once.
+- **Make your own:** start from any theme and change its **base colors** with color pickers: background, panel, text,
+  dim text, accent and error. Everything else follows from those, so a custom theme always looks finished. Saved like a
+  preset; at most 20.
+- **A warning, not a lock,** when a custom theme makes text hard to read (below the WCAG AA contrast ratio, 4.5 : 1 for
+  text): the window says so next to the picker.
+- The default theme is today's look, so nothing changes until the person picks another one (new features are off by
+  default, CLAUDE.md §4).
+
+## How it is built
+
+- **Tokens from base colors.** Today `ui/settings/settings.css` has 58 color tokens in its `:root` block. They are
+  rewritten so that each one is either a base color or worked out from base colors with `color-mix()` (lighter, darker,
+  see-through versions). The look of the default theme must not change: the screenshot tests prove it
+  (`npm run test:visual` with no baseline changes). This restructure is the big step, and comes first, on its own.
+- **A theme is one plain data file** in `ui/settings/themes/` (`{ id, name, colors: { background, panel, text, dim,
+  accent, error } }`), listed automatically like the overlay's themes and layouts (decision 0006). Adding a theme
+  touches one place (CLAUDE.md §1, principle 4).
+- **Applying a theme** sets the six base colors as CSS variables on the root element; nothing else changes at run time.
+  No timers, no extra cost while idle.
+- **Settings:** `appearance: { theme: "default", custom: [] }` in `settings.rs`, cleaned like presets (colors are
+  `#rrggbb`), additive, so no migration.
+
+## Tests
+
+- Unit: every built-in theme meets 4.5 : 1 for text on its backgrounds and 3 : 1 for borders and focus outlines
+  (a test computes the contrast); every theme file has all six colors; the settings sanitizer keeps only valid colors.
+- Visual: one baseline per built-in theme for the General tab; the default theme's baselines stay unchanged.
+- End-to-end: picking a theme changes the window and is kept after a restart; a custom theme with low contrast shows
+  the warning.
+
+## Built-in themes
+
+Our own palettes, in the spirit of Monkeytype's range: a few dark ones, a few light ones, muted, retro, and a high
+contrast one (helpful for low vision, `docs/ACCESSIBILITY.md`). About 10 to start; anyone can add one with a single file.
+
+## Size
+
+About 3 to 5 working sessions (a rough estimate): the token restructure (1 to 2), the themes and gallery (1 to 2), tests
+and screenshots (1).
