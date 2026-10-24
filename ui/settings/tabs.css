@@ -95,8 +95,8 @@ h2:first-child {
   padding: var(--space-8) 0;
 }
 .row > label {
-  width: 170px;
-  flex: none;
+  flex: 0 1 170px; /* gives way a little in a narrow card, so the slider and its value fit */
+  min-width: 130px;
   color: var(--color-text);
 }
 .row .ctl {
@@ -152,6 +152,7 @@ select:focus {
 }
 input[type='range'] {
   flex: 1;
+  min-width: 0; /* a slider must be able to shrink, or its value sticks out of the card */
   accent-color: var(--color-accent);
 }
 input[type='range']:focus {

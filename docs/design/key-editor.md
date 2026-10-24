@@ -41,8 +41,8 @@ they are useful and are hidden otherwise.
 3. **Content row.** The editor box (flexible width) and, to its RIGHT, the inspector panel (fixed ~260px, top-aligned).
    Never put the inspector below the editor.
 4. **Hint line under the editor box**, one line: "Ctrl-click to add to the selection." on the left. On the right,
-   keycap chips each with one word: [←][↑][↓][→] nudge · [Shift] whole key · [Del] hide · [Scroll] zoom · [Space + drag] pan.
-   On a Mac the words change: "⌘-click to add to the selection", [delete] hide, [Pinch] zoom and [Scroll] or [Space + drag] pan (one pair: either key cap pans).
+   keycap chips each with one word: [←][↑][↓][→] nudge · [Shift] whole key · [Del] hide · [Scroll] zoom · [Space + drag] or [Middle drag] pan.
+   On a Mac the words change: "⌘-click to add to the selection", [delete] hide, [Pinch] zoom and [Scroll], [Space + drag] or [Middle drag] pan (any of the three pans).
    Each key cap sits next to its word, the pairs are evenly spaced and wrap as whole pairs, and there is no separate note under the
    hint line (the Mac F row needing Fn is explained in the user guide). Each chip has a
    tooltip with the full sentence. The words per system are in `ui/settings/system-words.js`.

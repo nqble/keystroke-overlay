@@ -39,23 +39,20 @@ const WORDS = {
     macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',
     linux: 'Scroll over the keyboard to zoom',
   },
-  // what pans, each as { chip, tip }: a Mac pans with a two-finger scroll, and Space + drag pans everywhere
+  // what pans, each as { chip, tip }: a Mac pans with a two-finger scroll; Space + drag and a middle-button drag pan everywhere
   panHints: {
     windows: [
-      {
-        chip: 'Space + drag',
-        tip: 'Hold Space and drag, or drag with the middle button, to move the view',
-      },
+      { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
+      { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
     ],
     macos: [
       { chip: 'Scroll', tip: 'Scroll with two fingers to move the view' },
       { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
+      { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
     ],
     linux: [
-      {
-        chip: 'Space + drag',
-        tip: 'Hold Space and drag, or drag with the middle button, to move the view',
-      },
+      { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
+      { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
     ],
   },
   // how the Standard keyboard method reads keys, for the technical line shown in Debug mode

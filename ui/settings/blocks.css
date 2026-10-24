@@ -374,6 +374,7 @@
   overflow-y: auto;
 }
 .other-layout {
+  height: auto; /* the list's rows set the height, not the gallery card's one size */
   flex-direction: row;
   align-items: center;
   gap: var(--space-8);
