@@ -187,6 +187,8 @@
   align-items: flex-start;
   gap: var(--space-4);
   width: 100%;
+  height: var(--gallery-card-height); /* one size whatever the text: long names are cut with an ellipsis below */
+  overflow: hidden;
   padding: var(--space-12);
   border-radius: var(--radius-2xl);
   background: var(--color-panel);
@@ -213,6 +215,13 @@
   color: var(--color-text-dim);
   font-size: var(--text-sm);
 }
+.gallery-title,
+.gallery-detail {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .gallery-item .menu-button {
   position: absolute;
   top: var(--space-8);
@@ -233,7 +242,6 @@
 .gallery-card.add {
   justify-content: center;
   align-items: center;
-  min-height: 60px;
   border-style: dashed;
   border-color: var(--color-line-dashed);
   color: var(--color-text-dim);

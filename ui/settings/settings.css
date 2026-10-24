@@ -125,6 +125,9 @@
   --duration-fast: 0.12s;
   --duration-medium: 0.15s;
 
+  /* The height of every gallery card (Layout, Style, Animation, and the "+ New" cards), so no text changes a card's size */
+  --gallery-card-height: 124px;
+
   /* Spacing (margins, padding, gaps): the number is the size in pixels. Many sizes sit close together: merge candidates. */
   --space-1: 1px;
   --space-2: 2px;

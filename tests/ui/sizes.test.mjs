@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const tabsCss = readFileSync(new URL('../../ui/settings/tabs.css', import.meta.url), 'utf8');
+const blocksCss = readFileSync(new URL('../../ui/settings/blocks.css', import.meta.url), 'utf8');
+const settingsCss = readFileSync(new URL('../../ui/settings/settings.css', import.meta.url), 'utf8');
 
 /** The declarations of the first rule whose selector is exactly `selector`. */
 function rule(css, selector) {
@@ -18,4 +20,17 @@ test('a color box keeps its width when the row is narrow (flex: none), or it shr
   const colorBox = rule(tabsCss, "input[type='color']");
   assert.match(colorBox, /flex:\s*none/);
   assert.match(colorBox, /width:\s*40px/);
+});
+
+test('every gallery card has the one fixed height, even the \"+ New\" cards', () => {
+  assert.match(settingsCss, /--gallery-card-height:\s*\d+px/);
+  assert.match(rule(blocksCss, '.gallery-card'), /height:\s*var\(--gallery-card-height\)/);
+  assert.doesNotMatch(rule(blocksCss, '.gallery-card.add'), /min-height/);
+});
+
+test('a long card title or detail is cut with an ellipsis instead of growing the card', () => {
+  const css = blocksCss.slice(blocksCss.indexOf('.gallery-title,'));
+  const cut = rule(css, '.gallery-title,\n.gallery-detail');
+  assert.match(cut, /text-overflow:\s*ellipsis/);
+  assert.match(cut, /white-space:\s*nowrap/);
 });
