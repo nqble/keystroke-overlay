@@ -1,6 +1,7 @@
 # Proposal: rotate single keys
 
-Status: **Proposed** (2026-10-24), planned for v2.0 if approved. Nothing is built.
+Status: **Approved, planned for after v2.0** (2026-10-24): the handle sits top-right, Snap turns in 15° steps, and only
+the Keyboard shape style has rotation. Nothing is built.
 
 Lets a person turn one key at a time in the Keys tab (for split, ergonomic or artistic layouts), and lets a layout file
 say a key is turned. The whole keyboard is never rotated here: OBS already rotates a source. Imported KLE files keep
@@ -72,9 +73,9 @@ unit test checks a version 4 file loads unchanged, and one checks `rotations` su
   handle is absent in the Even grid; the overlay draws a turned key.
 - Screenshots: a new baseline with one turned key.
 
-## Open questions
+## Decided (2026-10-24)
 
-1. Which corner holds the handle: **top-right** (proposed), or another?
-2. Snap step: **15°** (proposed), or 5°, 30° or 45°?
-3. **No rotation in the Even grid** (proposed): agreed?
-4. Size: about 3 to 4 working sessions (a rough estimate), including the e2e and screenshots. Worth it for v2.0, or after?
+- The handle is at the **top-right** corner.
+- With Snap on, one step is **15°**.
+- **No rotation in the Even grid.**
+- It ships **after v2.0**, as the first feature of the next version (about 3 to 4 working sessions, a rough estimate).
