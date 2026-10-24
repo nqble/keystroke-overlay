@@ -10,8 +10,7 @@ import { showMenu } from '../menu.js';
 import { isCustom } from '../profiles.js';
 
 const WORDS = {
-  keys: (count) => `${count} keys`,
-  customized: ' · customized',
+  customized: 'Customized',
   more: (name) => `More for ${name}`,
   moveLeft: 'Move left',
   moveRight: 'Move right',
@@ -81,7 +80,6 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
     keyEvent.preventDefault();
     actions.move(keyEvent.key === 'ArrowLeft' ? -1 : 1);
   };
-  const detail = WORDS.keys(layout.keys.length) + (isCustom(layout.id) ? WORDS.customized : '');
   return html`<div
     class=${dragging ? 'gallery-item layout-item dragging' : 'gallery-item layout-item'}
     data-layout-item=${layout.id}
@@ -100,8 +98,14 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
       onDragEnd=${drag.end}
     >
       <span class="gallery-picture"><${LayoutPicture} keys=${layout.keys} /></span>
-      <b class="gallery-title">${layout.name}</b>
-      <span class="gallery-detail">${detail}</span>
+      <span class="gallery-name">
+        <b class="gallery-title">${layout.name}</b>
+        ${
+          isCustom(layout.id)
+            ? html`<span class="custom-dot" role="img" title=${WORDS.customized} aria-label=${WORDS.customized}></span>`
+            : null
+        }
+      </span>
     </button>
     <${MenuButton} label=${WORDS.more(layout.name)} items=${items} test="layout-menu" />
   </div>`;
