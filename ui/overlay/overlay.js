@@ -14,9 +14,7 @@ const FONT_FALLBACKS = '"Segoe UI", system-ui, -apple-system, sans-serif';
 // What the overlay says to the person looking at it in OBS. The menu path must match the settings window
 // (ui/settings/tabs/general-connection.js).
 const TEXT = {
-  locked:
-    '🔒 This OBS URL is secured. Copy the current OBS URL from Keystroke Overlay ' +
-    '(General → Connection) into this OBS source.',
+  locked: '🔒 This OBS URL is out of date. Copy the new one from Keystroke Overlay (General → Connection).',
 };
 
 const params = new URLSearchParams(location.search);

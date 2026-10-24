@@ -152,7 +152,7 @@ await p.ev(
 );
 await sleep(3500);
 check(
-  'an old / keyless link shows a "link is secured" message instead of a blank overlay',
+  'an old / keyless OBS URL shows an "out of date" message instead of a blank overlay',
   (await p.q(`window.__m`)).includes('locked'),
 );
 await p.ev(`document.getElementById('oldlink').remove()`);
