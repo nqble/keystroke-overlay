@@ -284,7 +284,7 @@ await sleep(300);
 check(
   'at the limit, New layout says so instead of asking for a name (built-ins can still be added)',
   await p.q(
-    `/the most the app keeps/.test(document.querySelector('${byTest('dialog')}').textContent) && !document.querySelector('${byTest('dialog-layout-name')}')`,
+    `/the most allowed/.test(document.querySelector('${byTest('dialog')}').textContent) && !document.querySelector('${byTest('dialog-layout-name')}')`,
   ),
 );
 check(

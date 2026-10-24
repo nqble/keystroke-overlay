@@ -33,7 +33,7 @@ const TEXT = {
   leftOut: (count) => `${plural(count, 'key')} left out: decorations and extra layout choices.`,
   back: 'Back',
   create: 'Create layout',
-  created: 'Layout created.',
+  created: 'Layout created',
   // errors, each a toast
   notKle: "This file isn't a KLE layout. In KLE, use Download → Download JSON.",
   noKeys: 'This KLE file has no keys.',

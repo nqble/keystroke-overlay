@@ -70,7 +70,7 @@ async function createBlank(name) {
     settings.layout.id = id;
     setSelectedKey(null);
     setTab('keys');
-    toast('Layout created.');
+    toast('Layout created');
     render();
     return true;
   } catch (error) {
@@ -100,14 +100,13 @@ function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }
     }
     ${
       choice === START.blank && !full
-        ? html`<p>${TEXT.newLayoutHelp}</p>
-            <input
-              type="text"
-              placeholder="Layout name"
-              maxlength="30"
-              data-test="dialog-layout-name"
-              ref=${nameField}
-            />`
+        ? html`<input
+            type="text"
+            placeholder="Layout name"
+            maxlength="30"
+            data-test="dialog-layout-name"
+            ref=${nameField}
+          />`
         : null
     }
     ${choice === START.builtIn ? html`<${OtherLayouts} choices=${builtIns} onAdd=${addBuiltIn} />` : null}

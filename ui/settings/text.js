@@ -3,8 +3,7 @@
 //  checked word for word by tests/e2e (secure link, keyboard input): change those together with their test.
 // =====================================================================================================================
 export const TEXT = {
-  layoutLimitReached: (max) => `You have ${max} layouts, the most the app keeps. Delete one to make room.`,
-  newLayoutHelp: 'It starts as the full keyboard. Hide keys on the Keys tab.',
+  layoutLimitReached: (max) => `You have ${max} layouts, the most allowed. Delete one to add another.`,
   resetBodyWhatChanges: 'Every option goes back to its default. Your layouts, presets, fonts and port are kept.',
   resetBodyLinkNote: 'If the secure link was on, copy the OBS URL into OBS again.',
   manualInstallDialog: 'Install this one by hand: get the installer from GitHub, close this app, run it.',

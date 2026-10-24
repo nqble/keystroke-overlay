@@ -18,18 +18,17 @@ import { LayoutCard } from './layout-card.js';
 
 const WORDS = {
   title: 'Layout',
-  subtitle: 'Pick a keyboard, or make your own.',
   count: (mine) => `Your layouts: ${mine} / ${MAX_LAYOUTS}`,
   add: '+ New layout',
   deleteTitle: (name) => `Delete ${name}?`,
-  deleteBody: 'Its key edits go too. This can’t be undone.',
+  deleteBody: 'This can’t be undone.',
   cancel: 'Cancel',
   remove: 'Delete',
   deleted: (name) => `${name} deleted`,
   import: 'Import…',
   export: 'Export…',
-  importTip: 'Add layouts from a file someone shared (or that you exported)',
-  exportTip: 'Save the layouts you made, with their key edits, to a file',
+  importTip: 'Add layouts from a file',
+  exportTip: 'Save your layouts to a file',
   imported: (added, skipped) => `Imported ${plural(added, 'layout')}` + (skipped ? `, skipped ${skipped}` : ''),
   nothingImported: (skipped) =>
     'Nothing imported' + (skipped ? ` (${skipped} skipped: empty, or the ${MAX_LAYOUTS}-layout limit)` : ''),
@@ -106,7 +105,6 @@ function Layout() {
     <div class="tab-heading with-action">
       <div>
         <h2 data-test="section-heading">${WORDS.title}</h2>
-        <p class="note">${WORDS.subtitle}</p>
       </div>
       <span class="note" data-test="layout-count">${WORDS.count(mine)}</span>
     </div>
