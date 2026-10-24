@@ -12,7 +12,7 @@ const MAX_LINES = 40;
 
 /** What the status line says. */
 function statusText(running, count) {
-  if (running) return `Listening… ${count} events so far (stops by itself after 60 s)`;
+  if (running) return `Listening… ${count} events (stops after 60 s)`;
   return count ? `Stopped. ${count} events.` : 'Not running.';
 }
 

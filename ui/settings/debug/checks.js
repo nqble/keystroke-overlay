@@ -35,7 +35,7 @@ export async function runSelfTest() {
       (info.inputLabel ?? info.inputActive) + (info.inputError ? ': ' + info.inputError : ''),
     ],
     ...accessTests(info.keyboardAccess),
-    ['Settings are valid (nothing needed correcting)', info.settingsValid, ''],
+    ['Settings are valid', info.settingsValid, ''],
     ['The data folder can be written to', info.dataWritable, scrub(info.dataDir)],
     [
       `All ${layouts.length} layouts have keys, and no key appears twice`,

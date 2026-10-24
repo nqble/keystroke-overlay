@@ -17,9 +17,8 @@ export const TEXT = {
     `What the app itself did: server restarts, layout changes, update checks, ${trayName} actions. Kept in ` +
     'memory only (last 300 lines). Never records key presses.',
   keyMonitorHelp:
-    'Shows each key the app sees, with the time since the previous event. Use it to check that a key ' +
-    'is detected and for timing problems. Press Start first; it stops by itself. Nothing is stored. ' +
-    'Don’t type passwords while it runs.',
+    'Shows each key the app sees, with the time since the previous event. Press Start first; it stops ' +
+    'by itself. Nothing is stored. Don’t type passwords while it runs.',
   // `startup` is the system's name for starting with the computer (system-words.js)
   rawSettingsHelp: (startup) =>
     'The current settings exactly as the app holds them. Edit and press Apply to try odd values; the ' +
@@ -46,16 +45,10 @@ export const TEXT = {
     'In Microsoft Edge open edge://inspect, add localhost:9222 under “Configure…”, then click ' +
     '“inspect” under Keystroke Overlay.',
   inspectorDeveloperNote:
-    'Developers working on the code can run “npm run dev:debug”, which does all of this and turns ' +
-    'Debug mode on. In the inspector’s console, the object “ko” has shortcuts: ko.info(), ko.log(), ' +
+    'Or run “npm run dev:debug”, which does all of this. In the inspector’s console, the object “ko” has shortcuts: ko.info(), ko.log(), ' +
     "ko.settings(), ko.goto('style').",
-  bugReportHelp:
-    'Copies one block of text for a GitHub issue, or to paste to an AI assistant such as Claude: a short summary, then ' +
-    'the details (version, system, self-test, the settings you changed and the recent event log). It contains no key ' +
-    'presses and no private link key, and your user name is removed.',
-  debugToolsIntro:
-    'Developer tools. Switch them off in General → Advanced → Debug mode. Nothing here is saved to disk or ' +
-    'sent anywhere.',
+  bugReportHelp: 'Copies a report for a GitHub issue or an AI assistant.',
+  debugToolsIntro: 'Developer tools. Nothing here is saved or sent. Turn off in General → Advanced → Debug mode.',
 };
 
 // -------------------------------------------------------------------------------------------------------------------
