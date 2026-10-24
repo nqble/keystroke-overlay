@@ -105,7 +105,7 @@ export function Updates() {
     <span class="hint" data-test="update-status">${ownStatus ?? status}</span>
     <div class="bar" id="upBar" hidden data-test="general-update-progress"><div class="fill" id="upFill"></div></div>
     <span class="hint" id="upText" data-test="general-update-progress-text"></span>
-    ${update?.available && update.manual ? html`<p class="note">${TEXT.manualInstallNote}</p>` : null}
+    ${update?.available && update.manual ? html`<p class="note">${TEXT.manualInstall}</p>` : null}
     <${Note} text=${TEXT.updatesNote} />
     <${Detail} text=${WORDS.detail(channel)} />
   <//>`;

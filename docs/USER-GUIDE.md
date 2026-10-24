@@ -121,7 +121,7 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
   requests addressed to `localhost:<its port>`, so a different number on PC B would be refused.
 - **Keep the secure link on.** Without it, anything that can reach the port could read your key presses. With it, the stream and
   data are refused without the private key (`?key=…`), as described in [Secure link](#secure-link-optional). If you use **Make a new
-  key**, copy the new link into OBS again.
+  key**, copy the new OBS URL into OBS again.
 - **After changing the address or the key, reload the source in OBS** (right-click it → **Refresh cache of current page**). In the
   test, a page opened before the key was right drew the keyboard but never lit up until it was reloaded.
 - **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only (the SSH server or Tailscale on PC A hands the
@@ -172,7 +172,7 @@ Under **General → Connection** (**Secure my OBS URL**) you can choose how lock
 | | What it means |
 |---|---|
 | **Off (default)** | Simple link, nothing extra to do. Other programs running on your PC could read your key presses through it. |
-| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
+| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only programs with the full OBS URL can read your key presses, including other users on the same PC. Copy the new OBS URL into OBS **once** (the old one stops working). The OBS URL is hidden on screen in the app, and you should keep it off your stream. |
 
 **Make a new key** creates a fresh key and cuts off every link made with the old one.
 

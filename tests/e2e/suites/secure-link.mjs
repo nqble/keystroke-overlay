@@ -39,7 +39,7 @@ check(
   'General\'s Connection card has the secure-link switch, off, with the "Off (default)" explanation',
   (await p.q(`!!document.querySelector('${byTest('general-connection')}')?.contains(${toggle})`)) &&
     (await p.q(`${toggle}.getAttribute('role') === 'switch' && ${toggle}.getAttribute('aria-checked') === 'false'`)) &&
-    /Off \(default\): your OBS URL is simple/.test(await pageText()),
+    /Off \(default\): any program on this PC can read/.test(await pageText()),
 );
 check(
   'while off, the copy / new-key buttons are not on screen',
@@ -64,7 +64,7 @@ check(
 );
 check(
   'the explanation changes to "On" and the copy / new-key buttons appear',
-  /On: your OBS URL now contains a private key/.test(await pageText()) &&
+  /On: only programs with the full OBS URL can read/.test(await pageText()) &&
     (await p.q(
       `!!document.querySelector('${byTest('secure-link-copy')}') && !!document.querySelector('${byTest('secure-link-new-key')}')`,
     )),

@@ -13,11 +13,11 @@ import { systemWord } from '../system-words.js';
 const WORDS = {
   title: 'Pause shortcut',
   enabled: 'Pause with a shortcut',
-  note: 'Pauses or resumes the overlay from any app, even in a game.',
+  note: 'Works from any app, even in a game.',
   none: 'No shortcut yet',
   choose: 'Choose shortcut',
   listening: 'Press the keys… (Esc to cancel)',
-  needsModifier: (modifiers) => `Use ${modifiers} with that key, so it doesn’t get in the way of typing.`,
+  needsModifier: (modifiers) => `Add ${modifiers} to that key.`,
   clear: 'Clear',
   saved: (name) => `Pause shortcut: ${name}`,
 };

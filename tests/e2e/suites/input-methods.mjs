@@ -46,8 +46,10 @@ check(
 );
 check('help text explains Standard', /Works with nearly every game/.test(await pageText()));
 check(
-  'help text covers administrator games and says to keep Standard unless a game needs the other',
-  /runs as administrator/.test(await pageText()) && /Keep it unless keys don/.test(await pageText()),
+  'help text covers administrator games, and the Standard note is only the short line (no "keep it unless")',
+  /If a game runs as administrator, start Keystroke Overlay as administrator too\./.test(await pageText()) &&
+    /Works with nearly every game\./.test(await pageText()) &&
+    !/Keep it unless/.test(await pageText()),
 );
 check('backend reports "hook" as the active method', (await p.invoke('get_state')).ok.inputActive === 'hook');
 

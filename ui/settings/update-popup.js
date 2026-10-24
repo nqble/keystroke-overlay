@@ -37,7 +37,7 @@ export function openUpdateDialog() {
         className: 'hint',
         textContent: `You have v${update.current} · ${update.channel === 'latest' ? 'Latest' : 'Stable'} channel`,
       }),
-      update.manual ? el('p', { textContent: TEXT.manualInstallDialog }) : null,
+      update.manual ? el('p', { textContent: TEXT.manualInstall }) : null,
       update.notes ? md(update.notes) : null,
       // replaceChildren would print "null" for empty slots
     ].filter(Boolean),

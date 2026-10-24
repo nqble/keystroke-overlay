@@ -19,13 +19,11 @@ import { Updates } from './general-updates.js';
 
 const WORDS = {
   title: 'General',
-  subtitle: 'Connection, startup and updates.',
   input: 'Keyboard input',
   standard: 'Standard',
   compatibility: 'Compatibility',
-  standardNote: 'Works with nearly every game. Keep it unless keys don’t light up in one game.',
-  standardOnlyNote: 'Works with nearly every game.', // when this system has no other method
-  compatibilityNote: 'For games where keys don’t light up with Standard. Uses just as little CPU.',
+  standardNote: 'Works with nearly every game.',
+  compatibilityNote: 'For games where keys don’t light up with Standard.',
   adminNote: 'If a game runs as administrator, start Keystroke Overlay as administrator too.',
   inputDetail: {
     rawinput: 'Compatibility = Raw Input (RIDEV_INPUTSINK, message-only window)',
@@ -58,7 +56,6 @@ function General() {
   return html`<div class="tab-page">
     <div class="tab-heading">
       <h2 data-test="section-heading">${WORDS.title}</h2>
-      <p class="note">${WORDS.subtitle}</p>
     </div>
     <div class="section-grid">
       <${Connection} />
@@ -72,10 +69,9 @@ function General() {
   </div>`;
 }
 
-/** The line under the method choice: with only one method there is nothing to switch to. */
+/** The line under the method choice. */
 function inputNote(method) {
-  if (method !== 'hook') return WORDS.compatibilityNote;
-  return availableMethods().length > 1 ? WORDS.standardNote : WORDS.standardOnlyNote;
+  return method === 'hook' ? WORDS.standardNote : WORDS.compatibilityNote;
 }
 
 function KeyboardInput() {

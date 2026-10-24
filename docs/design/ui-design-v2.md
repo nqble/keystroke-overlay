@@ -36,7 +36,7 @@ Each part says whether it is **built** (in v2.0) or **designed** (approved, not 
 | Connection | "OBS URL and port" | "Local server on 127.0.0.1:7878; overlays connected: 2" |
 | Keyboard input | "Standard works with nearly every game." | "Standard = WH_KEYBOARD_LL; Compatibility = Raw Input." |
 | Secure link | "Only programs with your full link can see your key presses." | "128-bit key, checked on every request." |
-| Updates | "Checks about once an hour. Never installs without your click." | "Last check time and result." |
+| Updates | "Checks about once an hour. Nothing installs until you click." | "Last check time and result." |
 | Header status | "● Live in OBS" | "2 overlay clients · paused: no" |
 
 ## 3. Tokens
