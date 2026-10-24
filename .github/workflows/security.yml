@@ -34,5 +34,19 @@ jobs:
       - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2
         with:
           tool: cargo-audit
+      # Known and accepted (the maintainer decided, 2026-10-24): three advisories in zip 4.6.1, which only the updater
+      # plugin (tauri-plugin-updater 2.14) uses, about unpacking a crafted archive. The updater unpacks an update only
+      # after its signature checks out against the app's own update key, and no stable updater uses zip 9 yet. The
+      # next step fails once the lock file has zip 9 or newer, so these exceptions are removed as soon as they can be.
       - name: Rust libraries (cargo audit)
-        run: cargo audit --file src-tauri/Cargo.lock
+        run: >-
+          cargo audit --file src-tauri/Cargo.lock
+          --ignore RUSTSEC-2026-0367 --ignore RUSTSEC-2026-0368 --ignore RUSTSEC-2026-0369
+      - name: The zip exceptions above are still needed
+        run: |
+          zip_version=$(grep -A1 '^name = "zip"$' src-tauri/Cargo.lock | sed -n 's/^version = "\(.*\)"/\1/p')
+          major=${zip_version%%.*}
+          if [ "$major" -ge 9 ]; then
+            echo "zip is $zip_version now: remove the three --ignore RUSTSEC-2026-036x flags from this workflow"
+            exit 1
+          fi
