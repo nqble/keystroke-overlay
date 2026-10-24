@@ -95,7 +95,8 @@ h2:first-child {
   padding: var(--space-8) 0;
 }
 .row > label {
-  flex: 0 1 170px; /* gives way a little in a narrow card, so the slider and its value fit */
+  width: 170px;
+  flex: 0 1 auto; /* gives way a little in a narrow card, so the slider and its value fit */
   min-width: 130px;
   color: var(--color-text);
 }
