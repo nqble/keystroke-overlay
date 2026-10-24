@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { structureKey } from '../../ui/overlay/structure.js';
 
-const style = { keySize: 48, gap: 6, fontSize: 18, scale: 1 };
+const style = { keySize: 48, gap: 6, fontSize: 18, scale: 1, glowSize: 18 };
 const us = {
   id: 'tkl',
   keys: [
@@ -38,4 +38,8 @@ test('a changed layout, edit or size rebuilds too', () => {
 test('a layout that is not there yet or has no keys does not break it', () => {
   assert.doesNotThrow(() => structureKey(undefined, {}, style));
   assert.doesNotThrow(() => structureKey({ id: 'x' }, {}, style));
+});
+
+test('a bigger glow needs more room around the keys, so the keys are rebuilt and the size is sent again', () => {
+  assert.notEqual(structureKey(us, {}, style), structureKey(us, {}, { ...style, glowSize: 60 }));
 });

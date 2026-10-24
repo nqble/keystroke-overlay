@@ -11,8 +11,18 @@ function labelsOf(layout) {
 
 /**
  * A text that is the same exactly while the keys would be drawn the same: `profile` is the user's edits of this layout,
- * `style` holds the sizes (keySize, gap, fontSize, scale).
+ * `style` holds the sizes (keySize, gap, fontSize, scale, and glowSize, which sets the room around the keys: stagePad in
+ * fit.js).
  */
 export function structureKey(layout, profile, style) {
-  return JSON.stringify([layout?.id, profile, style.keySize, style.gap, style.fontSize, style.scale, labelsOf(layout)]);
+  return JSON.stringify([
+    layout?.id,
+    profile,
+    style.keySize,
+    style.gap,
+    style.fontSize,
+    style.scale,
+    style.glowSize,
+    labelsOf(layout),
+  ]);
 }
