@@ -1047,23 +1047,27 @@ const viewOf = async () => {
 };
 await p.ev(`document.querySelector('${byTest('editor-zoom-in')}').click()`);
 await sleep(500);
-const viewBefore = await viewOf();
+const viewBeforeEdits = await viewOf();
 await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
 await sleep(800);
-check('Close gaps leaves the view where it was', (await viewOf()) === viewBefore, `${viewBefore} -> ${await viewOf()}`);
+check(
+  'Close gaps leaves the view where it was',
+  (await viewOf()) === viewBeforeEdits,
+  `${viewBeforeEdits} -> ${await viewOf()}`,
+);
 await p.ev(`${arrangeButton('key-undo')}.click()`);
 await sleep(800);
 check(
   'Undo of Close gaps leaves the view where it was',
-  (await viewOf()) === viewBefore,
-  `${viewBefore} -> ${await viewOf()}`,
+  (await viewOf()) === viewBeforeEdits,
+  `${viewBeforeEdits} -> ${await viewOf()}`,
 );
 await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
 await sleep(800);
 check(
   'switching to the Even grid leaves the view where it was',
-  (await viewOf()) === viewBefore,
-  `${viewBefore} -> ${await viewOf()}`,
+  (await viewOf()) === viewBeforeEdits,
+  `${viewBeforeEdits} -> ${await viewOf()}`,
 );
 await p.ev(`document.querySelector('${byTest('layout-style-shape')}').click()`);
 await sleep(800);
