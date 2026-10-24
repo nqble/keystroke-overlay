@@ -16,7 +16,12 @@ app is MIT), and the docs thank it.
   dim text, accent and error. Everything else follows from those, so a custom theme always looks finished. Saved like a
   preset; at most 20. **Export and import** a theme as a small file, so people can share them.
 - **Editing happens in place, never in a popup:** the whole window must change live while the person picks colors, and a
-  popup would hide most of it. How the editor sits in the window is still being designed (open question 1).
+  popup would hide most of it. Decided 2026-10-24: a **docked edit bar** along the bottom of the window. **+ New theme**
+  (a dashed card at the end of the gallery, like **+ New layout**) or **Edit** in a custom theme's **⋯** menu opens it.
+  The bar holds the six color pickers with their names, the contrast note ("Easy to read", or "Some text is hard to
+  read" in the error color, with the ratio), and **Export…**, **Cancel** and **Save**. It stays while the person moves
+  between tabs, so every screen can be checked in the new colors; Cancel puts the colors back as they were.
+- **Import…** sits next to **+ New theme** in the gallery; a theme's **⋯** menu has **Export…**, like the Layout tab.
 - **A warning, not a lock,** when a custom theme makes text hard to read (below the WCAG AA contrast ratio, 4.5 : 1 for
   text): the window says so next to the picker.
 - The default theme is today's look, so nothing changes until the person picks another one (new features are off by
@@ -65,5 +70,4 @@ and screenshots (1).
 
 ## Open questions
 
-1. Where the theme editor sits while editing, so the whole window stays visible and keeps changing live.
-2. Which other keycap sets to add.
+1. Which other keycap sets to add.
