@@ -5,7 +5,7 @@ sets a few base colors. Nothing is built.
 
 Lets a person change how the settings window looks: pick a built-in theme from a gallery, or make their own by changing
 a few base colors. The overlay OBS shows keeps its own themes (`ui/overlay/themes/`), as today. Inspired by the wide
-range of built-in themes in Monkeytype (monkeytype.com); no theme files or code are taken from it (it is GPL-3.0, this
+range of built-in themes in Monkeytype (monkeytype.com). No theme files or code are taken from it (it is GPL-3.0, this
 app is MIT), and the docs thank it.
 
 ## What the person sees
@@ -44,8 +44,14 @@ app is MIT), and the docs thank it.
 
 ## Built-in themes
 
-Our own palettes, in the spirit of Monkeytype's range: a few dark ones, a few light ones, muted, retro, and a high
-contrast one (helpful for low vision, `docs/ACCESSIBILITY.md`). About 10 to start; anyone can add one with a single file.
+- **Default** is today's look (near-black with a blue-gray tint and one electric blue), and keeps that name.
+- **Well-known palettes from keycap sets** (Olivia, from the GMK Olivia keycaps, for example) use the same colors and
+  the familiar name, as Monkeytype does, with a credit line in the theme file and in the gallery's tooltip naming the
+  keycap set and its designer. Colors alone are not anyone's property; the credit makes clear the name is theirs.
+- **Our own palettes** fill the range: a few dark ones, a few light ones, muted, retro, and a high contrast one (helpful
+  for low vision, `docs/ACCESSIBILITY.md`).
+- Every theme must look good, not just pass the contrast test: each one is shown side by side as a mockup before it is
+  built, and only the ones the maintainer picks go in. About 10 to start; anyone can add one with a single file.
 
 ## Size
 
