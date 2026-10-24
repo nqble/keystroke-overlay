@@ -2,7 +2,7 @@
 // toggles a `down` class per key. No timers or polling while connected - CSS
 // transitions do all the animation work on the compositor.
 import { animations, themes, easings, byId } from '/overlay/registry.js';
-import { fitInBox } from '/overlay/fit.js';
+import { fitInBox, stagePad } from '/overlay/fit.js';
 import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
 
@@ -19,7 +19,6 @@ const TEXT = {
     '(General → Connection) into this OBS source.',
 };
 
-const PAD = 16; // room around the keys so glows aren't clipped
 const params = new URLSearchParams(location.search);
 const PREVIEW = params.has('preview') && window.parent !== window;
 
@@ -226,7 +225,8 @@ function build(nextSettings, layout) {
 
 function reportSize(width, height) {
   const sc = settings.style.scale;
-  const size = { w: Math.ceil(width * sc + PAD * 2), h: Math.ceil(height * sc + PAD * 2) };
+  const pad = stagePad(settings.style.glowSize, sc);
+  const size = { w: Math.ceil(width * sc + pad * 2), h: Math.ceil(height * sc + pad * 2) };
   window.__size = size;
   placeStage();
   if (PREVIEW) parent.postMessage({ type: 'size', ...size }, '*');
@@ -242,8 +242,9 @@ function placeStage() {
   if (!size) return;
   const box = PREVIEW ? size : { w: innerWidth, h: innerHeight };
   const { fit, x, y } = fitInBox(size, box);
+  const pad = stagePad(settings.style.glowSize, settings.style.scale);
   stage.style.left = stage.style.top = '0px';
-  stage.style.transform = `translate(${x + PAD * fit}px, ${y + PAD * fit}px) scale(${settings.style.scale * fit})`;
+  stage.style.transform = `translate(${x + pad * fit}px, ${y + pad * fit}px) scale(${settings.style.scale * fit})`;
 }
 addEventListener('resize', placeStage);
 
