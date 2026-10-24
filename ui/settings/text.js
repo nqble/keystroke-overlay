@@ -17,7 +17,7 @@ export const TEXT = {
   snapHelp: 'Keys snap to quarter keys and to other keys’ edges.',
   gridHelp: 'Dots every half key (whole key in the Even grid).',
   showHiddenHelp: 'Show hidden keys, dimmed.',
-  animationTabNote: 'Light on your PC. Press keys to try it.',
+  animationTabNote: 'Press keys to try one.',
   keyPictureHelp: 'Drag on the background to select several keys. Tab and Enter work too.',
   secureLinkOff:
     '**Off (default):** your OBS URL is simple and needs no extra step. Any program running on this ' +
