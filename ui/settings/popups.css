@@ -304,3 +304,34 @@
   width: 100%;
   margin-top: var(--space-6);
 }
+/* The New layout popup (dialogs.js): the Start from choice, then what it needs; and the Import from KLE popup
+   (kle-import-popup.js), whose picture is big enough to read the key labels */
+.new-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+.new-layout .segmented {
+  align-self: flex-start;
+}
+#dBody .new-layout p {
+  margin: 0;
+}
+.kle-import-picture {
+  display: block;
+  margin-bottom: var(--space-12);
+  padding: var(--space-12);
+  border-radius: var(--radius-lg);
+  background: var(--color-well);
+}
+.kle-import-picture .layout-picture {
+  height: 160px;
+}
+.kle-import-picture .layout-picture rect:not(.marked) {
+  fill: var(--color-key-fill);
+  stroke: var(--color-key-line);
+  stroke-width: 0.03;
+}
+#dBody .kle-import-summary {
+  font-weight: 600;
+}

@@ -2,8 +2,8 @@
 
 Thanks for helping! This is a small, fast, privacy-first app, and the bar for changes is "keep it that way".
 
-Code conventions (for people and AI sessions alike) are in [CLAUDE.md](CLAUDE.md). The working notes of the Claude sessions that help
-build this project are in [docs/for-claude/](docs/for-claude/README.md); you can ignore them, they are not instructions for contributors.
+Code conventions (for people and AI sessions alike) are in [CLAUDE.md](CLAUDE.md). Plans for things not built yet, which anyone can
+pick up, are in [docs/proposals/](docs/proposals/README.md).
 
 ## The three rules
 

@@ -1,6 +1,6 @@
 // =====================================================================================================================
 //  The header's controls (docs/design/ui-design-v2.md, Header): the OBS status on the left, then Copy OBS URL and the
-//  Update ready chip in the top right. The first screen built with Preact (docs/for-claude/proposals/done/v2-preact.md): paintHeader()
+//  Update ready chip in the top right. The first screen built with Preact (docs/decisions/0013-preact-with-htm-for-the-settings-window.md): paintHeader()
 //  draws it from the current state, and anything that changes that state calls paintHeader() again. What the status
 //  says is plain logic in obs-status.js; the logo, name and window buttons are fixed markup in index.html (windowbar.js).
 // =====================================================================================================================

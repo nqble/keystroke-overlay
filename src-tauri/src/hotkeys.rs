@@ -4,12 +4,18 @@
 //!
 //! The shortcut does the same as the tray's Pause overlay (tray::toggle_pause_inner), so the tray and the overlay
 //! always show the pause state.
+//!
+//! The plugin is loaded only once a shortcut is wanted, not at start-up: on Linux (X11) it starts a thread that checks for
+//! events 20 times a second, which would break the "about 0% CPU at idle" promise for everyone who never sets one. Once
+//! loaded it stays until the app quits (Tauri can't unload a plugin), so turning the shortcut off takes the wake-ups
+//! away at the next start.
 
 use crate::settings;
 use crate::state::AppState;
 use serde_json::{json, Value};
+use tauri::Wry;
 use tauri::{AppHandle, Manager};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, Shortcut, ShortcutState};
 
 /// The longest shortcut text accepted ("CommandOrControl+Shift+Alt+NumpadSubtract" fits). Must match
 /// MAX_SHORTCUT_LENGTH in ui/settings/shortcut.js.
@@ -27,11 +33,24 @@ fn wanted(settings: &Value) -> Option<&str> {
     (hotkeys["enabled"].as_bool() == Some(true) && !pause.is_empty()).then_some(pause)
 }
 
+/// Whether the plugin must be loaded now: only when a shortcut is wanted and it isn't loaded yet.
+fn must_load_plugin(loaded: bool, shortcut_wanted: bool) -> bool {
+    shortcut_wanted && !loaded
+}
+
 /// Register exactly the shortcut the settings ask for (none when off). Called at start-up and when the user changes it.
 pub fn apply(app: &AppHandle, settings: &Value) -> Result<(), String> {
+    let wanted_text = wanted(settings);
+    let loaded = app.try_state::<GlobalShortcut<Wry>>().is_some();
+    if must_load_plugin(loaded, wanted_text.is_some()) {
+        app.plugin(tauri_plugin_global_shortcut::Builder::new().build())
+            .map_err(|e| e.to_string())?;
+    } else if !loaded {
+        return Ok(()); // no shortcut, and nothing was ever registered
+    }
     let shortcuts = app.global_shortcut();
     shortcuts.unregister_all().map_err(|e| e.to_string())?;
-    let Some(text) = wanted(settings) else {
+    let Some(text) = wanted_text else {
         return Ok(());
     };
     let shortcut: Shortcut = text
@@ -86,6 +105,17 @@ mod tests {
         assert_eq!(wanted(&off), None);
         assert_eq!(wanted(&empty), None);
         assert_eq!(wanted(&settings::defaults()), None, "off by default");
+    }
+
+    #[test]
+    fn the_plugin_loads_only_when_a_shortcut_is_wanted() {
+        assert!(
+            !must_load_plugin(false, false),
+            "no shortcut: no plugin, so no idle thread on Linux"
+        );
+        assert!(must_load_plugin(false, true));
+        assert!(!must_load_plugin(true, true), "loaded once");
+        assert!(!must_load_plugin(true, false));
     }
 
     #[test]

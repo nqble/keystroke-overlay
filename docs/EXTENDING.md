@@ -5,7 +5,9 @@ and not a general plugin system: [decision 0006](decisions/0006-layouts-themes-a
 
 ## 1. A layout
 **In the app:** Layout tab → the dashed **+ New layout** card → name it. It starts as the full-size keyboard; hide the keys you don't
-want in the Keys tab. **By hand:** write a JSON file; format in [FILE-FORMATS.md](FILE-FORMATS.md). To ship it with the
+want in the Keys tab. **From a KLE file:** the same popup's **From a KLE file…** makes one from a keyboard drawn on
+keyboard-layout-editor.com (reading: `ui/settings/kle.js` and `kle-layout.js`; the legend table that links keys:
+`ui/settings/key-names.js`). **By hand:** write a JSON file; format in [FILE-FORMATS.md](FILE-FORMATS.md). To ship it with the
 app, put it in `ui/overlay/layouts/`: it appears in the New layout popup's "Other layouts" by itself. To show it on
 new installs, add its id to `DEFAULT_ORDER` in `src-tauri/src/layout_order.rs`.
 
@@ -71,7 +73,7 @@ when it takes more than one, a check or test catches a forgotten one.
 | The look of one part of the window | its own CSS file next to `settings.css` (`header.css`, `popups.css`, ...; a new part gets a new file and a `<link>` in `index.html`) | 1–2 |
 | A color, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colors) | 1 |
 | A header status | one rule in `obsStatus()`, `ui/settings/obs-status.js`, plus its test | 1 |
-| A new screen or part of one | a Preact component using `html` from `ui/settings/html.js` (docs/for-claude/proposals/done/v2-preact.md); plain logic in its own tested function | 1 |
+| A new screen or part of one | a Preact component using `html` from `ui/settings/html.js` ([decision 0013](decisions/0013-preact-with-htm-for-the-settings-window.md)); plain logic in its own tested function | 1 |
 | A popup | `dialog()` in `ui/settings/popup.js` (focus, Esc, Enter and size come with it) | 1 |
 | A scrolling area | the class `scroll-fade` on it (the fade and the shared scrollbar come with it; docs/design/ui-design-v2.md, Scrolling) | 1 |
 | A Debug tool | a file in `ui/settings/debug/` and its name in `SECTIONS` in `debug/index.js` | 2 |

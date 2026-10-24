@@ -1,6 +1,7 @@
 # Proposal: Stream Deck control through Bitfocus Companion
 
-Status: **Open idea, not for v2.0** (Jordan, 2026-10-20: a good idea; how it is built, and whether it fits inside the app, is still to be worked out)
+Status: **Open idea** (2026-10-20): wanted, not planned for a release yet (not for v2.0). How it is built, and whether it
+fits inside the app, is still open.
 
 How a Stream Deck button could pause, resume or switch the overlay's layout, without weakening the privacy promises. It
 compares three routes and recommends one: a small local control endpoint on the app's own server that Companion's
@@ -22,7 +23,7 @@ Generic HTTP module (or any other local tool) can call.
   through the SSH tunnel two-PC users already run, which forwards the whole port; see below).
 - **No settings changes from outside** beyond the layout choice: no style, no secure link, no port, no Debug mode.
 - **No Companion "feedbacks" pushed from the app** in the first version (no new WebSocket for controllers).
-- Not a replacement for the global pause shortcut ([future-inputs.md, Global hotkeys](../../design/future-inputs.md)); both
+- Not a replacement for the global pause shortcut ([future-inputs.md, Global hotkeys](../design/future-inputs.md)); both
   stay.
 
 ## How it works
@@ -58,7 +59,7 @@ Every successful answer is `200` with the state after the action, and nothing el
 ```
 
 **The rules, in the order the server applies them.** Steps 1 to 3 are the guard every request already passes
-([PROTOCOL.md](../../PROTOCOL.md)); steps 4 to 9 are new and apply to `/control/*` only.
+([PROTOCOL.md](../PROTOCOL.md)); steps 4 to 9 are new and apply to `/control/*` only.
 
 | # | Check | Refused with |
 |---|---|---|
@@ -89,7 +90,7 @@ Every successful answer is `200` with the state after the action, and nothing el
 - **Other tools.** The same address works for anything on the PC that can send a POST: the Elgato app through a
   web-request plugin, Touch Portal, Streamer.bot, a script with `curl -X POST`. The guide names Companion and gives the
   plain request; it doesn't document each tool.
-- **Two PCs.** With the SSH tunnel from [User guide: Using two PCs](../../USER-GUIDE.md#using-two-pcs-game-on-one-obs-on-the-other),
+- **Two PCs.** With the SSH tunnel from [User guide: Using two PCs](../USER-GUIDE.md#using-two-pcs-game-on-one-obs-on-the-other),
   Companion on the streaming PC can call `http://127.0.0.1:7878/control/…` through the same tunnel, because it forwards the
   whole port. Nothing extra is needed in the app; the guide says so in one line.
 
@@ -105,8 +106,8 @@ Every successful answer is `200` with the state after the action, and nothing el
   tray and the Layout tab show, wrapping around. A plain function with unit tests. The reserved `hotkeys.nextLayout` can use
   the same function later.
 - **Setting:** `control: { "enabled": false }`, a new top-level section (reserve the name in
-  [future-inputs.md section 5](../../design/future-inputs.md) in the same change). Additive, so no migration; a default in
-  `settings.rs`, the sandbox copy in `tools/sandbox/default-settings.json` ([EXTENDING.md](../../EXTENDING.md), a setting).
+  [future-inputs.md section 5](../design/future-inputs.md) in the same change). Additive, so no migration; a default in
+  `settings.rs`, the sandbox copy in `tools/sandbox/default-settings.json` ([EXTENDING.md](../EXTENDING.md), a setting).
 - **Settings window:** in **General → Connection**, under the secure link, a switch **Control from a Stream Deck or
   Companion** (`toggle-control-enabled`). It can only be turned on while the secure link is on; while the secure link is
   off it says why. When on, it shows the control address hidden like the secure link, with a **Copy** button
@@ -179,20 +180,20 @@ other control surfaces.
 | `tools/sandbox/fake-app.js` | A state with control on, for the sandbox and the screenshots |
 | `tools/check-privacy.mjs` (+ `privacy-patterns.mjs` and its tests) | New rule: `control.rs` must not use `bus.tx`, `.subscribe(`, `held` or `snapshot`; listening stays in `server.rs` only; file writes stay out of `control.rs` (it calls the tray's code, which calls `settings::save`) |
 | `tests/e2e/suites/control.mjs` (new) and `tests/e2e/run.mjs` | The suite below, added to `SUITES` |
-| `tests/visual/visual.mjs` | The General tab with control on, if the screen changes (Jordan sees before and after) |
+| `tests/visual/visual.mjs` | The General tab with control on, if the screen changes (before and after shown in the pull request) |
 
 `keyboard/` is not touched.
 
 ## Privacy
 
 This adds a way **in** (local programs can send three kinds of commands), not a way out. It doesn't send key presses
-anywhere and doesn't use the network, so the rules of [decision 0005](../../decisions/0005-keystrokes-live-in-memory-only.md)
+anywhere and doesn't use the network, so the rules of [decision 0005](../decisions/0005-keystrokes-live-in-memory-only.md)
 hold unchanged. It does change two documented promises, so it needs a **decision record** first (the next free number,
-0014 at the time of writing):
+0015 at the time of writing):
 
-- [PROTOCOL.md](../../PROTOCOL.md) says "Read-only by design: … Nothing a client sends changes the app", and `server.rs` says
+- [PROTOCOL.md](../PROTOCOL.md) says "Read-only by design: … Nothing a client sends changes the app", and `server.rs` says
   "Read-only HTTP API … All writes go through Tauri IPC". Both become "read-only, except the optional control routes".
-- [Decision 0002](../../decisions/0002-local-only-server-and-optional-secure-link.md) is about who can reach the server;
+- [Decision 0002](../decisions/0002-local-only-server-and-optional-secure-link.md) is about who can reach the server;
   the new record says the control routes are local-only, need the secure link and the feature switch, refuse browsers
   (no `Origin`), and can never read keys.
 
@@ -235,18 +236,18 @@ Security notes for the second look CLAUDE.md asks for on `server.rs` changes:
 ## Docs to update
 
 - The decision record (next free number) and its line in `docs/decisions/README.md`; the "Stream Deck / hotkey control"
-  bullet in [ideas-not-decided.md](../../decisions/ideas-not-decided.md) leaves that page.
-- [PROTOCOL.md](../../PROTOCOL.md): a "Control routes (optional)" section with the table, the answers and the refusals; the
+  bullet in [ideas-not-decided.md](../decisions/ideas-not-decided.md) leaves that page.
+- [PROTOCOL.md](../PROTOCOL.md): a "Control routes (optional)" section with the table, the answers and the refusals; the
   "Read-only by design" line.
-- [PRIVACY.md](../../../PRIVACY.md) as above, and the README's privacy lines if they say "read-only".
-- [USER-GUIDE.md](../../USER-GUIDE.md): a "Control it from a Stream Deck" section: option 0 (the Elgato app's Hotkey action
+- [PRIVACY.md](../../PRIVACY.md) as above, and the README's privacy lines if they say "read-only".
+- [USER-GUIDE.md](../USER-GUIDE.md): a "Control it from a Stream Deck" section: option 0 (the Elgato app's Hotkey action
   and the pause shortcut), the Companion recipe with the base URL and the six actions, `127.0.0.1` not `localhost`, keep
   the key private, the one line about two PCs.
-- [ARCHITECTURE.md](../../ARCHITECTURE.md): `control.rs` in the folder map, and the secure-link bullet's protected paths.
-- [FILE-FORMATS.md](../../FILE-FORMATS.md): the `control` section.
-- [future-inputs.md](../../design/future-inputs.md) section 5: reserve `control`.
-- [tests/README.md](../../../tests/README.md): the `control` suite and the two new hooks.
-- `docs/for-claude/README.md`: this plan's line and status.
+- [ARCHITECTURE.md](../ARCHITECTURE.md): `control.rs` in the folder map, and the secure-link bullet's protected paths.
+- [FILE-FORMATS.md](../FILE-FORMATS.md): the `control` section.
+- [future-inputs.md](../design/future-inputs.md) section 5: reserve `control`.
+- [tests/README.md](../../tests/README.md): the `control` suite and the two new hooks.
+- [docs/proposals/README.md](README.md): this proposal's status (once built, the proposal is deleted).
 
 ## Risks
 
@@ -256,13 +257,13 @@ Security notes for the second look CLAUDE.md asks for on `server.rs` changes:
 - **The key in Companion's configuration.** Documented; see the open question on headers.
 - **Support questions about Companion.** The guide says what the app does and links Companion's own help for the rest.
 - **Scope creep** ("also change the theme from the Stream Deck"). Each new action is one row in the table and one test,
-  but each widens the surface: keep the list short and decided by Jordan.
+  but each widens the surface: keep the list short and decided by the maintainer.
 
 ## Work order
 
 Each step is its own commit, with `npm test`, the format, type, docs and style checks, and clippy between steps.
 
-1. Decision record and the PROTOCOL.md section, for Jordan's review before code.
+1. Decision record and the PROTOCOL.md section, for the maintainer's review before code.
 2. `layout_order::step()` and `tray::set_pause_inner` / `step_layout_inner`, with unit tests (no visible change).
 3. `control.rs` with its unit tests, `server.rs` wiring, the setting's default (off), the privacy-check rule and its tests.
 4. The settings window switch, address and Copy, the sandbox state, and the screenshot check.
@@ -278,9 +279,9 @@ Each step is its own commit, with `npm test`, the format, type, docs and style c
 | (b): Companion module on top of (a) | 3 to 5 days, plus Bitfocus review time |
 | (c): Elgato plugin on top of (a) | 4 to 6 days, plus marketplace review and an Elgato account |
 
-## Open questions for Jordan
+## Open questions
 
-1. Is a write path into the local server acceptable at all, given PROTOCOL.md's "read-only by design"? (It needs your
+1. Is a write path into the local server acceptable at all, given PROTOCOL.md's "read-only by design"? (It needs a
    decision record either way.)
 2. Should the control routes need the secure link, as proposed, or have their own separate key, so the OBS URL saved in
    OBS's scene files can't also control the app?
@@ -289,5 +290,5 @@ Each step is its own commit, with `npm test`, the format, type, docs and style c
 4. Which actions: only pause and layout as proposed, or also "set layout by id" (needs the id in the request) or "open the
    settings window"?
 5. Which version: a v2.x release after v2.0 ships, or later?
-6. If people ask for a dedicated Companion module later, should it live under your GitHub account or under Bitfocus (their
-   process puts it in their organization, with you as maintainer)?
+6. If people ask for a dedicated Companion module later, should it live under the project's GitHub account or under Bitfocus
+   (their process puts it in their organization, with this project's maintainer as its maintainer)?

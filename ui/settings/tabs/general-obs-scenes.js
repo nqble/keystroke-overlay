@@ -2,7 +2,7 @@
 //  General → OBS scenes: hide the overlay, or show another layout, in the OBS scenes you list. This card has only the
 //  switch and a count; the list is edited in a popup (ui/settings/obs-scenes-popup.js). The overlay page follows the
 //  rules inside OBS (ui/overlay/obs-source.js); the app only saves them (settings `obs.scenes`, cleaned by
-//  src-tauri/src/obs_scenes.rs). Off by default. Plan: docs/for-claude/proposals/obs-source-events.md.
+//  src-tauri/src/obs_scenes.rs). Off by default. Proposal: docs/proposals/obs-source-events.md.
 // =====================================================================================================================
 import { Note, Section, Switch } from '../blocks.js';
 import { html, useRef, useState } from '../html.js';

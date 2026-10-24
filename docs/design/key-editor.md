@@ -1,19 +1,18 @@
 # Key editor: design spec (built in v1.4.0, reference for the v2.0 redesign)
 
-Status: approved by Jordan, designed in the Advisory Session. **Built** in three parts (M4.1 to M4.3) on `v1.4.0-dev`, and
+Status: approved. **Built** in three parts (M4.1 to M4.3) on `v1.4.0-dev`, and
 merged into v2.0: the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use, the
 board with zoom and pan, selected keys, the inspector to the right of the editor, the toolbar with undo, redo, Snap and Grid,
 the layout style switch, Close gaps, the Reset menu and the Even grid tip. On v2.0 the zoom and pan gestures also cover
 trackpads (section 3). The Keys tab is a Preact component on v2.0 (the board itself stays plain page code). Still to do: the accessibility pass and the
-differences listed under "Spec and code differ" below. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe). Interactive prototype (Jordan's private link):
-https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE. Where this file and the prototype disagree, this file wins.
+differences listed under "Where the spec and the code differ" below. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe).
 
 Built after the UI foundation (done: test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
 tokens and shared building blocks only. The colors below are today's values; map each one to its purpose token.
 
-## Spec and code differ (to decide)
+## Where the spec and the code differ
 
-Found in the docs check of 2026-10-18. Each is either a spec to update or code to change; Jordan decides.
+Found in the docs check of 2026-10-18. Each is either a spec to update or code to change; the maintainer decides which.
 - Heading: the spec has "Keys" with the layout name under it; the code shows one heading "Keys — <layout name>".
 - Undo and Redo: the spec has icon buttons; the code has the words "Undo" and "Redo", in toolbar groups labeled History,
   View and Tidy.
@@ -142,7 +141,7 @@ over the board, and holding stops when the window loses focus.
   10px above the selection (below it if there's no room above). Icon buttons with tooltips: align left, align centers,
   align right | align tops, align bottoms | space evenly across, space evenly down (both disabled under 3 keys).
 
-### Keyboard shortcuts (Jordan's decision; act only while the Keys tab is open, no text field has focus and no popup is open)
+### Keyboard shortcuts (act only while the Keys tab is open, no text field has focus and no popup is open)
 Arrow keys nudge the selection 0.25 key (Shift = 1 key; Even grid always 1) · Delete / Backspace hide the selection ·
 Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear selection.
 
@@ -153,7 +152,7 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 - **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to close the space left by hidden or moved keys.
   The shape stays the same." Behavior: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
   closed to ¼ key, along both axes, keeping every key's relative order; then the result is centered on the board.
-- **Reset ▾** (Jordan keeps all five): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
+- **Reset ▾** (all five items stay): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
   a divider · **Reset this layout completely** (danger color, asks "Reset this layout?" with "Positions, sizes, hidden keys and labels go back to the layout file, and
   the style to Keyboard shape. You can undo this." and a **Reset layout** button). Every item is undoable.
 
@@ -207,7 +206,7 @@ Plain, short, friendly; sentence case; all text in `TEXT` (CLAUDE.md). Use "key"
 - **No rebuild on resize.** A `ResizeObserver` on the editor box updates the view limits and zoom bounds. Remove the 150ms
   resize timer that re-renders the Keys tab (not done yet: it is still in ui/settings/settings.js).
 - **Measure.** Add to the benchmark: settings-window open time (no slower than before), first Keys-tab open, and switching
-  back to Keys (target under 50ms), plus memory with the editor kept alive versus not. Report before/after numbers to Jordan.
+  back to Keys (target under 50ms), plus memory with the editor kept alive versus not. Put the before and after numbers in the pull request.
 - **Tests.** Switching Keys → Style → Keys keeps zoom, pan and selection. The editor module is not loaded until the Keys tab
   opens. Moving a key doesn't re-create other key elements (check element identity in e2e).
 

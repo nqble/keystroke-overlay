@@ -1,6 +1,6 @@
 //! The "OBS scenes" rules (`obs.scenes.rules` in settings.rs): hide the overlay, or show another layout, in the OBS
 //! scenes the user lists. The overlay page follows them inside OBS (ui/overlay/obs-source.js); this file only cleans the
-//! saved list. Plan: docs/for-claude/proposals/obs-source-events.md.
+//! saved list. Proposal: docs/proposals/obs-source-events.md.
 
 use serde_json::{json, Map, Value};
 

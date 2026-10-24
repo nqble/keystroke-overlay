@@ -2,7 +2,7 @@
 //  Which layouts the Layout tab shows and in what order (the setting layout.order; docs/design/ui-design-v2.md,
 //  Layouts), as plain logic for tests/ui/layout-order.test.mjs. The same rules as src-tauri/src/layout_order.rs, which
 //  the tray uses (keep the two in step: both tests have the same cases):
-//    - a built-in layout shows only while its id is in the order; the others wait in "Other layouts";
+//    - a built-in layout shows only while its id is in the order; the others wait in New layout's Built-in;
 //    - the user's own layouts always show: one missing from the order is added at the end;
 //    - ids of layouts that no longer exist are skipped.
 // =====================================================================================================================
@@ -18,7 +18,7 @@ export function shownLayouts(all, order) {
   return [...shown, ...own];
 }
 
-/** The built-in layouts not shown now: "Other layouts" in the New layout popup. */
+/** The built-in layouts not shown now: the Built-in choice in the New layout popup. */
 export function otherLayouts(all, order) {
   const shown = new Set(shownLayouts(all, order));
   return all.filter((layout) => !layout.user && !shown.has(layout));

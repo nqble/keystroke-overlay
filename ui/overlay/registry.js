@@ -23,6 +23,11 @@ export const registerAnimation = (a) => animations.set(a.id, a);
 export const registerTheme = (t) => themes.set(t.id, t);
 export const registerEasing = (e) => easings.set(e.id, e);
 
+// The files load in parallel and each registers when it arrives, so a Map's own order changes from run to run. Lists
+// people see (the Animation and Style tabs) use this instead, so the cards keep one order: by id, which is the file
+// name, so it matches the folder.
+export const byId = (registered) => [...registered.values()].sort((a, b) => a.id.localeCompare(b.id));
+
 registerEasing({ id: 'linear', name: 'Linear', css: 'linear' });
 registerEasing({ id: 'ease-out', name: 'Ease out', css: 'cubic-bezier(.16,1,.3,1)' });
 registerEasing({ id: 'ease-in-out', name: 'Ease in-out', css: 'cubic-bezier(.65,0,.35,1)' });

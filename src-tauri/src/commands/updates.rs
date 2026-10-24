@@ -46,7 +46,7 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
 }
 
 /// What the window says when the update check fails. A Mac gets its own words: the update file on GitHub only has entries
-/// the in-app installer can use (Windows), so on a Mac the check always fails, and the honest advice is to download the
+/// the in-app installer can use (Windows and the Linux AppImage), so on a Mac the check always fails, and the honest advice is to download the
 /// new version from the Releases page.
 fn check_failed_text(system: &str, channel: &str, error: &str) -> String {
     if system == "macos" {

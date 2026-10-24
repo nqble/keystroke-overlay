@@ -11,9 +11,8 @@ keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md  app.config.json (the app's name, repository, identifiers)
 ├── .github/            workflows: CI, one-click Release, E2E (Windows), Mac app build, Linux app build and Linux tests, CodeQL, security scan; issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
-│                       design/ holds approved designs; for-claude/ holds the working notes of the Claude sessions
-│                       (plans in for-claude/proposals/, finished ones in proposals/done/, the cleanup audit, release drafts;
-│                       public on purpose); schemas/ holds the JSON schemas for layout and preset files
+│                       design/ holds approved designs; proposals/ holds plans for things not built yet;
+│                       schemas/ holds the JSON schemas for layout and preset files
 ├── assets/             logo/: the logo as SVG (app, devbuild, tray); the app's icons are made from it
 ├── tests/              e2e/ (the real app, driven), ui/ (JS unit tests), visual/ (screenshot tests), install/, bench/
 │                       (speed and memory), lib/ (the shared lock), linux/ (the key-stream and key-label check the Linux CI runs); see tests/README.md. Rust unit tests live next to the code
@@ -44,7 +43,7 @@ keystroke-overlay/
 │       ├── obs_scenes.rs   cleans the OBS scene rules (obs.scenes); the overlay follows them inside OBS (ui/overlay/obs-source.js)
 │       ├── app_info.rs     the app's name, repository and identifiers (must match app.config.json; npm run check:config)
 │       ├── grid.rs         the even-grid layout style: key positions, sent with every layout
-│       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup
+│       ├── settings.rs     settings file: defaults, versioned migrations, loading and saving, backup (tests in settings/tests.rs)
 │       ├── sanitize.rs     cleaning settings from outside: types, ranges and rules, one table line per setting
 │       ├── downgrade.rs    going back a version and forward again without losing settings (settings.vN.json)
 │       ├── state.rs        shared app state + small helpers
@@ -59,6 +58,7 @@ keystroke-overlay/
 │           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart, input method, secure link, reset, first run, copy, quit
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
+│           ├── layout_import.rs  a layout from a keyboard file the user picks (KLE): the file picker and add_layout (keys cleaned by sanitize.rs)
 │           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
 │           ├── actions.rs    pause / layout / restart wrappers
 │           └── updates.rs    update check + install, release notes, "What's new"
@@ -83,10 +83,15 @@ keystroke-overlay/
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved and resized keys; the snap helpers
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
-        ├── dialogs.js     New layout and Reset all settings, built on popup.js
+        ├── dialogs.js     New layout (Start from: Blank, Built-in, From a KLE file) and Reset all settings, built on popup.js
+        ├── obs-scenes-popup.js  the Edit scenes popup (General → OBS scenes); its row rules in obs-scene-rules.js
         ├── first-run.js   the first run setup screen (new installs; General → First run setup opens it again)
-        ├── other-layouts.js  "Other layouts" in the New layout popup: built-in layouts not on the Layout tab
+        ├── other-layouts.js  New layout's Built-in choice: built-in layouts not on the Layout tab
         ├── layout-order.js  which layouts the Layout tab shows and in what order; moving and dropping (tested)
+        ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
+        ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
+        ├── kle-layout.js  KLE keys → a layout: places (turned keys straightened), each key's code from its legends, Unlinked<n> placeholders (tested)
+        ├── kle-import-popup.js  New layout's From a KLE file choice and the Import from KLE popup (picture, name, what was found)
         ├── menu.js        the small "⋯" and right-click menus; no browser right-click menu, no dragging except layout cards
         ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
         ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup
@@ -127,6 +132,7 @@ keystroke-overlay/
 key press → capture method on its own thread:
               Standard      WH_KEYBOARD_LL hook (tiny callback, never blocks input)
               Compatibility Raw Input (registers to receive a copy of keyboard input; nothing sits in the input path)
+              (Windows; on Linux XInput2 or the keyboard devices, on a Mac a listen-only event tap: keyboard/)
           → KeyTracker (drops OS repeats, releases keys that are really up) → channel → dispatcher thread (tracks held keys; drops everything while paused)
           → tokio broadcast → each WebSocket client (/ws on 127.0.0.1)
           → overlay page (OBS) toggles a CSS class on the key; CSS transitions do the animation
@@ -147,7 +153,7 @@ key press → capture method on its own thread:
 
 ## Threads and idle cost
 
-Capture thread (hook or Raw Input), dispatcher thread, two async worker threads (tokio), plus Tauri's own. On Windows, with the settings window closed (a v2.0 release build, measured 2026-10-20): 12 threads,
+Capture thread (hook or Raw Input on Windows, XInput2 or the keyboard devices on Linux, the event tap on a Mac), dispatcher thread, two async worker threads (tokio), plus Tauri's own. On Windows, with the settings window closed (a v2.0 release build, measured 2026-10-20): 12 threads,
 about 3 MB working set (1.2 MB private), 0 ms of CPU over 2 minutes. The settings window is created on demand and fully
 destroyed on close (its WebView2 processes exit within about 10 seconds), after which the app trims its working set. On a
 Mac the system's web framework stays loaded, so the app holds much more at rest: see [MAC-PORT.md](MAC-PORT.md).
@@ -196,4 +202,4 @@ key presses through both input methods, a signed update download); it cleans up 
 
 ## Porting
 
-OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4.0, for developers; the first Linux download comes with v2.0) and Wayland capture in `keyboard/linux_devices.rs` (v2.0; [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, not released yet; [MAC-PORT.md](MAC-PORT.md)).
+OS-specific calls are isolated in `platform.rs`; the keyboard capture methods are in `keyboard/`. Everything else builds and runs on Linux and macOS too: see [CROSS-PLATFORM.md](CROSS-PLATFORM.md). Linux X11 capture is in `keyboard/x11.rs` (from v1.4.0, for developers; the first Linux download comes with v2.0) and Wayland capture in `keyboard/linux_devices.rs` (v2.0; [LINUX-PORT.md](LINUX-PORT.md)); macOS capture is in `keyboard/macos.rs` (from v2.0, the Apple Silicon download; [MAC-PORT.md](MAC-PORT.md)).

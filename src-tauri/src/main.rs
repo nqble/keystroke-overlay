@@ -44,7 +44,6 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--autostart"]),
@@ -72,6 +71,8 @@ fn main() {
             commands::assets::remove_font,
             commands::assets::open_folder,
             commands::assets::create_layout,
+            commands::layout_import::pick_layout_source,
+            commands::layout_import::add_layout,
             commands::assets::export_layouts,
             commands::assets::import_layouts,
             commands::settings::reset_settings,

@@ -2,7 +2,7 @@
 
 Copied by `tools/vendor.mjs` (versions and fingerprints in `VENDOR.json`); never edit these files by hand. Both licenses
 are permissive and fit this MIT project; each library's full license text is copied next to it (`*.LICENSE.txt`), as both
-licenses require. Plan: [docs/for-claude/proposals/done/v2-preact.md](../../../docs/for-claude/proposals/done/v2-preact.md).
+licenses require. Why they are here: [decision 0013](../../../docs/decisions/0013-preact-with-htm-for-the-settings-window.md).
 
 | Library | Version | Licence | Source |
 |---|---|---|---|

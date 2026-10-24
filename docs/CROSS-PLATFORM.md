@@ -62,7 +62,7 @@ Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://
   dependencies. The key names and repeat filter (`keyboard/macos_keys.rs`) are plain logic, built and tested everywhere.
 - On other systems, starting a capture method returns an error instead of capturing keys (`Source::start` in
   `keyboard/mod.rs`). A port adds its own method there: [LINUX-PORT.md](LINUX-PORT.md) has the next Linux steps,
-  [MAC-PORT.md](MAC-PORT.md) the macOS plan.
+  [MAC-PORT.md](MAC-PORT.md) how the Mac version works.
 
 ## Keeping it cross-platform
 

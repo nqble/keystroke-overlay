@@ -1,12 +1,11 @@
 # UI Design, Version 2
 
-Status: **approved by Jordan, for v2.0.** This is the one design reference for the settings window. It replaces
-`v2-redesign.md`. When code and this file disagree, one of them is a bug: fix it, or ask Jordan. The pictures are on
-the Claude Design canvas (https://claude.ai/artifact/BmtiAStvoDhR5j7h3cy3CE), one board per screen. The Keys tab has
+Status: **approved, for v2.0.** This is the one design reference for the settings window. It replaces
+`v2-redesign.md`. When code and this file disagree, one of them is a bug: fix it, or ask the maintainer in an issue. The Keys tab has
 its own detailed spec, [key-editor.md](key-editor.md), which follows this file. The audit that led here is
-[ui-audit.md](ui-audit.md); the build order is [v2-tab-restructure.md](../for-claude/proposals/done/v2-tab-restructure.md).
+[ui-audit.md](ui-audit.md); the build order is [v2-tab-restructure.md](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/v2-tab-restructure.md) (in git history).
 
-Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (approved, not built yet).
+Each part says whether it is **built** (in v2.0) or **designed** (approved, not built yet).
 
 ## 1. Principles
 
@@ -16,7 +15,7 @@ Each part says whether it is **built** (on `advisor/v2.0`) or **designed** (appr
   existing one. The key editor is the reference.
 - **Fast.** Only `transform` and `opacity` animate. Nothing runs while idle: no timers, and only passive listeners.
 - **One place to change.** Layouts, themes and animations stay one plain file each (section 12).
-- **Every design change keeps the code clean and efficient** (Jordan's rule). Before a design is approved, check what
+- **Every design change keeps the code clean and efficient.** Before a design is approved, check what
   it costs to build: it fits the existing files and building blocks (a new part gets its own small JS and CSS file,
   no file past about 400 lines, no function past about 40), it adds nothing that runs while idle, and it follows
   CLAUDE.md. A design that would need clever or tangled code is redesigned, not built that way.
@@ -183,11 +182,16 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 ### Layouts
 
 - **A new install shows four layouts:** Full size, TKL, Gameplay (left hand), WASD.
-- **"Other layouts"** sit in the New layout popup: 96%, 75%, 65%, 60%, Arrows, Numpad, Full size (ISO), TKL (ISO). Under
-  the name box, a darker plain text toggle (no underline), **"▸ Other layouts (N)"**, is collapsed by default. Open, it
-  shows two columns and four rows; more scroll inside it (with the scroll fade), so the popup never grows. **Add**
-  puts one at the end of the tab.
-- **Hide** (a built-in layout) sends it back to Other layouts; **Delete…** (your own) removes it for good. The last
+- **New layout** starts with a **Start from** choice (a segmented control): **Blank** (a name box, then Create),
+  **Built-in** (the built-in layouts not on the tab: 96%, 75%, 65%, 60%, Arrows, Numpad, Full size (ISO), TKL (ISO),
+  two columns and four rows, more scroll inside it with the scroll fade; **Add** puts one at the end of the tab; the
+  footer has only Close) and **From a KLE file** (one line on what to do in KLE; the footer's primary button is
+  **Choose file…**). Built-in is left out when every built-in is on the tab.
+- **Import from KLE** (after Choose file…): the layout's picture with its key labels, keys that can't light up drawn
+  dashed (`--color-key-unlit`), a Name box, one bold summary line ("61 keys · 60 light up · 1 can't: Fn") with the
+  reason under it, then **Back** (to New layout, From a KLE file) and **Create layout**. On the Keys tab such a key's
+  inspector title is its label and "can't light up", never its placeholder code.
+- **Hide** (a built-in layout) sends it back to New layout's Built-in; **Delete…** (your own) removes it for good. The last
   layout can't be removed; removing the one in use selects the first card.
 - **"Your layouts: N / 20"** counts only your own; built-in layouts never count.
 - **Order:** drag, the "⋯" menu (Move left / Move right) or Alt+← / Alt+→ (focus stays on the moved card). The tray's
@@ -195,7 +199,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
   the gap or within about 28 px of it; over the middle of a card nothing happens. While dragging, the card's own spot
   is a faint dashed placeholder (opacity 0.35) with no selection ring.
 - The **"+ New layout"** card is always last and says only that. With 20 of your own, its popup says so in place of
-  the name box; Other layouts can still be added.
+  the Start from choice and shows Built-in, which can still be added.
 - **Saved as one setting,** `layout.order`: layout ids in order. A built-in layout shows only if it is listed; your own
   always show (a missing one is added at the end). The default is the four above, so nothing needs migrating.
   **Reset all settings** brings back exactly the four defaults; your own layouts are kept.

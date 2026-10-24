@@ -1,5 +1,5 @@
 // Copies the settings window's two small libraries (Preact and htm) into ui/settings/vendor/, pinned and checked.
-// They are copied in, never loaded from the internet. Plan: docs/for-claude/proposals/done/v2-preact.md.
+// They are copied in, never loaded from the internet. Why: docs/decisions/0013-preact-with-htm-for-the-settings-window.md.
 //
 //   node tools/vendor.mjs            download the versions in LIBRARIES, verify them, copy them, write VENDOR.json
 //   node tools/vendor.mjs --check    no changes: list newer versions and known security advisories (the weekly Security

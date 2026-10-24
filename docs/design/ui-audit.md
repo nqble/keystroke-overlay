@@ -23,7 +23,7 @@ Each finding says **where** it was seen, **what** is wrong, and the **v2.0 answe
 
 | # | Finding | v2.0 answer | |
 |---|---|---|---|
-| 2.1 | **Layout:** cards are `<div>`s, so they can't be reached with Tab or chosen with the keyboard; deleting is right-click only, and the help text has to explain it. | Cards as buttons with a "⋯" menu (covered; the master session's step 4b is building it for v1.4). | covered |
+| 2.1 | **Layout:** cards are `<div>`s, so they can't be reached with Tab or chosen with the keyboard; deleting is right-click only, and the help text has to explain it. | Cards as buttons with a "⋯" menu (covered: built in v1.4). | covered |
 | 2.2 | **Layout:** "+ 0/20 layouts" reads as "zero out of twenty" with no subject. | "Your layouts: 0 / 20" (covered). | covered |
 | 2.3 | **Keys:** a four-line paragraph sits above a toolbar of five labeled groups (Selection, Move, Align, Space evenly, History, View). Align, Space evenly and the arrows look clickable with nothing selected. | The canvas-first editor ([key-editor.md](key-editor.md)) replaces it. Until then, disable the tools that need a selection. | covered + new |
 | 2.4 | **Style:** themes and presets are dropdowns, so you can't see a theme before choosing it. | Theme gallery and preset cards (covered). | covered |
@@ -59,7 +59,7 @@ Each finding says **where** it was seen, **what** is wrong, and the **v2.0 answe
 
 ## 5. Accessibility sweep (automated, every tab)
 
-- Unnamed controls: only the header's OBS URL field (1.4). The master session's step 4a fixed the Style and General
+- Unnamed controls: only the header's OBS URL field (1.4). Step 4a fixed the Style and General
   sliders, color pickers and checkboxes on v1.4.0-dev.
 - Mouse-only elements: the Layout cards (2.1) and the Keys editor's key map. The key editor's keyboard support is
   specified in key-editor.md.
@@ -84,10 +84,10 @@ for people and for other Claude sessions:
 | 7.1 | **Bug:** the user-name scrub only knows `C:\Users\<name>` with backslashes. A forward-slash path, `/home/<name>` (Linux) or `/Users/<name>` (macOS) keeps the real name in the bug report. | Scrub all three forms; add a unit test per form. | done |
 | 7.2 | JavaScript errors in the settings window go nowhere unless the inspector is open. | Catch `error` and `unhandledrejection` while Debug mode is on and add them to the event log (message and file:line only, never page content). | new |
 | 7.3 | The bug report pastes the **whole** settings file, so the one changed value is hard to spot. | Report only what differs from the defaults ("settings diff"). The full file stays in Settings (raw). | done |
-| 7.4 | The bug report is prose for a human. Claude sessions and scripts have to parse it. | **Done for v1.4** (advisor/v1.4-fixes): the one "Copy bug report" button now copies a short summary plus a JSON block (`format`, `app`, `state`, `selfTest`, `settingsDiff`, `log`) that people and Claude sessions can both read. 7.1 and 7.3 are done there too. | done |
+| 7.4 | The bug report is prose for a human. Claude sessions and scripts have to parse it. | **Done for v1.4:** the one "Copy bug report" button now copies a short summary plus a JSON block (`format`, `app`, `state`, `selfTest`, `settingsDiff`, `log`) that people and Claude sessions can both read. 7.1 and 7.3 are done there too. | done |
 | 7.5 | No view of the connection to OBS. | A **Connections** box: OBS overlays connected (the new `overlays` count), whether the preview is connected, the last time a message was sent. Event-driven, like the header status. | new |
 | 7.6 | Hard-to-reach states need code changes to see (paused with OBS closed, port in use, secure link locked, update installing, What's new). | Extend **Test helpers** into a **state switcher**: one button per state, so every screen can be checked and screenshotted on demand. | new |
-| 7.7 | People and Claude sessions without Windows can't open the settings window at all (this audit had to build a stand-in). | Ship that stand-in as `npm run ui-sandbox`: serves `ui/settings/` with a fake app (`window.__TAURI__`) and the preview tool, on 127.0.0.1 only, Node only. Every state in 7.6 is a URL (`?state=paused-no-obs`), so screenshot tests and Claude sessions on Linux can check UI changes before Windows. Needs Jordan's OK as a new tool (no new dependency). | done |
+| 7.7 | People and Claude sessions without Windows can't open the settings window at all (this audit had to build a stand-in). | Ship that stand-in as `npm run ui-sandbox`: serves `ui/settings/` with a fake app (`window.__TAURI__`) and the preview tool, on 127.0.0.1 only, Node only. Every state in 7.6 is a URL (`?state=paused-no-obs`), so screenshot tests and Claude sessions on Linux can check UI changes before Windows. Needed the maintainer's OK as a new tool (no new dependency). | done |
 | 7.8 | "This app" refreshes every 2 seconds with a timer while the tab is open (fine: it stops when you leave the tab), but the memory "highest seen" resets on every visit. | Keep the timer rule; remember the peak for the whole run on the Rust side. | new |
 | 7.9 | The `ko` console helpers are documented only in a note. | List them in docs/DEBUGGING.md with one example each, and add `ko.state('paused')` for 7.6. | new |
 | 7.10 | Eight boxes in one column; the useful ones (event log, bug report) are far down. | v2.0 section cards in two columns, with a short jump list at the top. Same order of importance: status, self-test, bug report first. | new |
@@ -99,7 +99,7 @@ port, making a new secure key, or setting up a new scene. Yet today it takes the
 the time. That is what makes the header cramped at small window sizes (1.2), and the devbuild's extra "devbuild" label
 squeezes it further.
 
-**Approved by Jordan; designed on the canvas (Header board).** **Recommendation: take the link out of the header, and show it where and when it is needed.**
+**Approved.** **Recommendation: take the link out of the header, and show it where and when it is needed.**
 
 1. **Header:** logo, name (plus a small purple **DEV** badge on devbuilds), the OBS status pill, window buttons. Nothing
    else, so it fits at any window size.

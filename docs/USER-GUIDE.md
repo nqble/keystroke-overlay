@@ -125,7 +125,7 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
 - **After changing the address or the key, reload the source in OBS** (right-click it → **Refresh cache of current page**). In the
   test, a page opened before the key was right drew the keyboard but never lit up until it was reloaded.
 - **Nothing changes inside the app.** Its server still listens on `127.0.0.1` only (the SSH server or Tailscale on PC A hands the
-  data over locally), and the app itself uses the network only for update checks. Your key presses travel only through the
+  data over locally), and the app itself uses the network only for updates and release notes. Your key presses travel only through the
   encrypted connection you set up, between your own devices.
 - **Safety of the connection is your job.** Use a normal SSH login, and let only your own devices reach PC A, for example with
   Tailscale access rules. If you set up an SSH server only for this, you can turn it off afterwards (Windows, as administrator:
@@ -136,13 +136,13 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
   they look the same everywhere.
 - If the overlay looks slightly ahead of or behind your video, that is normal for two PCs; a capture card adds its own delay.
 - More background, and why the app does not have a built-in network mode:
-  [for-claude/proposals/done/tailscale-dual-pc.md](for-claude/proposals/done/tailscale-dual-pc.md).
+  [the two-PC plan](https://github.com/nqble/keystroke-overlay/blob/9f1ac68/docs/for-claude/proposals/done/tailscale-dual-pc.md) (in git history).
 
 ## Settings
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Other layouts** in the New layout popup. **Import… / Export…** share your layouts as a file. |
+| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20), starting **Blank**, from a **Built-in** layout, or **From a KLE file** (a keyboard you drew on keyboard-layout-editor.com). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Built-in** in the New layout popup. **Import… / Export…** share your layouts as a file. |
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** slides keys together to close the space left by hidden or moved keys, keeping the shape. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts, and where **Key labels** chooses between the letters your keyboard prints (**My keyboard**) and the layout file's own. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
@@ -172,7 +172,7 @@ Under **General → Connection** (**Secure my OBS URL**) you can choose how lock
 | | What it means |
 |---|---|
 | **Off (default)** | Simple link, nothing extra to do. Other programs running on your PC could read your key presses through it. |
-| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other Windows users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
+| **On** | Your OBS URL gets a private key (`http://localhost:7878/?key=…`). Only a program that knows the full link can read your key presses, including other users on the same PC. Copy the new link into OBS **once** (the old link stops working). The link is hidden on screen in the app, and you should keep it off your stream. |
 
 **Make a new key** creates a fresh key and cuts off every link made with the old one.
 
@@ -188,7 +188,7 @@ Right-click the tray icon for quick actions without opening settings:
 
 ## Updating
 
-While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window an **Update ready** chip also appears at the top right. Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Updates → Check now** any time.
+While the app runs it quietly checks GitHub about once an hour, so a new version shows up as a small **orange dot on the tray icon** and an **Update available** entry in the tray menu, even if you never open settings. In the settings window an **Update ready** chip also appears at the top right. Click it, read the notes, and choose **Update now** — **nothing is ever installed without your click**. You can also use **General → Updates → Check now** any time. On a Mac, and with the Linux .deb, new versions are a download from the Releases page instead (see [On a Mac](#on-a-mac) and [On Linux](#on-linux)).
 
 **Update channel** (General → Updates). Version numbers look like `x.y.z`: **the middle number is Stable, the last number is Latest.**
 - **Stable (recommended)** — the main, well-tested releases (the middle number goes up: 1.2.0, 1.3.0, …).
@@ -207,9 +207,20 @@ yourself. [PRIVACY.md](../PRIVACY.md) lists each request.
 **In the app (easiest):** open the **Layout** tab and click the dashed **+ New layout** card. Give it a name and it starts as a copy of the
 full-size keyboard. Then, in the **Keys** tab, hide the keys you don't want and relabel the ones you do. You can make up to **20**
 layouts (a counter shows how many you've used). To remove one, open its **⋯** menu (or right-click it) and choose **Delete…**.
-Built-in layouts can be hidden the same way (**Hide**) and brought back from **Other layouts** in the New layout popup, which
+Built-in layouts can be hidden the same way (**Hide**) and brought back from **Built-in** in the New layout popup, which
 also has more keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad). Drag the cards, or press **Alt+←** / **Alt+→**, to put
 them in the order you like; the tray menu uses the same order.
+
+**From a keyboard you drew on keyboard-layout-editor.com (KLE):** save it there with **Download → Download JSON**, then in
+the New layout popup choose **From a KLE file** and click **Choose file…**. A popup shows the layout with its key labels,
+its name (you can change it) and one line on what was found ("61 keys · 60 light up · 1 can't: Fn"); **Create layout**
+makes it and opens the **Keys** tab, and **Back** returns to New layout. Keys
+keep their places and sizes. Turned keys (thumb clusters, Alice-style boards) are placed straight at the same spot, and
+odd-shaped keys such as an ISO Enter become one rectangle. Decorations, faint "ghost" keys and the file's colors and fonts
+are left out. A key the app can't link (an **Fn** key, a macro key, a blank key) is still drawn, so the board looks like
+yours, but it never lights up; the popup draws these keys dashed and names them before you create the layout, and the Keys tab
+calls them, for example, "Fn · can't light up" (delete one there if you'd rather not see it). The
+file itself is only read: nothing is sent anywhere, and the app never opens the KLE website.
 
 **Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (the copy gets its own file; its name stays the same), and they count toward the 20-layout limit.
 
@@ -242,7 +253,7 @@ keys are held *right now*, so a key can never look stuck. Use **Pause overlay** 
 
 ### Where your keystrokes go
 ```
-your keyboard → Windows → Keystroke Overlay (in memory) → a web page on YOUR PC (127.0.0.1) → OBS on your PC
+your keyboard → your system → Keystroke Overlay (in memory) → a web page on YOUR PC (127.0.0.1) → OBS on your PC
 ```
 Every step happens on your computer, in memory. The moment a key is released, the event is gone.
 
@@ -273,16 +284,17 @@ use updates you can block the app in your firewall and everything else keeps wor
 
 ### Limits, stated plainly
 - The app can see **every** key while it runs, including in password boxes. That is inherent to the job, so use **Pause overlay**.
-- The local overlay server does **not** authenticate other *programs* on the same PC, including other Windows users logged in at the
+- The local overlay server does **not** authenticate other *programs* on the same PC, including other users logged in at the
   same time. A program already running as you could receive key events from it (though it could also install its own keyboard hook).
   You can close this gap with the optional **Secure link** (General → Connection → Secure my OBS URL): your OBS URL then carries a private key and
   the app refuses everything without it. It is off by default, so the link stays simple, and turning it on means pasting the new link into OBS once.
-- Three components are outside our control: **Microsoft Edge WebView2** (draws the settings window; Microsoft's diagnostic-data
-  settings apply to it), **OBS**, and **Windows** itself.
+- Three components are outside our control: the system's web view that draws the settings window (**Microsoft Edge WebView2** on Windows,
+  where Microsoft's diagnostic-data settings apply to it; WKWebView on a Mac; WebKitGTK on Linux), **OBS**, and the
+  operating system itself.
 
 ### Don't trust — verify
 - **Read the code.** It's small, and the network code is in exactly one file (`src-tauri/src/commands/updates.rs`).
-- **Watch it.** With the app running, `netstat -ano | findstr <its process id>` shows one listening socket on `127.0.0.1` and nothing else.
+- **Watch it.** With the app running, `netstat -ano | findstr <its process id>` on Windows, `lsof -iTCP -a -p <pid>` on a Mac or `ss -tlnp` on Linux shows one listening socket on `127.0.0.1` and nothing else.
 - **Block it.** Deny the app internet access in your firewall: the overlay keeps working, only updates stop.
 - **Let the computer check.** `npm run check:privacy` (it also runs on every change on GitHub) fails the build if network access,
   file writes in the keyboard code, logging, or an external request ever appears where it shouldn't. It is a tripwire
@@ -301,7 +313,7 @@ use updates you can block the app in your firewall and everything else keeps wor
 ## On a Mac
 
 The Mac version needs macOS 11 or newer (the app is built for that), and has only been tried on the newest macOS (26), on an Apple
-Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download on the Releases page; you can also build the app yourself (the steps are in the [README](../README.md#building-from-source)). The plan and what has been tested: [MAC-PORT.md](MAC-PORT.md).
+Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download on the Releases page; you can also build the app yourself (the steps are in the [README](../README.md#building-from-source)). How it works and what has been tested: [MAC-PORT.md](MAC-PORT.md).
 
 - **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
   Launchpad. While the settings window is open, the app also shows in the Dock.
@@ -323,7 +335,7 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
 - **The F row.** On a Mac laptop, F1 to F12 only light up while you hold **Fn**. Without it they are brightness and volume
   keys, which macOS doesn't send as F keys.
 - **Key names.** The overlay shows your own keyboard's names: ⌘ ⌥ ⌃, **delete** and **return**. To use the layout file's
-  names instead, set **Style → Key labels** to **Layout file**.
+  names instead, set **Style → Text → Key labels** to **Layout file**.
 - **Passwords.** While a password box has focus, macOS blocks key capture on purpose, so passwords can never reach the
   overlay. If the app says capture is blocked and it doesn't clear, lock and unlock the screen, or quit the app that is
   holding it.

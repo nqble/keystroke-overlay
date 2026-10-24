@@ -1,0 +1,82 @@
+KLE test fixtures: where each file comes from, and under which license
+=======================================================================
+
+Small files in the format of keyboard-layout-editor.com (KLE), used by the unit tests of "Import from KLE"
+(tests/ui/kle.test.mjs, tests/ui/kle-layout.test.mjs; the format is in docs/FILE-FORMATS.md).
+Collected 2026-10-19. This is a .txt file, not .md, because markdown may only live where CLAUDE.md section 3 says
+(npm run check:docs).
+
+Only MIT-licensed files and files made from this project's own data are here: nothing from the KLE site itself (its
+license is "All rights reserved"), VIA (GPL-3.0) or QMK (GPL-2.0). The JSON files were formatted with Prettier when
+they were added (npm run check:format covers tests/); their data is exactly as in the source.
+
+
+atreus-rotated.kle.json
+  Tests:   a 42-key Atreus in two halves turned by +10 and -10 degrees (r, rx, ry), with many negative y offsets:
+           the rotation and rotation-cluster rules.
+  Source:  ergogen, test/fixtures/atreus_kle.json at commit 8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37
+           https://github.com/ergogen/ergogen/blob/8286e18f18ac064aa6d2ebca9c449bf2f6ba4d37/test/fixtures/atreus_kle.json
+  License: MIT, Copyright (c) 2018 Bán Dénes
+
+numpad-raw-data.txt
+  Tests:   a number pad in KLE's "Raw data" form (no outer brackets, unquoted property names, "7\nHome" two-legend
+           keys, h:2 keys): the number-pad rules, once the test turns it into JSON.
+  Source:  kle2xy, test_numpad.py at commit 34d2985b6441a616c879fb364f0fe2ea304716b3
+           https://github.com/skullydazed/kle2xy/blob/34d2985b6441a616c879fb364f0fe2ea304716b3/test_numpad.py
+  License: MIT, Copyright (c) 2016 Clueboard
+
+kle-serial-snippets.json
+  Tests:   the tiny inline layouts from kle-serial's own tests (offsets, sizes reset after a key, second rectangle
+           defaults, decal and ghost flags, rotation only on a row's first item, legend order for each "a" value,
+           metadata first), with what kle-serial expects.
+  Source:  kle-serial, test/test.js at commit 4080386fcdcb66a391e1b4857532512f9ca4121e
+           https://github.com/ijprest/kle-serial/blob/4080386fcdcb66a391e1b4857532512f9ca4121e/test/test.js
+  License: MIT, Copyright (c) 2013-2019 Ian Prest
+
+ansi-60.kle.json
+  Tests:   a 60% ANSI board with US two-legend keycaps ("!\n1", "<\n,"), a blank 6.25-wide space bar, two Shift,
+           Ctrl, Alt and Win keys. Importing it must give back the key codes, positions and sizes of
+           ui/overlay/layouts/compact-60.json (a round trip).
+  Source:  made from this project's ui/overlay/layouts/compact-60.json by a scratch script (not in the repository).
+  License: this project's own data (MIT, Keystroke Overlay).
+
+iso-tkl.kle.json
+  Tests:   a TKL ISO board: the ISO Enter as KLE draws it (w 1.25, h 2, w2 1.5, h2 1, x2 -0.25), the ISO key next to
+           left Shift, the navigation cluster, a function row with gaps. Importing it must give back
+           ui/overlay/layouts/tkl-iso.json (a round trip).
+  Source:  made from ui/overlay/layouts/tkl-iso.json the same way.
+  License: this project's own data (MIT, Keystroke Overlay).
+
+Still wanted (not found under a license that allows copying): a real Ergodox-style board with thumb clusters turned
+25 to 30 degrees. Write one by hand in the KLE editor and commit it as our own work, or ask the author of an
+MIT-licensed keyboard repository. Do not take one from KLE's presets, VIA or QMK.
+
+
+License texts
+=============
+
+The MIT license, as each project ships it (only the copyright line differs):
+
+MIT License
+
+Copyright (c) 2018 Bán Dénes                 (atreus-rotated.kle.json)
+Copyright (c) 2016 Clueboard                 (numpad-raw-data.txt)
+Copyright (c) 2013-2019 Ian Prest            (kle-serial-snippets.json)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

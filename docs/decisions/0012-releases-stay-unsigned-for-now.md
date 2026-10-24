@@ -9,7 +9,7 @@ already show public visibility (stars, forks, contributors, articles, discussion
 Paid routes exist: a SignPath subscription, or Microsoft's Azure Trusted Signing (about US$10 a month).
 
 ## Decision
-Releases stay unsigned for now, with no paid signing. Jordan may apply to SignPath Foundation again once the project is
+Releases stay unsigned for now, with no paid signing. The maintainer may apply to SignPath Foundation again once the project is
 better known.
 
 ## Why

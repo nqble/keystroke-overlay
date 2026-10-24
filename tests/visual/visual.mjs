@@ -1,12 +1,12 @@
 // Visual tests: a picture of every settings screen, compared with the picture saved last time.
 //
 //   npm run test:visual               compare every screen with tests/visual/baselines/ and say which ones changed
-//   npm run test:visual -- --update   take new baselines (only when the look was changed ON PURPOSE; show Jordan before and after)
+//   npm run test:visual -- --update   take new baselines (only when the look was changed ON PURPOSE; show the before and after in the pull request)
 //
 // The pictures come from the real settings window, over the same debugging connection the end-to-end tests use. The window is
 // given a fixed size and 100% scaling, and everything that changes from run to run (the version, the overlay size, animations,
 // the blinking text cursor) is frozen or hidden. A few differing pixels are allowed for anti-aliasing (the smoothing of
-// letter edges). The baselines come from Jordan's PC; they are local, not part of CI.
+// letter edges). The baselines come from one Windows PC (the maintainer's); they are local, not part of CI.
 // Run through tests/e2e/run.mjs (which builds and starts the test copy of the app); it is not part of the normal "all suites" run.
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
