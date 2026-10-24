@@ -10,6 +10,7 @@ import { toBoard } from '../tabs/keys-view.js';
 export const UNIT = 40; // pixels per key at 100% zoom (keep in step with --unit in tabs.css)
 export const KEY_GAP = 3; // pixels between neighboring keys at 100% zoom (keep in step with the .kmk size in settings.css)
 export const DRAG_START_DISTANCE = 3; // pixels the pointer must move before a press counts as a drag, not a click
+export const MIN_DOT_RADIUS = 0.7; // pixels on screen: a grid dot never gets smaller than this, however far the view is zoomed out
 export const MIN_DOT_SPACING = 6; // pixels: grid dots closer together than this are thinned out so the grid stays readable
 export const OVERSCAN = 120; // pixels of empty room that may show beyond the board's edge (so the keys can sit in the middle)
 export const FIRST_VIEW_PADDING = 28; // pixels of space between the keyboard and the editor box in the first view

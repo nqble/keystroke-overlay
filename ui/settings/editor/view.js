@@ -11,6 +11,7 @@ import { attachViewGestures } from './view-gestures.js';
 import {
   FIRST_VIEW_BOTTOM,
   FIRST_VIEW_PADDING,
+  MIN_DOT_RADIUS,
   MIN_DOT_SPACING,
   OVERSCAN,
   UNIT,
@@ -72,6 +73,8 @@ export function setView(ctx, next) {
   let every = 1;
   while (spacing * every < MIN_DOT_SPACING) every *= 2;
   ctx.canvas.style.setProperty('--dot-spacing', dotStep * UNIT * every + 'px');
+  // the board is scaled by the zoom, so a dot would shrink to nothing when zoomed out: keep it at least MIN_DOT_SIZE on screen
+  ctx.canvas.style.setProperty('--dot-radius', Math.max(0.8, MIN_DOT_RADIUS / ctx.view.zoom) + 'px');
 }
 
 /** Keep the view legal after the box or the board changed size. */

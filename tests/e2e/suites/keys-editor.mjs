@@ -1220,6 +1220,16 @@ const dotsShown = () =>
 if (!(await pressed('key-grid'))) await flip('key-grid');
 if (await pressed('key-snap')) await flip('key-snap');
 check('Grid shows its dots with Snap off', (await dotsShown()) && !(await pressed('key-snap')));
+// zoomed all the way out the dots are still visible: the board is scaled down, so a dot is drawn bigger to stay at least
+// about 0.7 px on screen
+for (let step = 0; step < 12; step++) await p.ev(`document.querySelector('${byTest('editor-zoom-out')}').click()`);
+await sleep(400);
+const dotOnScreen = await p.q(
+  `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return parseFloat(c.style.getPropertyValue('--dot-radius')) * parseFloat(c.style.getPropertyValue('--zoom')); })()`,
+);
+check('Grid dots stay visible zoomed all the way out', (await dotsShown()) && dotOnScreen >= 0.69, String(dotOnScreen));
+await p.ev(`document.querySelector('${byTest('editor-zoom-reset')}').click()`);
+await sleep(300);
 await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
 await sleep(800);
 check('...and in the Even grid layout style too', await dotsShown());

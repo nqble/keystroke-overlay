@@ -96,9 +96,13 @@ h2:first-child {
 }
 .row > label {
   width: 170px;
-  flex: 0 1 auto; /* gives way a little in a narrow card, so the slider and its value fit */
-  min-width: 130px;
+  flex: none;
   color: var(--color-text);
+}
+.row.has-swatch > label {
+  width: calc(
+    170px - 40px - var(--space-10)
+  ); /* the color box takes room from the slider, so the label gives it up: every slider is as long as the others */
 }
 .row .ctl {
   flex: 1;
@@ -298,7 +302,11 @@ button:disabled:hover {
   transition: none;
 }
 .keymap-canvas.grid-dots {
-  background-image: radial-gradient(circle, var(--color-text-dim) 0.8px, transparent 1.4px);
+  background-image: radial-gradient(
+    circle,
+    var(--color-text-dim) var(--dot-radius, 0.8px),
+    transparent calc(var(--dot-radius, 0.8px) * 1.75)
+  );
   background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
 }
 .keymap-canvas.holding .kmk:not(.drag) {
