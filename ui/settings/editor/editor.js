@@ -172,12 +172,16 @@ function update(ctx, nextLayout, nextProfile) {
 
   const key = `${ctx.layout.id}:${ctx.profile.layoutStyle}`;
   if (key !== ctx.shownFor) {
+    // Another layout starts with its own first view. A layout-style switch (or its Undo) only redraws the keys: the
+    // view stays where the person left it.
+    if (!ctx.shownFor.startsWith(`${ctx.layout.id}:`)) {
+      ctx.needsFirstView = true;
+      ctx.viewTouched = false;
+    }
     ctx.shownFor = key;
     ctx.nodes.clear();
     ctx.handles = null;
     ctx.canvas.replaceChildren();
-    ctx.needsFirstView = true;
-    ctx.viewTouched = false;
   }
   const hidden = new Set(ctx.profile.disabledKeys);
   const clash = overlappingCodes(placedBoxes.filter((boxOf) => !hidden.has(boxOf.code)));
@@ -202,7 +206,8 @@ function update(ctx, nextLayout, nextProfile) {
   placeArrangeBar(ctx);
   if (ctx.box.clientWidth && ctx.box.clientHeight) {
     ctx.boxSize = { w: ctx.box.clientWidth, h: ctx.box.clientHeight };
-    if (ctx.needsFirstView || !ctx.viewTouched) firstView(ctx);
+    // An edit never moves the view; only a new layout gets a first view (the box settling into the page is view.js's job)
+    if (ctx.needsFirstView) firstView(ctx);
     else refit(ctx);
   } else setView(ctx, ctx.view); // keep the dots in step with the snap choice while off the page
 }

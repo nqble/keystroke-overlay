@@ -1047,6 +1047,35 @@ check(
 await setShapeEdits({});
 await clearSelection();
 
+// ---- the view stays where the person left it: Close gaps, its Undo and a layout-style switch never move it
+const viewOf = async () => {
+  const info = await boardInfo();
+  return JSON.stringify([info.zoom, info.panX, info.panY]);
+};
+await p.ev(`document.querySelector('${byTest('editor-zoom-in')}').click()`);
+await sleep(500);
+const viewBefore = await viewOf();
+await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
+await sleep(800);
+check('Close gaps leaves the view where it was', (await viewOf()) === viewBefore, `${viewBefore} -> ${await viewOf()}`);
+await p.ev(`${arrangeButton('key-undo')}.click()`);
+await sleep(800);
+check(
+  'Undo of Close gaps leaves the view where it was',
+  (await viewOf()) === viewBefore,
+  `${viewBefore} -> ${await viewOf()}`,
+);
+await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
+await sleep(800);
+check(
+  'switching to the Even grid leaves the view where it was',
+  (await viewOf()) === viewBefore,
+  `${viewBefore} -> ${await viewOf()}`,
+);
+await p.ev(`document.querySelector('${byTest('layout-style-shape')}').click()`);
+await sleep(800);
+await saveProfileEdits({});
+
 // ---- layout style (Keyboard shape | Even grid), Close gaps in the grid, and the Reset menu (M4.3)
 const savedLayoutStyle = async () => (await profile(id)).layoutStyle ?? 'shape';
 const styleOn = (style) =>
