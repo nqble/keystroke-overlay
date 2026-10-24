@@ -47,7 +47,9 @@ export const TEXT = {
   inspectorDeveloperNote:
     'Or run “npm run dev:debug”, which does all of this. In the inspector’s console, the object “ko” has shortcuts: ko.info(), ko.log(), ' +
     "ko.settings(), ko.goto('style').",
-  bugReportHelp: 'Copies a report for a GitHub issue or an AI assistant.',
+  bugReportHelp:
+    'Copies a report for a GitHub issue or an AI assistant. It has no key presses and no secure link key, and your user ' +
+    'name is removed.',
   debugToolsIntro: 'Developer tools. Nothing here is saved or sent. Turn off in General → Advanced → Debug mode.',
 };
 
