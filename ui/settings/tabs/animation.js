@@ -69,7 +69,6 @@ function AnimationCard({ animation, selected, onSelect }) {
   >
     <${GalleryCard}
       title=${animation.name}
-      detail=${animation.description}
       selected=${selected}
       onSelect=${onSelect}
       test=${'animation-card-' + animation.id}

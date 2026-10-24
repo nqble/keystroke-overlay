@@ -22,7 +22,6 @@ const WORDS = {
   cancel: 'Cancel',
   save: 'Save',
   saved: 'Preset saved',
-  presetDetail: 'Your preset',
   more: (name) => `More for ${name}`,
   load: 'Use this look',
   remove: 'Delete',
@@ -121,7 +120,6 @@ export function PresetGallery({ names }) {
         (name) =>
           html`<${GalleryCard}
             title=${name}
-            detail=${WORDS.presetDetail}
             selected=${false}
             onSelect=${() => load(name)}
             test="preset-card"

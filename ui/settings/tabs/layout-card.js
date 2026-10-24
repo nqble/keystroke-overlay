@@ -7,11 +7,8 @@
 import { MenuButton } from '../blocks.js';
 import { html } from '../html.js';
 import { showMenu } from '../menu.js';
-import { isCustom } from '../profiles.js';
 
 const WORDS = {
-  keys: (count) => `${count} keys`,
-  customized: ' · customized',
   more: (name) => `More for ${name}`,
   moveLeft: 'Move left',
   moveRight: 'Move right',
@@ -81,7 +78,6 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
     keyEvent.preventDefault();
     actions.move(keyEvent.key === 'ArrowLeft' ? -1 : 1);
   };
-  const detail = WORDS.keys(layout.keys.length) + (isCustom(layout.id) ? WORDS.customized : '');
   return html`<div
     class=${dragging ? 'gallery-item layout-item dragging' : 'gallery-item layout-item'}
     data-layout-item=${layout.id}
@@ -101,7 +97,6 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
     >
       <span class="gallery-picture"><${LayoutPicture} keys=${layout.keys} /></span>
       <b class="gallery-title">${layout.name}</b>
-      <span class="gallery-detail">${detail}</span>
     </button>
     <${MenuButton} label=${WORDS.more(layout.name)} items=${items} test="layout-menu" />
   </div>`;
