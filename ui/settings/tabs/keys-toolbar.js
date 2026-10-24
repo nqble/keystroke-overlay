@@ -27,7 +27,7 @@ import { TEXT } from '../text.js';
 import { clampMove, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
 import { boardFor, placedBoxesFor, selectedBoxes } from '../editor/places.js';
-import { CLOSED_GAP, closeGapsPositions } from './keys-board.js';
+import { closeGapsPositions } from './keys-board.js';
 
 /** Save new positions ({ code: { x, y } }) for keys of this layout, then redraw. */
 function applyPositions(layout, positions) {
@@ -74,21 +74,25 @@ function Toggle({ label, on, tip, test, onClick }) {
   </button>`;
 }
 
-/** "Close gaps": slide the shown keys together, keeping their order. Only keys that really move are saved as moved. */
+/** "Close gaps": in each row, slide the shown keys left into hidden keys' spots. Only keys that move are saved as moved. */
 function closeGaps(layout) {
   const profile = viewProf();
-  const hidden = new Set(profile.disabledKeys);
-  const boxes = placedBoxesFor(layout, profile).filter((box) => !hidden.has(box.code));
-  if (!boxes.length) return;
-  const evenGrid = profile.layoutStyle === 'grid';
-  const closed = closeGapsPositions(boxes, evenGrid ? 0 : CLOSED_GAP); // the Even grid closes gaps completely
+  const hiddenCodes = new Set(profile.disabledKeys);
+  const boxes = placedBoxesFor(layout, profile);
+  const shown = boxes.filter((box) => !hiddenCodes.has(box.code));
+  const hidden = boxes.filter((box) => hiddenCodes.has(box.code));
+  const closed = closeGapsPositions(shown, hidden);
   const positions = {};
-  for (const box of boxes) {
+  for (const box of shown) {
     const place = closed[box.code];
-    if (place.x !== box.x || place.y !== box.y) positions[box.code] = place;
+    if (place.x !== box.x) positions[box.code] = place;
+  }
+  if (!Object.keys(positions).length) {
+    toast(TEXT.noGapsToClose);
+    return;
   }
   applyPositions(layout, positions);
-  toast('Gaps closed');
+  toast(TEXT.gapsClosed);
 }
 
 /** The Reset menu's items: put selected keys, all keys, hidden keys or labels back, or reset the whole layout. */

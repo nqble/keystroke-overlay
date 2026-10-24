@@ -68,7 +68,8 @@ await p.ev(`await __ko.resync()`);
 await tab('keys');
 await sleep(600);
 const orig = Object.fromEntries(full.keys.filter((k) => keep.includes(k.code)).map((k) => [k.code, k]));
-const sizeBefore = await eventually(async () => {
+// wait until the live preview has drawn the layout
+await eventually(async () => {
   const s = await previewSize();
   return { ok: !!s && s.w > 0, s };
 });
@@ -139,7 +140,7 @@ check(
   (await p.q(`document.querySelectorAll('${byTest('key-cell', '.clash')}').length`)) >= 2,
 );
 
-// ---- Close gaps: keep the shape, close the dead space, leave the keyboard where it is
+// ---- Close gaps: fill the holes hidden keys leave between shown keys in a row; nothing else moves
 // the Reset menu: open it, then choose one of its items by hook name
 const resetMenuItem = async (hook) => {
   await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
@@ -152,38 +153,30 @@ check(
   '"Put all keys back" puts every key back',
   Object.keys(shapeEdits(await profile(id)).positions ?? {}).length === 0,
 );
-await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
-await sleep(800);
-const pos = shapeEdits(await profile(id)).positions ?? {};
-const at = (c) => pos[c] ?? { x: orig[c].x, y: orig[c].y };
-const [W, A, Sx, D, Sp] = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].map(at);
-const before = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].map((c) => orig[c]);
-const after = [W, A, Sx, D, Sp];
-const topLeft = (boxes) => ({ x: Math.min(...boxes.map((q) => q.x)), y: Math.min(...boxes.map((q) => q.y)) });
+const tidyAndRead = async () => {
+  await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
+  await sleep(800);
+  return shapeEdits(await profile(id)).positions ?? {};
+};
 check(
-  'Close gaps leaves the top-left keys where they were (the keyboard does not slide away)',
-  JSON.stringify(topLeft(after)) === JSON.stringify(topLeft(before)),
-  JSON.stringify({ before: topLeft(before), after: topLeft(after) }),
+  'with no holes (W A S D and Space, the rest hidden around them), Close gaps moves nothing: WASD keeps its shape',
+  Object.keys(await tidyAndRead()).length === 0,
 );
+// hide S: a hole between A and D
+await saveProfileEdits({ disabledKeys: [...(await profile(id)).disabledKeys, 'KeyS'] });
+await p.ev(`await __ko.resync()`);
+await sleep(600);
+const filled = await tidyAndRead();
 check(
-  'Close gaps leaves a quarter key where the empty row was between WASD and the space bar',
-  Math.abs(Sp.y - (A.y + 1.25)) < 1e-6,
-  `A.y=${A.y} Space.y=${Sp.y}`,
+  'with S hidden, Close gaps slides D left into the hole S left, in that row only',
+  filled.KeyD?.x === orig.KeyA.x + 1 && filled.KeyD?.y === orig.KeyD.y && !filled.KeyA && !filled.KeyW && !filled.Space,
+  JSON.stringify(filled),
 );
-check(
-  'Close gaps keeps the shape: W above A/S, A S D in order',
-  W.y < A.y && A.x < Sx.x && Sx.x < D.x && W.x >= A.x - 1e-6 && W.x <= Sx.x + 1e-6,
-  JSON.stringify({ W, A, S: Sx, D }),
-);
-const sizeAfter = await eventually(async () => {
-  const s = await previewSize();
-  return { ok: !!s && !!sizeBefore.s && s.h < sizeBefore.s.h, s };
-});
-check(
-  'the overlay shrinks to the compact layout (smaller height than before)',
-  sizeAfter.ok,
-  JSON.stringify([sizeBefore.s, sizeAfter.s]),
-);
+check('pressing Close gaps again changes nothing', JSON.stringify(await tidyAndRead()) === JSON.stringify(filled));
+await saveProfileEdits({ disabledKeys: (await profile(id)).disabledKeys.filter((code) => code !== 'KeyS') });
+await p.ev(`await __ko.resync()`);
+await sleep(600);
+await resetMenuItem('keys-reset-positions');
 
 // ---- selecting several keys and moving them as a group
 const selectedCodes = () =>
@@ -1111,13 +1104,14 @@ check(
   !!gridPos && Math.abs(gridPos.x - Math.round(gridPos.x)) < 1e-6,
   JSON.stringify(gridPos),
 );
+const gridBeforeClose = (await profile(id)).styles?.grid?.positions ?? {};
 await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
 await sleep(800);
 const gridAfterClose = (await profile(id)).styles?.grid?.positions ?? {};
 check(
-  'Close gaps in the Even grid closes the gaps completely (no gap left between neighboring rows)',
-  Object.keys(gridAfterClose).length > 0,
-  JSON.stringify(gridAfterClose),
+  'Close gaps in the Even grid leaves a dragged key alone when no hidden key sits between shown ones',
+  JSON.stringify(gridAfterClose) === JSON.stringify(gridBeforeClose),
+  JSON.stringify([gridBeforeClose, gridAfterClose]),
 );
 // undo step by step until the layout style is Keyboard shape again (the earlier steps are moves and Close gaps)
 for (let i = 0; i < 8 && (await savedLayoutStyle()) !== 'shape'; i++) {

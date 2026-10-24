@@ -150,9 +150,11 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 
 - **Undo / Redo:** icon buttons, disabled when there's nothing to undo or redo. Undo covers every change on this tab
   (move, resize, hide or show, label, align, space, close gaps, reset, layout-style switch). Keep about 50 steps.
-- **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to fill gaps." Behavior: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
-  closed to ¼ key, along both axes, keeping every key's relative order. The top-left keys stay where they are (the
-  keyboard is not re-centered, so it doesn't slide away), and only keys that really move count as moved.
+- **Close gaps** (renamed from "Tidy up"). Tooltip: "Fill the holes hidden keys leave in a row." Behavior (decided
+  2026-10-24): in each row, a hidden key between two shown keys leaves a hole, and the shown keys right of it slide left
+  by its width. Hidden keys before a row's first shown key are not holes, so a group like WASD keeps its shape; the
+  layout's own gaps (between the F-key groups, before the arrows) stay, so a layout with nothing hidden doesn't change.
+  Pressing it again changes nothing; with no holes it says "No holes to fill". Only keys that move count as moved.
 - **Reset ▾** (all five items stay): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
   a divider · **Reset this layout completely** (danger color, asks "Reset this layout?" with "Positions, sizes, hidden keys and labels go back to the layout file, and
   the style to Keyboard shape. You can undo this." and a **Reset layout** button). Every item is undoable.
