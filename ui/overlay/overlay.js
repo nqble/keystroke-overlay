@@ -1,7 +1,7 @@
 // Overlay core: builds the keyboard from a layout, listens on a WebSocket and
 // toggles a `down` class per key. No timers or polling while connected - CSS
 // transitions do all the animation work on the compositor.
-import { animations, themes, easings } from '/overlay/registry.js';
+import { animations, themes, easings, byId } from '/overlay/registry.js';
 import { fitInBox } from '/overlay/fit.js';
 import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
@@ -353,14 +353,14 @@ if (PREVIEW) {
       parent.postMessage(
         {
           type: 'registry',
-          animations: [...animations.values()].map((a) => ({
+          animations: byId(animations).map((a) => ({
             id: a.id,
             name: a.name,
             description: a.description ?? '',
             usesIntensity: !!a.usesIntensity,
             demo: animationVars({ ...DEMO_ANIMATION, type: a.id }, settings?.style ?? {}),
           })),
-          themes: [...themes.values()].map((t) => ({ id: t.id, name: t.name, style: t.style, animation: t.animation })),
+          themes: byId(themes).map((t) => ({ id: t.id, name: t.name, style: t.style, animation: t.animation })),
           easings: [...easings.values()].map((x) => ({ id: x.id, name: x.name })),
           layouts: layouts.map((l) => ({ id: l.id, name: l.name })),
         },
