@@ -308,8 +308,9 @@ button:disabled:hover {
     transparent calc(var(--dot-radius, 0.8px) * 1.75)
   );
   background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
-  /* the gradient draws its dot in the middle of each tile; shift it so the dots sit on the grid lines, where the keys snap */
-  background-position: calc(var(--dot-spacing, 10px) / -2) calc(var(--dot-spacing, 10px) / -2);
+  /* The gradient draws its dot in the middle of each tile, so shift it half a tile to put it on the grid line. A key is drawn
+     KEY_GAP (3px) narrower than its cell, so the line's visible spot is the middle of that gap: half the gap further back. */
+  background-position: calc(var(--dot-spacing, 10px) / -2 - 1.5px) calc(var(--dot-spacing, 10px) / -2 - 1.5px);
 }
 .keymap-canvas.holding .kmk:not(.drag) {
   opacity: 0.35;
