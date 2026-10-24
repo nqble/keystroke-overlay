@@ -217,7 +217,7 @@ function GroupInspector({ profile }) {
       <button
         type="button"
         data-test="key-group-put-back"
-        title="Put the selected keys back where the layout has them"
+        title="Put back where the layout has them"
         disabled=${!anyEdited}
         onClick=${putBack}
       >
@@ -233,7 +233,6 @@ function EmptyInspector() {
   return html`<div class="editor" data-test="key-inspector-empty">
     <b>${TEXT.noKeySelected}</b>
     <p class="note">${TEXT.inspectorTip}</p>
-    <p class="note">${TEXT.inspectorTipGrid}</p>
   </div>`;
 }
 

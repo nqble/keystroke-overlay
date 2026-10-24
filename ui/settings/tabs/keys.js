@@ -103,8 +103,8 @@ function HintLine() {
   return html`<p class="keyhint" data-test="keys-shortcut-hint">
     <span>${systemWord('dragHint', platform)}</span>
     <span class="chips">
-      <${HintItem} chips=${single('← ↑ ↓ →', 'The arrow keys move the selected keys a quarter key')} word="nudge" />
-      <${HintItem} chips=${single('Shift', 'Hold Shift with an arrow key to move a whole key')} word="whole key" />
+      <${HintItem} chips=${single('← ↑ ↓ →', 'Arrow keys move the selected keys a quarter key')} word="nudge" />
+      <${HintItem} chips=${single('Shift', 'Shift + arrow moves a whole key')} word="whole key" />
       <${HintItem}
         chips=${single(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform))}
         word="hide"

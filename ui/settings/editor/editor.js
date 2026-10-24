@@ -117,15 +117,12 @@ function paintKey(ctx, node, item, { hidden, clash }) {
   node.style.setProperty('--h', String(item.h));
   const label = ctx.profile.labels[key.code] ?? key.label;
   if (node.textContent !== (label ?? '')) node.textContent = label ?? '';
-  node.title = key.code + ' (drag to move)';
+  node.title = key.code;
   node.hidden = !showHiddenKeys() && hidden.has(key.code); // the Hidden keys switch is off
   node.classList.toggle('off', hidden.has(key.code));
   node.classList.toggle('sel', selectedKeys.has(key.code));
   node.classList.toggle('clash', clash.has(key.code));
-  const state = [
-    hidden.has(key.code) ? 'hidden in the overlay' : 'shown',
-    selectedKeys.has(key.code) ? 'selected' : null,
-  ];
+  const state = [hidden.has(key.code) ? 'hidden' : 'shown', selectedKeys.has(key.code) ? 'selected' : null];
   node.setAttribute('aria-pressed', String(selectedKeys.has(key.code)));
   node.setAttribute('aria-label', `${key.code}${label ? ', label ' + label : ''}, ${state.filter(Boolean).join(', ')}`);
 }

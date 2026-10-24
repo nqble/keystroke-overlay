@@ -40,9 +40,9 @@ they are useful and are hidden otherwise.
    any keys overlap.
 3. **Content row.** The editor box (flexible width) and, to its RIGHT, the inspector panel (fixed ~260px, top-aligned).
    Never put the inspector below the editor.
-4. **Hint line under the editor box**, one line: "Drag a key to move it. Ctrl-click to add." on the left. On the right,
+4. **Hint line under the editor box**, one line: "Ctrl-click to add to the selection." on the left. On the right,
    keycap chips each with one word: [←][↑][↓][→] nudge · [Shift] whole key · [Del] hide · [Scroll] zoom · [Space + drag] pan.
-   On a Mac the words change: "⌘-click to add", [delete] hide, [Pinch] zoom and [Scroll] or [Space + drag] pan (one pair: either key cap pans).
+   On a Mac the words change: "⌘-click to add to the selection", [delete] hide, [Pinch] zoom and [Scroll] or [Space + drag] pan (one pair: either key cap pans).
    Each key cap sits next to its word, the pairs are evenly spaced and wrap as whole pairs, and there is no separate note under the
    hint line (the Mac F row needing Fn is explained in the user guide). Each chip has a
    tooltip with the full sentence. The words per system are in `ui/settings/system-words.js`.
@@ -150,8 +150,7 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 
 - **Undo / Redo:** icon buttons, disabled when there's nothing to undo or redo. Undo covers every change on this tab
   (move, resize, hide or show, label, align, space, close gaps, reset, layout-style switch). Keep about 50 steps.
-- **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to close the space left by hidden or moved keys.
-  The shape stays the same." Behavior: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
+- **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to fill gaps." Behavior: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
   closed to ¼ key, along both axes, keeping every key's relative order. The top-left keys stay where they are (the
   keyboard is not re-centered, so it doesn't slide away), and only keys that really move count as moved.
 - **Reset ▾** (all five items stay): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
@@ -171,10 +170,9 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 - **Nothing selected:** "No key selected" + two notes (`TEXT.inspectorTip` and `TEXT.inspectorTipGrid` in
   ui/settings/text.js): how to label, hide and drag keys, and a pointer to Layout style → Even grid.
 - **One key:** "Key: W" title with a "Show" checkbox on the right; Label field; Width field ("Width in keys · or drag the blue
-  handles"); Position X / Y fields (step 0.25); when it overlaps: a danger-tinted note "This key overlaps another. Drag it to a
-  free spot, or press Close gaps."; when moved or resized: "Put back where it was".
-- **Several keys:** "N keys selected" + Show checkbox (on if any are shown); one line "Drag any of them to move them together.
-  The bar above them lines them up or spaces them."; buttons "Put these back" and "Clear selection".
+  handles"); Position X / Y fields (step 0.25); when it overlaps: a danger-tinted note "This key overlaps another."; when moved or resized: "Put back where it was".
+- **Several keys:** "N keys selected" + Show checkbox (on if any are shown); one line "Drag to move them together, or use the bar
+  above to line them up."; buttons "Put these back" and "Clear selection".
 
 ## 8. Wording
 

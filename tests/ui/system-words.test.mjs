@@ -67,7 +67,7 @@ test('the Keys tab view hints say what pans and zooms on each system', () => {
   );
   assert.match(systemWord('panHints', 'macos')[0].tip, /two fingers/);
   assert.match(systemWord('panHints', 'macos')[1].tip, /Space/);
-  assert.match(systemWord('panHints', 'windows')[0].tip, /middle mouse button/);
+  assert.match(systemWord('panHints', 'windows')[0].tip, /middle button/);
 });
 
 test('there is no Minimize switch on a Mac, where every close path leaves the window the same way', () => {

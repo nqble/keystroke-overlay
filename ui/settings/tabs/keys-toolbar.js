@@ -201,7 +201,7 @@ function HistoryButtons({ layout }) {
       type="button"
       data-test="key-undo"
       disabled=${!canUndo()}
-      title=${canUndo() ? 'Undo the last change to the keys of this layout' : 'Nothing to undo'}
+      title=${canUndo() ? 'Undo' : 'Nothing to undo'}
       onClick=${() => undoLastChange(layout)}
     >
       Undo
@@ -210,7 +210,7 @@ function HistoryButtons({ layout }) {
       type="button"
       data-test="key-redo"
       disabled=${!canRedo()}
-      title=${canRedo() ? 'Redo the change you just undid' : 'Nothing to redo'}
+      title=${canRedo() ? 'Redo' : 'Nothing to redo'}
       onClick=${() => redoLastChange(layout)}
     >
       Redo
@@ -262,13 +262,7 @@ export function KeysToolbar({ layout, profile, overlapCount }) {
       <button type="button" data-test="keys-tidy" title=${TEXT.closeGapsHelp} onClick=${() => closeGaps(layout)}>
         Close gaps
       </button>
-      <${MenuButton}
-        label="Reset"
-        text="Reset ▾"
-        tip=${TEXT.resetMenuHelp}
-        items=${resetMenuItems(layout, profile)}
-        test="keys-reset-menu"
-      />
+      <${MenuButton} label="Reset" text="Reset ▾" items=${resetMenuItems(layout, profile)} test="keys-reset-menu" />
     <//>
     <${StatusLine} profile=${profile} overlapCount=${overlapCount} />
   </div>`;

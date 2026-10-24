@@ -29,7 +29,7 @@ export function buildZoomControls(ctx) {
     'zoom-percent',
     'editor-zoom-reset',
   );
-  zoomLabel.title = 'Zoom to 100% and center the board';
+  zoomLabel.title = 'Reset zoom';
   const zoomBy = (factor) => () => {
     ctx.viewTouched = true;
     setView(

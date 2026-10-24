@@ -93,7 +93,7 @@ then Restart now; `ui/settings/keyboard-access.js`) until capture really works. 
   that's already open, which looked broken. Settings open from the menu-bar icon or by opening the app again.
 - **Window frame:** the real red, yellow and green buttons and rounded corners, lined up with the header.
 - **Words:** the settings window uses Mac words (`ui/settings/system-words.js`): "Open at login", no Minimize switch, no
-  Compatibility input method (only Windows has it), "⌘-click to add" and "delete" in the Keys tab, and the pause shortcut
+  Compatibility input method (only Windows has it), "⌘-click to add to the selection" and "delete" in the Keys tab, and the pause shortcut
   shows ⌘ ⌥ ⌃ ⇧. A Command shortcut is saved as "Super", which the shortcut library reads (tested).
 - **Fonts:** Style → Text lists the Mac fonts. The saved default stays "Segoe UI" (changing it would need a settings
   migration) and shows as "System font (default)"; the overlay falls back to the system font, so keys look right even when

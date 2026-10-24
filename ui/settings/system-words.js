@@ -22,9 +22,9 @@ const WORDS = {
   },
   // the Keys tab's hint line: how to add a key to the selection, and the key that hides keys (a Mac calls it "delete")
   dragHint: {
-    windows: 'Drag a key to move it. Ctrl-click to add.',
-    macos: 'Drag a key to move it. ⌘-click to add.',
-    linux: 'Drag a key to move it. Ctrl-click to add.',
+    windows: 'Ctrl-click to add to the selection.',
+    macos: '⌘-click to add to the selection.',
+    linux: 'Ctrl-click to add to the selection.',
   },
   deleteKey: { windows: 'Del', macos: 'delete', linux: 'Del' },
   deleteKeyTip: {
@@ -35,26 +35,26 @@ const WORDS = {
   // the Keys tab's hint chips for the view: what zooms and what pans (a Mac trackpad pans with two fingers and pinches)
   zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' },
   zoomTip: {
-    windows: 'Scroll the mouse wheel over the keyboard to zoom',
+    windows: 'Scroll over the keyboard to zoom',
     macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',
-    linux: 'Scroll the mouse wheel over the keyboard to zoom',
+    linux: 'Scroll over the keyboard to zoom',
   },
   // what pans, each as { chip, tip }: a Mac pans with a two-finger scroll, and Space + drag pans everywhere
   panHints: {
     windows: [
       {
         chip: 'Space + drag',
-        tip: 'Hold Space, then click and drag, or drag with the middle mouse button, to move the view',
+        tip: 'Hold Space and drag, or drag with the middle button, to move the view',
       },
     ],
     macos: [
       { chip: 'Scroll', tip: 'Scroll with two fingers to move the view' },
-      { chip: 'Space + drag', tip: 'Hold Space, then click and drag, to move the view' },
+      { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
     ],
     linux: [
       {
         chip: 'Space + drag',
-        tip: 'Hold Space, then click and drag, or drag with the middle mouse button, to move the view',
+        tip: 'Hold Space and drag, or drag with the middle button, to move the view',
       },
     ],
   },
