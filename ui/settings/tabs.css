@@ -165,6 +165,7 @@ input[type='range']:focus-visible {
   cursor: pointer; /* an error message stays until it is clicked */
 }
 input[type='color'] {
+  flex: none; /* the row's flex layout may not squeeze the color box when the window is narrow */
   width: 40px;
   height: 28px;
   padding: 0;
