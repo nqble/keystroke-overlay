@@ -12,6 +12,7 @@ the top and a line in this list.
 
 | Proposal | What it is | Status |
 |---|---|---|
+| [key-rotation.md](key-rotation.md) | Turn single keys in the Keys tab and in layout files (KLE angles kept) | Proposed for v2.0; nothing built |
 | [mouse-input.md](mouse-input.md) | Mouse buttons and wheel on the overlay (never the pointer's position) | Open idea: wanted; how it looks is open |
 | [controllers-gilrs.md](controllers-gilrs.md) | Game controller input, with the gilrs library compared to our own code | Proposed; a spike exists, idle cost measured on Windows and Linux |
 | [keyboard-files.md](keyboard-files.md) | Import NohBoard keyboard files (Windows only) | Planned; builds on KLE import (built in v2.0) |
