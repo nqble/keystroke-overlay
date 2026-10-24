@@ -222,6 +222,19 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.gallery-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  max-width: 100%;
+}
+.custom-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-dim);
+}
 .gallery-item .menu-button {
   position: absolute;
   top: var(--space-8);

@@ -7,8 +7,10 @@
 import { MenuButton } from '../blocks.js';
 import { html } from '../html.js';
 import { showMenu } from '../menu.js';
+import { isCustom } from '../profiles.js';
 
 const WORDS = {
+  customized: 'Customized',
   more: (name) => `More for ${name}`,
   moveLeft: 'Move left',
   moveRight: 'Move right',
@@ -96,7 +98,14 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
       onDragEnd=${drag.end}
     >
       <span class="gallery-picture"><${LayoutPicture} keys=${layout.keys} /></span>
-      <b class="gallery-title">${layout.name}</b>
+      <span class="gallery-name">
+        <b class="gallery-title">${layout.name}</b>
+        ${
+          isCustom(layout.id)
+            ? html`<span class="custom-dot" role="img" title=${WORDS.customized} aria-label=${WORDS.customized}></span>`
+            : null
+        }
+      </span>
     </button>
     <${MenuButton} label=${WORDS.more(layout.name)} items=${items} test="layout-menu" />
   </div>`;
