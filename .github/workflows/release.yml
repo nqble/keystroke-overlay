@@ -8,11 +8,11 @@ name: Release
 # The version comes from src-tauri/tauri.conf.json and must have an entry in CHANGELOG.md (that text becomes the release notes).
 # Safety: only a commit that is on main can be released; every action is pinned to an exact commit (Dependabot proposes
 # updates for review); this job uses no shared build cache, so nothing another workflow wrote can end up in a signed
-# installer; and the "release" environment asks Jordan to approve before the signing key is used.
+# installer; and the "release" environment asks the maintainer to approve before the signing key is used.
 #
 # Windows code signing (free, from SignPath Foundation; docs/RELEASING.md, Code signing): once the repository variable
 # SIGNPATH_ORGANIZATION_ID is set, the app's .exe and then the installer are sent to SignPath to be signed, and each
-# signing request waits for Jordan's approval there. Until it is set, the release is built unsigned, as before.
+# signing request waits for the maintainer's approval there. Until it is set, the release is built unsigned, as before.
 #
 # The Mac app: once the release is published, mac-app.yml builds the Apple Silicon app (no secrets, not signed by Apple)
 # and the last job attaches Keystroke-Overlay_<version>_macOS-arm64.zip to the same release. Mac users are not updated by
@@ -20,7 +20,7 @@ name: Release
 #
 # The Linux downloads work the same way: linux-app.yml builds the AppImage and the .deb (no secrets) and linux-publish
 # attaches them. linux-publish then signs the AppImage with the update key (it runs in the "release" environment, so it
-# waits for Jordan's approval like the Windows job, and only the signing step sees the key) and adds linux-x86_64 entries to
+# waits for the maintainer's approval like the Windows job, and only the signing step sees the key) and adds linux-x86_64 entries to
 # latest.json and, for a Stable release, to stable.json: Linux users who run the AppImage update in the app. The .deb stays
 # a download (docs/RELEASING.md, Linux download).
 #
@@ -48,7 +48,7 @@ concurrency: release
 jobs:
   release:
     runs-on: windows-latest
-    environment: release # Settings -> Environments -> release -> Required reviewers: Jordan must approve each run
+    environment: release # Settings -> Environments -> release -> Required reviewers: the maintainer must approve each run
     env:
       GH_TOKEN: ${{ github.token }}
       CARGO_TARGET_DIR: ${{ github.workspace }}/target # a known place, so the signing steps can find the files
@@ -109,7 +109,7 @@ jobs:
           name: app-unsigned
           path: target/release/keyoverlay.exe
           if-no-files-found: error
-      - name: Sign the app (waits for Jordan's approval in SignPath)
+      - name: Sign the app (waits for the maintainer's approval in SignPath)
         if: env.CODE_SIGNING == 'true'
         uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
         with:
@@ -137,7 +137,7 @@ jobs:
           name: installer-unsigned
           path: target/release/bundle/nsis/*-setup.exe
           if-no-files-found: error
-      - name: Sign the installer (waits for Jordan's approval in SignPath)
+      - name: Sign the installer (waits for the maintainer's approval in SignPath)
         if: env.CODE_SIGNING == 'true'
         uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
         with:
@@ -216,7 +216,7 @@ jobs:
   linux-publish:
     needs: linux-app
     runs-on: ubuntu-latest
-    environment: release # the update signing key lives here: this job waits for Jordan's approval, like the Windows one
+    environment: release # the update signing key lives here: this job waits for the maintainer's approval, like the Windows one
     permissions:
       contents: write # attach the files to the release and add the Linux entry to the update manifests
     env:

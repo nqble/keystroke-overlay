@@ -112,8 +112,6 @@ const AUDIENCE_EXEMPT = {
   'tools/audience-rules.mjs': ['name', 'session', 'branch', 'notes-folder', 'private-link'], // the rules themselves
   'docs/DOCS-STYLE.md': ['session', 'notes-folder', 'private-link'], // names what not to write
   'tests/ui/audience-rules.test.mjs': ['name', 'session', 'branch', 'notes-folder', 'private-link'],
-  // For now only: the comments name who approves a release. Remove this line when they are rewritten.
-  '.github/workflows/release.yml': ['name'],
 };
 const tracked = execFileSync('git', ['ls-files'], { encoding: 'utf8' }).split('\n');
 const audienceChecked = tracked.filter((file) => TEXT_FILE.test(file) && !file.includes('/vendor/'));
