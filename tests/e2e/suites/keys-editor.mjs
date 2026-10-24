@@ -139,7 +139,7 @@ check(
   (await p.q(`document.querySelectorAll('${byTest('key-cell', '.clash')}').length`)) >= 2,
 );
 
-// ---- Close gaps: keep the shape, close the dead space, center the keys on the board
+// ---- Close gaps: keep the shape, close the dead space, leave the keyboard where it is
 // the Reset menu: open it, then choose one of its items by hook name
 const resetMenuItem = async (hook) => {
   await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
@@ -157,18 +157,13 @@ await sleep(800);
 const pos = shapeEdits(await profile(id)).positions ?? {};
 const at = (c) => pos[c] ?? { x: orig[c].x, y: orig[c].y };
 const [W, A, Sx, D, Sp] = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].map(at);
-const gapBoard = await p.ev(
-  `const c = document.querySelector('${byTest('keymap-canvas')}'); return { w: Number(c.dataset.boardW), h: Number(c.dataset.boardH), ox: Number(c.dataset.originX), oy: Number(c.dataset.originY) };`,
-);
-const groupW =
-  Math.max(...[W, A, Sx, D].map((q) => q.x + 1), Sp.x + 6.25) - Math.min(...[W, A, Sx, D, Sp].map((q) => q.x));
-const groupH = Math.max(...[W, A, Sx, D, Sp].map((q) => q.y)) + 1 - Math.min(...[W, A, Sx, D, Sp].map((q) => q.y));
-const centreX = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.x)) * 2 + groupW) / 2;
-const centreY = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.y)) * 2 + groupH) / 2;
+const before = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].map((c) => orig[c]);
+const after = [W, A, Sx, D, Sp];
+const topLeft = (boxes) => ({ x: Math.min(...boxes.map((q) => q.x)), y: Math.min(...boxes.map((q) => q.y)) });
 check(
-  'Close gaps centers the keys on the board',
-  Math.abs(centreX + gapBoard.ox - gapBoard.w / 2) < 0.8 && Math.abs(centreY + gapBoard.oy - gapBoard.h / 2) < 0.8,
-  JSON.stringify({ centreX, centreY, gapBoard }),
+  'Close gaps leaves the top-left keys where they were (the keyboard does not slide away)',
+  JSON.stringify(topLeft(after)) === JSON.stringify(topLeft(before)),
+  JSON.stringify({ before: topLeft(before), after: topLeft(after) }),
 );
 check(
   'Close gaps leaves a quarter key where the empty row was between WASD and the space bar',

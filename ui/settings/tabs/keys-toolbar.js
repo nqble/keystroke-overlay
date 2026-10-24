@@ -74,26 +74,19 @@ function Toggle({ label, on, tip, test, onClick }) {
   </button>`;
 }
 
-/** "Close gaps": slide the shown keys together, keeping their order, then center them on the board. */
+/** "Close gaps": slide the shown keys together, keeping their order. Only keys that really move are saved as moved. */
 function closeGaps(layout) {
   const profile = viewProf();
   const hidden = new Set(profile.disabledKeys);
-  const frame = boardFor(layout, profile);
-  // the keys as they sit on the board (saved place plus the origin), closed up and centered on the board, then back to saved places
-  const boxes = placedBoxesFor(layout, profile)
-    .filter((box) => !hidden.has(box.code))
-    .map((box) => ({ ...box, x: box.x + frame.originX, y: box.y + frame.originY }));
+  const boxes = placedBoxesFor(layout, profile).filter((box) => !hidden.has(box.code));
   if (!boxes.length) return;
   const evenGrid = profile.layoutStyle === 'grid';
-  const onBoard = closeGapsPositions(
-    boxes,
-    frame,
-    evenGrid ? 0 : CLOSED_GAP, // the Even grid closes gaps completely
-    snapStep() || CLOSED_GAP,
-  );
+  const closed = closeGapsPositions(boxes, evenGrid ? 0 : CLOSED_GAP); // the Even grid closes gaps completely
   const positions = {};
-  for (const [code, place] of Object.entries(onBoard))
-    positions[code] = { x: place.x - frame.originX, y: place.y - frame.originY };
+  for (const box of boxes) {
+    const place = closed[box.code];
+    if (place.x !== box.x || place.y !== box.y) positions[box.code] = place;
+  }
   applyPositions(layout, positions);
   toast('Gaps closed');
 }

@@ -100,16 +100,6 @@ export const toSavedPlace = (place, frame) => ({
 /** The board as an area for clampMove (keys-arrange.js): { minX, minY, maxX, maxY }. */
 export const boardArea = (board) => ({ minX: 0, minY: 0, maxX: board.w, maxY: board.h });
 
-/** How far to move a group so it sits in the middle of the board, on the snap step: { dx, dy }. */
-export function centreOffset(boxes, board, step) {
-  const bounds = boundsOf(boxes);
-  const onStep = (value) => (step ? Math.floor(value / step) * step : value);
-  return {
-    dx: round2(onStep((board.w - (bounds.maxX - bounds.minX)) / 2 - bounds.minX)),
-    dy: round2(onStep((board.h - (bounds.maxY - bounds.minY)) / 2 - bounds.minY)),
-  };
-}
-
 /** A key's position pulled back inside the board: { x, y }. Its size never changes here. */
 export function clampToBoard(box, board) {
   return {
@@ -192,9 +182,10 @@ function gapCloser(spans, keepGap) {
 
 /**
  * "Close gaps": slide the visible keys together so no gap between groups is wider than `keepGap` (CLOSED_GAP, or 0 in
- * Even grid), on both axes, then center the result on the board. Returns { code: { x, y } } for every box given.
+ * Even grid), on both axes. The top-left keys stay where they are, so the keyboard doesn't slide away from where the
+ * person is looking. Returns { code: { x, y } } for every box given.
  */
-export function closeGapsPositions(boxes, board, keepGap = CLOSED_GAP, step = CLOSED_GAP) {
+export function closeGapsPositions(boxes, keepGap = CLOSED_GAP) {
   if (!boxes.length) return {};
   const closeX = gapCloser(
     boxes.map((box) => [box.x, box.x + box.w]),
@@ -204,9 +195,7 @@ export function closeGapsPositions(boxes, board, keepGap = CLOSED_GAP, step = CL
     boxes.map((box) => [box.y, box.y + box.h]),
     keepGap,
   );
-  const closed = boxes.map((box) => ({ ...box, x: closeX(box.x), y: closeY(box.y) }));
-  const { dx, dy } = centreOffset(closed, board, step);
   const positions = {};
-  for (const box of closed) positions[box.code] = { x: round2(box.x + dx), y: round2(box.y + dy) };
+  for (const box of boxes) positions[box.code] = { x: round2(closeX(box.x)), y: round2(closeY(box.y)) };
   return positions;
 }

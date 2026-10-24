@@ -152,7 +152,8 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
   (move, resize, hide or show, label, align, space, close gaps, reset, layout-style switch). Keep about 50 steps.
 - **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to close the space left by hidden or moved keys.
   The shape stays the same." Behavior: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
-  closed to ¼ key, along both axes, keeping every key's relative order; then the result is centered on the board.
+  closed to ¼ key, along both axes, keeping every key's relative order. The top-left keys stay where they are (the
+  keyboard is not re-centered, so it doesn't slide away), and only keys that really move count as moved.
 - **Reset ▾** (all five items stay): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
   a divider · **Reset this layout completely** (danger color, asks "Reset this layout?" with "Positions, sizes, hidden keys and labels go back to the layout file, and
   the style to Keyboard shape. You can undo this." and a **Reset layout** button). Every item is undoable.
