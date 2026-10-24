@@ -1233,6 +1233,14 @@ await sleep(300);
 await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
 await sleep(800);
 check('...and in the Even grid layout style too', await dotsShown());
+const dotOffset = await p.q(
+  `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); const s = getComputedStyle(c); return [parseFloat(s.backgroundPositionX), parseFloat(s.backgroundPositionY), parseFloat(c.style.getPropertyValue('--dot-spacing'))]; })()`,
+);
+check(
+  'Grid dots sit on the grid lines where keys snap, not between them',
+  dotOffset[0] === -dotOffset[2] / 2 && dotOffset[1] === -dotOffset[2] / 2,
+  JSON.stringify(dotOffset),
+);
 await p.ev(`document.querySelector('${byTest('layout-style-shape')}').click()`);
 await sleep(800);
 await flip('key-snap'); // Snap back on
