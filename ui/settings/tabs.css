@@ -295,7 +295,7 @@ button:disabled:hover {
 .keymap.instant .keymap-canvas {
   transition: none;
 }
-.keymap-canvas.dots {
+.keymap-canvas.grid-dots {
   background-image: radial-gradient(circle, var(--color-text-dim) 0.8px, transparent 1.4px);
   background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
 }

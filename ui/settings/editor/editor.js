@@ -198,7 +198,7 @@ function update(ctx, nextLayout, nextProfile) {
       node.remove();
       ctx.nodes.delete(code);
     }
-  ctx.canvas.classList.toggle('dots', gridShown());
+  ctx.canvas.classList.toggle('grid-dots', gridShown());
   updateHandles(ctx, hidden);
   placeArrangeBar(ctx);
   if (ctx.box.clientWidth && ctx.box.clientHeight) {

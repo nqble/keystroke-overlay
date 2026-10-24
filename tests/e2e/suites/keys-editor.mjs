@@ -1192,7 +1192,7 @@ check(
 // the Grid switch shows the dots whether or not Snap is on, and in both layout styles
 const dotsShown = () =>
   p.q(
-    `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return c.classList.contains('dots') && parseFloat(getComputedStyle(c).backgroundSize) > 0; })()`,
+    `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return c.classList.contains('grid-dots') && parseFloat(getComputedStyle(c).backgroundSize) > 0; })()`,
   );
 if (!(await pressed('key-grid'))) await flip('key-grid');
 if (await pressed('key-snap')) await flip('key-snap');
