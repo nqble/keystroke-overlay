@@ -10,7 +10,7 @@ import { customFonts, setCustomFonts, settings } from '../state.js';
 
 const WORDS = {
   yours: 'Your fonts',
-  none: 'No font files added yet.',
+  none: 'No fonts added yet.',
   add: 'Add font file…',
   folder: 'Open fonts folder',
   added: (name) => `Added ${name}`,

@@ -13,7 +13,6 @@ import { PresetGallery, ThemeGallery, applyLook } from './style-themes.js';
 
 const WORDS = {
   title: 'Style',
-  subtitle: 'Pick a theme, then fine-tune.',
   reset: 'Reset ▾',
   resetLabel: 'Reset the look',
   resetDefault: 'Back to the default look',
@@ -47,7 +46,6 @@ function Style({ presetNames: names }) {
     <div class="tab-heading with-action">
       <div>
         <h2 data-test="section-heading">${WORDS.title}</h2>
-        <p class="note">${WORDS.subtitle}</p>
       </div>
       <${MenuButton}
         text=${WORDS.reset}

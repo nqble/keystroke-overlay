@@ -17,7 +17,7 @@ const WORDS = {
   presets: 'My presets',
   saveLook: '+ Save current look',
   saveTitle: 'Save current look',
-  saveHelp: 'Your colors, shape, text, size and animation, under a name.',
+  saveHelp: 'Saves your colors, shape, text, size and animation.',
   namePlaceholder: 'Preset name',
   cancel: 'Cancel',
   save: 'Save',
@@ -30,8 +30,8 @@ const WORDS = {
   export: 'Export…',
   imported: 'Imported',
   exported: 'Exported',
-  importTip: 'Load a style from a file someone shared',
-  exportTip: 'Save the current style and animation to a file',
+  importTip: 'Load a look from a file',
+  exportTip: 'Save this look to a file',
 };
 
 /** A look from a theme, a preset or a shared file replaces the current style and animation. */
