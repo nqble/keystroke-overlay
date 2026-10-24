@@ -122,6 +122,7 @@ Rules:
 | `dialog-ok`, `dialog-cancel`, `dialog-create`, `dialog-reset-confirm`, `dialog-layout-name` | Buttons and the name box inside dialogs |
 | `context-menu`, `context-menu-item` | The right-click menu and its entries |
 | `layout-card` + `data-layout-id` | One layout card |
+| `custom-dot` | The dot on a layout card whose layout has key edits |
 | `layout-add` | The dashed "+ New layout" card |
 | `layout-cards`, `layout-count` | The Layout tab's card grid, and its "Your layouts: N / 20" counter |
 | `layout-menu` | A layout card's "⋯" button |

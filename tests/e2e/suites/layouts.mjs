@@ -99,6 +99,25 @@ await p.invoke('save_settings', {
     layout: { ...(await p.invoke('get_state')).ok.settings.layout, order: ['full', 'tkl', 'gameplay', 'wasd'] },
   },
 });
+// ---- a small dot marks a layout with key edits (hidden keys, labels, moves); a plain layout has none
+const dotOn = (layoutId) => p.q(`!!${cardOf(layoutId)}.querySelector('${byTest('custom-dot')}')`);
+const plain = (await p.invoke('get_state')).ok.settings;
+await p.invoke('save_settings', {
+  settings: {
+    ...plain,
+    layout: { ...plain.layout, profiles: { ...plain.layout.profiles, wasd: { disabledKeys: ['KeyW'] } } },
+  },
+});
+await p.ev(`await __ko.resync()`);
+await tab('layout');
+await sleep(400);
+check('a layout with a hidden key shows the customized dot', await dotOn('wasd'));
+check('a layout with no edits has no dot', !(await dotOn('gameplay')));
+check(
+  'the dot has a name a screen reader can say',
+  (await p.q(`${cardOf('wasd')}.querySelector('${byTest('custom-dot')}').getAttribute('aria-label')`)) === 'Customized',
+);
+await p.invoke('save_settings', { settings: plain });
 await p.ev(`await __ko.resync()`);
 await tab('layout');
 await sleep(400);

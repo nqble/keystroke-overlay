@@ -211,12 +211,7 @@
   width: 100%;
   margin-bottom: var(--space-4);
 }
-.gallery-detail {
-  color: var(--color-text-dim);
-  font-size: var(--text-sm);
-}
-.gallery-title,
-.gallery-detail {
+.gallery-title {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

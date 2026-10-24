@@ -102,7 +102,13 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
         <b class="gallery-title">${layout.name}</b>
         ${
           isCustom(layout.id)
-            ? html`<span class="custom-dot" role="img" title=${WORDS.customized} aria-label=${WORDS.customized}></span>`
+            ? html`<span
+                class="custom-dot"
+                data-test="custom-dot"
+                role="img"
+                title=${WORDS.customized}
+                aria-label=${WORDS.customized}
+              ></span>`
             : null
         }
       </span>

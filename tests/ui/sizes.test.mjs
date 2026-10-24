@@ -28,9 +28,8 @@ test('every gallery card has the one fixed height, even the \"+ New\" cards', ()
   assert.doesNotMatch(rule(blocksCss, '.gallery-card.add'), /min-height/);
 });
 
-test('a long card title or detail is cut with an ellipsis instead of growing the card', () => {
-  const css = blocksCss.slice(blocksCss.indexOf('.gallery-title,'));
-  const cut = rule(css, '.gallery-title,\n.gallery-detail');
+test('a long card name is cut with an ellipsis instead of growing the card', () => {
+  const cut = rule(blocksCss, '.gallery-title');
   assert.match(cut, /text-overflow:\s*ellipsis/);
   assert.match(cut, /white-space:\s*nowrap/);
 });
