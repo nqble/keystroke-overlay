@@ -8,19 +8,19 @@
 export const INPUT_GROUP_COMMAND = 'sudo usermod -aG input $USER';
 
 const TEXT = {
-  ask: 'Allow keyboard access so the overlay can see your keys. macOS asks you to switch on Keystroke Overlay in Input Monitoring. If keys still do not light up after an update, see "On a Mac" in the user guide.',
+  ask: 'Allow keyboard access so the overlay can see your keys. macOS will ask you to switch on Keystroke Overlay in Input Monitoring.',
   allow: 'Allow keyboard access',
   restart: 'Access is on. Restart Keystroke Overlay once so macOS starts sending it your keys.',
   restartAfterAllow:
     'Did you switch Keystroke Overlay on in Input Monitoring? Restart it once so macOS starts sending it your keys.',
   restartButton: 'Restart now',
   inputGroup:
-    'To see your keys on Wayland, Keystroke Overlay reads the keyboards directly, which needs the input group. Run this command in a terminal, then log out and back in. Note: every program you run can then read the keyboards (see PRIVACY.md).',
+    'On Wayland, the app needs the input group to read your keyboards. Run this command in a terminal, then log out and back in. Every program you run can then read the keyboards too (see PRIVACY.md).',
   inputGroupCopied:
     'Copied. Paste it in a terminal and run it, then log out and back in. Keystroke Overlay sees your keys after that.',
   copyCommand: 'Copy the command',
   secure:
-    'macOS is blocking key capture right now (Secure Input). It does this while a password is typed. If it stays on, lock and unlock the screen, or quit the app that is holding it.',
+    'macOS is blocking keys while a password field is open (Secure Input). If it stays on, lock and unlock the screen, or quit the app that is holding it.',
 };
 
 /**

@@ -13,9 +13,8 @@ import { overlays, setTab } from './state.js';
 
 const WORDS = {
   title: 'Add Keystroke Overlay to OBS',
-  subtitle: 'Three steps. Close this any time.',
   close: 'Close first run setup',
-  copyStep: 'Copy the link',
+  copyStep: 'Copy the OBS URL',
   copy: 'Copy OBS URL',
   sourceStep: 'Add a Browser source',
   sourceHow: 'In OBS: Sources → + → Browser',
@@ -68,7 +67,6 @@ export function FirstRun() {
     </button>
     <div class="tab-heading">
       <h2 id="firstRunTitle">${WORDS.title}</h2>
-      <p class="note">${WORDS.subtitle}</p>
     </div>
     <ol class="first-run-steps">
       <li>

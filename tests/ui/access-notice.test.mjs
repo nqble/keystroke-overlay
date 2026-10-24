@@ -79,7 +79,7 @@ test('Linux on Wayland without the input group: the command to copy', () => {
   assert.equal(notice.kind, 'input-group');
   assert.equal(notice.action, 'copy');
   assert.equal(notice.command, INPUT_GROUP_COMMAND);
-  assert.match(notice.text, /every program/); // the privacy warning is part of the notice
+  assert.match(notice.text, /Every program you run can then read the keyboards/); // the privacy warning is part of the notice
 });
 
 test('Linux after copying: says to log out and back in, with no restart button', () => {

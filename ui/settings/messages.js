@@ -38,7 +38,7 @@ const megabytes = (bytes) => (bytes / BYTES_PER_MEGABYTE).toFixed(1) + ' MB';
 const TEXT = {
   downloading: (done) => `Downloading… ${done}`,
   downloadingOf: (done, total, percent) => `Downloading… ${done} of ${total} (${percent}%)`,
-  installing: 'Installing… the app will restart in a moment.',
+  installing: 'Installing… the app will restart.',
 };
 
 tauriEvent.listen('update-progress', (e) => {

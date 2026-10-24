@@ -152,9 +152,7 @@ export async function showNotes(version, title) {
     const notes = await invoke('get_release_notes', { version });
     if ($('#modal').hidden) return;
     body.replaceChildren(
-      notes.body.trim()
-        ? md(notes.body)
-        : el('p', { className: 'hint', textContent: 'This release has no written notes.' }),
+      notes.body.trim() ? md(notes.body) : el('p', { className: 'hint', textContent: 'No notes for this release.' }),
     );
     typeIn(body);
   } catch (error) {

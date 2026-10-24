@@ -20,7 +20,7 @@ const MAX_ROWS = MAX_RULES * 2;
 
 const TEXT = {
   title: 'OBS scenes',
-  intro: 'Type each scene’s name as OBS spells it. Scenes you don’t list show your chosen layout.',
+  intro: 'Scenes you don’t list show your chosen layout.',
   sceneHeading: 'Scene',
   choiceHeading: 'In this scene',
   placeholder: 'As OBS spells it',
@@ -29,13 +29,13 @@ const TEXT = {
   showLayout: (name) => `Show: ${name}`,
   remove: (scene) => `Remove ${scene || 'this scene'}`,
   problem: {
-    empty: 'Type the scene’s name, or remove this row.',
-    repeat: 'Already listed above; only the first one counts.',
+    empty: 'Type a scene name.',
+    repeat: 'Already listed above.',
   },
   add: '+ Add a scene',
   atLimit: `You can list up to ${MAX_RULES} scenes.`,
   permission:
-    'Rules start only after the first scene switch? In OBS, right-click the Browser source, choose **Properties** and set **Page permissions** to **Read access to user information**.',
+    'Not working until you switch scenes? In the Browser source **Properties**, set **Page permissions** to **Read access to user information**.',
   cancel: 'Cancel',
   save: 'Save',
 };

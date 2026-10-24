@@ -13,7 +13,7 @@ import { settings } from '../state.js';
 const WORDS = {
   title: 'OBS scenes',
   enabled: 'Change the overlay per OBS scene',
-  note: 'Hide the keys, or show another layout, in the scenes you list. Works in OBS Studio’s Browser source; the live preview always shows your chosen layout.',
+  note: 'Hide the overlay or show another layout in the scenes you list. The live preview always shows your chosen layout.',
   count: (count) => (count === 0 ? 'No scenes yet' : count === 1 ? '1 scene set' : `${count} scenes set`),
   edit: 'Edit scenes…',
 };

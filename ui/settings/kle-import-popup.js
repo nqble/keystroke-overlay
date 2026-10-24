@@ -16,8 +16,7 @@ import { LayoutPicture } from './tabs/layout-card.js';
 
 const TEXT = {
   chooseFile: 'Choose file…',
-  fromFileHelp:
-    'Drew your keyboard on keyboard-layout-editor.com? Save it there with Download → Download JSON, then choose the file.',
+  fromFileHelp: 'In keyboard-layout-editor.com, use Download → Download JSON, then choose that file.',
   title: 'Import from KLE',
   name: 'Name',
   // One line: how many keys, how many light up, and by name the ones that can't (drawn dashed in the picture).
@@ -26,7 +25,7 @@ const TEXT = {
   // Keys the app can't name (Fn is handled inside the keyboard and never reaches the computer; a second Q can't be told
   // from the first) are kept, so the board looks like the real one, and said here before the layout is made.
   unlitWhy:
-    "The dashed keys can't light up: the app can't tell which keys they are (Fn, for example, never reaches your computer). They stay on the board, unlit; you can delete them on the Keys tab.",
+    "Dashed keys can't light up, because the app can't tell which key they are (Fn, for example). You can delete them on the Keys tab.",
   blankKey: 'a blank key',
   andMore: (count) => `and ${count} more`,
   straightened: (count) => `${plural(count, 'turned key')} shown straight.`,
