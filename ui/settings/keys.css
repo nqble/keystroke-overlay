@@ -21,9 +21,6 @@
 .kmk.clash {
   box-shadow: 0 0 0 2px var(--color-danger);
 }
-.kmk.moved:not(.off) {
-  border-color: var(--color-accent);
-}
 
 /* Keys tab: the selection toolbar above the keyboard picture, and the selection box. */
 .keytools {

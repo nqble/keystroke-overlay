@@ -17,7 +17,8 @@ Found in the docs check of 2026-10-18. Each is either a spec to update or code t
 - Undo and Redo: the spec has icon buttons; the code has the words "Undo" and "Redo", in toolbar groups labeled History,
   View and Tidy.
 - Key states (section 8): the code uses the tokens `--color-key-fill` and `--color-key-line`, has no hover style, draws the
-  selection as a 2px accent outline (no fill, no ring), uses `--shadow-lift` for a held key, and shows a hidden key at 0.28
+  selection as a 2px accent outline (no fill, no ring; a moved key has no mark of its own, so blue always means
+  selected, and the toolbar's "N moved" says how many moved), uses `--shadow-lift` for a held key, and shows a hidden key at 0.28
   opacity with a dashed border.
 - One key: the title shows the key's code ("Key: KeyW"), and the Width row says only "Width in keys".
 - Several keys: the Show box is on only when all of them are shown (the spec says: when any are).

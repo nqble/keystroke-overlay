@@ -122,7 +122,6 @@ function paintKey(ctx, node, item, { hidden, clash }) {
   node.classList.toggle('off', hidden.has(key.code));
   node.classList.toggle('sel', selectedKeys.has(key.code));
   node.classList.toggle('clash', clash.has(key.code));
-  node.classList.toggle('moved', !!ctx.profile.positions[key.code]);
   const state = [
     hidden.has(key.code) ? 'hidden in the overlay' : 'shown',
     selectedKeys.has(key.code) ? 'selected' : null,
