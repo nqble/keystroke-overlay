@@ -14,7 +14,9 @@ app is MIT), and the docs thank it.
   cards as the Style tab's themes, each showing its colors. Clicking one changes the whole window at once.
 - **Make your own:** start from any theme and change its **base colors** with color pickers: background, panel, text,
   dim text, accent and error. Everything else follows from those, so a custom theme always looks finished. Saved like a
-  preset; at most 20.
+  preset; at most 20. **Export and import** a theme as a small file, so people can share them.
+- **Editing happens in place, never in a popup:** the whole window must change live while the person picks colors, and a
+  popup would hide most of it. How the editor sits in the window is still being designed (open question 1).
 - **A warning, not a lock,** when a custom theme makes text hard to read (below the WCAG AA contrast ratio, 4.5 : 1 for
   text): the window says so next to the picker.
 - The default theme is today's look, so nothing changes until the person picks another one (new features are off by
@@ -51,9 +53,17 @@ app is MIT), and the docs thank it.
 - **Our own palettes** fill the range: a few dark ones, a few light ones, muted, retro, and a high contrast one (helpful
   for low vision, `docs/ACCESSIBILITY.md`).
 - Every theme must look good, not just pass the contrast test: each one is shown side by side as a mockup before it is
-  built, and only the ones the maintainer picks go in. About 10 to start; anyone can add one with a single file.
+  built, and only the ones the maintainer picks go in. Anyone can add one with a single file.
+- **About 18 to start, Default included** (decided 2026-10-24). The gallery order is Default, then the keycap-set themes
+  (each card marked **keycaps**), then our own. A couple more keycap sets beyond Olivia, 8008, Laser and Nord are to be
+  picked later. Our own themes carry no "Our own" label; a borrowed theme's card shows its credit as a tooltip.
 
 ## Size
 
 About 3 to 5 working sessions (a rough estimate): the token restructure (1 to 2), the themes and gallery (1 to 2), tests
 and screenshots (1).
+
+## Open questions
+
+1. Where the theme editor sits while editing, so the whole window stays visible and keeps changing live.
+2. Which other keycap sets to add.
