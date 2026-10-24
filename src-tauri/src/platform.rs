@@ -28,10 +28,12 @@ pub fn name() -> &'static str {
 type WindowBuilder<'a> = WebviewWindowBuilder<'a, tauri::Wry, AppHandle>;
 
 /// The look of the settings window's frame. Windows and Linux: no native title bar, the page draws its own minimize /
-/// maximize / close buttons in the top right of its header row (windowbar.js).
+/// maximize / close buttons in the top right of its header row (windowbar.js). The app's own file-drop handler is off
+/// too: while it is on, the page's own drag and drop (the Layout tab's cards) never gets the drop on Windows, and the
+/// settings window takes no dropped files.
 #[cfg(not(target_os = "macos"))]
 pub fn style_settings_window(builder: WindowBuilder<'_>) -> WindowBuilder<'_> {
-    builder.decorations(false)
+    builder.decorations(false).disable_drag_drop_handler()
 }
 
 /// macOS: the real window frame, with its rounded corners and red / yellow / green buttons. The title bar is see-through
