@@ -21,9 +21,6 @@ export const BOARD_MIN_H = 12;
  */
 export const MIN_RESIZE_WIDTH = 1;
 
-/** The gap "Close gaps" leaves between groups of keys, in keys. Even grid closes gaps completely. */
-export const CLOSED_GAP = 0.25;
-
 // Two edges this close (in keys) count as touching, so rounding never creates a false gap or overlap.
 const EPSILON = 0.01;
 
@@ -100,16 +97,6 @@ export const toSavedPlace = (place, frame) => ({
 /** The board as an area for clampMove (keys-arrange.js): { minX, minY, maxX, maxY }. */
 export const boardArea = (board) => ({ minX: 0, minY: 0, maxX: board.w, maxY: board.h });
 
-/** How far to move a group so it sits in the middle of the board, on the snap step: { dx, dy }. */
-export function centreOffset(boxes, board, step) {
-  const bounds = boundsOf(boxes);
-  const onStep = (value) => (step ? Math.floor(value / step) * step : value);
-  return {
-    dx: round2(onStep((board.w - (bounds.maxX - bounds.minX)) / 2 - bounds.minX)),
-    dy: round2(onStep((board.h - (bounds.maxY - bounds.minY)) / 2 - bounds.minY)),
-  };
-}
-
 /** A key's position pulled back inside the board: { x, y }. Its size never changes here. */
 export function clampToBoard(box, board) {
   return {
@@ -172,41 +159,41 @@ export function overlappingCodes(boxes) {
 }
 
 /**
- * For one axis: a function giving a coordinate's new value once every gap wider than `keepGap` between stretches of
- * keys is shrunk to `keepGap`. Keys keep their order and their relative places inside each stretch.
+ * "Close gaps": in each row, a hidden key between two shown keys leaves a hole; the shown keys right of it slide left by
+ * its width to fill it. A row is the keys with the same top (y). Hidden keys before the first shown key of a row are
+ * not holes, so a group like WASD keeps its shape; the layout's own gaps stay, so a layout with nothing hidden doesn't
+ * change. Pressing it again changes nothing: a hidden key counts only while it still sits in the gap between two shown
+ * keys. Returns { code: { x, y } } for every shown box.
  */
-function gapCloser(spans, keepGap) {
-  const sorted = [...spans].sort((first, second) => first[0] - second[0]);
-  const cuts = [];
-  let end = sorted[0][0];
-  for (const [from, to] of sorted) {
-    const gap = from - end;
-    if (gap > keepGap + EPSILON) cuts.push({ from, shrink: gap - keepGap });
-    end = Math.max(end, to);
+export function closeGapsPositions(shown, hidden) {
+  const positions = {};
+  for (const row of rowsOf(shown)) {
+    let shift = 0;
+    let previousRight = null;
+    for (const box of row) {
+      if (previousRight !== null) shift += widthOfHiddenBetween(hidden, box.y, previousRight, box.x);
+      positions[box.code] = { x: round2(box.x - shift), y: box.y };
+      previousRight = box.x + box.w;
+    }
   }
-  return (value) => {
-    const shrinkBefore = cuts.filter((cut) => value >= cut.from - EPSILON);
-    return value - shrinkBefore.reduce((sum, cut) => sum + cut.shrink, 0);
-  };
+  return positions;
 }
 
-/**
- * "Close gaps": slide the visible keys together so no gap between groups is wider than `keepGap` (CLOSED_GAP, or 0 in
- * Even grid), on both axes, then center the result on the board. Returns { code: { x, y } } for every box given.
- */
-export function closeGapsPositions(boxes, board, keepGap = CLOSED_GAP, step = CLOSED_GAP) {
-  if (!boxes.length) return {};
-  const closeX = gapCloser(
-    boxes.map((box) => [box.x, box.x + box.w]),
-    keepGap,
+/** The boxes grouped by their top (y), each row sorted left to right. */
+function rowsOf(boxes) {
+  const rows = new Map();
+  for (const box of boxes) {
+    const top = round2(box.y);
+    if (!rows.has(top)) rows.set(top, []);
+    rows.get(top).push(box);
+  }
+  return [...rows.values()].map((row) => row.sort((first, second) => first.x - second.x));
+}
+
+/** The total width of the hidden keys in the row at `top` that sit wholly between `from` and `to`. */
+function widthOfHiddenBetween(hidden, top, from, to) {
+  const between = hidden.filter(
+    (box) => Math.abs(box.y - top) < EPSILON && box.x >= from - EPSILON && box.x + box.w <= to + EPSILON,
   );
-  const closeY = gapCloser(
-    boxes.map((box) => [box.y, box.y + box.h]),
-    keepGap,
-  );
-  const closed = boxes.map((box) => ({ ...box, x: closeX(box.x), y: closeY(box.y) }));
-  const { dx, dy } = centreOffset(closed, board, step);
-  const positions = {};
-  for (const box of closed) positions[box.code] = { x: round2(box.x + dx), y: round2(box.y + dy) };
-  return positions;
+  return between.reduce((sum, box) => sum + box.w, 0);
 }

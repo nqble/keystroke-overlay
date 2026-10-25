@@ -1,0 +1,42 @@
+//! Whether the app may read the keyboard: on macOS, Input Monitoring and whether macOS has switched key capture off for a
+//! password field (Secure Input); on a Linux Wayland desktop, whether the person is in the `input` group. Elsewhere both
+//! answers are "fine". The window shows a notice from these (ui/settings/keyboard-access.js); see docs/MAC-PORT.md and
+//! docs/LINUX-PORT.md.
+
+use crate::keyboard::{self, Bus};
+use crate::state::AppState;
+use serde_json::{json, Value};
+use tauri::{AppHandle, State};
+
+/// The answer sent to the window, in get_state and get_keyboard_access. `applies` is false where the window must not show
+/// a notice (Windows, Linux on X11: a capture problem there has its own message in General). `system` picks the wording.
+pub fn status(bus: &Bus) -> Value {
+    let access = keyboard::access();
+    json!({
+        "applies": access.applies,
+        "system": crate::platform::name(),
+        "allowed": access.allowed,
+        "secureInput": access.secure_input,
+        "allowedAtStart": bus.was_allowed_at_start(),
+        "captureSeen": bus.has_seen_keys(),
+    })
+}
+
+/// Asked again whenever the window gets focus, so coming back from System Settings shows the new answer at once.
+#[tauri::command]
+pub fn get_keyboard_access(st: State<AppState>) -> Value {
+    status(&st.shared.bus)
+}
+
+/// The "Allow keyboard access" button: macOS's own prompt, and the System Settings page to tick the app in. Linux has
+/// no prompt to open: its notice gives the command to run instead.
+#[tauri::command]
+pub fn request_keyboard_access() {
+    keyboard::request_access();
+}
+
+/// macOS only starts delivering keys to an app that was already running after the app is restarted.
+#[tauri::command]
+pub fn restart_app(app: AppHandle) {
+    crate::platform::restart_app(&app);
+}

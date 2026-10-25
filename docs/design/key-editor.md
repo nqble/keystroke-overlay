@@ -1,13 +1,28 @@
 # Key editor: design spec (built in v1.4.0, reference for the v2.0 redesign)
 
-Status: approved by Jordan, designed in the Advisory Session. **Built and released in v1.4.0**, in three parts (M4.1 to
-M4.3): the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use; the board
-with zoom and pan, and the preview hidden on the Keys tab; resize handles on all four sides, smart guides, the held-key
-fade, the arrange bar that floats above selected keys, the inspector to the right of the editor, and the toolbar with
-undo, redo, Snap, Grid and Hidden keys; the layout style switch, Close gaps, the Reset menu and the Even grid tip.
+Status: approved. **Built** in three parts (M4.1 to M4.3) on `v1.4.0-dev`, and
+merged into v2.0: the editor in its own module (`ui/settings/editor/`, section 9a), kept alive and loaded on first use, the
+board with zoom and pan, selected keys, the inspector to the right of the editor, the toolbar with undo, redo, Snap and Grid,
+the layout style switch, Close gaps, the Reset menu and the Even grid tip. On v2.0 the zoom and pan gestures also cover
+trackpads (section 3). The Keys tab is a Preact component on v2.0 (the board itself stays plain page code). Still to do: the accessibility pass and the
+differences listed under "Where the spec and the code differ" below. The geometry it uses has unit tests: `keys-board.js`, `keys-view.js`, `keys-guides.js` and `layout.grid` (d225d66, 14f6fc3, adb2cef, 3de07fe).
 
-Built after the UI foundation (test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
+Built after the UI foundation (done: test hooks, visual baselines, tokens, shared building blocks, look/logic split), using
 tokens and shared building blocks only. The colors below are today's values; map each one to its purpose token.
+
+## Where the spec and the code differ
+
+Found in the docs check of 2026-10-18. Each is either a spec to update or code to change; the maintainer decides which.
+- Heading: the spec has "Keys" with the layout name under it; the code shows one heading "Keys — <layout name>".
+- Undo and Redo: the spec has icon buttons; the code has the words "Undo" and "Redo", in toolbar groups labeled History,
+  View and Tidy.
+- Key states (section 8): the code uses the tokens `--color-key-fill` and `--color-key-line`, has no hover style, draws the
+  selection as a 2px accent outline (no fill, no ring; a moved key has no mark of its own, so blue always means
+  selected, and the toolbar's "N moved" says how many moved), uses `--shadow-lift` for a held key, and shows a hidden key at 0.28
+  opacity with a dashed border.
+- One key: the title shows the key's code ("Key: KeyW"), and the Width row says only "Width in keys".
+- Several keys: the Show box is on only when all of them are shown (the spec says: when any are).
+- The 150ms resize timer in settings.js is still there (section 9).
 
 ## 1. Goal
 
@@ -25,9 +40,12 @@ they are useful and are hidden otherwise.
    any keys overlap.
 3. **Content row.** The editor box (flexible width) and, to its RIGHT, the inspector panel (fixed ~260px, top-aligned).
    Never put the inspector below the editor.
-4. **Hint line under the editor box**, one line: "Drag a key to move it. Ctrl-click to add." on the left. On the right,
-   keycap chips each with one word: [←][↑][↓][→] nudge · [Shift] whole key · [Del] hide · [Scroll] zoom · [Middle-drag] pan.
-   Each chip has a tooltip with the full sentence.
+4. **Hint line under the editor box**, one line: "Ctrl-click to add to the selection." on the left. On the right,
+   keycap chips each with one word: [←][↑][↓][→] nudge · [Shift] whole key · [Del] hide · [Scroll] zoom · [Space + drag] or [Middle drag] pan.
+   On a Mac the words change: "⌘-click to add to the selection", [delete] hide, [Pinch] zoom and [Scroll], [Space + drag] or [Middle drag] pan (any of the three pans).
+   Each key cap sits next to its word, the pairs are evenly spaced and wrap as whole pairs, and there is no separate note under the
+   hint line (the Mac F row needing Fn is explained in the user guide). Each chip has a
+   tooltip with the full sentence. The words per system are in `ui/settings/system-words.js`.
 
 **Removed:** the help paragraph, the on-screen arrow buttons, the "Whole key" checkbox, the Snap-size menu, the always-visible
 Align / Space-evenly groups, the selection summary + Clear selection row, and the old row of reset buttons (Enable all,
@@ -48,24 +66,51 @@ switching Keys → Style → Keys does not reload the preview.
   x ≥ 0, y ≥ 0, x + w ≤ board width and y + 1 ≤ board height.
 - **Editor box height:** fills the space down to the hint line (about 420px at the normal window size), with no page scroll.
 
+### Gestures per system (what each input does over the board)
+
+| Input | Windows and Linux | Mac |
+|---|---|---|
+| Mouse wheel | zoom | pan (a Mac trackpad's two-finger scroll is this; any direction) |
+| Pinch on a trackpad | zoom | zoom |
+| ⌘ (Ctrl elsewhere) + scroll | zoom | zoom, for a Mac with a mouse |
+| Space + drag | pan | pan |
+| Middle button + drag | pan | pan |
+| − / + buttons | zoom | zoom |
+
+What each one means is plain logic in `ui/settings/tabs/keys-gestures.js` (tested); `ui/settings/editor/view-gestures.js`
+attaches it to the box. A pinch reaches the page as a Ctrl + wheel event in Chromium (Windows) and as `gesture` events in
+Safari's engine (the Mac window); both zoom toward the pointer. A wheel event with Ctrl held and a small `deltaY` (under 30)
+is a pinch; a larger one is a Ctrl + wheel notch and zooms like a plain wheel.
+
+**Streams don't slide.** A two-finger scroll or a pinch is a stream of small events, so the board's smooth sliding
+(its short ease-out transition) is switched off while the stream lasts, by the same `panning` class a drag uses, and comes
+back 150 ms after the last event. A single mouse-wheel notch or ⌘ + scroll keeps its smooth slide. Without this the
+board lagged behind the fingers and then caught up.
+
+**Space + drag:** Space only starts a pan when the pointer goes down on the board while Space is held, so a tap of Space on a
+focused key still selects it. It is ignored while typing in a text box or dropdown, the cursor shows "grab" while it is held
+over the board, and holding stops when the window loses focus.
+
 ### Zoom
 - Mouse wheel anywhere inside the editor box (grid on or off) zooms **toward the cursor**: the point under the cursor stays
-  still.
-- Speed: factor = e^(−deltaY × 0.0012), about 12% per wheel notch. Smoothed by a 110ms ease-out transition on the board
-  layer's `transform`, so it feels soft but never laggy.
-- Range: from "the board just fills the box" (cover) up to 200%. You can never zoom out far enough to see outside the board.
+  still (on a Mac the plain wheel pans instead, see the table above).
+- Speed: factor = e^(−deltaY × 0.0012), about 12% per wheel notch. Smoothed by a 150ms ease-out transition on the board
+  layer's `transform` (`--duration-medium`; a trackpad stream skips it, see view-gestures.js), so it feels soft but never laggy.
+- Range: from "the board just fills the box" (cover) up to 300%. You can never zoom out far enough to see outside the board.
 - Zoom control in the box's bottom-right corner: [−] [100%] [+]. Clicking the percentage resets to 100% and centers the board.
   The ± buttons zoom about the box center by ×1.2.
 - The wheel listener must be **non-passive** (`addEventListener('wheel', fn, { passive: false })`) so the window does not
   scroll while zooming.
 
 ### Pan
-- **Middle mouse button + drag pans the view from anywhere in the box**, including when pressed on top of a key (it never
-  selects or moves the key). The cursor shows "grabbing" while panning, and the browser's middle-click autoscroll is
+- **Middle mouse button + drag, or Space + drag, pans the view from anywhere in the box**, including when pressed on top of a
+  key (it never selects or moves the key). A Mac's two-finger scroll pans too, moving the view by the scroll's distance and
+  staying inside the board. The cursor shows "grabbing" while panning, and the browser's middle-click autoscroll is
   prevented.
-- **Limits:** the view may only show the board. While the middle button is held and the user pulls past an edge, the view
-  stretches at 30% of the pointer's movement (rubber band). On release it eases back (the same 110ms ease-out) so the board's
-  edge sits exactly at the box's edge, and nothing outside the board shows at rest.
+- **Limits:** the view may show the board and at most 120px of room past its edge (`OVERSCAN` in `editor/context.js`), so a small
+  layout can sit in the middle of the box. While the middle button is held and the user pulls past an edge, the view
+  stretches at 30% of the pointer's movement (rubber band). On release it eases back (the same 150ms ease-out) to within
+  those limits.
 - No transition while actively panning or dragging a key (it would lag).
 
 ## 4. Keys: states and interaction
@@ -97,7 +142,7 @@ switching Keys → Style → Keys does not reload the preview.
   10px above the selection (below it if there's no room above). Icon buttons with tooltips: align left, align centers,
   align right | align tops, align bottoms | space evenly across, space evenly down (both disabled under 3 keys).
 
-### Keyboard shortcuts (Jordan's decision; act only while the Keys tab is open, no text field has focus and no popup is open)
+### Keyboard shortcuts (act only while the Keys tab is open, no text field has focus and no popup is open)
 Arrow keys nudge the selection 0.25 key (Shift = 1 key; Even grid always 1) · Delete / Backspace hide the selection ·
 Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear selection.
 
@@ -105,12 +150,14 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 
 - **Undo / Redo:** icon buttons, disabled when there's nothing to undo or redo. Undo covers every change on this tab
   (move, resize, hide or show, label, align, space, close gaps, reset, layout-style switch). Keep about 50 steps.
-- **Close gaps** (renamed from "Tidy up"). Tooltip: "Slide keys together to close the empty space left by hidden or moved
-  keys. The shape stays the same." Behavior: gaps wider than ¼ key (0 in Even grid) between groups of visible keys are
-  closed to ¼ key, along both axes, keeping every key's relative order; then the result is centered on the board.
-- **Reset ▾** (Jordan keeps all five): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
-  a divider · **Reset this layout completely** (danger color, asks "Reset this layout? Positions, sizes, hidden keys and labels go
-  back to the layout file. You can undo this."). Every item is undoable.
+- **Close gaps** (renamed from "Tidy up"). Tooltip: "Fill the holes hidden keys leave in a row." Behavior (decided
+  2026-10-24): in each row, a hidden key between two shown keys leaves a hole, and the shown keys right of it slide left
+  by its width. Hidden keys before a row's first shown key are not holes, so a group like WASD keeps its shape; the
+  layout's own gaps (between the F-key groups, before the arrows) stay, so a layout with nothing hidden doesn't change.
+  Pressing it again changes nothing; with no holes it says "No holes to fill". Only keys that move count as moved.
+- **Reset ▾** (all five items stay): Put selected keys back · Put all keys back · Show all hidden keys · Reset all labels ·
+  a divider · **Reset this layout completely** (danger color, asks "Reset this layout?" with "Positions, sizes, hidden keys and labels go back to the layout file, and
+  the style to Keyboard shape. You can undo this." and a **Reset layout** button). Every item is undoable.
 
 ## 6. Layout style: Keyboard shape | Even grid
 
@@ -122,14 +169,12 @@ Ctrl+Z undo · Ctrl+Shift+Z and Ctrl+Y redo · Ctrl+A select all · Esc clear se
 
 ## 7. Inspector panel (right of the editor)
 
-- **Nothing selected:** "No key selected" + two short tips: (1) click a key to change its label or hide it, drag keys
-  anywhere and they line up with their neighbors; (2) "Want every key the same size in neat columns? Switch Layout style to
-  Even grid."
+- **Nothing selected:** "No key selected" + two notes (`TEXT.inspectorTip` and `TEXT.inspectorTipGrid` in
+  ui/settings/text.js): how to label, hide and drag keys, and a pointer to Layout style → Even grid.
 - **One key:** "Key: W" title with a "Show" checkbox on the right; Label field; Width field ("Width in keys · or drag the blue
-  handles"); Position X / Y fields (step 0.25); when it overlaps: a danger-tinted note "This key overlaps another. Drag it to a
-  free spot, or press Close gaps."; when moved or resized: "Put back where it was".
-- **Several keys:** "N keys selected" + Show checkbox (on if any are shown); one line "Drag any of them to move them together.
-  Use the bar above them to line them up or space them evenly."; buttons "Put these back" and "Clear selection".
+  handles"); Position X / Y fields (step 0.25); when it overlaps: a danger-tinted note "This key overlaps another."; when moved or resized: "Put back where it was".
+- **Several keys:** "N keys selected" + Show checkbox (on if any are shown); one line "Drag to move them together, or use the bar
+  above to line them up."; buttons "Put these back" and "Clear selection".
 
 ## 8. Wording
 
@@ -161,9 +206,9 @@ Plain, short, friendly; sentence case; all text in `TEXT` (CLAUDE.md). Use "key"
   inspector. A full rebuild of the key elements happens only when the layout itself changes (another layout picked, layout
   style switched, import, or "Reset this layout completely"). No editor action calls the global `render()`.
 - **No rebuild on resize.** A `ResizeObserver` on the editor box updates the view limits and zoom bounds. Remove the 150ms
-  resize timer that re-renders the Keys tab.
+  resize timer that re-renders the Keys tab (not done yet: it is still in ui/settings/settings.js).
 - **Measure.** Add to the benchmark: settings-window open time (no slower than before), first Keys-tab open, and switching
-  back to Keys (target under 50ms), plus memory with the editor kept alive versus not. Report before/after numbers to Jordan.
+  back to Keys (target under 50ms), plus memory with the editor kept alive versus not. Put the before and after numbers in the pull request.
 - **Tests.** Switching Keys → Style → Keys keeps zoom, pan and selection. The editor module is not loaded until the Keys tab
   opens. Moving a key doesn't re-create other key elements (check element identity in e2e).
 

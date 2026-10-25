@@ -14,11 +14,11 @@ $('#wMax').onclick = () => appWin.toggleMaximize();
 
 $('#wClose').onclick = () => appWin.close();
 
-/** Show the "restore" glyph while the window is maximized, the "maximize" glyph otherwise. */
+/** Show the "restore" icon while the window is maximized, the "maximize" icon otherwise (both drawn in index.html). */
 async function paintMaxButton() {
   const max = await appWin.isMaximized().catch(() => false);
   const maxButton = $('#wMax');
-  maxButton.textContent = max ? '\uE923' : '\uE922';
+  maxButton.classList.toggle('maximized', max);
   maxButton.title = maxButton.ariaLabel = max ? 'Restore' : 'Maximize';
 }
 

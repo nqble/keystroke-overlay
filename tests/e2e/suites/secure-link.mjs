@@ -1,4 +1,4 @@
-// Suite: the optional "secure link" (General -> Secure link).
+// Suite: the optional "secure link" (General -> Connection -> Secure my OBS URL).
 // Off by default; when on, the local server refuses data requests and the key-press stream without the private key,
 // the key never reaches the overlay, "Make a new key" invalidates old links, and the live preview keeps working.
 import { connect, byTest, inject, listenKeys, check, finish, sleep, PORT, INJECTED_KEYS } from '../lib/cdp.mjs';
@@ -36,12 +36,10 @@ check(
   st.url,
 );
 check(
-  'General has a "Secure link" section with the toggle off and the "Off (default)" explanation',
-  (await p.q(`[...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent)`)).includes(
-    'Secure link',
-  ) &&
-    (await p.q(`!${toggle}.checked`)) &&
-    /Off \(default\)/.test(await pageText()),
+  'General\'s Connection card has the secure-link switch, off, with the "Off (default)" explanation',
+  (await p.q(`!!document.querySelector('${byTest('general-connection')}')?.contains(${toggle})`)) &&
+    (await p.q(`${toggle}.getAttribute('role') === 'switch' && ${toggle}.getAttribute('aria-checked') === 'false'`)) &&
+    /Off \(default\): any program on this PC can read/.test(await pageText()),
 );
 check(
   'while off, the copy / new-key buttons are not on screen',
@@ -66,13 +64,17 @@ check(
 );
 check(
   'the explanation changes to "On" and the copy / new-key buttons appear',
-  /On: your OBS URL now contains a private key/.test(await pageText()) &&
+  /On: only programs with the full OBS URL can read/.test(await pageText()) &&
     (await p.q(
       `!!document.querySelector('${byTest('secure-link-copy')}') && !!document.querySelector('${byTest('secure-link-new-key')}')`,
     )),
 );
 check(
-  'the link in the header is hidden on screen (password field)',
+  'the switch says on (aria-checked) for screen readers',
+  (await p.q(`${toggle}.getAttribute('aria-checked')`)) === 'true',
+);
+check(
+  'the OBS URL box is hidden on screen (password field)',
   (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'password',
 );
 
@@ -150,7 +152,7 @@ await p.ev(
 );
 await sleep(3500);
 check(
-  'an old / keyless link shows a "link is secured" message instead of a blank overlay',
+  'an old / keyless OBS URL shows an "out of date" message instead of a blank overlay',
   (await p.q(`window.__m`)).includes('locked'),
 );
 await p.ev(`document.getElementById('oldlink').remove()`);
@@ -173,6 +175,10 @@ st = await state();
 const key2 = keyOf(st.url);
 check('"Make a new key" (two clicks) creates a different key', /^[0-9a-f]{32}$/.test(key2 || '') && key2 !== key);
 check(
+  'the header asks to copy the new link at once (it used to wait for some other redraw)',
+  /copy it again/.test(await p.q(`document.querySelector('${byTest('obs-status')}').textContent`)),
+);
+check(
   'the OLD key stops working immediately; the new one works',
   (await status(`/api/config?key=${key}`)) === 401 &&
     (await status(`/api/config?key=${key2}`)) === 200 &&
@@ -189,7 +195,7 @@ check(
   st.secureLink === false && st.url === `${base}/` && (await status('/api/config')) === 200 && (await wsOpens(null)),
 );
 check(
-  'the header link is visible text again',
+  'the OBS URL box is visible text again',
   (await p.q(`document.querySelector('${byTest('obs-url')}').type`)) === 'text',
 );
 finish();

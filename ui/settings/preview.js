@@ -2,8 +2,9 @@
 //  Saving a change, the live preview, and the OBS URL / address bar.
 // =====================================================================================================================
 import { $, call, invoke, toast } from './helpers.js';
-import { forgetPages, render } from './settings.js';
-import { settings, booted, obsUrl, setRegistry, setSize, size, tab } from './state.js';
+import { paintHeader } from './header.js';
+import { render } from './settings.js';
+import { settings, booted, obsUrl, setLinkChanged, setRegistry, setSize, size, tab } from './state.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 3. Saving and the live preview
@@ -41,7 +42,6 @@ export function setPreviewHidden(hidden) {
  *   immediate  save now instead of waiting 150 ms (switches and toggles); sliders and typing wait so they batch up
  */
 export function changed(rebuildUi = false, immediate = false) {
-  forgetPages(tab); // the other tabs may show this setting: build them again when they are opened
   push();
   clearTimeout(saveTimer);
   const save = () => {
@@ -84,23 +84,30 @@ addEventListener('beforeunload', flushPendingSave);
 // ---------------------------------------------------------------------------------------------------------------------
 // 10. OBS URL and preview
 // ---------------------------------------------------------------------------------------------------------------------
-export const sizeText = () => (size ? `Recommended Browser Source size: ${size.w} × ${size.h}` : '');
+/** The overlay's size for OBS, "1085 × 403" ("…" until the live preview has measured it). */
+export const obsSize = () => (size ? `${size.w} × ${size.h}` : '…');
+export const sizeText = () => (size ? `Size in OBS: ${obsSize()}` : '');
 
-/** Refresh the address bar at the top (a secured link is hidden on screen, but Copy still copies it). */
+/** The OBS URL (or its size) changed: show it everywhere it appears, including the header's "copy it again". */
 export function updateObs() {
-  $('#obsUrl').value = obsUrl;
-  $('#obsUrl').type = settings?.general?.secureLink ? 'password' : 'text';
-  $('#obsSize').textContent = size ? `Size: ${size.w}×${size.h}` : '';
+  paintHeader();
+  const linkBox = /** @type {HTMLInputElement | null} */ ($('#obsUrl'));
+  if (linkBox) {
+    linkBox.value = obsUrl;
+    linkBox.type = settings?.general?.secureLink ? 'password' : 'text';
+  }
   const sizeNote = $('#sizeNote');
   if (sizeNote) sizeNote.textContent = sizeText();
+  const firstRunSize = $('#firstRunSize');
+  if (firstRunSize) firstRunSize.textContent = obsSize();
 }
 
 export async function copyUrl() {
   await call('copy_text', { text: obsUrl });
+  setLinkChanged(false);
+  paintHeader();
   toast('OBS URL copied');
 }
-
-$('#copyUrl').onclick = copyUrl;
 
 /** The address of the live preview: the OBS URL plus ?preview=1 (a secured link keeps its ?key=). */
 export const previewSrc = () => {
@@ -132,7 +139,6 @@ addEventListener('message', (messageEvent) => {
   // only these tabs use the lists
   else if (message.type === 'registry') {
     setRegistry(message);
-    forgetPages(tab); // pages built before the lists arrived (Style, Animation) must be built again
     if (booted && (tab === 'style' || tab === 'animation')) render();
   } else if (message.type === 'size') {
     setSize(message);

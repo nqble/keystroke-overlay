@@ -9,16 +9,24 @@
 // Close the dev copy with its tray icon -> Quit, or Ctrl+C here.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { APP } from './app-config.mjs';
 
 const DEV_ID = APP.identifiers.dev;
 const DEV_PORT = 7880;
-const dataDir = join(process.env.APPDATA ?? '', DEV_ID);
+// Where the app keeps its data on each system (Tauri's app data folder), so the dev copy gets its own port everywhere.
+const appData =
+  process.platform === 'win32'
+    ? process.env.APPDATA
+    : process.platform === 'darwin'
+      ? join(homedir(), 'Library', 'Application Support')
+      : (process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share'));
+const dataDir = join(appData ?? '', DEV_ID);
 const settingsFile = join(dataDir, 'settings.json');
 
 // First run only: give the dev copy its own port. After that the settings file is the app's to manage.
-if (process.env.APPDATA && !existsSync(settingsFile)) {
+if (appData && !existsSync(settingsFile)) {
   mkdirSync(dataDir, { recursive: true });
   writeFileSync(settingsFile, JSON.stringify({ version: 2, general: { port: DEV_PORT, autoCheckUpdates: false } }));
 }
@@ -28,7 +36,11 @@ Keystroke Overlay (development copy)
   overlay address ........ http://localhost:${DEV_PORT}/
   settings + data ........ ${dataDir}
   Debug tab .............. on
-  browser inspector ...... edge://inspect  ->  Configure: localhost:9222  ->  inspect
+  browser inspector ...... ${
+    process.platform === 'darwin'
+      ? 'Safari: Settings -> Advanced -> Show features for web developers, then Develop -> this Mac -> Keystroke Overlay'
+      : 'edge://inspect  ->  Configure: localhost:9222  ->  inspect'
+  }
 `);
 
 // The config is JSON, and the shell (needed for npx on Windows) strips the quotes of an argument unless the whole

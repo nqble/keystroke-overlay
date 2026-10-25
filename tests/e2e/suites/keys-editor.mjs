@@ -48,6 +48,22 @@ const eventually = async (fn, ms = 4000) => {
 // ---- a layout like the user's: the full-size copy with only W A S D and Space left
 const id = (await p.invoke('create_layout', { name: 'Editor Test' })).ok;
 const keep = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'];
+// save edits to the test layout's profile behind the window's back (hidden keys kept unless given)
+const saveProfileEdits = async (edits) => {
+  const current = (await state()).settings;
+  await p.invoke('save_settings', {
+    settings: {
+      ...current,
+      layout: {
+        ...current.layout,
+        profiles: {
+          ...current.layout.profiles,
+          [id]: { disabledKeys: current.layout.profiles[id]?.disabledKeys ?? [], labels: {}, ...edits },
+        },
+      },
+    },
+  });
+};
 const full = (await p.invoke('list_layouts')).ok.find((l) => l.id === id);
 const S0 = (await state()).settings;
 await p.invoke('save_settings', {
@@ -68,7 +84,8 @@ await p.ev(`await __ko.resync()`);
 await tab('keys');
 await sleep(600);
 const orig = Object.fromEntries(full.keys.filter((k) => keep.includes(k.code)).map((k) => [k.code, k]));
-const sizeBefore = await eventually(async () => {
+// wait until the live preview has drawn the layout
+await eventually(async () => {
   const s = await previewSize();
   return { ok: !!s && s.w > 0, s };
 });
@@ -139,7 +156,7 @@ check(
   (await p.q(`document.querySelectorAll('${byTest('key-cell', '.clash')}').length`)) >= 2,
 );
 
-// ---- Close gaps: keep the shape, close the dead space, center the keys on the board
+// ---- Close gaps: fill the holes hidden keys leave between shown keys in a row; nothing else moves
 // the Reset menu: open it, then choose one of its items by hook name
 const resetMenuItem = async (hook) => {
   await p.ev(`document.querySelector('${byTest('keys-reset-menu')}').click()`);
@@ -152,43 +169,30 @@ check(
   '"Put all keys back" puts every key back',
   Object.keys(shapeEdits(await profile(id)).positions ?? {}).length === 0,
 );
-await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
-await sleep(800);
-const pos = shapeEdits(await profile(id)).positions ?? {};
-const at = (c) => pos[c] ?? { x: orig[c].x, y: orig[c].y };
-const [W, A, Sx, D, Sp] = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].map(at);
-const gapBoard = await p.ev(
-  `const c = document.querySelector('${byTest('keymap-canvas')}'); return { w: Number(c.dataset.boardW), h: Number(c.dataset.boardH), ox: Number(c.dataset.originX), oy: Number(c.dataset.originY) };`,
-);
-const groupW =
-  Math.max(...[W, A, Sx, D].map((q) => q.x + 1), Sp.x + 6.25) - Math.min(...[W, A, Sx, D, Sp].map((q) => q.x));
-const groupH = Math.max(...[W, A, Sx, D, Sp].map((q) => q.y)) + 1 - Math.min(...[W, A, Sx, D, Sp].map((q) => q.y));
-const centreX = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.x)) * 2 + groupW) / 2;
-const centreY = (Math.min(...[W, A, Sx, D, Sp].map((q) => q.y)) * 2 + groupH) / 2;
+const tidyAndRead = async () => {
+  await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
+  await sleep(800);
+  return shapeEdits(await profile(id)).positions ?? {};
+};
 check(
-  'Close gaps centers the keys on the board',
-  Math.abs(centreX + gapBoard.ox - gapBoard.w / 2) < 0.8 && Math.abs(centreY + gapBoard.oy - gapBoard.h / 2) < 0.8,
-  JSON.stringify({ centreX, centreY, gapBoard }),
+  'with no holes (W A S D and Space, the rest hidden around them), Close gaps moves nothing: WASD keeps its shape',
+  Object.keys(await tidyAndRead()).length === 0,
 );
+// hide S: a hole between A and D
+await saveProfileEdits({ disabledKeys: [...(await profile(id)).disabledKeys, 'KeyS'] });
+await p.ev(`await __ko.resync()`);
+await sleep(600);
+const filled = await tidyAndRead();
 check(
-  'Close gaps leaves a quarter key where the empty row was between WASD and the space bar',
-  Math.abs(Sp.y - (A.y + 1.25)) < 1e-6,
-  `A.y=${A.y} Space.y=${Sp.y}`,
+  'with S hidden, Close gaps slides D left into the hole S left, in that row only',
+  filled.KeyD?.x === orig.KeyA.x + 1 && filled.KeyD?.y === orig.KeyD.y && !filled.KeyA && !filled.KeyW && !filled.Space,
+  JSON.stringify(filled),
 );
-check(
-  'Close gaps keeps the shape: W above A/S, A S D in order',
-  W.y < A.y && A.x < Sx.x && Sx.x < D.x && W.x >= A.x - 1e-6 && W.x <= Sx.x + 1e-6,
-  JSON.stringify({ W, A, S: Sx, D }),
-);
-const sizeAfter = await eventually(async () => {
-  const s = await previewSize();
-  return { ok: !!s && !!sizeBefore.s && s.h < sizeBefore.s.h, s };
-});
-check(
-  'the overlay shrinks to the compact layout (smaller height than before)',
-  sizeAfter.ok,
-  JSON.stringify([sizeBefore.s, sizeAfter.s]),
-);
+check('pressing Close gaps again changes nothing', JSON.stringify(await tidyAndRead()) === JSON.stringify(filled));
+await saveProfileEdits({ disabledKeys: (await profile(id)).disabledKeys.filter((code) => code !== 'KeyS') });
+await p.ev(`await __ko.resync()`);
+await sleep(600);
+await resetMenuItem('keys-reset-positions');
 
 // ---- selecting several keys and moving them as a group
 const selectedCodes = () =>
@@ -607,7 +611,7 @@ check(
   'the hint line lists the shortcuts',
   /Del/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)) &&
     /Scroll/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)) &&
-    /Middle-drag/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)),
+    /Space \+ drag/.test(await p.q(`document.querySelector('${byTest('keys-shortcut-hint')}').textContent`)),
 );
 await clickKey('KeyD');
 await sleep(400);
@@ -651,21 +655,6 @@ const previewWidth = (code) =>
       `const e = document.querySelector('[data-code="${code}"]'); return e ? parseFloat(e.style.width) : null`,
     )
     .catch(() => null);
-const saveProfileEdits = async (edits) => {
-  const current = (await state()).settings;
-  await p.invoke('save_settings', {
-    settings: {
-      ...current,
-      layout: {
-        ...current.layout,
-        profiles: {
-          ...current.layout.profiles,
-          [id]: { disabledKeys: current.layout.profiles[id]?.disabledKeys ?? [], labels: {}, ...edits },
-        },
-      },
-    },
-  });
-};
 await saveProfileEdits({ styles: { shape: { sizes: { KeyW: { w: 3 } } } } });
 const wide = await eventually(async () => {
   const [w, a] = [await previewWidth('KeyW'), await previewWidth('KeyA')];
@@ -775,8 +764,8 @@ for (let i = 0; i < 12; i++) await wheel(centreOfW.x, centreOfW.y, -400);
 await sleep(300);
 const maxZoom = await boardInfo();
 check(
-  'zoom stops at 200%',
-  maxZoom.zoom <= 2.0001 && maxZoom.label === '200%',
+  'zoom stops at 300%',
+  maxZoom.zoom <= 3.0001 && maxZoom.label === '300%',
   JSON.stringify([maxZoom.zoom, maxZoom.label]),
 );
 for (let i = 0; i < 20; i++) await wheel(centreOfW.x, centreOfW.y, 400);
@@ -1052,6 +1041,39 @@ check(
 await setShapeEdits({});
 await clearSelection();
 
+// ---- the view stays where the person left it: Close gaps, its Undo and a layout-style switch never move it
+const viewOf = async () => {
+  const info = await boardInfo();
+  return JSON.stringify([info.zoom, info.panX, info.panY]);
+};
+await p.ev(`document.querySelector('${byTest('editor-zoom-in')}').click()`);
+await sleep(500);
+const viewBeforeEdits = await viewOf();
+await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
+await sleep(800);
+check(
+  'Close gaps leaves the view where it was',
+  (await viewOf()) === viewBeforeEdits,
+  `${viewBeforeEdits} -> ${await viewOf()}`,
+);
+await p.ev(`${arrangeButton('key-undo')}.click()`);
+await sleep(800);
+check(
+  'Undo of Close gaps leaves the view where it was',
+  (await viewOf()) === viewBeforeEdits,
+  `${viewBeforeEdits} -> ${await viewOf()}`,
+);
+await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
+await sleep(800);
+check(
+  'switching to the Even grid leaves the view where it was',
+  (await viewOf()) === viewBeforeEdits,
+  `${viewBeforeEdits} -> ${await viewOf()}`,
+);
+await p.ev(`document.querySelector('${byTest('layout-style-shape')}').click()`);
+await sleep(800);
+await saveProfileEdits({});
+
 // ---- layout style (Keyboard shape | Even grid), Close gaps in the grid, and the Reset menu (M4.3)
 const savedLayoutStyle = async () => (await profile(id)).layoutStyle ?? 'shape';
 const styleOn = (style) =>
@@ -1087,13 +1109,14 @@ check(
   !!gridPos && Math.abs(gridPos.x - Math.round(gridPos.x)) < 1e-6,
   JSON.stringify(gridPos),
 );
+const gridBeforeClose = (await profile(id)).styles?.grid?.positions ?? {};
 await p.ev(`document.querySelector('${byTest('keys-tidy')}').click()`);
 await sleep(800);
 const gridAfterClose = (await profile(id)).styles?.grid?.positions ?? {};
 check(
-  'Close gaps in the Even grid closes the gaps completely (no gap left between neighboring rows)',
-  Object.keys(gridAfterClose).length > 0,
-  JSON.stringify(gridAfterClose),
+  'Close gaps in the Even grid leaves a dragged key alone when no hidden key sits between shown ones',
+  JSON.stringify(gridAfterClose) === JSON.stringify(gridBeforeClose),
+  JSON.stringify([gridBeforeClose, gridAfterClose]),
 );
 // undo step by step until the layout style is Keyboard shape again (the earlier steps are moves and Close gaps)
 for (let i = 0; i < 8 && (await savedLayoutStyle()) !== 'shape'; i++) {
@@ -1192,14 +1215,32 @@ check(
 // the Grid switch shows the dots whether or not Snap is on, and in both layout styles
 const dotsShown = () =>
   p.q(
-    `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return c.classList.contains('dots') && parseFloat(getComputedStyle(c).backgroundSize) > 0; })()`,
+    `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return c.classList.contains('grid-dots') && parseFloat(getComputedStyle(c).backgroundSize) > 0; })()`,
   );
 if (!(await pressed('key-grid'))) await flip('key-grid');
 if (await pressed('key-snap')) await flip('key-snap');
 check('Grid shows its dots with Snap off', (await dotsShown()) && !(await pressed('key-snap')));
+// zoomed all the way out the dots are still visible: the board is scaled down, so a dot is drawn bigger to stay at least
+// about 0.7 px on screen
+for (let step = 0; step < 12; step++) await p.ev(`document.querySelector('${byTest('editor-zoom-out')}').click()`);
+await sleep(400);
+const dotOnScreen = await p.q(
+  `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return parseFloat(c.style.getPropertyValue('--dot-radius')) * parseFloat(c.style.getPropertyValue('--zoom')); })()`,
+);
+check('Grid dots stay visible zoomed all the way out', (await dotsShown()) && dotOnScreen >= 0.69, String(dotOnScreen));
+await p.ev(`document.querySelector('${byTest('editor-zoom-reset')}').click()`);
+await sleep(300);
 await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
 await sleep(800);
 check('...and in the Even grid layout style too', await dotsShown());
+const dotOffset = await p.q(
+  `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); const s = getComputedStyle(c); return [parseFloat(s.backgroundPositionX), parseFloat(s.backgroundPositionY), parseFloat(c.style.getPropertyValue('--dot-spacing'))]; })()`,
+);
+check(
+  'Grid dots sit in the middle of the gap between neighboring keys, on the grid line',
+  dotOffset[0] === -dotOffset[2] / 2 - 1.5 && dotOffset[1] === -dotOffset[2] / 2 - 1.5,
+  JSON.stringify(dotOffset),
+);
 await p.ev(`document.querySelector('${byTest('layout-style-shape')}').click()`);
 await sleep(800);
 await flip('key-snap'); // Snap back on

@@ -7,6 +7,10 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Windo
 /// to take back the memory the window used.
 const TRIM_MEMORY_AFTER_MS: u64 = 1500;
 
+/// macOS sends no "resized" event when the yellow button minimizes the window, but the window loses focus. A moment after
+/// that (once the minimize has really happened) it is checked once, and a minimized window is closed to the tray.
+const MINIMIZE_CHECK_DELAY_MS: u64 = 400;
+
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
         let _ = settings_window.unminimize();
@@ -14,11 +18,8 @@ pub fn open_settings(app: &AppHandle) {
         return;
     }
     crate::debug::detail("settings window opened");
-    let built = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
+    let builder = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
         .title(crate::app_info::NAME)   // still used by the taskbar and Alt+Tab
-        // No native title bar: the page draws its own minimize / maximize / close buttons in the top right of its
-        // header row.
-        .decorations(false)
         .shadow(true)
         .inner_size(1060.0, 800.0)
         .min_inner_size(820.0, 600.0)
@@ -29,44 +30,12 @@ pub fn open_settings(app: &AppHandle) {
         // One renderer process for the settings page + its preview frame instead of two (about 55 MB less
         // while the window is open, measured). Both pages are our own local content. The first flag keeps
         // Tauri's default WebView2 flags.
-        .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1")
-        .build();
-    if let Ok(window) = built {
-        lock_browser_features(&window);
+        .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1");
+    crate::platform::set_dock_icon_visible(app, true);
+    if let Ok(window) = crate::platform::style_settings_window(builder).build() {
+        crate::platform::lock_browser_features(&window);
     }
 }
-
-/// The settings window is an app, not a browser page: switch off WebView2's own shortcuts and gestures, so keys such as
-/// Ctrl+P / Ctrl+Shift+P (print), Ctrl+F (find), Ctrl+R and F5 (reload), Ctrl+S, Ctrl+U, F12 and Ctrl+Shift+I (developer
-/// tools), Ctrl+plus / minus / mouse wheel (zoom) and Alt+Left (back) do nothing. Only the app's own keys work. The pause
-/// shortcut planned for v2.0 is a system-wide shortcut and is not affected. Copy, paste and the like still work, and the
-/// developer tools stay reachable through the inspector port (docs/DEBUGGING.md).
-#[cfg(windows)]
-fn lock_browser_features(window: &tauri::WebviewWindow) {
-    use webview2_com::Microsoft::Web::WebView2::Win32::{
-        ICoreWebView2Settings, ICoreWebView2Settings3, ICoreWebView2Settings5, ICoreWebView2Settings6,
-    };
-    use windows::core::Interface;
-    let _ = window.with_webview(|webview| unsafe {
-        let Ok(core) = webview.controller().CoreWebView2() else {
-            return;
-        };
-        let Ok(settings) = core.Settings() else { return };
-        let _ = ICoreWebView2Settings::SetIsZoomControlEnabled(&settings, false);
-        if let Ok(settings) = settings.cast::<ICoreWebView2Settings3>() {
-            let _ = settings.SetAreBrowserAcceleratorKeysEnabled(false);
-        }
-        if let Ok(settings) = settings.cast::<ICoreWebView2Settings5>() {
-            let _ = settings.SetIsPinchZoomEnabled(false);
-        }
-        if let Ok(settings) = settings.cast::<ICoreWebView2Settings6>() {
-            let _ = settings.SetIsSwipeNavigationEnabled(false);
-        }
-    });
-}
-
-#[cfg(not(windows))]
-fn lock_browser_features(_window: &tauri::WebviewWindow) {}
 
 /// Opens the settings window on a specific tab (used by the tray's "Update available" entry).
 /// An already open window is told to switch tab; a new one reads the request when it starts.
@@ -92,18 +61,33 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
         return;
     }
     if let WindowEvent::Destroyed = ev {
+        crate::platform::set_dock_icon_visible(win.app_handle(), false);
         std::thread::spawn(|| {
             std::thread::sleep(std::time::Duration::from_millis(TRIM_MEMORY_AFTER_MS));
             crate::platform::trim_memory();
         });
     }
-    if let WindowEvent::Resized(_) = ev {
-        let st = win.state::<AppState>();
-        let minimize_to_tray = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]
-            .as_bool()
-            .unwrap_or(true);
-        if minimize_to_tray && win.is_minimized().unwrap_or(false) {
-            let _ = win.close();
+    match ev {
+        WindowEvent::Resized(_) => close_if_minimized(win),
+        WindowEvent::Focused(false) if crate::platform::minimize_needs_focus_check() => {
+            // See MINIMIZE_CHECK_DELAY_MS.
+            let win = win.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(MINIMIZE_CHECK_DELAY_MS));
+                close_if_minimized(&win);
+            });
         }
+        _ => {}
+    }
+}
+
+/// "Minimize to tray": a minimized settings window is closed instead (always on a Mac, see platform::minimize_closes_window).
+fn close_if_minimized(win: &tauri::Window) {
+    let st = win.state::<AppState>();
+    let minimize_to_tray = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]
+        .as_bool()
+        .unwrap_or(true);
+    if crate::platform::minimize_closes_window(minimize_to_tray) && win.is_minimized().unwrap_or(false) {
+        let _ = win.close();
     }
 }

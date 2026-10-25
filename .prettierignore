@@ -6,6 +6,8 @@ release
 src-tauri/target
 src-tauri/gen
 src-tauri/icons
+# Copied libraries: kept exactly as copied (tests/ui/vendor.test.mjs checks their fingerprints)
+ui/settings/vendor
 # Documents keep their hand-written layout (tables, release notes)
 *.md
 # Rust is formatted by rustfmt (cargo fmt), not Prettier

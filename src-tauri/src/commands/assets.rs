@@ -132,6 +132,33 @@ pub async fn import_preset(app: AppHandle) -> Result<Option<Value>, String> {
 }
 
 // ---------------------------------------------------------------- layouts the user made (stored in layouts/<id>.json)
+/// How many layouts of their own a user may have. Keep in step with MAX_LAYOUTS in ui/settings/state.js.
+pub(crate) const MAX_USER_LAYOUTS: usize = 20;
+/// The biggest file Import… (and a keyboard file, layout_import.rs) reads; a layout file is far smaller.
+pub(crate) const MAX_LAYOUT_FILE_BYTES: u64 = 2_000_000;
+pub(crate) const TOO_BIG_FOR_A_LAYOUT: &str = "That file is too big to be a layout file";
+/// The longest layout name, in characters. Keep in step with MAX_NAME_LENGTH in ui/settings/kle-layout.js and the
+/// New layout popup's name box (ui/settings/dialogs.js).
+const MAX_NAME_LENGTH: usize = 30;
+
+/// A layout id made from a name: lower case letters, digits and dashes, at most 30 long ("My Board!" → "my-board").
+pub(crate) fn slug(name: &str) -> String {
+    let cleaned: String = name
+        .to_lowercase()
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
+        .collect::<String>()
+        .trim_matches('-')
+        .chars()
+        .take(30)
+        .collect();
+    if cleaned.is_empty() {
+        "layout".into()
+    } else {
+        cleaned
+    }
+}
+
 /// Makes a new layout that starts as a copy of the full-size keyboard, selects it, and returns its id.
 #[tauri::command]
 pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Result<String, String> {
@@ -203,32 +230,18 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
 
 // ---------------------------------------------------------------- export / import of the layouts the user made
 use crate::app_info::LAYOUTS_FILE_TAG as FILE_TAG;
-const MAX_USER_LAYOUTS: usize = 20;
 
-fn slug(name: &str) -> String {
-    let cleaned: String = name
-        .to_lowercase()
+/// A layout name as the app keeps it: no control characters, no spaces at the ends, at most MAX_NAME_LENGTH long.
+pub(crate) fn layout_name(raw: &str) -> String {
+    raw.trim()
         .chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
-        .collect::<String>()
-        .trim_matches('-')
-        .chars()
-        .take(30)
-        .collect();
-    if cleaned.is_empty() {
-        "layout".into()
-    } else {
-        cleaned
-    }
-}
-
-/// A layout name as the app keeps it: no control characters, no spaces at the ends, at most 30 characters.
-fn layout_name(raw: &str) -> String {
-    raw.trim().chars().filter(|c| !c.is_control()).take(30).collect()
+        .filter(|c| !c.is_control())
+        .take(MAX_NAME_LENGTH)
+        .collect()
 }
 
 /// `base`, or `base-2`, `base-3`, ... : the first of these that `taken` says is free.
-fn unused_id(base: &str, taken: impl Fn(&str) -> bool) -> String {
+pub(crate) fn unused_id(base: &str, taken: impl Fn(&str) -> bool) -> String {
     let mut id = base.to_string();
     let mut suffix = 2;
     while taken(&id) {
@@ -236,37 +249,6 @@ fn unused_id(base: &str, taken: impl Fn(&str) -> bool) -> String {
         suffix += 1;
     }
     id
-}
-
-/// The keys of an imported layout, cleaned: at most 300, each with a code of up to 40 characters and numeric x and y,
-/// optional numeric w and h, and a label of up to 16 characters. Anything else about a key is dropped.
-fn clean_keys(raw_keys: &Value) -> Vec<Value> {
-    raw_keys
-        .as_array()
-        .map(|raw_keys| {
-            raw_keys
-                .iter()
-                .take(300)
-                .filter(|key| {
-                    key["code"].as_str().is_some_and(|c| !c.is_empty() && c.len() <= 40)
-                        && key["x"].is_number()
-                        && key["y"].is_number()
-                })
-                .map(|key| {
-                    let mut cleaned_key = serde_json::json!({ "code": key["code"], "x": key["x"], "y": key["y"] });
-                    for field in ["w", "h"] {
-                        if key[field].is_number() {
-                            cleaned_key[field] = key[field].clone();
-                        }
-                    }
-                    if let Some(label) = key["label"].as_str() {
-                        cleaned_key["label"] = Value::String(label.chars().take(16).collect());
-                    }
-                    cleaned_key
-                })
-                .collect()
-        })
-        .unwrap_or_default()
 }
 
 /// The document written by "Export layouts": every layout the user made plus their key edits (hidden keys, labels).
@@ -312,7 +294,7 @@ pub fn import_doc(
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     for item in items.iter().take(MAX_USER_LAYOUTS) {
         let name = layout_name(item["name"].as_str().unwrap_or("Imported layout"));
-        let keys = clean_keys(&item["keys"]);
+        let keys = crate::sanitize::clean_layout_keys(&item["keys"]);
         if keys.is_empty() || name.is_empty() || count >= MAX_USER_LAYOUTS {
             skipped += 1;
             continue;
@@ -366,8 +348,8 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
         return Ok(None);
     };
     let path = picked_file.into_path().map_err(|e| e.to_string())?;
-    if std::fs::metadata(&path).map_err(|e| e.to_string())?.len() > 2_000_000 {
-        return Err("That file is too big to be a layout file".into());
+    if std::fs::metadata(&path).map_err(|e| e.to_string())?.len() > MAX_LAYOUT_FILE_BYTES {
+        return Err(TOO_BIG_FOR_A_LAYOUT.into());
     }
     let top: Value = serde_json::from_str(&std::fs::read_to_string(path).map_err(|e| e.to_string())?)
         .map_err(|_| "That isn't a valid layout file")?;
@@ -432,6 +414,34 @@ mod layout_file_tests {
         assert_eq!(saved["keys"].as_array().unwrap().len(), 1);
         assert_eq!(added[0].1["disabledKeys"], json!(["KeyA"]));
         assert!(import_doc(&json!({ "nothing": 1 }), &[], &dir).is_err());
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_new_layout_id_comes_from_its_name_and_never_reuses_one() {
+        assert_eq!(slug("My Board!"), "my-board");
+        assert_eq!(slug("日本語"), "layout");
+        let taken = ["my-board", "my-board-2"];
+        assert_eq!(unused_id("my-board", |id| taken.contains(&id)), "my-board-3");
+        assert_eq!(unused_id("other", |id| taken.contains(&id)), "other");
+    }
+
+    #[test]
+    fn imported_keys_are_limited_rounded_and_never_twice() {
+        let dir = tmp("key-limits");
+        let doc = json!({ "id": "far", "name": "Far", "keys": [
+            { "code": "KeyA", "x": 1e9, "y": -1e9, "w": 1e9, "h": 0.001 },
+            { "code": "KeyB", "x": 1.23456, "y": 2, "w": 1.5, "label": "B" },
+            { "code": "KeyA", "x": 3, "y": 3, "label": "second A" } ] });
+        import_doc(&doc, &[], &dir).unwrap();
+        let saved: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("far.json")).unwrap()).unwrap();
+        assert_eq!(
+            saved["keys"],
+            json!([
+                { "code": "KeyA", "x": 100.0, "y": -100.0, "w": 100.0, "h": 0.25 },
+                { "code": "KeyB", "x": 1.23, "y": 2.0, "w": 1.5, "label": "B" }
+            ])
+        );
         let _ = std::fs::remove_dir_all(dir);
     }
 
@@ -502,6 +512,23 @@ mod import_robustness_tests {
         json!({ "id": rand_val(rng), "name": rand_val(rng), "keys": (0..key_count).map(|_| rand_key(rng)).collect::<Vec<_>>() })
     }
 
+    /// Every saved key is inside the limits clean_layout_keys sets, and no code appears twice.
+    fn assert_clean_keys(keys: &Value, seed: u64) {
+        use crate::sanitize::{MAX_KEY_WIDTH, MAX_POSITION, MIN_KEY_WIDTH, MIN_POSITION};
+        let mut codes = std::collections::HashSet::new();
+        for key in keys.as_array().unwrap() {
+            assert!(codes.insert(key["code"].as_str().unwrap()), "seed {seed}: a code twice");
+            for field in ["x", "y"] {
+                let place = key[field].as_f64().unwrap();
+                assert!((MIN_POSITION..=MAX_POSITION).contains(&place), "seed {seed}: {key}");
+            }
+            for field in ["w", "h"] {
+                let length = key[field].as_f64().unwrap_or(1.0);
+                assert!((MIN_KEY_WIDTH..=MAX_KEY_WIDTH).contains(&length), "seed {seed}: {key}");
+            }
+        }
+    }
+
     #[test]
     fn hostile_layout_files_only_produce_clean_layouts_inside_the_folder() {
         let base = std::env::temp_dir().join(format!("ko-fuzz-{}", std::process::id()));
@@ -552,6 +579,7 @@ mod import_robustness_tests {
                 assert!(
                     doc["keys"].as_array().unwrap().len() <= 300 && doc["name"].as_str().unwrap().chars().count() <= 30
                 );
+                assert_clean_keys(&doc["keys"], seed);
                 assert!(
                     existing.iter().all(|l| l["id"] != doc["id"]),
                     "seed {seed}: reused an existing id"

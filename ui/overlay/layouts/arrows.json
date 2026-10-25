@@ -1,0 +1,10 @@
+{
+  "id": "arrows",
+  "name": "Arrows",
+  "keys": [
+    { "code": "ArrowUp", "label": "↑", "x": 1, "y": 0 },
+    { "code": "ArrowLeft", "label": "←", "x": 0, "y": 1 },
+    { "code": "ArrowDown", "label": "↓", "x": 1, "y": 1 },
+    { "code": "ArrowRight", "label": "→", "x": 2, "y": 1 }
+  ]
+}

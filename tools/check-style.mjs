@@ -1,5 +1,6 @@
 // Basic code-style check (runs in CI): no tab characters, no trailing spaces, and every file ends with a newline.
-// Also: the settings window's stylesheet may only write colors inside its :root block (the design tokens).
+// Also: the settings window's stylesheet may only write colors inside its :root block (the design tokens), and may not
+// use scrollbar-width / scrollbar-color (in WebView2 they swap the shared scrollbar for the system one, arrows included).
 // It checks only things every editor can get right, so it never fights with anyone's formatter.
 //   node tools/check-style.mjs
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -7,7 +8,7 @@ import { join, extname } from 'node:path';
 
 const ROOTS = ['src-tauri/src', 'ui', 'tools', 'tests'];
 const EXT = new Set(['.rs', '.js', '.mjs', '.css', '.html', '.ps1']);
-const SKIP = new Set(['node_modules', 'target']);
+const SKIP = new Set(['node_modules', 'target', 'vendor']); // vendor: copied libraries, kept exactly as copied
 const problems = [];
 
 function walk(dir) {
@@ -26,15 +27,8 @@ function check(file) {
   });
   if (text.length && !text.endsWith('\n')) problems.push(`${file}: missing newline at end of file`);
   if (/^ui[\\/]settings[\\/][^\\/]+\.css$/.test(file)) checkTokens(file, text);
-  if (
-    /^ui[\\/]settings[\\/]((tabs|editor)[\\/])?[^\\/]+\.js$/.test(file) &&
-    !JS_STYLE_EXEMPT.has(file.replace(/\\/g, '/'))
-  )
-    checkJsStyles(file, text);
+  if (/^ui[\\/]settings[\\/]((tabs|editor|debug)[\\/])?[^\\/]+\.js$/.test(file)) checkJsStyles(file, text);
 }
-
-// Files still allowed to set inline styles from JavaScript: debug.js, the developer tab.
-const JS_STYLE_EXEMPT = new Set(['ui/settings/debug.js']);
 
 /** In the settings window's scripts, looks live in CSS. JavaScript may only hand CSS a variable: el.style.setProperty('--x', ...). */
 function checkJsStyles(file, text) {
@@ -64,6 +58,9 @@ function checkTokens(file, text) {
   outside.split('\n').forEach((line, i) => {
     const color = line.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/);
     if (color) problems.push(`${file}:${i + 1}: raw color ${color[0]} outside :root (use a design token)`);
+    if (/\bscrollbar-(width|color)\s*:/.test(line)) {
+      problems.push(`${file}:${i + 1}: scrollbar-width/-color replace the shared scrollbar (see ::-webkit-scrollbar)`);
+    }
   });
 }
 

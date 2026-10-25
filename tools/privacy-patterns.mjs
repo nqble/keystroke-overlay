@@ -2,13 +2,41 @@
 // can check that each one catches what it should. The check is a tripwire, not a proof: it reads the code line by line
 // and can't see what a dependency does. Code review (CLAUDE.md section 8) is the real safeguard.
 
-/** Anything that opens a network connection. Allowed only in src-tauri/src/commands/updates.rs. */
+/**
+ * Anything that opens a network connection, including a WebSocket client (tungstenite's connect, connect_async and
+ * client_async: the server only accepts). Allowed only in src-tauri/src/commands/updates.rs.
+ */
 export const NET =
-  /\b(reqwest|TcpStream|TcpSocket|UdpSocket|UnixStream|UnixDatagram|updater_builder|hyper::client|ureq|isahc|surf)\b|\.updater\(\)/;
+  /\b(reqwest|TcpStream|TcpSocket|UdpSocket|UnixStream|UnixDatagram|updater_builder|hyper::client|ureq|isahc|surf|connect_async|client_async)\b|\btungstenite::(client::)?connect\b|\.updater\(\)/;
+
+/**
+ * A WebSocket address in the UI that isn't the page's own server. The overlay connects with `ws://${location.host}/…`;
+ * any other ws:// or wss:// address (another program on the PC, or the internet) is refused. The overlay page has no
+ * security policy of its own to stop it, so this check is the guard.
+ */
+export const UI_SOCKET = /\bwss?:\/\/(?!\$\{location\.host\})/;
 
 /** Anything that writes a file. Never allowed in keyboard/ or server.rs. */
 export const WRITE =
   /\b(fs::write|fs::copy|fs::rename|fs::create_dir(?:_all)?|File::create|File::options|OpenOptions|tokio::fs|write_all)\b/;
+
+/**
+ * macOS key capture must only listen. These are the ways to do more: an active (not listen-only) tap, or sending key
+ * events (the C names and the Rust crate's own methods). The tap's own options are matched in any spelling, not just
+ * `CGEventTapOptions::Default`. Note that `.post(` is matched anywhere in Rust code, so an HTTP POST would trip it too.
+ */
+export const MAC_ACTIVE =
+  /CGEventTapOptions\s*::\s*Default|CGEventPost|CGEventTapCreate|CGEventTapPostEvent|\.post\s*\(|\.post_to_pid\s*\(|CGEventTapOptions\s*\(\s*0|\bCGEventTapOptions\b(?!\s*::\s*ListenOnly)(?!\s*,)(?!\s*\})/;
+
+/**
+ * Linux key capture must only read the keyboards. These are the ways to do more: grabbing a keyboard (which takes its
+ * keys away from every other app), opening a device with evdev's own open (which asks for writing too), making a virtual input device (whose emit() sends keys),
+ * or sending input events. A plain .emit( is not matched: the app uses it everywhere for window events.
+ */
+export const LINUX_ACTIVE = /\.grab\s*\(|RawDevice::open|Device::open|\bVirtualDevice\w*|\buinput\b|\.send_events\s*\(/;
+
+/** The keyboard-device library. Allowed only in src-tauri/src/keyboard/linux_devices.rs, which opens devices read-only. */
+export const LINUX_DEVICES = /\bevdev::/;
 
 /** Logging and printing: a log line is how keystrokes usually leak. Never allowed. */
 export const LOG = /\b(println!|eprintln!|print!|eprint!|dbg!|log::|tracing::|env_logger)/;

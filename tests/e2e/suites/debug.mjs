@@ -19,7 +19,7 @@ const state = async () => (await p.invoke('get_state')).ok;
 // ---- off by default
 check(
   'Debug mode is off by default and there is no Debug tab',
-  (await navNames()).length === 6 &&
+  (await navNames()).length === 5 && // Layout, Keys, Style, Animation, General (ui/settings/tabs/index.js)
     !(await navNames()).includes('debug') &&
     (await state()).settings.general.debugMode === false,
 );
@@ -47,7 +47,7 @@ check(
 
 // ---- switch it on through the real toggle
 await tab('general');
-check('General -> App has the "Debug mode (for developers)" switch', await p.q(`!!${debugToggle}`));
+check('General -> Advanced has the "Debug mode (for developers)" switch', await p.q(`!!${debugToggle}`));
 await p.ev(`${debugToggle}.click()`);
 await sleep(900);
 check(

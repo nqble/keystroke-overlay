@@ -1,8 +1,9 @@
 name: CI
 
+# Every push to main and to the work branches (each session's branches and the release branches), and every pull request.
 on:
   push:
-    branches: [main]
+    branches: [main, 'advisor/**', 'mac/**', 'v*-dev']
   pull_request:
 
 # The tests only need to read the code. Read-only means a compromised step or library could not change the repository.
@@ -45,6 +46,19 @@ jobs:
       - name: Build the app (no installer)
         run: npx tauri build --no-bundle
 
+  # The Mac app builds on every change too (the same steps the release uses), so a break shows up before release day.
+  mac-app:
+    uses: ./.github/workflows/mac-app.yml
+
+  # The Linux downloads too, for the same reason.
+  linux-app:
+    uses: ./.github/workflows/linux-app.yml
+
+  # Installs those Linux downloads on virtual X11 and Wayland desktops and types on them (linux-tests.yml).
+  linux-tests:
+    needs: linux-app
+    uses: ./.github/workflows/linux-tests.yml
+
   # The app is Windows-first, but everything except keyboard capture builds and runs elsewhere (docs/CROSS-PLATFORM.md).
   # This job keeps it that way, so people on Linux and macOS can work on the code and run the tests.
   other-systems:
@@ -85,4 +99,5 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install -y xvfb
-          xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored
+          # Only the X11 tests: the keyboard-device tests need /dev/uinput and run in linux-tests.yml.
+          xvfb-run -a cargo test --manifest-path src-tauri/Cargo.toml -- --ignored x11

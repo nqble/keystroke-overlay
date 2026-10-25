@@ -1,0 +1,506 @@
+/* The shared building blocks (blocks.js; docs/design/ui-design-v2.md, "Building blocks" and "States"). Every control has
+   the same states: rest, hover (a step lighter), pressed and held (a step darker), keyboard focus (the focus ring).
+   Color only: nothing shrinks or moves. Cards show selection on the border only. Tokens are in settings.css.
+   See every block in every state: npm run ui-sandbox, then /__sandbox__/blocks.html. */
+
+/* ---- Section card: one card of a tab, a short title and its controls */
+.section-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border-radius: var(--radius-2xl);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+}
+/* Notes and status lines inside a card: no paragraph margins (the card's gap spaces them), and an empty line takes no
+   room at all (a status that has nothing to say yet, the progress text while nothing downloads). */
+.section-card .note,
+.section-card .note p,
+.section-body .note p {
+  margin: 0;
+}
+.section-card > .hint:empty,
+.section-body > .hint:empty {
+  display: none;
+}
+.section-title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+/* ---- A tab's page: its heading row, then section cards in a grid (two columns when there is room) */
+.tab-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 980px;
+}
+/* The tab's title: larger and in normal case, unlike the small section headings older tabs use (tabs.css, h2) */
+.tab-heading h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--color-text);
+}
+.tab-heading .note {
+  margin: var(--space-2) 0 0;
+}
+/* A heading row with the tab's main action on the right (Style's Reset ▾) */
+.tab-heading.with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--space-14);
+  align-items: start;
+}
+/* A section that opens and closes (General → Advanced): its title is the button */
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+.section-toggle:hover,
+.section-toggle:active {
+  background: transparent;
+}
+.section-toggle:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.section-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+.section-body[hidden] {
+  display: none;
+}
+
+/* ---- Switch: the knob slides with transform only */
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-height: 32px;
+}
+.switch-label {
+  flex: 1;
+}
+.switch {
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--color-switch-off);
+  cursor: pointer;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-round);
+  background: var(--color-text);
+  transition: transform 120ms ease-out;
+}
+.switch:hover {
+  background: var(--color-line-hover);
+}
+.switch:active {
+  background: var(--color-control-pressed);
+}
+.switch[aria-checked='true'] {
+  background: var(--color-accent-strong);
+}
+.switch[aria-checked='true']:hover,
+.switch[aria-checked='true']:active {
+  background: var(--color-accent-pressed);
+}
+.switch[aria-checked='true']::after {
+  transform: translateX(16px);
+}
+
+/* ---- Segmented choice */
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap; /* a narrow window wraps the choices instead of squeezing their words */
+  align-self: flex-start; /* only as wide as its choices, also inside a section card */
+  padding: var(--space-3);
+  border-radius: var(--radius-2xl);
+  background: var(--color-bg);
+  border: 1px solid var(--color-control-line);
+}
+.segmented button {
+  height: 28px;
+  white-space: nowrap;
+  padding: 0 var(--space-14);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-dim);
+  font-size: var(--text-md);
+  cursor: pointer;
+}
+.segmented button:hover {
+  background: var(--color-panel-raised);
+  color: var(--color-text);
+}
+.segmented button:active {
+  background: var(--color-control-pressed);
+}
+.segmented button[aria-checked='true'] {
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+}
+.segmented button[aria-checked='true']:hover,
+.segmented button[aria-checked='true']:active {
+  background: var(--color-accent-pressed);
+}
+
+/* ---- Gallery card: hover and selected only (no pressed state for cards); selected is the border alone */
+.gallery-item {
+  position: relative;
+}
+.gallery-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+  height: var(--gallery-card-height); /* one size whatever the text: long names are cut with an ellipsis below */
+  overflow: hidden;
+  padding: var(--space-12);
+  border-radius: var(--radius-2xl);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+.gallery-card:hover,
+.gallery-card:active {
+  background: var(--color-panel);
+  border-color: var(--color-line-hover);
+}
+.gallery-card.sel {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+.gallery-picture {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+.gallery-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gallery-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  max-width: 100%;
+}
+.custom-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-dim);
+}
+.gallery-item .menu-button {
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-8);
+}
+
+/* ---- Galleries (Style's themes and presets, Animation's cards): a grid of gallery cards under a section title */
+.gallery-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-12);
+}
+.gallery-card.add {
+  justify-content: center;
+  align-items: center;
+  border-style: dashed;
+  border-color: var(--color-line-dashed);
+  color: var(--color-text-dim);
+}
+.gallery-card.add:hover {
+  border-color: var(--color-line-dashed-hover);
+  color: var(--color-text);
+}
+/* A theme's two sample keys: the colors come from the theme file, through CSS variables (themes.js) */
+.theme-stage {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-12) 0;
+  border-radius: var(--radius-xl);
+  background: var(--color-well);
+}
+.theme-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: var(--key-border-width) solid var(--key-border);
+  border-radius: var(--key-radius);
+  background: var(--key-fill);
+  color: var(--key-text);
+  font: var(--weight-semibold) var(--text-md) var(--key-font);
+}
+
+/* ---- "⋯" menu button */
+.menu-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-panel-raised);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.menu-button.with-text {
+  width: auto;
+  height: 32px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--color-control-line);
+}
+.menu-button:hover {
+  background: var(--color-menu-hover);
+}
+.menu-button:active {
+  background: var(--color-control-pressed);
+}
+
+/* ---- Detail: the technical line Debug mode adds under a plain one */
+.detail {
+  font: var(--text-sm)/1.5 var(--font-mono);
+  color: var(--color-text-dim);
+}
+
+/* ---- Keyboard focus: the same ring on every block */
+.switch:focus-visible,
+.segmented button:focus-visible,
+.gallery-card:focus-visible,
+.menu-button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ---- Layout tab (tabs/layout.js): the mini keyboard picture, the card being dragged, and the line where it will land */
+.layout-picture {
+  display: block;
+  width: 100%;
+  height: 48px;
+}
+.layout-card .gallery-picture {
+  padding-right: var(--space-26); /* room for the card's "⋯" button */
+}
+.layout-picture rect {
+  fill: var(--color-key-line);
+}
+.layout-picture rect.marked {
+  fill: none;
+  stroke: var(--color-key-unlit);
+  stroke-width: 0.06;
+  stroke-dasharray: 0.16 0.1;
+}
+.layout-picture text {
+  fill: var(--color-text);
+}
+.layout-card.sel .layout-picture rect {
+  fill: var(--color-accent);
+}
+.layout-gallery {
+  position: relative;
+}
+.layout-item.dragging {
+  opacity: 0.35;
+}
+.layout-item.dragging .gallery-card {
+  border-style: dashed;
+}
+.drop-line {
+  position: absolute;
+  left: var(--drop-x);
+  top: var(--drop-top);
+  width: 2px;
+  height: var(--drop-height);
+  border-radius: 1px;
+  background: var(--color-accent);
+  /* centered in the gap between two cards (the .gallery gap) */
+  transform: translateX(calc(var(--space-12) / -2 - 1px));
+  pointer-events: none;
+}
+
+/* ---- New layout's Built-in choice (other-layouts.js): two columns, four rows tall, the rest scrolls */
+.other-layouts-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 52px;
+  gap: var(--space-8);
+  max-height: calc(4 * 52px + 3 * var(--space-8));
+  overflow-y: auto;
+}
+.other-layout {
+  height: auto; /* the list's rows set the height, not the gallery card's one size */
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8);
+  cursor: default;
+}
+.other-layout .gallery-picture {
+  flex: 0 0 56px;
+  margin: 0;
+}
+.other-layout .layout-picture {
+  height: 28px;
+}
+.other-layout .gallery-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- Animation cards (tabs/animation.js): one demo key, moved only by the animation file's own variables (the same
+   names and rules as ui/overlay/overlay.css: --t-idle / --t-down transforms, --ms-* / --ease-* timing, --glow-down) */
+.anim-key {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  transform: var(--t-idle, none);
+  transition: transform var(--ms-up) var(--ease-up);
+}
+.anim-key.down {
+  transform: var(--t-down, none);
+  transition: transform var(--ms-down) var(--ease-down);
+}
+.anim-face,
+.anim-glow {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--ms-up) var(--ease-up);
+}
+.anim-face.on,
+.anim-glow {
+  opacity: 0;
+}
+.anim-glow {
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 10px 3px var(--glow-color);
+}
+.anim-key.down .anim-face,
+.anim-key.down .anim-glow {
+  transition-duration: var(--ms-down);
+  transition-timing-function: var(--ease-down);
+}
+.anim-key.down .anim-face.on {
+  opacity: 1;
+}
+.anim-key.down .anim-face.idle {
+  opacity: 0;
+}
+.anim-key.down .anim-glow {
+  opacity: var(--glow-down, 0);
+}
+.segmented-box {
+  display: contents;
+}
+
+/* ---- First run setup (first-run.js): a card over the Layout tab's content, three numbered steps */
+.first-run {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 560px;
+  padding: var(--space-20);
+  border-radius: var(--radius-2xl);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+}
+.first-run-close {
+  position: absolute;
+  top: var(--space-12);
+  right: var(--space-12);
+}
+.first-run-steps {
+  --step-size: 24px; /* the numbered circle */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  margin: var(--space-8) 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.first-run-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+  padding-left: calc(var(--step-size) + var(--space-12));
+  counter-increment: step;
+}
+.first-run-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--step-size);
+  height: var(--step-size);
+  border-radius: 50%;
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--step-size);
+  text-align: center;
+}
+.first-run-size {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.first-run-waiting,
+.first-run-done {
+  margin: 0;
+  color: var(--color-text-dim);
+}
+.first-run-done {
+  color: var(--color-live-text);
+}
+.first-run-steps .note {
+  margin: 0;
+}

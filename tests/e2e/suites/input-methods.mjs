@@ -34,19 +34,22 @@ const select = `document.querySelector('${byTest('input-method-select')}')`;
 // ------------------------------------------------------------ the General tab section
 await p.ev(`document.querySelector('${byTest('tab', '[data-tab="general"]')}').click()`);
 await sleep(500);
+// the choice is a segmented control (a radiogroup of buttons, ui/settings/blocks.js), not a dropdown
 const ui = await p.q(
-  `(() => { const s = ${select}; return { has: !!s, value: s?.value, labels: s && [...s.options].map(o => o.textContent), sections: [...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent) }; })()`,
+  `(() => { const s = ${select}; const radios = s ? [...s.querySelectorAll('[role=radio]')] : []; return { has: !!s, value: radios.find(r => r.getAttribute('aria-checked') === 'true')?.textContent.trim(), labels: radios.map(r => r.textContent.trim()), card: !!document.querySelector('${byTest('general-input')}') }; })()`,
 );
 const pageText = () => p.q(`document.querySelector('${byTest('pane')}').innerText`);
-check('General has a "Keyboard input" section', ui.sections.includes('Keyboard input'));
+check('General has a "Keyboard input" card', ui.card);
 check(
-  'default is Standard (hook), listed as recommended',
-  ui.has && ui.value === 'hook' && /recommended/.test(ui.labels[0]) && /Compatibility/.test(ui.labels[1]),
+  'default is Standard (hook), with Compatibility as the other choice',
+  ui.has && ui.value === 'Standard' && same(ui.labels, ['Standard', 'Compatibility']),
 );
-check('help text explains Standard', /Standard is what the app has always used/.test(await pageText()));
+check('help text explains Standard', /Works with nearly every game/.test(await pageText()));
 check(
-  'help text covers administrator games and says to leave it on Standard if unsure',
-  /runs as administrator/.test(await pageText()) && /Leave it on Standard/.test(await pageText()),
+  'help text covers administrator games, and the Standard note is only the short line (no "keep it unless")',
+  /If a game runs as administrator, start Keystroke Overlay as administrator too\./.test(await pageText()) &&
+    /Works with nearly every game\./.test(await pageText()) &&
+    !/Keep it unless/.test(await pageText()),
 );
 check('backend reports "hook" as the active method', (await p.invoke('get_state')).ok.inputActive === 'hook');
 
@@ -59,7 +62,9 @@ check(
 );
 
 // ------------------------------------------------------------ switch through the real UI control
-await p.ev(`const s = ${select}; s.value = 'rawinput'; s.dispatchEvent(new Event('change', { bubbles: true }))`);
+await p.ev(
+  `[...${select}.querySelectorAll('[role=radio]')].find(r => r.textContent.trim() === 'Compatibility').click()`,
+);
 await sleep(700);
 const st = (await p.invoke('get_state')).ok;
 check(
@@ -68,7 +73,7 @@ check(
 );
 check(
   'help text changes to explain Compatibility',
-  /Compatibility reads your keys straight from the keyboard/.test(await pageText()),
+  /For games where keys don.t light up with Standard/.test(await pageText()),
 );
 const rawSeq = await run('seq');
 check('Raw Input delivers the same sequence as the hook', same(rawSeq, EXPECT), rawSeq.join(' '));

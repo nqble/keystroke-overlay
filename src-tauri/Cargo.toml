@@ -1,6 +1,6 @@
 [package]
 name = "keyoverlay"
-version = "1.4.0"
+version = "2.0.0"
 description = "Keystroke overlay for streaming (OBS Browser Source)"
 license = "MIT"
 repository = "https://github.com/nqble/keystroke-overlay"
@@ -17,6 +17,7 @@ tauri-plugin-autostart = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-updater = "2"
+tauri-plugin-global-shortcut = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["sync", "net", "macros", "rt", "rt-multi-thread", "time"] }
@@ -28,12 +29,22 @@ reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"
 # Linux only: keyboard capture on X11 desktops (keyboard/x11.rs). Pure Rust, talks to the X server directly
 # (docs/LINUX-PORT.md).
 [target.'cfg(target_os = "linux")'.dependencies]
-x11rb = { version = "0.14", features = ["xinput"] }
+x11rb = { version = "0.14", features = ["xinput", "xkb"] }
+# Wayland desktops: reads the keyboard devices in /dev/input, read-only and never grabbed (keyboard/linux_devices.rs).
+# For Wayland capture. No default features: no async runtime.
+evdev = { version = "0.13", default-features = false }
+
+# macOS only: keyboard capture with a listen-only event tap (keyboard/macos.rs, docs/MAC-PORT.md). core-graphics wraps
+# Apple's CGEventTap; core-foundation gives it the run loop the tap needs. Both are already built into the app by the
+# window library, so this adds no new code to the build, only direct access to it.
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.25"
+core-foundation = "0.10"
 
 # Windows only: keyboard capture (keyboard/hook.rs, keyboard/rawinput.rs) and a few calls in platform.rs. On other systems
 # the app still builds and runs, without keyboard capture (docs/CROSS-PLATFORM.md).
 [target.'cfg(windows)'.dependencies]
-# The settings window's web view settings (window.rs: browser shortcuts off). Same version as the one Tauri uses.
+# The settings window's web view settings (platform.rs: browser shortcuts off). Same version as the one Tauri uses.
 webview2-com = "0.39"
 windows = { version = "0.62", features = [
   "Win32_Foundation",
@@ -45,6 +56,7 @@ windows = { version = "0.62", features = [
   "Win32_Graphics_Gdi",
   "Win32_System_ProcessStatus",
   "Win32_System_Threading",
+  "Win32_UI_Accessibility",
 ] }
 
 # Smaller debug builds (saves roughly 1.5 GB of disk). Set debug = 2 when you need to step through code in a debugger.

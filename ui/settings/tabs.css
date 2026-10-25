@@ -1,0 +1,574 @@
+/* The window's frame and the controls every tab shares: the live preview, the tab list, rows, buttons, sliders,
+   cards, messages. Tokens are in settings.css; one tab's own look goes in its own file (debug.css, keys.css). */
+.hint {
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+
+#banner {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--color-error-line);
+}
+
+.preview {
+  position: relative;
+  height: 230px;
+  flex: none;
+  background: var(--color-well);
+  border-bottom: 1px solid var(--color-line);
+  overflow: hidden;
+}
+/* The editor on the Keys tab shows the keyboard itself, so the live preview steps aside (it stays loaded, only hidden). */
+.tab-keys .preview {
+  display: none;
+}
+.preview iframe {
+  position: absolute;
+  /* the size and place come from fitPreview() in preview.js, through these variables */
+  width: var(--frame-w, 300px);
+  height: var(--frame-h, 150px);
+  left: var(--frame-x, 0);
+  top: var(--frame-y, 0);
+  transform: scale(var(--frame-scale, 1));
+  border: 0;
+  transform-origin: 0 0;
+  background: transparent;
+  color-scheme: normal;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+nav {
+  width: 150px;
+  flex: none;
+  background: var(--color-panel);
+  border-right: 1px solid var(--color-line);
+  padding: var(--space-10) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+nav button {
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--color-text-dim);
+  padding: var(--space-9) var(--space-12);
+  border-radius: var(--radius-xl);
+  font: inherit;
+  cursor: pointer;
+}
+nav button:hover {
+  background: var(--color-panel-raised);
+  color: var(--color-text);
+}
+nav button.active {
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-weight: var(--weight-semibold);
+}
+#pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-20) var(--space-26) var(--space-48);
+}
+
+h2 {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-dim);
+  margin: var(--space-26) 0 var(--space-12);
+}
+h2:first-child {
+  margin-top: 0;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
+}
+.row > label {
+  width: 170px;
+  flex: none;
+  color: var(--color-text);
+}
+.row.has-swatch > label {
+  width: calc(
+    170px - 40px - var(--space-10)
+  ); /* the color box takes room from the slider, so the label gives it up: every slider is as long as the others */
+}
+.row .ctl {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+  max-width: 460px;
+}
+.num-field {
+  width: 84px;
+}
+.invisible {
+  visibility: hidden;
+}
+select option[data-font] {
+  font-family: var(--option-font);
+}
+.row .val {
+  width: 54px;
+  text-align: right;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.note {
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+  margin: var(--space-6) 0 var(--space-10);
+  max-width: 640px;
+}
+
+input,
+select,
+button {
+  font: inherit;
+  color: var(--color-text);
+}
+input[type='text'],
+input[type='number'],
+input:not([type]),
+select {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-9);
+  min-width: 0;
+}
+input:focus,
+select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+input[type='range'] {
+  flex: 1;
+  min-width: 0; /* a slider must be able to shrink, or its value sticks out of the card */
+  accent-color: var(--color-accent);
+}
+input[type='range']:focus {
+  outline: none; /* no blue box when a slider is clicked... */
+}
+input[type='range']:focus-visible {
+  outline: 2px solid var(--color-accent); /* ...but it shows when the slider is reached with the keyboard */
+  outline-offset: 2px;
+}
+#toast.err {
+  cursor: pointer; /* an error message stays until it is clicked */
+}
+input[type='color'] {
+  flex: none; /* the row's flex layout may not squeeze the color box when the window is narrow */
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-control-line);
+  background: var(--color-panel-raised);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+button {
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-12);
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--color-accent);
+}
+button.primary {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-fill);
+  font-weight: var(--weight-semibold);
+}
+button.primary:hover {
+  background: var(--color-accent-pressed);
+  border-color: var(--color-accent-pressed);
+}
+button.danger:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+/* anything that cannot be used right now looks dimmed, and does not react to the mouse */
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button:disabled:hover {
+  border-color: var(--color-control-line);
+}
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: var(--space-8) 0;
+  align-items: center;
+}
+/* display: flex above beats the hidden attribute, so say it again (e.g. the secure link's buttons while it is off). */
+.btns[hidden] {
+  display: none;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--space-12);
+  max-width: 760px;
+}
+.card {
+  background: var(--color-panel);
+  border: 2px solid var(--color-control-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-12);
+  cursor: pointer;
+  /* a card is a button (so the keyboard can reach it): these make it look like the plain box it used to be */
+  width: 100%;
+  text-align: left;
+  display: flex; /* a button centers its content up and down; this keeps the text at the top, as in the old box */
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.card:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.card:hover {
+  border-color: var(--color-line-hover);
+}
+.card.sel {
+  border-color: var(--color-accent);
+  background: var(--color-selected-bg);
+}
+.card b {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+.card span {
+  color: var(--color-text-dim);
+  font-size: var(--text-sm);
+}
+
+.keymap {
+  position: relative;
+  /* the box has the board's proportions (--board-w by --board-h keys), so a keyboard that fits across also fits down */
+  aspect-ratio: calc(var(--board-w, 24) / var(--board-h, 12));
+  max-height: 62vh;
+  min-height: 200px;
+  /* the same gray as the board, so the room that shows past the board's edge does not look like a darker frame */
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  margin: var(--space-8) 0 var(--space-14);
+  overflow: hidden;
+}
+/* The board: a fixed area measured in keys (--board-w, --board-h). Zoom and pan are one transform on this layer. */
+.keymap-canvas {
+  --unit: 40px; /* pixels per key at 100% zoom (UNIT in editor/context.js) */
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--board-w, 24) * var(--unit));
+  height: calc(var(--board-h, 12) * var(--unit));
+  background-color: var(--color-panel);
+  border-radius: var(--radius-lg);
+  transform-origin: 0 0;
+  transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)) scale(var(--zoom, 1));
+  transition: transform var(--duration-medium) ease-out;
+}
+.keymap.panning .keymap-canvas,
+.keymap.instant .keymap-canvas {
+  transition: none;
+}
+.keymap-canvas.grid-dots {
+  background-image: radial-gradient(
+    circle,
+    var(--color-text-dim) var(--dot-radius, 0.8px),
+    transparent calc(var(--dot-radius, 0.8px) * 1.75)
+  );
+  background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
+  /* The gradient draws its dot in the middle of each tile, so shift it half a tile to put it on the grid line. A key is drawn
+     KEY_GAP (3px) narrower than its cell, so the line's visible spot is the middle of that gap: half the gap further back. */
+  background-position: calc(var(--dot-spacing, 10px) / -2 - 1.5px) calc(var(--dot-spacing, 10px) / -2 - 1.5px);
+}
+.keymap-canvas.holding .kmk:not(.drag) {
+  opacity: 0.35;
+}
+.kmk {
+  transition: opacity 160ms ease-out;
+}
+.guide {
+  position: absolute;
+  z-index: 4;
+  background: var(--color-guide);
+  pointer-events: none;
+}
+.guide.vertical {
+  top: 0;
+  bottom: 0;
+  left: calc(var(--at) * var(--unit));
+  width: 1px;
+}
+.guide.horizontal {
+  left: 0;
+  right: 0;
+  top: calc(var(--at) * var(--unit));
+  height: 1px;
+}
+/* The resize handles sit on the selected key; the container only positions them. */
+.handles {
+  position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc(var(--y) * var(--unit));
+  width: calc(var(--w) * var(--unit) - 3px);
+  height: calc(var(--h, 1) * var(--unit) - 3px);
+  z-index: 4;
+  pointer-events: none;
+}
+.handle {
+  /* A handle is a thin line on one side of the key with a slightly larger area to grab (the ::before is what you see). */
+  position: absolute;
+  background: transparent;
+  pointer-events: auto;
+  touch-action: none;
+}
+.handle::before {
+  content: '';
+  position: absolute;
+  background: var(--color-accent);
+  border: 1px solid var(--color-panel);
+  border-radius: var(--radius-md);
+}
+.handle.left,
+.handle.right {
+  top: 50%;
+  width: 10px;
+  height: 60%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+.handle.left {
+  left: -5px;
+}
+.handle.right {
+  right: -5px;
+}
+.handle.left::before,
+.handle.right::before {
+  inset: 0 3px;
+}
+.handle.top,
+.handle.bottom {
+  left: 50%;
+  width: 60%;
+  height: 10px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+.handle.top {
+  top: -5px;
+}
+.handle.bottom {
+  bottom: -5px;
+}
+.handle.top::before,
+.handle.bottom::before {
+  inset: 3px 0;
+}
+.arrange-bar {
+  position: absolute;
+  left: var(--bar-x, 0);
+  top: var(--bar-y, 0);
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-menu);
+}
+.arrange-bar[hidden] {
+  display: none;
+}
+.arrange-bar button {
+  padding: var(--space-2) var(--space-8);
+  font-size: var(--text-sm);
+}
+.zoom-controls {
+  position: absolute;
+  right: var(--space-10);
+  bottom: var(--space-10);
+  z-index: 6;
+  display: flex;
+  gap: var(--space-4);
+}
+.zoom-controls button {
+  padding: var(--space-2) var(--space-8);
+}
+.kmk {
+  position: absolute;
+  left: calc(var(--x) * var(--unit));
+  top: calc(var(--y) * var(--unit));
+  width: calc(var(--w) * var(--unit) - 3px);
+  height: calc(var(--h, 1) * var(--unit) - 3px);
+  font-size: calc(var(--unit) * 0.28);
+  border: 1px solid var(--color-key-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-key-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  cursor: pointer;
+  overflow: hidden;
+}
+.kmk[hidden],
+.handles[hidden] {
+  display: none;
+}
+.kmk.off {
+  opacity: 0.28;
+  background: transparent;
+  border-style: dashed;
+}
+.kmk.sel {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.editor {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-12) var(--space-14);
+  max-width: 560px;
+}
+
+.fontlist {
+  max-width: 560px;
+}
+.fontitem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-10);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+}
+.fontitem .n {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#toast {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-toast-bg);
+  border: 1px solid var(--color-accent);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-xl);
+  z-index: 9;
+}
+#toast.err {
+  background: var(--color-error-bg);
+  border-color: var(--color-danger);
+}
+
+#pane {
+  animation: fadein 0.18s ease-out;
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.errnote {
+  color: var(--color-error-text);
+  background: var(--color-error-bg-soft);
+  border: 1px solid var(--color-error-line);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-12);
+  margin: var(--space-6) 0;
+  max-width: 640px;
+}
+.errnote[hidden] {
+  display: none;
+}
+
+.card.add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: transparent;
+  border: 2px dashed var(--color-line-dashed);
+  color: var(--color-text-dim);
+  min-height: 66px;
+}
+.card.add:hover {
+  border-color: var(--color-line-dashed-hover);
+  color: var(--color-text);
+  background: var(--color-hover-faint);
+}
+.card.add .plus {
+  font-size: var(--text-display);
+  line-height: 1;
+  font-weight: var(--weight-light);
+}
+.card.add small {
+  font-size: var(--text-xs);
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The Edit scenes popup (obs-scenes-popup.js): one row per scene (name, what shows there, remove), in columns */
+.scene-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.scene-rule {
+  display: grid;
+  /* the name takes what's left; the menu fits "Show: " + a layout name; the last column is the ✕ button's width (.menu-button
+     in blocks.css), so the headings row, which has no button, lines up with the rows */
+  grid-template-columns: minmax(0, 1fr) 220px 28px;
+  align-items: center;
+  gap: var(--space-8);
+}
+.scene-rule-headings {
+  font-size: var(--text-sm);
+  color: var(--color-text-dim);
+}

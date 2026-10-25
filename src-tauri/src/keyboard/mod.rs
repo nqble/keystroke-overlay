@@ -8,27 +8,40 @@
 //! (tracks held keys, drops everything while paused) → broadcast to WebSocket clients.
 //! The method can be switched while the app runs (`Bus::set_method`).
 //!
-//! Both methods are Windows only. On Linux, the Standard method uses X11 instead (`x11`, docs/LINUX-PORT.md). On other
-//! systems the app builds and runs without keyboard capture: starting a method fails with a clear message, shown in the
-//! settings window like any other start-up problem (docs/CROSS-PLATFORM.md). A port adds its own method here
-//! (docs/MAC-PORT.md).
+//! Both methods are Windows only. On Linux, the Standard method uses X11 instead (`x11`, docs/LINUX-PORT.md), or on a
+//! Wayland desktop reads the keyboard devices (`linux_devices`, which needs the `input` group), and on
+//! macOS it uses a listen-only event tap (`macos`, docs/MAC-PORT.md). On other systems the app builds and runs without
+//! keyboard capture: starting a method fails with a clear message, shown in the settings window like any other
+//! start-up problem (docs/CROSS-PLATFORM.md). A port adds its own method here (docs/MAC-PORT.md).
 //!
 //! Privacy: events live only in memory and are forwarded to localhost WebSocket clients. Nothing is written to disk.
 
 #[cfg(windows)]
 mod hook;
-// keymap, tracker and linux_keys are plain logic used by the capture methods. They are built on every system so their
-// unit tests run everywhere; on other systems nothing calls them.
+// keymap, tracker, linux_keys and macos_keys are plain logic used by the capture methods. They are built on every
+// system so their unit tests run everywhere; on other systems nothing calls them.
 #[cfg_attr(not(windows), allow(dead_code))]
 pub mod keymap;
+#[cfg(target_os = "linux")]
+mod linux_devices;
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 mod linux_keys;
+#[cfg(target_os = "macos")]
+mod macos;
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+mod macos_keys;
+#[cfg(target_os = "macos")]
+pub mod macos_labels;
 #[cfg(windows)]
 mod rawinput;
 #[cfg_attr(not(windows), allow(dead_code))]
 mod tracker;
+#[cfg(windows)]
+pub mod windows_labels;
 #[cfg(target_os = "linux")]
 mod x11;
+#[cfg(target_os = "linux")]
+pub mod x11_labels;
 
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -64,7 +77,9 @@ impl Method {
     }
     pub fn label(self) -> &'static str {
         match self {
+            Self::Hook if cfg!(target_os = "linux") && wayland() => "Standard (keyboard devices)",
             Self::Hook if cfg!(target_os = "linux") => "Standard (X11)",
+            Self::Hook if cfg!(target_os = "macos") => "Standard (event tap)",
             Self::Hook => "Standard (keyboard hook)",
             Self::RawInput => "Compatibility (Raw Input)",
         }
@@ -72,12 +87,26 @@ impl Method {
 }
 
 /// Shown when the app runs on a system that has no keyboard capture method yet.
-#[cfg(not(any(windows, target_os = "linux")))]
+#[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
 const UNSUPPORTED: &str = "keyboard capture isn't available on this system yet";
 
 /// Shown when Compatibility is chosen on Linux, which only has the Standard method so far.
 #[cfg(target_os = "linux")]
 const LINUX_STANDARD_ONLY: &str = "only the Standard method is available on Linux so far";
+
+/// Shown when Compatibility is chosen on macOS, which only has the Standard method so far.
+#[cfg(target_os = "macos")]
+const MACOS_STANDARD_ONLY: &str = "only the Standard method is available on macOS so far";
+
+/// True on a Linux Wayland desktop, where the Standard method reads the keyboard devices instead of using X11.
+#[cfg(target_os = "linux")]
+fn wayland() -> bool {
+    linux_devices::wayland_session()
+}
+#[cfg(not(target_os = "linux"))]
+fn wayland() -> bool {
+    false
+}
 
 enum Source {
     #[cfg(windows)]
@@ -86,6 +115,10 @@ enum Source {
     RawInput(rawinput::Handle),
     #[cfg(target_os = "linux")]
     X11(x11::Handle),
+    #[cfg(target_os = "linux")]
+    Devices(linux_devices::Handle),
+    #[cfg(target_os = "macos")]
+    Macos(macos::Handle),
 }
 impl Source {
     #[cfg(windows)]
@@ -98,11 +131,19 @@ impl Source {
     #[cfg(target_os = "linux")]
     fn start(method: Method, tx: Sender<KeyEvent>) -> Result<Self, String> {
         match method {
+            Method::Hook if wayland() => linux_devices::start(tx).map(Source::Devices),
             Method::Hook => x11::start(tx).map(Source::X11),
             Method::RawInput => Err(LINUX_STANDARD_ONLY.to_string()),
         }
     }
-    #[cfg(not(any(windows, target_os = "linux")))]
+    #[cfg(target_os = "macos")]
+    fn start(method: Method, tx: Sender<KeyEvent>) -> Result<Self, String> {
+        match method {
+            Method::Hook => macos::start(tx).map(Source::Macos),
+            Method::RawInput => Err(MACOS_STANDARD_ONLY.to_string()),
+        }
+    }
+    #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
     fn start(_method: Method, _tx: Sender<KeyEvent>) -> Result<Self, String> {
         Err(UNSUPPORTED.to_string())
     }
@@ -122,6 +163,10 @@ impl Source {
             Source::RawInput(handle) => handle.stop(),
             #[cfg(target_os = "linux")]
             Source::X11(handle) => handle.stop(),
+            #[cfg(target_os = "linux")]
+            Source::Devices(handle) => handle.stop(),
+            #[cfg(target_os = "macos")]
+            Source::Macos(handle) => handle.stop(),
         }
     }
 }
@@ -162,6 +207,64 @@ impl Drop for WatchGuard<'_> {
     }
 }
 
+/// The modifier and lock keys. macOS still reports these to an app that was refused Input Monitoring (only the ordinary keys
+/// are hidden), so they do not prove that capture works: `Bus::has_seen_keys` ignores them.
+fn is_modifier_code(code: &str) -> bool {
+    matches!(
+        code,
+        "ShiftLeft"
+            | "ShiftRight"
+            | "ControlLeft"
+            | "ControlRight"
+            | "AltLeft"
+            | "AltRight"
+            | "MetaLeft"
+            | "MetaRight"
+            | "CapsLock"
+    )
+}
+
+/// What the operating system lets the app do with the keyboard. macOS asks the person first (Input Monitoring) and can
+/// switch capture off while a password is typed (Secure Input); a Linux Wayland desktop needs the `input` group to read
+/// the keyboards; everywhere else both are fine.
+pub struct Access {
+    /// Whether this system can need the person's permission at all (macOS, and Linux on Wayland).
+    pub applies: bool,
+    pub allowed: bool,
+    pub secure_input: bool,
+}
+
+#[cfg(target_os = "macos")]
+pub fn access() -> Access {
+    Access {
+        applies: true,
+        allowed: macos::input_monitoring_allowed(),
+        secure_input: macos::secure_input_on(),
+    }
+}
+#[cfg(target_os = "linux")]
+pub fn access() -> Access {
+    Access {
+        applies: wayland(),
+        allowed: !wayland() || linux_devices::can_read_a_keyboard(),
+        secure_input: false,
+    }
+}
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+pub fn access() -> Access {
+    Access {
+        applies: false,
+        allowed: true,
+        secure_input: false,
+    }
+}
+
+/// Ask for keyboard access and open the page where it is granted (macOS only; nothing to do elsewhere).
+pub fn request_access() {
+    #[cfg(target_os = "macos")]
+    macos::request_input_monitoring();
+}
+
 struct Capture {
     method: Method,
     source: Option<Source>,
@@ -174,6 +277,12 @@ pub struct Bus {
     pub held: Mutex<HashSet<&'static str>>,
     /// When true, key events are dropped (tray "Pause overlay"). Capture keeps running.
     pub paused: AtomicBool,
+    /// Has any key event ever arrived? Only a fact (never which key), so the window can tell "capture works" from "macOS
+    /// let the tap start but sends it nothing", which is what a missing Input Monitoring permission can look like.
+    keys_seen: AtomicBool,
+    /// Was the app allowed to read the keyboard when it started? macOS only starts sending keys to an app that was already
+    /// allowed at launch, so "allowed now but not then" means a restart is needed.
+    allowed_at_start: bool,
     ev_tx: Sender<KeyEvent>,
     capture: Mutex<Capture>,
     /// How many overlay pages are connected (the hook watch runs while this is above 0).
@@ -185,6 +294,9 @@ impl Bus {
     /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
     /// Pause is pressed can never slip through or leave a stuck key behind.
     fn forward(&self, event: KeyEvent) {
+        if !is_modifier_code(event.code) {
+            self.keys_seen.store(true, Ordering::Relaxed);
+        }
         let mut held = self.held.lock().unwrap();
         if self.paused.load(Ordering::Relaxed) {
             return;
@@ -195,6 +307,16 @@ impl Bus {
             held.remove(event.code);
         }
         let _ = self.tx.send(event); // Err = no listeners; fine.
+    }
+
+    /// Was keyboard access already on when the app started? See `allowed_at_start`.
+    pub fn was_allowed_at_start(&self) -> bool {
+        self.allowed_at_start
+    }
+
+    /// Has an ordinary key (not a modifier) arrived since the app started? See `keys_seen`.
+    pub fn has_seen_keys(&self) -> bool {
+        self.keys_seen.load(Ordering::Relaxed)
     }
 
     /// Pause or resume (tray "Pause overlay" and the pause button). Pausing forgets every held key.
@@ -280,6 +402,8 @@ pub fn start(method: Method) -> Arc<Bus> {
         tx: btx,
         held: Mutex::new(HashSet::new()),
         paused: AtomicBool::new(false),
+        keys_seen: AtomicBool::new(false),
+        allowed_at_start: access().allowed,
         ev_tx,
         capture: Mutex::new(Capture { method, source, error }),
         watchers: AtomicUsize::new(0),
@@ -307,6 +431,8 @@ mod tests {
             tx: broadcast::channel(256).0,
             held: Mutex::new(HashSet::new()),
             paused: AtomicBool::new(false),
+            keys_seen: AtomicBool::new(false),
+            allowed_at_start: true,
             ev_tx,
             capture: Mutex::new(Capture {
                 method: Method::Hook,
@@ -353,6 +479,34 @@ mod tests {
             0,
             "the last page leaving turns it off"
         );
+    }
+
+    #[test]
+    fn a_modifier_alone_does_not_prove_capture_works() {
+        let bus = test_bus();
+        for code in ["ShiftLeft", "ControlRight", "AltLeft", "MetaLeft", "CapsLock"] {
+            bus.forward(KeyEvent { down: true, code });
+        }
+        assert!(
+            !bus.has_seen_keys(),
+            "macOS reports modifiers even to an app that was refused Input Monitoring"
+        );
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyA",
+        });
+        assert!(bus.has_seen_keys());
+    }
+
+    #[test]
+    fn the_bus_remembers_that_a_key_arrived() {
+        let bus = test_bus();
+        assert!(!bus.has_seen_keys());
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyW",
+        });
+        assert!(bus.has_seen_keys());
     }
 
     #[test]

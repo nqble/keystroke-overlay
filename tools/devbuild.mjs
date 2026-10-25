@@ -119,7 +119,7 @@ async function checkWindow(page) {
   const answer =
     await ask(`(async () => { const i = document.querySelector('.brand img'); if (!i || !i.complete || !i.naturalWidth) return { ok: false, why: 'logo missing', url: location.href };
       const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.drawImage(i, 0, 0, 64, 64); const [R, G, B] = x.getImageData(16, 18, 1, 1).data;
-      return { ok: document.querySelectorAll('nav button').length === 6 && R > G && B > R && document.querySelector('.brand').textContent.includes('devbuild'), url: location.href, rgb: [R, G, B], tabs: document.querySelectorAll('nav button').length }; })()`);
+      return { ok: document.querySelectorAll('nav button').length === 6 && R > G && B > R && !!document.querySelector('[data-test="dev-badge"]'), url: location.href, rgb: [R, G, B], tabs: document.querySelectorAll('nav button').length }; })()`);
   ws.close();
   return answer.result?.result?.value;
 }
@@ -151,20 +151,9 @@ rmSync(UI_TMP, { recursive: true, force: true });
 mkdirSync(WORK, { recursive: true });
 try {
   // 1. the devbuild logo, as a full icon set
-  console.log('> Drawing the devbuild logo');
-  const src = join(WORK, 'icon-devbuild-source.png'),
-    icons = join(WORK, 'icons');
-  run('powershell.exe', [
-    '-NoProfile',
-    '-ExecutionPolicy',
-    'Bypass',
-    '-File',
-    'tools/make-icon.ps1',
-    '-Devbuild',
-    '-Out',
-    `"${src}"`,
-  ]);
-  run('npx', ['tauri', 'icon', `"${src}"`, '-o', `"${icons}"`], { stdio: 'ignore' });
+  console.log('> Making the devbuild logo');
+  const icons = join(WORK, 'icons');
+  run('npx', ['tauri', 'icon', `"${join(ROOT, 'assets/logo/logo-dev.svg')}"`, '-o', `"${icons}"`], { stdio: 'ignore' });
 
   // 2. a copy of the settings page with the purple logo in its header (the real files are not touched)
   const ui = join(UI_TMP, 'ui-settings');

@@ -10,7 +10,7 @@ the network could expose live key presses to other computers or to websites.
 - The server binds to `127.0.0.1` only. Other computers cannot reach it.
 - Requests must carry a `Host` of `localhost:<port>` or `127.0.0.1:<port>`, and any `Origin` header must be the same
   local address. This blocks DNS-rebinding and other websites from reading the stream.
-- An **optional secure link** (General → Secure link, off by default) adds a private key (`?key=`). With it on, the data
+- An **optional secure link** (**General → Connection → Secure my OBS URL**, off by default) adds a private key (`?key=`). With it on, the data
   endpoints and the key stream refuse requests without the key.
 
 ## Why

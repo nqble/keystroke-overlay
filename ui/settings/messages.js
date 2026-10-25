@@ -2,18 +2,28 @@
 //  Messages from the app (tray actions, update results, download progress) and re-reading the app's state.
 // =====================================================================================================================
 import { $, call, tauriEvent, invoke } from './helpers.js';
-import { paintProgress, showUpdateResult } from './popups.js';
+import { paintProgress, showUpdateResult } from './update-popup.js';
 import { flushPendingSave, push } from './preview.js';
+import { noticeObs } from './first-run.js';
+import { paintHeader } from './header.js';
+import { paintAccess, setKeyboardAccess } from './keyboard-access.js';
+import { findTab } from './tabs/index.js';
+import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
-import { isTab } from './tabs/index.js';
 import {
+  overlays,
+  serverError,
   paused,
+  settings,
   setInputActive,
   setInputError,
   setLayouts,
   setObsUrl,
+  setOverlays,
   setPaused,
+  setPlatform,
   setPresets,
+  setServerError,
   setSettings,
   setTab,
   setUpdateProgress,
@@ -22,22 +32,27 @@ import {
 // ---------------------------------------------------------------------------------------------------------------------
 // 9. Messages from the app (tray actions, update results, download progress)
 // ---------------------------------------------------------------------------------------------------------------------
-const megabytes = (bytes) => (bytes / 1048576).toFixed(1) + ' MB';
+const BYTES_PER_MEGABYTE = 1024 * 1024;
+const megabytes = (bytes) => (bytes / BYTES_PER_MEGABYTE).toFixed(1) + ' MB';
+
+const TEXT = {
+  downloading: (done) => `Downloading… ${done}`,
+  downloadingOf: (done, total, percent) => `Downloading… ${done} of ${total} (${percent}%)`,
+  installing: 'Installing… the app will restart.',
+};
 
 tauriEvent.listen('update-progress', (e) => {
   const { done, total } = e.payload;
   const percent = total ? Math.min(100, Math.round((done / total) * 100)) : -1; // -1 = size unknown
   setUpdateProgress({
     pct: percent,
-    text: total
-      ? `Downloading… ${megabytes(done)} of ${megabytes(total)} (${percent}%)`
-      : `Downloading… ${megabytes(done)}`,
+    text: total ? TEXT.downloadingOf(megabytes(done), megabytes(total), percent) : TEXT.downloading(megabytes(done)),
   });
   paintProgress();
 });
 
 tauriEvent.listen('update-installing', () => {
-  setUpdateProgress({ pct: 100, text: 'Installing… the app will restart in a moment.' });
+  setUpdateProgress({ pct: 100, text: TEXT.installing });
   paintProgress();
 });
 
@@ -46,21 +61,33 @@ tauriEvent.listen('update-result', (e) => showUpdateResult(e.payload));
 
 // e.g. the tray's "Update available"
 tauriEvent.listen('goto-tab', (e) => {
-  if (isTab(e.payload)) {
+  if (findTab(e.payload, !!settings?.general?.debugMode)) {
     setTab(e.payload);
     render();
   }
 });
 
 export function paintPause() {
-  $('#pausebar').hidden = !paused;
+  paintPauseButton($('#pauseBtn'), paused);
+  paintHeader();
 }
 
-$('#resumeBtn').onclick = async () => {
-  await call('toggle_pause');
+// an OBS overlay connected or disconnected (sent only on a change, never polled)
+tauriEvent.listen('overlays-changed', (e) => {
+  setOverlays(e.payload);
+  paintHeader();
+  noticeObs();
+});
+
+// The same switch as the tray's "Pause overlay". The app answers with the new state; the tray hears it too.
+$('#pauseBtn').onclick = async () => {
+  setPaused(await call('toggle_pause'));
+  paintPause();
 };
 
 export function showServerError(message) {
+  setServerError(message || null);
+  paintHeader();
   const banner = $('#banner');
   banner.hidden = !message;
   if (message) banner.textContent = message + ' — pick another port in General → Port.';
@@ -84,8 +111,12 @@ export async function resync() {
   setPresets(null); // anything may have changed behind our back: fetch the preset names again next time
   setSettings(state.settings);
   setPaused(state.paused);
+  setOverlays(state.overlays);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
+  setPlatform(state.platform);
+  setKeyboardAccess(state.keyboardAccess);
+  paintAccess();
   paintPause();
   showServerError(state.serverError);
   push();

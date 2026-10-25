@@ -3,26 +3,31 @@
 The files the app reads and writes. All are plain JSON or tiny JavaScript, and everything the app loads from the outside
 is validated and cleaned first. Schemas for the two shareable formats are in [`docs/schemas/`](schemas).
 
-Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows (General → App → Open data folder).
+Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows, `~/Library/Application Support/com.keyoverlay.app` on a
+Mac, `~/.local/share/com.keyoverlay.app` on Linux (General → Advanced → Open data folder).
 
 ## Settings (`settings.json`)
-Versioned (`"version": 3` since v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
+Versioned (`"version": 4` from v2.0, which only adds settings; 3 from v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
 The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the single source of truth. Shape:
 
 ```jsonc
 {
-  "version": 3,
+  "version": 4,
   "general": { "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
                "autoCheckUpdates": true, "inputMethod": "hook",            // "hook" | "rawinput"
                "secureLink": false, "linkKey": "", "updateChannel": "stable", // "stable" | "latest"
                "debugMode": false, "lastSeenVersion": "" },
   "layout": { "id": "tkl",
               "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } },   // see "Key edits" below
-              "editor": { "snap": 0.25, "grid": false, "showHidden": true } },   // the Keys tab's choices, see below
+              "editor": { "snap": 0.25, "grid": false, "showHidden": true },   // the Keys tab's choices, see below
+              "order": ["full", "tkl", "gameplay", "wasd"] },   // the built-in layouts the Layout tab shows, in order (your own always show)
   "style": { "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff", "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff",
              "borderWidth": 2, "radius": 8, "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
              "textColor": "#e6e9f0ff", "textColorPressed": "#ffffffff", "glowColor": "#4f8cffff", "glowSize": 18,
-             "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0 },
+             "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0,
+             "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language and Win/Alt/Ctrl follow the system (⌘ ⌥ ⌃ on a Mac); "layout": the files' labels
+  "hotkeys": { "enabled": false, "pause": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP"; registered only when on and set
+  "obs": { "scenes": { "enabled": false, "rules": [] } },   // per OBS scene: { "scene": "Chat", "show": false, "layout": "" }; at most 20 rules, names up to 100 characters, each scene once (case ignored); layout "" = the chosen layout
   "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
 }
 ```
@@ -55,9 +60,12 @@ dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1
 grid dots are shown (`true` or `false`), and `showHidden`, whether keys you turned off are still shown dimmed on the board (`true` or `false`). Anything else, or a settings file saved before these existed, gets the defaults
 (`0.25`, `false` and `true`). The overlay ignores them.
 
-Numbers are clamped to these ranges on load: port 1024–65535, borderWidth 0–20, radius 0–100, fontSize 0–120,
+The port must be a whole number from 1024 to 65535, or it goes back to 7878. Other numbers are clamped to these ranges on
+load: borderWidth 0–20, radius 0–100, fontSize 0–120,
 fontWeight 100–900, glowSize 0–100, keySize 16–200, gap 0–60, scale 0.2–4, opacity 0–1, animation speed 0–2000,
-intensity 0–4. Colors are `#rrggbb` or `#rrggbbaa`. Wrong types fall back to the default.
+intensity 0–4. Colors are `#rrggbb` or `#rrggbbaa`. Text with a fixed set of choices (input method, update channel, key labels, the
+pause shortcut, ...) goes back to its default when it isn't one of them; unknown keys are removed. Wrong types fall back to
+the default.
 
 ## Layout (`layouts/<id>.json`)
 Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
@@ -77,6 +85,11 @@ Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
 `x`, `y` are the key's position and `w`, `h` its size, in key units (1 = one normal key). `code` is a key name from the
 [protocol](PROTOCOL.md). The app keeps at most **20** layouts you made.
 
+A layout made **From a KLE file** (New layout) is an ordinary layout file. A key the import couldn't link to a key of the keyboard
+gets a placeholder `code`, `Unlinked` and a number (`Unlinked1`, `Unlinked2`, ..., unique in the layout): it is drawn
+like any key and never lights up, because no capture method produces such a name. The names are reserved
+([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change.
+
 **Exported layout file** (**Layout → Export to file…**, and what **Import from file…** reads):
 
 ```json
@@ -87,7 +100,9 @@ Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
 
 Import also accepts a single bare layout object. It cleans the data (at most 300 keys of 40-character codes, labels of 16
 characters, names of 30), never overwrites an existing layout (a number is added to the id instead), and stops at the
-20-layout limit.
+20-layout limit. Each key's `x` and `y` are limited to −100 to 100 and its `w` and `h` to 0.25–100, all rounded to 2
+decimals (the same limits as moved and resized keys above), and a key whose `code` an earlier key already has is left out:
+a code appears only once in a layout (`clean_layout_keys` in `src-tauri/src/sanitize.rs`).
 
 ## Preset (exported style, `presets/<name>.json`)
 Schema: [`schemas/preset.schema.json`](schemas/preset.schema.json). It is the `style` and `animation` parts of the

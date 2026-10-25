@@ -5,6 +5,8 @@ import { registerAnimation } from '/overlay/registry.js';
 registerAnimation({
   id: 'scale',
   name: 'Scale up',
+  description: 'Grows while held.',
+  usesIntensity: true,
   apply: ({ ms, intensity }) => ({
     down: `scale(${(1 + 0.12 * intensity).toFixed(3)})`,
     press: { ms: ms * 0.7, ease: 'cubic-bezier(.34,1.4,.64,1)' },

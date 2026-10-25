@@ -1,0 +1,210 @@
+/* The header: logo and name, the OBS status, Copy OBS link and Update ready (top right), the DEV badge and the
+   window buttons. Code: header.js, obs-status.js, windowbar.js. Design: docs/design/ui-design-v2.md, Header. */
+header {
+  display: flex;
+  align-items: stretch;
+  padding: 0 0 0 var(--space-16);
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-line);
+} /* the buttons touch the top right corner, like a native title bar */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-10) 0;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+  white-space: nowrap;
+}
+.brand .logo {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-lg);
+  flex: none;
+}
+/* header.js draws into this; it adds no box of its own, so its two groups sit in the header's row directly. */
+.header-controls {
+  display: contents;
+}
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-left: var(--space-12);
+  margin-right: auto;
+  min-width: 0;
+  white-space: nowrap; /* the header never wraps; at 820 px everything still fits */
+}
+.header-status button,
+.header-actions button {
+  flex: none;
+}
+/* Top right, before the window buttons (ui-design-v2.md, Header): Copy OBS link, and Update ready to its right. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-right: var(--space-12);
+  white-space: nowrap;
+}
+/* Devbuilds only (tools/devbuild-title.mjs adds it): a small purple DEV badge after the name. */
+.dev-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-round);
+  background: var(--color-dev-bg);
+  color: var(--color-dev-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+}
+
+/* Header OBS status (obs-status.js). Same colors as the v2.0 design: green live, amber paused, gray not connected. */
+.obs-status {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 var(--space-10);
+  border-radius: 13px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.obs-status.live {
+  background: var(--color-live-bg);
+  color: var(--color-live-text);
+}
+.obs-status.paused {
+  background: var(--color-paused-bg);
+  color: var(--color-paused-text);
+}
+.obs-status.off {
+  background: var(--color-panel-raised);
+  color: var(--color-text-dim);
+}
+/* Something the streamer must fix (port in use, link changed): red like errors, not amber like pause. */
+.obs-status.bad {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+
+/* Update ready chip in the header (update-popup.js shows it; header.js starts the arrow). On hover, after 150 ms, the
+   arrow drops out of the bottom of its own small box and comes back in from the top, once, like a download. The box
+   clips it, so only the arrow moves. Once started it always finishes. Only transform and opacity animate. */
+.update-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 26px;
+  padding: 0 var(--space-10);
+  border: 0;
+  border-radius: 13px;
+  background: var(--color-update-bg);
+  color: var(--color-update-text);
+  font-size: var(--text-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+.update-chip[hidden] {
+  display: none;
+}
+.update-chip:hover {
+  background: var(--color-update-hover);
+}
+.update-chip:active {
+  background: var(--color-update-pressed);
+}
+.update-arrow-box {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 12px;
+  height: 14px;
+  overflow: hidden;
+}
+.update-arrow {
+  display: block;
+}
+.update-arrow.dropping {
+  animation: update-arrow-drop 520ms ease-in-out 1;
+}
+@keyframes update-arrow-drop {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translateY(110%);
+    opacity: 0;
+  }
+  46% {
+    transform: translateY(-110%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .update-arrow.dropping {
+    animation: none;
+  }
+}
+
+/* Minimize / maximize / close: Windows-style caption buttons (the window has no native title bar). */
+.winbtns {
+  display: flex;
+  align-self: stretch;
+  flex: none;
+}
+.winbtns button {
+  width: 46px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: default;
+}
+/* Drawn icons, so the buttons look the same on every system (not only where Windows' icon font exists). */
+.winbtns svg {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  vertical-align: middle;
+}
+.winbtns .icon-restore,
+.winbtns .maximized .icon-maximize {
+  display: none;
+}
+.winbtns .maximized .icon-restore {
+  display: inline;
+}
+.winbtns button:hover {
+  background: var(--color-hover-soft);
+}
+.winbtns button:active {
+  background: var(--color-press-soft);
+}
+.winbtns #wClose:hover {
+  background: var(--color-close-hover);
+  color: var(--color-on-fill);
+}
+.winbtns #wClose:active {
+  background: var(--color-close-active);
+  color: var(--color-on-fill);
+}
+
+/* macOS: the window has its real red / yellow / green buttons in the top left (window.rs adds the `mac` class), so the
+   drawn buttons go and the logo moves right of the real ones. */
+.mac header {
+  padding-left: var(--mac-window-buttons-width);
+}
+.mac .winbtns {
+  display: none;
+}

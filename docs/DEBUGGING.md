@@ -4,8 +4,8 @@ Keystroke Overlay has a built-in **Debug mode** for anyone working on the code (
 
 ## Turn it on
 
-- **In the app:** General → App → **Debug mode (for developers)**. A **Debug** tab appears in the left menu. Turn the switch off and the tab disappears and the log's everyday details are forgotten (the important events stay; see below).
-- **For development:** `npm run dev:debug` starts a separate development copy of the app with Debug mode already on and the browser inspector ready (see below). It needs Windows. It has its own settings folder (`%APPDATA%\com.keyoverlay.dev`) and its own port (7880), so it never clashes with an installed Keystroke Overlay.
+- **In the app:** General → Advanced → **Debug mode (for developers)**. A **Debug** tab appears in the left menu. Turn the switch off and the tab disappears and the log's everyday details are forgotten (the important events stay; see below).
+- **For development:** `npm run dev:debug` starts a separate development copy of the app with Debug mode already on and the browser inspector ready (see below). It works on Windows, macOS and Linux. It has its own settings folder (`com.keyoverlay.dev` in the system's app-data folder: `%APPDATA%` on Windows, `~/Library/Application Support` on a Mac, `~/.local/share` on Linux) and its own port (7880), so it never clashes with an installed Keystroke Overlay. On a Mac the inspector is Safari's Develop menu instead of edge://inspect.
 
 ## What the Debug tab has
 
@@ -22,7 +22,7 @@ Keystroke Overlay has a built-in **Debug mode** for anyone working on the code (
 
 ## The browser inspector
 
-The settings window is a web page, so you can inspect it like one. Its own browser shortcuts (F12, Ctrl+Shift+I, print, reload, zoom) are switched off, so use the steps below:
+The settings window is a web page, so you can inspect it like one. On Windows its own browser shortcuts (F12, Ctrl+Shift+I, print, reload, zoom) are switched off (`platform::lock_browser_features`), so use the steps below:
 
 1. Quit Keystroke Overlay.
 2. In a Command Prompt run `set WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222`, then start the app from that same window (`npm run dev:debug` does this for you).
@@ -43,7 +43,7 @@ In the inspector's console, the object **`ko`** has shortcuts: `ko.info()`, `ko.
   message or a key) to `crash-note.txt` in the data folder. The next start puts it in the event log and the bug
   report's problems, then deletes it.
 - The Key monitor is the only tool that shows key presses. It must be started by hand, stops after 60 seconds, and only talks to the settings window on this PC.
-- The bug report contains no key presses and no private link key, and your user name is removed from paths (from v1.4.0
+- The bug report contains no key presses and no secure link key, and your user name is removed from paths (from v1.4.0
   in its Windows, Linux and macOS forms; v1.3.0 removes the usual Windows form).
 
 ## Adding to it
@@ -57,28 +57,58 @@ crate::debug::log("what just happened");            // or  crate::debug::log(for
 ### A new debug tool
 
 1. If it needs data from the app, add a `#[tauri::command]` in `src-tauri/src/debug.rs` and list it in `generate_handler!` in `src-tauri/src/main.rs`.
-2. In `ui/settings/debug.js`, add one object to the `SECTIONS` list:
+2. Add a file in `ui/settings/debug/` (one per tool) that exports it, and add its name to `SECTIONS` in
+   `ui/settings/debug/index.js`:
 
 ```js
-{
-  id: 'my-tool', // a short name for tests (goes into data-card)
-  title: 'My tool',
-  build() {
-    const out = el('div');
-    every(out, 2000, async () => { out.textContent = JSON.stringify(await invoke('debug_info')); });   // refresh every 2 s
-    return [note('What this shows.'), out];
-  },
-},
+import { invoke } from '../helpers.js';
+import { html, useState } from '../html.js';
+import { Facts, Hint, useEvery } from './shared.js';
+
+function MyTool() {
+  const [info, setInfo] = useState(null);
+  useEvery(2000, async () => setInfo(await invoke('debug_info'))); // refresh every 2 s, only while the tab is open
+  return html`<${Hint} text="What this shows." />
+    <${Facts} rows=${info ? [['Version', info.version]] : []} />`;
+}
+
+export const myTool = { id: 'my-tool', title: 'My tool', Body: MyTool }; // id goes into data-card for the tests
 ```
 
-debug.js is an ES module, so import what you use at the top of the file (`helpers.js` for the small tools, `state.js` for the settings and layouts, `popups.js`, `messages.js`, `settings.js`).
-
-Helpers you can use there: `el()`, `heading()`, `note()`, `button()`, `row()`, `toast()`, `call()`, `invoke()`, the `settings`, `layouts`, `showNotes()`, `resync()`, `render()`. The file's header comment lists them.
+Each section is a small Preact component (`html` from `../html.js`, like the other tabs). Import what you use at the
+top: `../helpers.js` for `invoke()`, `call()` and `toast()`, `../state.js` for the settings and layouts, `./shared.js`
+for the Debug tab's blocks (`Button`, `Hint`, `Facts`, `Check`, `LogLine`), `useEvery()` and its wording, and
+`./checks.js` for the self-test; the other sections show the pattern. `ui/settings/debug/index.js`'s header comment has
+the steps.
 
 3. Add a check to `tests/e2e/suites/debug.mjs` and run `npm run test:e2e -- --suite debug`.
 
 ## Other things that speed up development
 
-- `npm test` runs the Rust unit tests, the UI unit tests and the privacy check (about a minute).
+- `npm test` runs the Rust unit tests, the UI unit tests, the privacy check and the every-system check (about a minute).
 - `npm run test:e2e -- --suite <name>` runs one end-to-end suite instead of everything (see `tests/README.md`).
 - `npm run check:privacy` fails if network code, logging or file writes appear where the privacy promises forbid them.
+
+## Without the app: the UI sandbox
+
+`npm run ui-sandbox` opens the real settings window in any browser, with `tools/sandbox/fake-app.js` standing in for the
+app (made-up answers, nothing saved). Every hard-to-reach screen has an address, so people, screenshot tests and Claude
+sessions can open it directly:
+
+| Address | Shows |
+|---|---|
+| `?state=live` (default) / `off` | OBS connected / not connected |
+| `?state=paused` / `paused-no-obs` | paused, with and without OBS |
+| `?state=port-in-use` | the server could not start |
+| `?state=first-run` | the first run setup screen of a new install |
+| `?state=mac-allow`, `mac-restart`, `mac-secure` | the macOS keyboard access notice: not allowed yet, allowed but restart needed, Secure Input on |
+| `?state=update` / `whats-new` / `whats-new-long` | the update button and popup / the What's new popup / with notes long enough to scroll |
+| `?tab=debug` | Debug mode on, Debug tab open (any tab name works) |
+
+In the browser console, `__sandbox.emit('overlays-changed', 0)` sends an app message, and `__sandbox.copied` holds the
+last text a Copy button copied. A copy of the default settings lives in `tools/sandbox/default-settings.json`; a Rust
+test fails if it drifts from `defaults()` in `settings.rs`.
+
+**The building blocks on their own:** `/__sandbox__/blocks.html` shows every shared block (`ui/settings/blocks.js`) with
+real state, so hover, press, keyboard focus, on and off and selected can all be checked by eye or in a screenshot.
+

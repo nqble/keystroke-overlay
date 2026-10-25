@@ -5,7 +5,7 @@ use crate::settings;
 use crate::state::{obs_url, sync_tray, AppState};
 use serde_json::{json, Value};
 use std::sync::atomic::Ordering;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_autostart::ManagerExt as _;
 use tauri_plugin_clipboard_manager::ClipboardExt as _;
 
@@ -17,13 +17,23 @@ pub fn get_state(st: State<AppState>) -> Value {
         "serverError": *st.server_error.lock().unwrap(),
         "version": env!("CARGO_PKG_VERSION"),
         "paused": st.shared.bus.paused.load(Ordering::Relaxed),
+        "overlays": *st.shared.overlays.borrow(),
         "whatsNew": st.whats_new.load(Ordering::Relaxed),
+        "firstRun": st.first_run.load(Ordering::Relaxed),
         "inputError": st.shared.bus.error(),
         "inputActive": st.shared.bus.method().id(),
+        "platform": crate::platform::name(),
+        "keyboardAccess": super::keyboard_access::status(&st.shared.bus),
         "secureLink": st.shared.settings.read().unwrap()["general"]["secureLink"],
         "gotoTab": st.pending_tab.lock().unwrap().take(),
         "updateBadge": st.tray.lock().unwrap().as_ref().is_some_and(|t| t.update_shown),
     })
+}
+
+/// The first run setup screen was closed: don't show it again by itself (General can still open it).
+#[tauri::command]
+pub fn ack_first_run(st: State<AppState>) {
+    st.first_run.store(false, Ordering::Relaxed);
 }
 
 /// Persist settings from the UI. Port, autostart and lastSeenVersion have their own paths
@@ -43,10 +53,13 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
         ] {
             new["general"][k] = cur["general"][k].clone();
         }
+        new["hotkeys"] = cur["hotkeys"].clone(); // changed only through set_pause_hotkey, which registers it
     }
     crate::debug::set_enabled(new["general"]["debugMode"].as_bool().unwrap_or(false));
     let channel_changed =
         st.shared.settings.read().unwrap()["general"]["updateChannel"] != new["general"]["updateChannel"];
+    let order_changed = st.shared.settings.read().unwrap()["layout"]["order"] != new["layout"]["order"];
+    let labels_changed = st.shared.settings.read().unwrap()["style"]["keyLabels"] != new["style"]["keyLabels"];
     settings::save(&st.shared.paths.settings(), &new).map_err(|e| {
         crate::debug::log(format!("settings could not be saved: {e}"));
         e.to_string()
@@ -56,7 +69,14 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
         *st.update_cache.lock().unwrap() = None;
     } // a different channel needs a fresh check
     let _ = st.shared.cfg_tx.send("cfg");
+    if labels_changed {
+        let _ = st.shared.cfg_tx.send("assets"); // the overlay re-fetches the layouts, now with the other labels
+        let _ = app.emit("settings-changed", ()); // and so does the settings window
+    }
     st.auto_check_changed.notify_one(); // "Check for updates automatically" may have changed
+    if order_changed {
+        crate::tray::refresh_tray_layouts(&app); // the tray's Layout menu follows the Layout tab's order
+    }
     sync_tray(&app);
     Ok(())
 }
@@ -101,7 +121,7 @@ pub fn set_autostart(app: AppHandle, st: State<AppState>, enabled: bool) -> Resu
 
 #[tauri::command]
 pub fn list_layouts(st: State<AppState>) -> Vec<Value> {
-    server::layouts(&st.shared.paths)
+    crate::key_labels::layouts_to_show(&st.shared.paths, &st.shared.settings.read().unwrap())
 }
 
 #[tauri::command]
@@ -190,6 +210,7 @@ pub async fn reset_settings(app: AppHandle) -> Result<String, String> {
         .await
         .map_err(|e| e.to_string())??;
     crate::state::announce(&app);
+    crate::tray::refresh_tray_layouts(&app); // the default order is back
     sync_tray(&app);
     Ok(obs_url(&app.state::<AppState>().shared))
 }

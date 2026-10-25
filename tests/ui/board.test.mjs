@@ -7,7 +7,6 @@ import {
   boardArea,
   boardFrame,
   boardSize,
-  centreOffset,
   clampToBoard,
   closeGapsPositions,
   evenGridBoxes,
@@ -41,13 +40,6 @@ test('saved keys past the normal board make it grow instead of being moved', () 
 
 test('boardArea is the whole board, from 0', () => {
   assert.deepEqual(boardArea(BOARD), { minX: 0, minY: 0, maxX: 24, maxY: 12 });
-});
-
-test('centreOffset puts a group in the middle of the board, on the snap step', () => {
-  // WASD is 3 × 2: the middle of a 24 × 12 board starts at x 10.5, y 5
-  assert.deepEqual(centreOffset(WASD, BOARD, 0.25), { dx: 10.5, dy: 5 });
-  // with whole-key steps the half key rounds down
-  assert.deepEqual(centreOffset(WASD, BOARD, 1), { dx: 10, dy: 5 });
 });
 
 test('clampToBoard keeps a key fully on the board, wide keys included', () => {
@@ -88,32 +80,47 @@ test('overlappingCodes finds overlaps but not keys that only touch', () => {
   assert.deepEqual([...overlappingCodes(stacked)].sort(), ['A', 'B']);
 });
 
-test('close gaps shrinks wide gaps to a quarter key, keeps the order, and centers', () => {
-  // A and B touch; a 3-key gap before C
-  const keys = [key('A', 0, 0), key('B', 1, 0), key('C', 5, 0)];
-  const positions = closeGapsPositions(keys, BOARD);
-  const width = positions.C.x + 1 - positions.A.x;
-  assert.equal(width, 3.25, 'A + B + a quarter-key gap + C');
-  assert.ok(positions.A.x < positions.B.x && positions.B.x < positions.C.x, 'order kept');
-  assert.equal(positions.B.x - positions.A.x, 1, 'touching keys stay touching');
-  // centered: (24 − 3.25) / 2 = 10.375, which rounds down to the quarter step: 10.25
-  assert.equal(positions.A.x, 10.25);
+test('close gaps slides the keys right of a hidden key into its spot, in that row only', () => {
+  // one row: Q W E R, with W hidden; a second row under it: A S
+  const shown = [key('KeyQ', 0, 0), key('KeyE', 2, 0), key('KeyR', 3, 0), key('KeyA', 0.25, 1), key('KeyS', 1.25, 1)];
+  const hidden = [key('KeyW', 1, 0)];
+  const positions = closeGapsPositions(shown, hidden);
+  assert.deepEqual(positions.KeyQ, { x: 0, y: 0 }, 'keys left of the hidden key stay');
+  assert.deepEqual(positions.KeyE, { x: 1, y: 0 }, 'E fills W’s spot');
+  assert.deepEqual(positions.KeyR, { x: 2, y: 0 });
+  assert.deepEqual(positions.KeyA, { x: 0.25, y: 1 }, 'the next row does not move');
 });
 
-test('close gaps in Even grid closes gaps completely', () => {
-  const keys = [key('A', 0, 0), key('C', 4, 0)];
-  const positions = closeGapsPositions(keys, BOARD, 0, 1);
-  assert.equal(positions.C.x - positions.A.x, 1);
+test('close gaps keeps the layout’s own gaps, so a layout with nothing hidden does not change', () => {
+  // F1 and F5 with the usual half-key gap between groups, and a row under them
+  const shown = [key('F1', 0, 0), key('F5', 1.5, 0), key('Digit1', 0, 1.5)];
+  const positions = closeGapsPositions(shown, []);
+  for (const box of shown) assert.deepEqual(positions[box.code], { x: box.x, y: box.y }, box.code);
 });
 
-test('close gaps keeps the keyboard shape when nothing needs closing', () => {
-  const positions = closeGapsPositions(WASD, BOARD);
-  assert.equal(positions.KeyW.x - positions.KeyA.x, 1, 'W stays above S, one key right of A');
-  assert.equal(positions.KeyS.y - positions.KeyW.y, 1);
+test('close gaps a second time changes nothing', () => {
+  const hidden = [key('KeyW', 1, 0)];
+  const once = closeGapsPositions([key('KeyQ', 0, 0), key('KeyE', 2, 0), key('KeyR', 3, 0)], hidden);
+  const after = Object.entries(once).map(([code, place]) => key(code, place.x, place.y));
+  const twice = closeGapsPositions(after, hidden);
+  assert.deepEqual(twice, once);
+});
+
+test('hidden keys before the first shown key of a row are not a hole, so WASD keeps its shape', () => {
+  // only W, A, S, D shown from a full keyboard: Tab, Q and Caps Lock are hidden to their left
+  const shown = [key('KeyW', 2.5, 0), key('KeyA', 1.75, 1), key('KeyS', 2.75, 1), key('KeyD', 3.75, 1)];
+  const hidden = [key('Tab', 0, 0, 1.5), key('KeyQ', 1.5, 0), key('CapsLock', 0, 1, 1.75)];
+  const positions = closeGapsPositions(shown, hidden);
+  for (const box of shown) assert.deepEqual(positions[box.code], { x: box.x, y: box.y }, box.code);
+});
+
+test('a wide hidden key counts its whole width', () => {
+  const positions = closeGapsPositions([key('KeyZ', 0, 0), key('Slash', 2.25, 0)], [key('Space', 1, 0, 1.25)]);
+  assert.deepEqual(positions.Slash, { x: 1, y: 0 });
 });
 
 test('close gaps with no keys does nothing', () => {
-  assert.deepEqual(closeGapsPositions([], BOARD), {});
+  assert.deepEqual(closeGapsPositions([], []), {});
 });
 
 test('evenGridBoxes uses the places the app worked out, every key 1 wide', () => {

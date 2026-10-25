@@ -7,7 +7,7 @@
 //  A view state is { zoom, panX, panY }: the board's top-left corner sits at (panX, panY) inside the box.
 // =====================================================================================================================
 
-export const ZOOM_MAX = 2;
+export const ZOOM_MAX = 3; // 300%; docs/design/key-editor.md (Zoom) and the e2e "zoom stops at" check say the same
 
 /** One mouse-wheel notch (deltaY 100) zooms about 12%: factor = e^(−deltaY × WHEEL_SPEED). */
 export const WHEEL_SPEED = 0.0012;
@@ -83,6 +83,11 @@ export function zoomAt(state, factor, point, view, content, overscan = 0) {
     content,
     overscan,
   );
+}
+
+/** The view moved by (dx, dy) screen pixels, as a two-finger scroll does, kept so only the board shows. */
+export function panBy(state, dx, dy, view, content, overscan = 0) {
+  return clampView({ ...state, panX: state.panX + dx, panY: state.panY + dy }, view, content, overscan);
 }
 
 /** A point inside the box (screen pixels) as a point on the board layer at 100%, undoing the zoom and pan. */

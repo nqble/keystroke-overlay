@@ -1,30 +1,27 @@
 // =====================================================================================================================
 //  Keystroke Overlay: the settings window.
-//  Plain JavaScript in small ES modules, no bundler, no build step. This file is the entry point (index.html loads it):
-//  it picks the tab, draws the window and starts everything. Every other file does one job:
-//
-//    state.js       what the window remembers while it is open (the settings, layouts, current tab, ...)
-//    text.js        the longer explanations the user reads
-//    helpers.js     small tools: talk to the app, build page elements, toasts
-//    preview.js     saving a change, the live preview, the OBS address bar
-//    profiles.js    per-layout key edits: hidden keys, labels, moved keys, "Tidy up"
-//    controls.js    the table that draws every slider, color picker and dropdown
-//    popups.js      dialogs, the right-click menu, release notes, the update dialog
-//    messages.js    messages from the app (tray, updates, progress) and re-reading its state
-//    windowbar.js   the window's own minimize / maximize / close buttons
-//    tabs/index.js  the ONE list of tabs (id, name, page); tabs/*.js one file per tab (the Keys tab has several, keys-*.js)
-//    debug.js       the optional Debug tab (see docs/DEBUGGING.md)
+//  Plain JavaScript in small ES modules, no bundler, no build step; new screens are Preact components (html.js). This
+//  file is the entry point (index.html loads it): it draws the tab bar and the open tab, and starts everything. Every
+//  other file does one job; docs/ARCHITECTURE.md has the map. The tabs, in order, are listed in tabs/index.js.
 //
 //  HOW TO ADD A SETTING: add a line to CONTROLS in controls.js; it is drawn automatically. Also add its default value
 //  in src-tauri/src/settings.rs and, if the overlay uses it, read it in ui/overlay/overlay.js.
 // =====================================================================================================================
-import { $, button, call, invoke } from './helpers.js';
+import { $, call, invoke } from './helpers.js';
+import { openFirstRun } from './first-run.js';
+import { paintAccess, setKeyboardAccess } from './keyboard-access.js';
+import { paintHeader } from './header.js';
+import { html, render as draw } from './html.js';
 import { paintPause, showServerError, resync } from './messages.js';
-import { hideMenu, showNotes, showUpdateResult } from './popups.js';
+import { hideMenu } from './menu.js';
+import { refreshFades } from './scroll-fade.js';
+import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
+import { showNotes } from './notes.js';
+import { showUpdateResult } from './update-popup.js';
 import { fitPreview, frame, previewSrc, setPreviewHidden, updateObs } from './preview.js';
 import {
-  settings,
   appVersion,
+  registry,
   setAppVersion,
   setBooted,
   setCustomFonts,
@@ -32,102 +29,62 @@ import {
   setInputError,
   setLayouts,
   setObsUrl,
+  setOverlays,
+  setPlatform,
   setPaused,
   setSettings,
   setTab,
+  settings,
   tab,
-  registry,
 } from './state.js';
 // Loaded only for what it does when it starts: it wires up the minimize / maximize / close buttons.
 import './windowbar.js';
-import { TABS, isTab } from './tabs/index.js';
+import { findTab, visibleTabs } from './tabs/index.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 8. Drawing the window
 // ---------------------------------------------------------------------------------------------------------------------
-/** One button in the tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
-function tabButton(id, name) {
-  const onclick = () => switchTo(id);
-  const tabItem = button(name, onclick, id === tab ? 'active' : '', 'tab');
-  tabItem.dataset.tab = id;
-  if (id === tab) tabItem.setAttribute('aria-current', 'page'); // tells screen readers which tab is open
-  return tabItem;
-}
-
-// The Debug tab (ui/settings/debug.js) only exists in Debug mode, so its code is only loaded then (the first time it is needed).
-let debugTab = null;
-
-// Pages built earlier, by tab id, for the tabs marked `keep` in tabs/index.js. They are reused when you come back to a tab and
-// nothing has changed in between. Anything that changes the settings throws them away (render() and changed() do it).
-const keptPages = new Map();
-const scrollOf = new Map(); // where each tab was scrolled to when you left it
-let generation = 0; // goes up every time the kept pages are thrown away, so a page built meanwhile is not kept
-
-/** Throw away the kept pages, except the one named (the tab being used: it already shows the change). */
-export function forgetPages(except = null) {
-  generation += 1;
-  for (const id of [...keptPages.keys()]) if (id !== except) keptPages.delete(id);
-}
-
-/**
- * Draw the tab bar and the active tab.
- *   reuse  show the kept page if there is one, instead of building the tab again (used when only switching tabs)
- * Without `reuse` this is a redraw after a change: the kept pages are dropped and the scroll position stays where it was.
- */
-async function draw(reuse) {
-  const debugOn = !!settings?.general?.debugMode;
-  if (debugOn && !debugTab) debugTab = (await import('./debug.js')).debugTab;
-  if (tab === 'debug' && !debugOn) setTab('general');
-  const tabs = debugOn ? [...TABS, { id: 'debug', ...debugTab }] : TABS;
-  $('#tabs').replaceChildren(...tabs.map(({ id, name }) => tabButton(id, name)));
-  const pane = $('#pane');
-  const scroll = reuse ? (scrollOf.get(tab) ?? 0) : pane.scrollTop;
-  if (!reuse) forgetPages();
-  const entry = tabs.find((t) => t.id === tab);
-  setPreviewHidden(!!entry.hidesPreview);
-  let content = keptPages.get(tab);
-  if (!content) {
-    const builtAt = generation;
-    content = await entry.render();
-    if (entry.keep && builtAt === generation) keptPages.set(tab, content);
-  }
-  pane.replaceChildren(content);
-  pane.scrollTop = scroll;
-}
-
-/**
- * Build the other tabs' pages while the window is idle, one at a time, so the first visit to each is instant too. A page
- * built before a change is dropped (see `generation`), and nothing is built while a popup is open.
- */
-function preloadTabs() {
-  const idle = window.requestIdleCallback ?? ((run) => setTimeout(run, 200));
-  const next = (queue) => {
-    const entry = queue.shift();
-    if (!entry) return;
-    idle(async () => {
-      const builtAt = generation;
-      if (!keptPages.has(entry.id) && entry.id !== tab && builtAt === generation) {
-        try {
-          const page = await entry.render();
-          if (builtAt === generation) keptPages.set(entry.id, page);
-        } catch {
-          /* it is built again when the tab is opened */
-        }
-      }
-      next(queue);
-    });
+/** The tab bar. data-tab holds the tab's id so the tests can pick it without reading its text. */
+function TabBar({ tabs, current }) {
+  const open = (id) => {
+    scrollOf.set(tab, $('#pane').scrollTop);
+    setTab(id);
+    render(scrollOf.get(id) ?? 0);
   };
-  next(TABS.filter((entry) => entry.keep));
+  return tabs.map(
+    ({ id, name }) =>
+      html`<button
+        type="button"
+        class=${id === current ? 'active' : null}
+        data-test="tab"
+        data-tab=${id}
+        aria-current=${id === current ? 'page' : null}
+        onClick=${() => open(id)}
+      >
+        ${name}
+      </button>`,
+  );
 }
 
-/** Redraw the active tab after something changed. */
-export const render = () => draw(false);
+const scrollOf = new Map(); // where each tab was scrolled to when you left it, so coming back lands there again
 
-/** Open another tab (reusing its page when nothing has changed since it was built). */
-function switchTo(id) {
-  scrollOf.set(tab, $('#pane').scrollTop);
-  setTab(id);
-  return draw(true);
+/**
+ * Redraw the tab bar and the active tab. Without `scroll` (a redraw after a change) the pane stays where it is
+ * scrolled; the tab bar passes the remembered place of the tab it opens.
+ */
+export async function render(scroll = null) {
+  const debugMode = !!settings?.general?.debugMode;
+  if (!findTab(tab, debugMode)) setTab('general'); // e.g. Debug mode was just switched off while on the Debug tab
+  draw(html`<${TabBar} tabs=${visibleTabs(debugMode)} current=${tab} />`, $('#tabs'));
+  const pane = $('#pane');
+  if (typeof scroll !== 'number') scroll = pane.scrollTop; // also when called with something else, e.g. an event
+  const entry = findTab(tab, debugMode);
+  setPreviewHidden(!!entry.hidesPreview);
+  const content = await entry.render();
+  draw(content, pane);
+  pane.scrollTop = scroll;
+  refreshFades();
+  paintHeader(); // a tab may have changed the link (new port or key), which the header status shows
 }
 
 // When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to
@@ -154,22 +111,25 @@ addEventListener('resize', () => {
   setObsUrl(state.url);
   setAppVersion(state.version);
   setPaused(state.paused);
+  setOverlays(state.overlays);
   setLayouts(layoutList);
   setCustomFonts(fonts);
   setInputActive(state.inputActive);
   setInputError(state.inputError);
+  setPlatform(state.platform);
+  setKeyboardAccess(state.keyboardAccess);
+  paintAccess();
   // e.g. the tray's "Update available" opens General
-  if (state.gotoTab && isTab(state.gotoTab)) setTab(state.gotoTab);
+  if (state.gotoTab && findTab(state.gotoTab, !!state.settings.general?.debugMode)) setTab(state.gotoTab);
   paintPause();
   updateObs();
   // the overlay can't load, but the port can still be fixed
   if (state.serverError) {
     showServerError(state.serverError);
     setTab('general');
-  }
+  } else if (state.firstRun) openFirstRun(); // a brand-new install: the three steps to add it to OBS
   setBooted(true);
   await render();
-  preloadTabs();
   window.__uiReady = performance.timeOrigin + performance.now(); // read by the performance tests
   if (!state.serverError)
     requestAnimationFrame(() => {

@@ -4,16 +4,17 @@ import { execSync } from 'node:child_process';
 import net from 'node:net';
 import { connect, byTest, listenKeys, appAlive, check, finish, sleep, EXE_NAME, PORT } from '../lib/cdp.mjs';
 
-const SETTINGS_VERSION = 3; // the settings file format version (CURRENT_VERSION in src-tauri/src/settings.rs)
+const SETTINGS_VERSION = 4; // the settings file format version (CURRENT_VERSION in src-tauri/src/settings.rs)
 const VERSION = process.env.E2E_VERSION; // the app's real version, provided by run.mjs
 const p = await connect();
 await sleep(2500);
 const { invoke: inv, q } = p;
 
 // ---- window + UI
+// v2.0 has five tabs (Layout, Keys, Style, Animation, General): Fonts moved into Style. The list is ui/settings/tabs/index.js.
 check(
-  'settings UI rendered (6 tabs, content)',
-  (await q(`document.querySelectorAll('${byTest('tab')}').length`)) === 6 &&
+  'settings UI rendered (5 tabs, content)',
+  (await q(`document.querySelectorAll('${byTest('tab')}').length`)) === 5 &&
     (await q(`document.querySelector('${byTest('pane')}').children.length`)) > 0,
 );
 check(

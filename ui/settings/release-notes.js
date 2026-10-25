@@ -1,11 +1,11 @@
 // =====================================================================================================================
 //  The release notes' sections: the one list both the app and the release check use (docs/RELEASING.md, "Release
-//  notes format"). popups.js colors each section when it shows the notes; tools/changelog-section.mjs refuses a
+//  notes format"). notes.js colors each section when it shows the notes; tools/changelog-section.mjs refuses a
 //  CHANGELOG entry that uses another heading or the wrong order. Plain logic, so tests/ui can run it with Node.
 // =====================================================================================================================
 
 /**
- * Every section a release may have, in the order they must appear. `kind` picks the color in settings.css
+ * Every section a release may have, in the order they must appear. `kind` picks the color in popups.css
  * (.notes-new, .notes-improved, ...). To add a section: add it here, give it a color token in settings.css, and
  * describe it in docs/RELEASING.md.
  */

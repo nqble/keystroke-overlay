@@ -15,7 +15,7 @@ const tab = async (id) => {
 };
 
 // ---- normal use: no violations
-for (const t of ['layout', 'keys', 'style', 'animation', 'fonts', 'general', 'layout']) await tab(t);
+for (const t of ['layout', 'keys', 'style', 'animation', 'general', 'layout']) await tab(t);
 await p.ev(`document.querySelector('${byTest('layout-add')}').click()`);
 await sleep(300);
 // open and close the New layout dialog

@@ -17,15 +17,18 @@ const tab = async (id) => {
 };
 // Every dropdown and slider on the Style and Animation tabs: the ones made from CONTROLS (their hooks start with
 // "control-") plus the theme and saved-preset dropdowns.
-const EVERY_SELECT = `select${byTestStart('control-')}, ${byTest('style-theme')}, ${byTest('preset-select')}`;
+// themes are cards since v2.0 (ui/settings/tabs/style-themes.js), so the sweep clicks every theme card as well
+const EVERY_SELECT = `select${byTestStart('control-')}`;
+const EVERY_THEME_CARD = byTestStart('theme-card-');
 const EVERY_SLIDER = `input[type=range]${byTestStart('control-')}`;
+const EVERY_ANIMATION_CARD = byTestStart('animation-card-');
+const EVERY_EASING = `${byTest('control-animation-easing')} [role=radio]`;
 
 const TAB_IDS = {
   Layout: 'layout',
   Keys: 'keys',
   Style: 'style',
   Animation: 'animation',
-  Fonts: 'fonts',
   General: 'general',
 };
 for (const [name, id] of Object.entries(TAB_IDS)) {
@@ -33,10 +36,9 @@ for (const [name, id] of Object.entries(TAB_IDS)) {
   check(`tab ${name} renders content`, await p.q(`document.querySelector('${byTest('pane')}').innerText.length > 40`));
 }
 check(
-  'General sections are in the tidy order',
-  JSON.stringify(
-    await p.q(`[...document.querySelectorAll('${byTest('section-heading')}')].map(h => h.textContent)`),
-  ) === JSON.stringify(['OBS', 'Server', 'Secure link', 'Keyboard input', 'App', 'Program updates']),
+  'General cards are in the tidy order (ui-design-v2.md)',
+  JSON.stringify(await p.q(`[...document.querySelectorAll('#pane .section-title')].map(h => h.textContent)`)) ===
+    JSON.stringify(['Connection', 'OBS scenes', 'Keyboard input', 'Startup', 'Pause shortcut', 'Updates', 'Advanced']),
 );
 
 // the overlay as OBS loads it (no ?preview) skips the theme files; the settings preview still loads them
@@ -74,22 +76,25 @@ check(
     `(() => { const r = document.querySelector('${byTest('window-buttons')}').getBoundingClientRect(); return r.right >= innerWidth - 1 && r.top <= 1 && !!document.querySelector('${byTest('window-minimize')}') && !!document.querySelector('${byTest('window-maximize')}') && !!document.querySelector('${byTest('window-close')}'); })()`,
   ),
 );
+// The two icons are drawn in index.html; windowbar.js shows the right one with the `maximized` class and renames the
+// button, so the test follows both the class and the name a screen reader says.
 check(
-  'maximize toggles (and the glyph follows), restore goes back',
+  'maximize toggles (and the icon and name follow), restore goes back',
   await (async () => {
     const state = () => p.q(`window.__TAURI__.window.getCurrentWindow().isMaximized()`);
     const maximize = byTest('window-maximize');
     await p.ev(`document.querySelector('${maximize}').click()`);
     await sleep(700);
-    const on = await state(),
-      glyph1 = await p.q(`document.querySelector('${maximize}').textContent.charCodeAt(0).toString(16)`);
+    const look = () =>
+      p.q(
+        `(() => { const b = document.querySelector('${maximize}'); return b.classList.contains('maximized') + ' ' + b.ariaLabel; })()`,
+      );
+    const on = await state();
+    const lookWhenOn = await look();
     await p.ev(`document.querySelector('${maximize}').click()`);
     await sleep(700);
     return (
-      on === true &&
-      glyph1 === 'e923' &&
-      (await state()) === false &&
-      (await p.q(`document.querySelector('${maximize}').textContent.charCodeAt(0).toString(16)`)) === 'e922'
+      on === true && lookWhenOn === 'true Restore' && (await state()) === false && (await look()) === 'false Maximize'
     );
   })(),
 );
@@ -100,7 +105,7 @@ await p.ev(
 );
 await tab('animation');
 await tab('style');
-await tab('fonts');
+await tab('general');
 await tab('style');
 check(
   'revisiting the Style tab does not ask the app for the preset list again',
@@ -135,11 +140,9 @@ for (let presses = 0; presses < 120 && !reached; presses++) {
 }
 check('reaching a slider with the Tab key shows a focus outline', reached && (await outlineShown()));
 check(
-  'the Fonts tab no longer has presets',
-  await (async () => {
-    await tab('fonts');
-    return !(await p.q(`!!document.querySelector('.fpre')`));
-  })(),
+  'font files are added in Style -> Text, and there is no Fonts tab any more',
+  (await p.q(`!!document.querySelector('${byTest('fonts-add')}')`)) &&
+    !(await p.q(`!!document.querySelector('${byTest('tab', '[data-tab="fonts"]')}')`)),
 );
 await tab('style');
 const fontSelect = `document.querySelector('${byTest('control-style-font-family')}')`;
@@ -179,24 +182,28 @@ await p.invoke('set_layout', { id: 'tkl' });
 // every theme / animation via the saved settings (what presets and the selects do)
 const st = (await p.invoke('get_state')).ok;
 await tab('animation');
-const anims = await p.q(
-  `[...document.querySelectorAll('${EVERY_SELECT}')].flatMap(s => [...s.options].map(o => o.value))`,
-);
-for (const sel of await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')].map((s, i) => i)`)) {
-  const opts = await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')][${sel}].options.length`);
-  for (let o = 0; o < opts; o++) {
-    await p.ev(
-      `const s = [...document.querySelectorAll('${EVERY_SELECT}')][${sel}]; s.selectedIndex = ${o}; s.dispatchEvent(new Event('change', { bubbles: true }))`,
-    );
-    await sleep(120);
-  }
+// animations are cards and easing is a row of choices since v2.0 (ui/settings/tabs/animation.js): click them all
+const animationCards = await p.q(`document.querySelectorAll('${EVERY_ANIMATION_CARD}').length`);
+for (let index = 0; index < animationCards; index++) {
+  await p.ev(`document.querySelectorAll('${EVERY_ANIMATION_CARD}')[${index}].click()`);
+  await sleep(120);
 }
+const easingChoices = await p.q(`document.querySelectorAll('${EVERY_EASING}').length`);
+for (let index = 0; index < easingChoices; index++) {
+  await p.ev(`document.querySelectorAll('${EVERY_EASING}')[${index}].click()`);
+  await sleep(120);
+}
+const animationFiles = await p.q(`window.__ko.registry().animations.length`);
 check(
-  'every animation / easing option applies without errors',
-  (await errs()).length === 0,
-  JSON.stringify(await errs()),
+  'every animation card and easing choice applies without errors',
+  animationCards >= 6 && animationCards === animationFiles && easingChoices >= 6 && (await errs()).length === 0,
+  JSON.stringify([animationCards, easingChoices, await errs()]),
 );
 await tab('style');
+for (const index of await p.q(`[...document.querySelectorAll('${EVERY_THEME_CARD}')].map((c, i) => i)`)) {
+  await p.ev(`[...document.querySelectorAll('${EVERY_THEME_CARD}')][${index}].click()`);
+  await sleep(150);
+}
 for (const sel of await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')].map((s, i) => i)`)) {
   const opts = await p.q(`[...document.querySelectorAll('${EVERY_SELECT}')][${sel}].options.length`);
   for (let o = 0; o < opts; o++) {

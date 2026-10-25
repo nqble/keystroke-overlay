@@ -8,6 +8,29 @@ mod load_and_save_tests {
     use super::*;
     use crate::sanitize::*;
     #[test]
+    fn the_ui_sandbox_has_the_same_defaults() {
+        // tools/ui-sandbox.mjs can't run Rust, so it reads a copy. Changed a default? Update the copy too.
+        let copy: Value = serde_json::from_str(include_str!("../../../tools/sandbox/default-settings.json")).unwrap();
+        assert_eq!(
+            copy,
+            defaults(),
+            "update tools/sandbox/default-settings.json to match defaults()"
+        );
+    }
+    #[test]
+    fn a_version_3_file_keeps_everything_on_the_way_to_4() {
+        let migrated = migrate(json!({
+            "version": 3,
+            "hotkeys": { "enabled": true, "pause": "Ctrl+Shift+KeyP" },
+            "style": { "keyLabels": "layout", "radius": 12 }
+        }));
+        assert_eq!(migrated["version"], json!(4));
+        assert_eq!(migrated["hotkeys"]["pause"], json!("Ctrl+Shift+KeyP"));
+        assert_eq!(migrated["hotkeys"]["enabled"], json!(true));
+        assert_eq!(migrated["style"]["keyLabels"], json!("layout"));
+        assert_eq!(migrated["style"]["radius"].as_f64(), Some(12.0));
+    }
+    #[test]
     fn garbage_becomes_defaults() {
         assert_eq!(migrate(json!("nope")), defaults());
         assert_eq!(migrate(json!(null)), defaults());
@@ -322,6 +345,17 @@ mod load_and_save_tests {
             .filter(|e| e.file_name().to_string_lossy().starts_with("settings.v"))
             .count();
         assert_eq!(copies, 0);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+    #[test]
+    fn only_a_folder_without_settings_or_their_backup_is_a_first_run() {
+        let dir = scratch_folder("first-run");
+        let file = dir.join("settings.json");
+        assert!(is_first_run(&file));
+        std::fs::write(dir.join("settings.json.bak"), "{}").unwrap();
+        assert!(!is_first_run(&file), "a backup means the app ran before");
+        std::fs::write(&file, "{}").unwrap();
+        assert!(!is_first_run(&file));
         std::fs::remove_dir_all(&dir).ok();
     }
     #[test]
@@ -858,5 +892,75 @@ mod layout_style_tests {
             out["a"]["styles"]["shape"]["positions"]["KeyW"],
             json!({ "x": 1.0, "y": 2.0 })
         );
+    }
+}
+
+#[cfg(test)]
+mod layout_key_tests {
+    use super::*;
+    use crate::sanitize::*;
+
+    #[test]
+    fn layout_keys_keep_the_rules_they_had() {
+        let long_code = "K".repeat(41);
+        let raw = json!([
+            { "code": "KeyA", "x": 0, "y": 0, "label": "a label longer than sixteen" },
+            { "code": "", "x": 0, "y": 0 },
+            { "code": long_code, "x": 0, "y": 0 },
+            { "code": 5, "x": 0, "y": 0 },
+            { "code": "KeyB", "x": "1", "y": 0 },
+            { "code": "KeyC", "y": 0 },
+            { "code": "KeyD", "x": 1, "y": 0, "w": "wide", "label": 7 },
+            "not a key"
+        ]);
+        assert_eq!(
+            clean_layout_keys(&raw),
+            vec![
+                json!({ "code": "KeyA", "x": 0.0, "y": 0.0, "label": "a label longer t" }),
+                json!({ "code": "KeyD", "x": 1.0, "y": 0.0 })
+            ]
+        );
+        assert!(clean_layout_keys(&json!({ "keys": [] })).is_empty());
+        assert!(clean_layout_keys(&Value::Null).is_empty());
+    }
+
+    #[test]
+    fn layout_key_codes_are_letters_and_digits_only() {
+        let raw = json!([
+            { "code": "<img src=x>", "x": 0, "y": 0 },
+            { "code": "Key A", "x": 0, "y": 0 },
+            { "code": "Key\u{0}A", "x": 0, "y": 0 },
+            { "code": "KeyÄ", "x": 0, "y": 0 },
+            { "code": "Unlinked3", "x": 1, "y": 0 }
+        ]);
+        assert_eq!(
+            clean_layout_keys(&raw),
+            vec![json!({ "code": "Unlinked3", "x": 1.0, "y": 0.0 })]
+        );
+    }
+
+    #[test]
+    fn layout_keys_are_limited_rounded_and_unique() {
+        let raw = json!([
+            { "code": "KeyA", "x": -1e9, "y": 1e9, "w": 0.1, "h": 1e9 },
+            { "code": "KeyB", "x": 0.125, "y": 0.375, "w": 1.875, "h": 2 },
+            { "code": "KeyA", "x": 5, "y": 5 }
+        ]);
+        assert_eq!(
+            clean_layout_keys(&raw),
+            vec![
+                json!({ "code": "KeyA", "x": MIN_POSITION, "y": MAX_POSITION, "w": MIN_KEY_WIDTH, "h": MAX_KEY_WIDTH }),
+                json!({ "code": "KeyB", "x": 0.13, "y": 0.38, "w": 1.88, "h": 2.0 })
+            ],
+            "the second KeyA is dropped: the first key keeps its code"
+        );
+    }
+
+    #[test]
+    fn at_most_three_hundred_layout_keys_are_read() {
+        let raw: Vec<Value> = (0..400)
+            .map(|n| json!({ "code": format!("Key{n}"), "x": 0, "y": 0 }))
+            .collect();
+        assert_eq!(clean_layout_keys(&json!(raw)).len(), MAX_LAYOUT_KEYS);
     }
 }

@@ -4,9 +4,12 @@ The easy ways to add something, smallest first. None needs a build step. Why cus
 and not a general plugin system: [decision 0006](decisions/0006-layouts-themes-animations-are-data-files.md).
 
 ## 1. A layout
-**In the app:** Layout tab → the dashed **+** card → name it. It starts as the full-size keyboard; hide the keys you don't
-want in the Keys tab. **By hand:** write a JSON file; format in [FILE-FORMATS.md](FILE-FORMATS.md). To ship it with the
-app, put it in `ui/overlay/layouts/`.
+**In the app:** Layout tab → the dashed **+ New layout** card → name it. It starts as the full-size keyboard; hide the keys you don't
+want in the Keys tab. **From a KLE file:** the same popup's **From a KLE file…** makes one from a keyboard drawn on
+keyboard-layout-editor.com (reading: `ui/settings/kle.js` and `kle-layout.js`; the legend table that links keys:
+`ui/settings/key-names.js`). **By hand:** write a JSON file; format in [FILE-FORMATS.md](FILE-FORMATS.md). To ship it with the
+app, put it in `ui/overlay/layouts/`: it appears in the New layout popup's "Other layouts" by itself. To show it on
+new installs, add its id to `DEFAULT_ORDER` in `src-tauri/src/layout_order.rs`.
 
 ## 2. A theme
 A theme is a named bundle of style values and an animation. Create `ui/overlay/themes/my-theme.js`:
@@ -37,6 +40,8 @@ import { registerAnimation } from '/overlay/registry.js';
 // Squashes on press, returns smoothly on release.
 registerAnimation({
   id: 'squash', name: 'Squash',
+  description: 'Squashes flat, then springs back.', // its card's one line (optional)
+  usesIntensity: true, // apply() uses intensity, so the Strength slider shows (optional)
   apply: ({ ms, intensity }) => ({
     down: `scaleY(${(1 - 0.15 * intensity).toFixed(3)})`,
     press: { ms: ms * 0.5, ease: 'cubic-bezier(.2,.9,.1,1)' },
@@ -48,18 +53,34 @@ registerAnimation({
 Animate only `transform` and `opacity`, so the work stays on the graphics card and the overlay stays light.
 
 ## 4. A setting
-1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus one line in a table in `src-tauri/src/sanitize.rs` if it needs a range or a rule: `RANGES`, `NUMBER_CHOICES`, `TEXT_RULES`).
+1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus one line in a table in `src-tauri/src/sanitize.rs` if it needs a range or a rule: `RANGES`, `NUMBER_CHOICES`, `TEXT_RULES`, `LIST_RULES`, or `FREE_FORM` for free-form data).
 2. Add a descriptor for its control to `CONTROLS` in `ui/settings/controls.js`.
 3. Use it in the overlay (`ui/overlay/overlay.js`).
-4. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
+4. Copy the new default into `tools/sandbox/default-settings.json` (a Rust test fails until you do).
+5. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
    `CURRENT_VERSION` and add a migration ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
 
-## Inside the settings window
-- **A tab:** its file in `ui/settings/tabs/`, one line in the list in `ui/settings/tabs/index.js` (id, name, page). Nothing else.
-- **A popup:** `dialog()` in `ui/settings/popups.js` gives you the frame, focus handling and Esc.
-- **A Debug tool:** one entry in `SECTIONS` in `ui/settings/debug.js` ([DEBUGGING.md](DEBUGGING.md)).
-- **Words the user reads:** the `TEXT` block of the file that shows them; shared ones are in `ui/settings/text.js`.
-- **A color or size:** a design token in the `:root` block at the top of `ui/settings/settings.css`.
+## Inside the settings window: where each thing lives
+
+The rule (CLAUDE.md, principle 4): adding, removing or changing a thing touches one place, or as few as possible, and
+when it takes more than one, a check or test catches a forgotten one.
+
+| To add, remove or change… | Where | Places |
+|---|---|---|
+| A layout, theme or animation | one file in `ui/overlay/layouts/`, `themes/` or `animations/` | 1 |
+| Words the user reads | the `TEXT` block of the file that shows them (shared ones: `ui/settings/text.js`) | 1 |
+| Words that differ per system (Windows / Mac / Linux) | one entry in `ui/settings/system-words.js` (`npm run check:systems` catches a Windows word left elsewhere) | 1 |
+| The look of one part of the window | its own CSS file next to `settings.css` (`header.css`, `popups.css`, ...; a new part gets a new file and a `<link>` in `index.html`) | 1–2 |
+| A color, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colors) | 1 |
+| A header status | one rule in `obsStatus()`, `ui/settings/obs-status.js`, plus its test | 1 |
+| A new screen or part of one | a Preact component using `html` from `ui/settings/html.js` ([decision 0013](decisions/0013-preact-with-htm-for-the-settings-window.md)); plain logic in its own tested function | 1 |
+| A popup | `dialog()` in `ui/settings/popup.js` (focus, Esc, Enter and size come with it) | 1 |
+| A scrolling area | the class `scroll-fade` on it (the fade and the shared scrollbar come with it; docs/design/ui-design-v2.md, Scrolling) | 1 |
+| A Debug tool | a file in `ui/settings/debug/` and its name in `SECTIONS` in `debug/index.js` | 2 |
+| A UI sandbox state | one line in `STATES` and one in the `?state=` list at the top of `tools/sandbox/fake-app.js` | 2 |
+| A release-note section | `NOTE_SECTIONS` in `ui/settings/release-notes.js`, a color token, a `.notes-<kind>` rule in `popups.css`, a row in RELEASING.md (the release check refuses unknown sections) | 4 |
+| A setting | section 4 above (a Rust test catches a missing sandbox copy) | 3 |
+| A tab | its file in `ui/settings/tabs/` plus one line in `ui/settings/tabs/index.js` (order, name, Debug-only); `tests/ui/tabs.test.mjs` checks the line | 2 |
 
 ## Before you open a pull request
 `npm test` (Rust and UI unit tests, privacy check), `npm run check:format`, `npm run check:types`, `npm run check:style` and

@@ -16,6 +16,14 @@
       }
     </style>
     <link rel="stylesheet" href="settings.css" />
+    <link rel="stylesheet" href="tabs.css" />
+    <link rel="stylesheet" href="blocks.css" />
+    <link rel="stylesheet" href="header.css" />
+    <link rel="stylesheet" href="pause-button.css" />
+    <link rel="stylesheet" href="popups.css" />
+    <link rel="stylesheet" href="keyboard-access.css" />
+    <link rel="stylesheet" href="debug.css" />
+    <link rel="stylesheet" href="keys.css" />
   </head>
   <body>
     <header data-tauri-drag-region data-test="app-header">
@@ -31,12 +39,9 @@
           data-tauri-drag-region
         /><span data-test="brand-title" data-tauri-drag-region>Keystroke Overlay</span>
       </div>
-      <div class="obs" data-tauri-drag-region>
-        <span class="lbl" data-tauri-drag-region>OBS Browser Source URL</span>
-        <input id="obsUrl" data-test="obs-url" aria-label="OBS Browser Source URL" readonly />
-        <button id="copyUrl" data-test="obs-copy" class="primary">Copy OBS URL</button>
-        <span id="obsSize" data-test="obs-size" class="hint" data-tauri-drag-region></span>
-      </div>
+      <!-- The status, Copy OBS URL and Update ready: drawn by header.js (Preact). Status on the left; the other two
+           always top right, just before the window buttons. -->
+      <div id="headerControls" class="header-controls"></div>
       <div class="winbtns" data-test="window-buttons">
         <button
           id="wMin"
@@ -46,7 +51,7 @@
           aria-label="Minimize"
           title="Minimize"
         >
-          &#xE921;
+          <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M0 5.5h10" /></svg>
         </button>
         <button
           id="wMax"
@@ -56,61 +61,51 @@
           aria-label="Maximize"
           title="Maximize"
         >
-          &#xE922;
+          <svg class="icon-maximize" viewBox="0 0 10 10" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="9" height="9" />
+          </svg>
+          <svg class="icon-restore" viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M2.5 2.5V0.5h7v7h-2" />
+            <rect x="0.5" y="2.5" width="7" height="7" />
+          </svg>
         </button>
         <button id="wClose" data-test="window-close" type="button" tabindex="-1" aria-label="Close" title="Close">
-          &#xE8BB;
+          <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9" /></svg>
         </button>
       </div>
     </header>
     <div id="banner" data-test="server-banner" hidden></div>
-    <div id="pausebar" data-test="pause-bar" hidden>
-      ⏸ Overlay is paused — keystrokes are hidden in OBS.
-      <button id="resumeBtn" data-test="pause-resume">Resume</button>
-    </div>
+    <div id="accessBanner" data-test="keyboard-access-banner" role="status" hidden></div>
     <section class="preview" id="previewBox">
       <iframe id="preview" data-test="preview-frame" title="Live preview" tabindex="-1"></iframe>
+      <button
+        id="pauseBtn"
+        class="pause-btn"
+        data-test="pause-overlay"
+        type="button"
+        aria-pressed="false"
+        aria-label="Pause overlay"
+      >
+        <span class="pause-cap pause-cap-left" aria-hidden="true"></span
+        ><span class="pause-mid" aria-hidden="true"></span><span class="pause-cap" aria-hidden="true"></span
+        ><span class="pause-word" aria-hidden="true">Pause</span><span class="pause-icon" aria-hidden="true">⏸</span>
+      </button>
     </section>
     <main>
       <nav id="tabs" data-test="tab-bar" aria-label="Settings sections"></nav>
-      <div id="pane" data-test="pane"></div>
+      <div id="pane" class="scroll-fade" data-test="pane"></div>
     </main>
     <div id="modal" data-test="notes-popup" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
         <h3 id="mTitle" data-test="notes-title"></h3>
-        <div id="mBody" data-test="notes-body"></div>
+        <div id="mBody" class="scroll-fade" data-test="notes-body"></div>
         <div class="mfoot"><button id="mOk" data-test="notes-ok" class="primary">OK</button></div>
       </div>
     </div>
-    <button
-      id="updateBtn"
-      data-test="update-button"
-      class="upd"
-      type="button"
-      hidden
-      aria-label="New update"
-      data-tip="New update"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        width="20"
-        height="20"
-        fill="none"
-        stroke="#fff"
-        stroke-width="2.4"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M12 4v10" />
-        <path d="M7.5 10.5 12 15l4.5-4.5" />
-        <path d="M5 19h14" />
-      </svg>
-    </button>
     <div id="updModal" data-test="update-popup" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="uTitle">
         <h3 id="uTitle" data-test="update-title"></h3>
-        <div id="uBody" data-test="update-body"></div>
+        <div id="uBody" class="scroll-fade" data-test="update-body"></div>
         <div class="bar" id="uBar" data-test="update-progress" hidden><div class="fill" id="uFill"></div></div>
         <div class="hint" id="uText" data-test="update-progress-text"></div>
         <div class="mfoot">
@@ -122,7 +117,7 @@
     <div id="dlg" data-test="dialog" hidden>
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dTitle">
         <h3 id="dTitle" data-test="dialog-title"></h3>
-        <div id="dBody" data-test="dialog-body"></div>
+        <div id="dBody" class="scroll-fade" data-test="dialog-body"></div>
         <div class="mfoot" id="dFoot" data-test="dialog-footer"></div>
       </div>
     </div>

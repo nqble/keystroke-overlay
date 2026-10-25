@@ -12,4 +12,9 @@ interface Window {
   __uiReady: number;
   /** A few private module functions, reachable by the end-to-end tests and the inspector (ui/settings/settings.js). */
   __ko: any;
+  /** OBS Studio's Browser source page API (obs-browser), only inside OBS (ui/overlay/obs-source.js). */
+  obsstudio?: {
+    pluginVersion?: string;
+    getCurrentScene?: (callback: (scene: { name: string; width: number; height: number } | null) => void) => void;
+  };
 }

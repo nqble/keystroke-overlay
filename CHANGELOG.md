@@ -3,6 +3,56 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
+## v2.0.0 — Keystroke Overlay 2.0
+
+**This is the release the app has been building toward.** Version 2.0 is a new Keystroke Overlay: a settings window redesigned from the ground up, downloads for Windows, Mac and Linux, a key editor that does what you expect, and many small touches that make it feel finished. It is still private by design (your key presses never leave your PC) and still uses next to nothing while you stream. If you tried an earlier version, now is the time to take another look.
+
+### ✨ New
+- **Mac and Linux downloads.** Every release now has an Apple Silicon app for macOS 11 and newer, and an AppImage and a .deb for Linux. On a Mac it lives in the menu bar, asks for keyboard access once (and again after each update), and Command+W and Command+Q work as you'd expect. On Linux it captures keys on X11 desktops, and on Wayland for users in the `input` group.
+- **A new settings window.** Every tab has been redesigned: layout cards you can reorder and hide, a theme gallery and preset cards on the Style tab (with Fonts now part of it), animation cards that play their own animation when you point at them, and General in tidy section cards.
+- **Eight more built-in layouts:** 60%, 65%, 75%, 96%, full-size ISO, TKL ISO, Arrows and Numpad, under **Other layouts** in the New layout popup.
+- **A first-run setup** walks new users through adding the overlay to OBS.
+- **Import a keyboard from KLE.** Drew your board on keyboard-layout-editor.com? **+ New layout → From a KLE file** turns it into a layout with the same keys, places and sizes, and links each key by its label. Keys the computer never sees, like Fn, stay on the board, drawn dashed in the preview so you know before you create it.
+- **New layout has three ways to start:** Blank, Built-in, or From a KLE file.
+- **OBS scene rules.** Hide the overlay, or show a different layout, in the OBS scenes you choose (**General → OBS scenes → Edit scenes…**). Off until you turn it on.
+- **A pause shortcut** that works from any app, even in a game (**General → Pause shortcut**). Off until you set one.
+- **Key labels follow your keyboard language,** live, on Windows, Mac and Linux, so an AZERTY or QWERTZ keyboard shows its own letters.
+- **The header always shows where you stand:** Live in OBS, Paused or Not connected, and a red warning when the port is taken or the OBS URL has changed. **Copy OBS URL** is always at the top right, and the live preview has its own round pause button.
+- **In-app updates on Linux** for the AppImage. (A copy installed from the .deb says where to get new versions instead.)
+- **Trackpad support** in the key editor: two-finger panning, pinch to zoom, and Space + drag. Zoom now goes to 300%.
+- **Cleaner cards:** every card is one size and shows just its name; a small dot marks a layout you customized.
+
+### 🛠 Improved
+- **Shorter, plainer wording** everywhere, with each system's own words (tray or menu bar, Ctrl or ⌘, Start with Windows or Open at login).
+- **One look for every popup,** with the same size rules and soft fades on every scrolling area.
+- **New app icon:** the keycap logo, on every system.
+- **A clearer user guide:** two tested ways to use two PCs (an SSH tunnel, or Tailscale's port forward), other streaming apps (Streamlabs, XSplit, vMix, Meld), and using the app fully offline.
+
+### 🐛 Fixed
+- **Going back to v1.4.0 no longer loses v2.0's settings:** v2.0 saves a newer settings version, so v1.4.0 keeps a copy first.
+- **No background wake-ups on Linux** when no pause shortcut is set.
+- **The overlay redraws its keys when their letters change.**
+- **The locked notice in the overlay** names the right place for the secure link.
+- **The key editor's view stays where you leave it:** editing, Undo, and switching layout style no longer move it.
+- **Close gaps fills the holes hidden keys leave in a row,** and changes nothing else: an untouched layout stays as it is, and keys no longer look selected afterwards.
+- **The Grid switch** no longer moves the board or changes the key font.
+- **The glow is no longer cut off** at the edge of the overlay. The overlay's suggested size in OBS grows a little (about 16 px each side at the default glow), so in a fixed-size source the keyboard gets very slightly smaller.
+- **The Style tab's color boxes** keep their size in a narrow window.
+- **Animation and theme cards** always come in the same order.
+
+### ⚡ Performance — v2.0.0 vs v1.4.0
+- **Just as fast:** a key press reaches the app in 0.27 ms (median; 0.26 ms in v1.4.0), and none are missed.
+- **Still idle when idle:** 0% CPU and about 3 MB of memory with only the tray icon (on a Mac, 0.0% CPU in the menu bar).
+- **Lighter under load:** 0.3% CPU while 8,000 keys are pressed fast (0.6% in v1.4.0).
+- **The new settings window costs a little:** it opens in 440 ms (397 ms), and uses about 25 MB more while open. It still closes completely when you close it.
+- Measured with `tests/bench/run.mjs` on the same Windows PC, 5 rounds each, 2026-10-24.
+
+### 🧰 Under the hood
+- The settings window is built with Preact (small, pinned and fingerprint-checked; still no build step), one component per tab.
+- The privacy check also catches WebSocket clients and any way a macOS event tap could do more than listen.
+- A UI sandbox runs the settings window in a browser with a fake app, for designing and testing screens.
+- CI builds and tests Windows, macOS and Linux (X11 and Wayland) on every change.
+
 ## v1.4.0 — the new key editor
 
 ### ✨ New

@@ -14,13 +14,17 @@ export let tab = 'layout'; // which tab is showing
 export let selectedKeys = new Set(); // the keys selected in the Keys tab (by key code)
 export let selectedKey = null; // the one selected key, or null when none or several are selected (the editor shows it)
 export let booted = false; // true once the first screen is drawn
+export let serverError = null; // why the overlay server couldn't start (e.g. the port is in use), or null
+export let linkChanged = false; // the OBS URL changed (new port or key) and hasn't been copied since
 export let obsUrl = ''; // the OBS Browser Source address (it carries ?key=... when the secure link is on)
 export let size = null; // the overlay's recommended size, reported by the live preview: { w, h }
 export let appVersion = ''; // the version of the running app
 export let paused = false; // true while the overlay is paused from the tray
+export let overlays = 0; // OBS overlay pages connected right now (the preview is not counted)
 export let lastUpdate = null; // the latest "is there an update?" answer
 export let updateProgress = null; // download progress while an update installs
 export let inputActive = 'hook'; // the keyboard input method in use: "hook" or "rawinput"
+export let platform = 'windows'; // the system the app runs on: "windows", "macos" or "linux" (platform.rs)
 export let inputError = null; // why the chosen input method could not start, if it could not
 
 export function setSettings(value) {
@@ -53,8 +57,16 @@ export function setSelectedKey(code) {
 export function setBooted(value) {
   booted = value;
 }
+/** A different link than before (not the first one) means OBS still has the old one: the status asks to copy it. */
 export function setObsUrl(value) {
+  if (obsUrl && value !== obsUrl) linkChanged = true;
   obsUrl = value;
+}
+export function setServerError(value) {
+  serverError = value;
+}
+export function setLinkChanged(value) {
+  linkChanged = value;
 }
 export function setSize(value) {
   size = value;
@@ -65,6 +77,9 @@ export function setAppVersion(value) {
 export function setPaused(value) {
   paused = value;
 }
+export function setOverlays(value) {
+  overlays = value;
+}
 export function setLastUpdate(value) {
   lastUpdate = value;
 }
@@ -73,6 +88,9 @@ export function setUpdateProgress(value) {
 }
 export function setInputActive(value) {
   inputActive = value;
+}
+export function setPlatform(value) {
+  platform = value;
 }
 export function setInputError(value) {
   inputError = value;

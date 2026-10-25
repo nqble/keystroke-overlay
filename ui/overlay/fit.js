@@ -12,3 +12,15 @@ export function fitInBox(size, box) {
   const fit = Math.min(box.w / size.w, box.h / size.h);
   return { fit, x: (box.w - size.w * fit) / 2, y: (box.h - size.h * fit) / 2 };
 }
+
+const MIN_PAD = 16; // room around the keys even with no glow, in pixels
+const GLOW_SPREAD_DIVISOR = 3; // the glow's box-shadow spread is its size / 3 (overlay.css .glow): keep both in step
+
+/**
+ * Room to leave around the keys so the glow reaches its full size: its blur plus its spread, at the key scale, and never
+ * less than MIN_PAD. Without it a glow is cut off at the edge of the box (OBS's page, or the settings preview).
+ */
+export function stagePad(glowSize, scale) {
+  const glowReach = Math.ceil(glowSize * (1 + 1 / GLOW_SPREAD_DIVISOR) * scale);
+  return Math.max(MIN_PAD, glowReach);
+}

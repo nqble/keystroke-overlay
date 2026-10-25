@@ -102,7 +102,12 @@ pub fn set_update_badge(app: &AppHandle, available: bool) {
         "tray update indicator {}",
         if available { "shown" } else { "hidden" }
     ));
-    let _ = tray.set_icon(Some(icon));
+    let _ = tray.set_icon(Some(if available {
+        icon
+    } else {
+        crate::platform::tray_icon(&icon)
+    }));
+    crate::platform::set_tray_icon_template(&tray, !available);
     let _ = tray.set_tooltip(Some(tooltip_for(available)));
     if available {
         let _ = menu.insert(&item, 0);
@@ -134,10 +139,11 @@ pub fn indicator_state(app: &AppHandle) -> serde_json::Value {
             return json!({ "ready": false });
         };
         let shown = tray_items.update_shown;
+        // The same picture set_update_badge gives the tray (a Mac shows its own template icon without the dot).
         let icon = if shown {
-            &tray_items.icon_badged
+            tray_items.icon_badged.clone()
         } else {
-            &tray_items.icon
+            crate::platform::tray_icon(&tray_items.icon)
         };
         let preview = shrink_rgba(icon.rgba(), icon.width(), icon.height(), PREVIEW_SIZE);
         (shown, tray_items.menu.clone(), preview)
@@ -184,7 +190,10 @@ pub fn refresh_tray_layouts(app: &AppHandle) {
         let _ = submenu.remove(old_item);
     }
     let mut fresh = Vec::new();
-    for layout in server::layouts(&st.shared.paths) {
+    let all = server::layouts(&st.shared.paths);
+    let order = st.shared.settings.read().unwrap()["layout"]["order"].clone();
+    // the same layouts, in the same order, as the Layout tab (layout_order.rs)
+    for layout in crate::layout_order::shown_in_order(&all, &order) {
         let id = layout["id"].as_str().unwrap_or("").to_string();
         let name = layout["name"].as_str().unwrap_or(&id).to_string();
         if let Ok(item) = CheckMenuItemBuilder::with_id(format!("layout:{id}"), name)
@@ -307,7 +316,8 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
     let update_item = MenuItemBuilder::with_id("update", "Update available").build(app)?;
 
     let tray = TrayIconBuilder::new()
-        .icon(icon.clone())
+        .icon(crate::platform::tray_icon(&icon))
+        .icon_as_template(crate::platform::tray_icon_is_template())
         .tooltip(crate::app_info::NAME)
         .menu(&menu)
         .show_menu_on_left_click(false)

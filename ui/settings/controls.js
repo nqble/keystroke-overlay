@@ -1,40 +1,18 @@
 // =====================================================================================================================
 //  The table that draws every Style / Animation slider, color picker and dropdown.
 // =====================================================================================================================
-import { el, get, heading, put, row } from './helpers.js';
+import { Segmented } from './blocks.js';
+import { html, render as drawPreact, useLayoutEffect, useRef } from './html.js';
+import { el, get, put, row } from './helpers.js';
 import { changed } from './preview.js';
-import { settings, customFonts, registry } from './state.js';
-
-const WINDOWS_FONTS = [
-  // all of these come with Windows 10 and 11
-  'Segoe UI',
-  'Segoe UI Semibold',
-  'Segoe UI Black',
-  'Bahnschrift',
-  'Arial',
-  'Arial Black',
-  'Calibri',
-  'Candara',
-  'Cascadia Code',
-  'Cascadia Mono',
-  'Consolas',
-  'Corbel',
-  'Courier New',
-  'Franklin Gothic Medium',
-  'Georgia',
-  'Impact',
-  'Lucida Console',
-  'Palatino Linotype',
-  'Tahoma',
-  'Times New Roman',
-  'Trebuchet MS',
-  'Verdana',
-  'Comic Sans MS',
-];
+import { settings, customFonts, platform, registry } from './state.js';
+import { DEFAULT_FONT, systemFonts } from './system-fonts.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 5. Style / Animation controls
-//    One line per control. `type` picks how it is drawn: color, range (slider), select (dropdown) or font.
+//    One line per control. `type` picks how it is drawn: color, range (slider), select (dropdown), font, segmented (a
+//    few choices side by side, blocks.js), or gallery (cards the tab draws itself, e.g. the Animation tab's; skipped
+//    here). `shownIf` (optional) hides a control while it returns false.
 // ---------------------------------------------------------------------------------------------------------------------
 const CONTROLS = [
   { tab: 'style', group: 'Key colors', path: 'style.keyFill', type: 'color', label: 'Fill (idle)' },
@@ -76,6 +54,18 @@ const CONTROLS = [
     label: 'Glow size',
   },
   { tab: 'style', group: 'Text', path: 'style.fontFamily', type: 'font', label: 'Font family' },
+  {
+    tab: 'style',
+    group: 'Text',
+    path: 'style.keyLabels',
+    type: 'segmented',
+    // letters follow the user's keyboard (AZERTY, QWERTZ, ...); src-tauri/src/key_labels.rs
+    options: () => [
+      ['keyboard', 'My keyboard'],
+      ['layout', 'Layout file'],
+    ],
+    label: 'Key labels',
+  },
   {
     tab: 'style',
     group: 'Text',
@@ -138,41 +128,44 @@ const CONTROLS = [
     tab: 'animation',
     group: 'Animation',
     path: 'animation.type',
-    type: 'select',
-    options: () => registry.animations.map((a) => [a.id, a.name]),
-    label: 'Type',
+    type: 'gallery', // the animation cards, tabs/animation.js
+    label: 'Animation',
   },
   {
     tab: 'animation',
-    group: 'Animation',
+    group: 'Fine-tune',
     path: 'animation.speed',
     type: 'range',
     min: 0,
     max: 600,
     step: 10,
     unit: 'ms',
-    label: 'Speed (duration)',
+    label: 'Speed',
   },
   {
     tab: 'animation',
-    group: 'Animation',
-    path: 'animation.easing',
-    type: 'select',
-    options: () => [['default', 'Animation default'], ...registry.easings.map((e) => [e.id, e.name])],
-    label: 'Easing',
-  },
-  {
-    tab: 'animation',
-    group: 'Animation',
+    group: 'Fine-tune',
     path: 'animation.intensity',
     type: 'range',
     min: 0,
     max: 2.5,
     step: 0.1,
     unit: '×',
-    label: 'Intensity',
+    label: 'Strength',
+    shownIf: () => !!currentAnimation()?.usesIntensity,
+  },
+  {
+    tab: 'animation',
+    group: 'Fine-tune',
+    path: 'animation.easing',
+    type: 'segmented',
+    options: () => [['default', 'Default'], ...registry.easings.map((e) => [e.id, e.name])],
+    label: 'Easing',
   },
 ];
+
+/** The animation in use, as the live preview described it (registry.animations), if it has reported yet. */
+export const currentAnimation = () => registry.animations.find((animation) => animation.id === settings.animation.type);
 
 /**
  * The test hook for a setting, made from its path:  testName('control', 'style.keyFill')  ->  'control-style-key-fill'.
@@ -246,17 +239,42 @@ function selectCtl(control) {
   return [select];
 }
 
+/** A few choices side by side (the Segmented block from blocks.js, drawn into the row by Preact). */
+function segmentedCtl(control) {
+  const box = el('span', { className: 'segmented-box' });
+  const draw = () =>
+    drawPreact(
+      html`<${Segmented}
+        label=${control.label}
+        choices=${control.options().map(([value, text]) => ({ value, text }))}
+        value=${get(settings, control.path)}
+        test=${testName('control', control.path)}
+        onChange=${(value) => {
+          put(settings, control.path, value);
+          changed();
+          draw();
+        }}
+      />`,
+      box,
+    );
+  draw();
+  return [box];
+}
+
 /**
- * The font picker: the user's own fonts, the Windows fonts (each shown in its own font), or "Other" to type any name.
+ * The font picker: the user's own fonts, this system's fonts (each shown in its own font; Windows or Mac fonts, from
+ * system-fonts.js), or "Other" to type any name.
  */
 function fontCtl(control) {
+  const system = systemFonts(platform);
   const current = get(settings, control.path);
   const mine = customFonts.map((file) => file.replace(/\.[^.]+$/, '')); // "My Font.ttf" -> "My Font"
-  const known = new Set([...mine, ...WINDOWS_FONTS]);
+  const known = new Set([...mine, ...system.fonts.map((font) => font.value)]);
   const option = (font) => {
-    const item = el('option', { value: font, textContent: font });
-    item.dataset.font = font;
-    item.style.setProperty('--option-font', `"${font}", "Segoe UI", sans-serif`); // the list shows each name in its own font
+    const { value, label } = typeof font === 'string' ? { value: font, label: font } : font;
+    const item = el('option', { value, textContent: label });
+    item.dataset.font = value;
+    item.style.setProperty('--option-font', `"${value}", "${DEFAULT_FONT}", system-ui, sans-serif`); // the list shows each name in its own font
     return item;
   };
   const select = el(
@@ -264,7 +282,7 @@ function fontCtl(control) {
     { test: testName('control', control.path) },
     [
       mine.length ? el('optgroup', { label: 'Your fonts' }, mine.map(option)) : null,
-      el('optgroup', { label: 'Windows fonts' }, WINDOWS_FONTS.map(option)),
+      el('optgroup', { label: system.group }, system.fonts.map(option)),
       el('option', { value: '__custom', textContent: 'Other (type a name)…' }),
     ].filter(Boolean),
   );
@@ -294,56 +312,24 @@ function fontCtl(control) {
   return [select, typed];
 }
 
-/** Draw every control of one tab, grouped under headings. */
-export function renderControls(tabName, parent) {
-  let group = null;
-  for (const control of CONTROLS.filter((c) => c.tab === tabName)) {
-    if (control.group !== group) {
-      group = control.group;
-      parent.append(heading(group));
-    }
-    parent.append(
-      row(
-        control.label,
-        ...{ color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl }[control.type](control),
-      ),
-    );
+/** Draw the controls of one group of one tab (a section card gives the title, see ControlGroup). */
+function renderGroup(tabName, groupName, parent) {
+  const builders = { color: colorCtl, range: rangeCtl, select: selectCtl, font: fontCtl, segmented: segmentedCtl };
+  for (const control of CONTROLS.filter((c) => c.tab === tabName && c.group === groupName)) {
+    if (control.type === 'gallery' || (control.shownIf && !control.shownIf())) continue;
+    parent.append(row(control.label, ...builders[control.type](control)));
   }
 }
 
 /**
- * The "Import from file… / Export to file…" pair, identical in the Layout and Style tabs. `hookPrefix` names the test
- * hooks: 'layout' gives layout-import and layout-export.
+ * One group of the control table inside a Preact screen (a section card of Style or Animation). The controls are still
+ * built by renderGroup, so a setting is still one line in CONTROLS.
  */
-export const shareRow = (label, onImport, onExport, exportDisabled, tips, hookPrefix) =>
-  row(
-    label,
-    el('button', {
-      textContent: 'Import from file…',
-      title: tips.imp || '',
-      onclick: onImport,
-      test: hookPrefix + '-import',
-    }),
-    el('button', {
-      textContent: 'Export to file…',
-      title: tips.exp || '',
-      disabled: exportDisabled,
-      onclick: onExport,
-      test: hookPrefix + '-export',
-    }),
-  );
-
-// ---------------------------------------------------------------------------------------------------------------------
-// 6. Popups
-// ---------------------------------------------------------------------------------------------------------------------
-
-/** A checkbox row that saves instantly. `onchange` replaces the default save when a toggle needs extra work. */
-export function toggle(path, label, onchange) {
-  const box = el('input', { type: 'checkbox', checked: !!get(settings, path), test: testName('toggle', path) });
-  box.onchange = () => {
-    put(settings, path, box.checked);
-    if (onchange) onchange(box.checked);
-    else changed(false, true);
-  };
-  return row(label, box);
+export function ControlGroup({ tab, group }) {
+  const box = useRef(null);
+  useLayoutEffect(() => {
+    box.current.replaceChildren();
+    renderGroup(tab, group, box.current);
+  });
+  return html`<div class="control-group" ref=${box}></div>`;
 }

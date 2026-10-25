@@ -25,10 +25,10 @@ Two different signatures, both needed:
 
 **Status: not active.** SignPath Foundation declined the application on 2026-10-18 (not enough public visibility yet)
 and invited a new one later, so releases are unsigned ([decision 0012](decisions/0012-releases-stay-unsigned-for-now.md)).
-The steps below are kept for when Jordan applies again.
+The steps below are kept for a new application.
 
 The release workflow is ready for it: until `SIGNPATH_ORGANIZATION_ID` is set it builds unsigned, as before. To turn
-it on (Jordan, once):
+it on (the maintainer, once):
 1. **Apply** at signpath.org with this repository. They check it is open source (MIT), public, built on GitHub
    Actions, and has the code signing policy in README.md (the "Code signing" section). Approval can take a few weeks.
 2. Turn on **two-factor login** on GitHub and SignPath for everyone who can change the repository (they require it).
@@ -44,8 +44,8 @@ it on (Jordan, once):
        </zip-file>
      </artifact-configuration>
      ```
-   - the **release-signing** policy, with GitHub as its trusted build system and Jordan as approver (every signing
-     request then waits for Jordan to approve it in SignPath, like the "release" environment on GitHub);
+   - the **release-signing** policy, with GitHub as its trusted build system and the maintainer as approver (every
+     signing request then waits for the maintainer's approval in SignPath, like the "release" environment on GitHub);
    - an **API token** for a CI user that may submit signing requests.
 4. On GitHub → Settings → Secrets and variables → Actions:
    - secret `SIGNPATH_API_TOKEN`;
@@ -57,6 +57,54 @@ the installer → SignPath signs the installer → check both signatures → mak
 installer → publish. Each SignPath step waits up to an hour for approval. `tools/release.mjs --stage app | installer |
 finish` runs one part each; on your PC it runs all three, unsigned. The uninstaller inside the installer stays
 unsigned (SignPath can't reach inside an NSIS installer); Windows only shows it when someone uninstalls.
+
+## Mac download (Apple Silicon, not signed by Apple)
+
+Every release also gets `Keystroke-Overlay_<version>_macOS-arm64.zip` attached, with no extra step. After the Windows
+release is published, the Release workflow runs `.github/workflows/mac-app.yml` on a Mac machine (it uses no secrets and
+no build cache), and the last job, `mac-publish`, attaches the zip to the same release. The zip holds
+`Keystroke Overlay.app` and `THIRD-PARTY-NOTICES.html` for the Mac build (`node tools/notices.mjs --target
+aarch64-apple-darwin`). `ci.yml` runs the same workflow on every change, so a break shows up before release day. To try
+it without releasing: Actions → **Mac app** → Run workflow, and download the `mac-app` artifact.
+
+What to know:
+- The app is **not signed or notarized by Apple**. The workflow signs the whole app ad hoc (which Apple Silicon needs) and
+  checks that signature. On first launch macOS blocks it; the person clicks **Open Anyway** in System Settings → Privacy &
+  Security. Signing and notarizing would need an Apple Developer account (US$99 a year); the project uses the free route,
+  so they are not planned.
+- **No in-app updates on a Mac.** `latest.json` and `stable.json` have no `darwin` entries, on purpose, and the app says
+  so when a Mac checks. Mac users download the new zip.
+- After every update the person must allow keyboard access again (clear the old entry first, with `tccutil reset ListenEvent com.keyoverlay.app`): the
+  permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
+  are in docs/MAC-PORT.md.
+- **The first release that carries the zip (v2.0):** the workflow builds in CI on every pull request and push to the work branches (green since October 2026), but its release jobs (attaching the zip) first run with this release, so check the release page afterwards (or try it first: Actions →
+  **Mac app** → Run workflow). Say in that release's CHANGELOG entry that a Mac download
+  (Apple Silicon, Open Anyway on first launch) is attached.
+- If the Mac job fails, the Windows release is already published. Fix the cause, then re-run only the failed jobs; the
+  upload replaces any earlier zip (`--clobber`).
+- Intel Macs are not covered yet.
+
+## Linux download (x86-64)
+
+Every release also gets `Keystroke-Overlay_<version>_linux-x86_64.AppImage` (one file that runs on most distributions)
+and `Keystroke-Overlay_<version>_linux-amd64.deb` (Debian and Ubuntu) attached, with no extra step. After the Windows
+release is published, the Release workflow runs `.github/workflows/linux-app.yml` on Ubuntu 22.04 (no secrets, no build
+cache), and `linux-publish` attaches both files to the same release and signs the AppImage for the updater. `ci.yml` runs the same workflow on every change. To
+try it without releasing: Actions → **Linux app** → Run workflow, and download the `linux-app` artifact.
+
+What to know:
+- Key capture works on **X11 desktops**, and on **Wayland desktops** for users in the `input` group ([LINUX-PORT.md](LINUX-PORT.md)).
+- **In-app updates on Linux (AppImage only).** After attaching the files, `linux-publish` signs the AppImage with the
+  update key and adds `linux-x86_64-appimage` and `linux-x86_64` entries (the same signature and download link) to `latest.json` and, for a Stable release,
+  to `stable.json`. The build job never sees the key: `linux-publish` runs in the `release` environment, so **GitHub asks
+  for your approval a second time** (once for the Windows job, once for this one), and only the signing step is given the
+  key. The step refuses to touch a manifest that belongs to another version. The .deb can't update itself; it stays a
+  download, and a copy installed from it says so when you check for updates (the app only checks on Linux when it runs as
+  an AppImage, so it is never offered the AppImage). An AppImage that is not run as an AppImage (copied elsewhere) may not be able to replace itself.
+- **The first release that carries them (v2.0):** the workflow builds and is tested in CI on every pull request and push to the work branches, but `linux-publish` first runs with this release, so check the release page afterwards (or try it first: Run
+  workflow), and mention the Linux downloads in that release's CHANGELOG entry.
+- If the Linux job fails, the Windows release is already published. Fix the cause and re-run only the failed jobs; the
+  upload replaces any earlier files (`--clobber`).
 
 ## Versioning rule (decides the channel)
 
@@ -74,7 +122,7 @@ unsigned (SignPath can't reach inside an NSIS installer); Windows only shows it 
 
 The repository has a **Release** workflow (`.github/workflows/release.yml`) that does everything below by itself.
 
-One-time setup (details in [OPEN-SOURCE-GUIDE.md](OPEN-SOURCE-GUIDE.md)): an environment named `release` with yourself as a
+One-time setup: an environment named `release` with yourself as a
 **required reviewer** (every release then waits for your approval before the signing key is used), holding both secrets:
 `TAURI_SIGNING_PRIVATE_KEY` (the text of your `updater.key`) and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (the key's password;
 see "Signing key password" below). Keep both in the `release` environment, not at the repository level: an environment
@@ -86,10 +134,10 @@ Action it uses is pinned to an exact commit, and Dependabot (`.github/dependabot
 one has a new version, for you to review; and it uses no shared build cache, so nothing another workflow left behind can end
 up inside a signed installer.
 
-Each release (or just tell Claude "release v1.2.0": it can start the workflow for you with the GitHub command-line tool, and you only
-have to approve it — from the website or the GitHub phone app):
+Each release (a coding assistant such as Claude Code can do steps 1 and 2 with the GitHub command-line tool; the person
+releasing then only approves it, from the website or the GitHub phone app):
 1. Raise the version (`package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`;
-   the release reads it from `tauri.conf.json`) and add the CHANGELOG entry — Claude can do both.
+   the release reads it from `tauri.conf.json`) and add the CHANGELOG entry.
 2. GitHub → **Actions → Release → Run workflow** → type the version to confirm → **Run** (or push a tag named `v<version>`).
 3. It checks the version/tag/CHANGELOG match and that the release doesn't already exist, runs `npm test`, builds and signs the
    installer, creates the GitHub release with the CHANGELOG text as the notes (the update manifests `latest.json` and `stable.json` carry the same full text, because the in-app update dialog shows the manifest's notes), and — for `x.y.0` versions — updates the Stable channel.
@@ -99,7 +147,7 @@ The manual steps below are the fallback (and what the workflow runs internally).
 
 ## Signing key password
 
-The update key has a password (since October 2026), kept in Jordan's password manager and in the `release` environment's secret
+The update key has a password (since October 2026), kept in the maintainer's password manager and in the `release` environment's secret
 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Without it the key can't sign anything, and nobody can recover it.
 
 To change the password, change it on the **same** key: that keeps the public key, so every installed copy keeps
@@ -203,8 +251,17 @@ Signed releases (Code signing above) build reputation much faster, so these repo
 ## Checks before publishing a public release
 
 - `npm run check:privacy` passes
+- **Five minutes on the Mac** (the M1), with the Mac download from the draft or the **Mac app** workflow's artifact:
+  1. Install it over the previous version and open it (first time: **Open Anyway** in System Settings → Privacy &
+     Security).
+  2. Re-allow keyboard access: `tccutil reset ListenEvent com.keyoverlay.app`, then **Allow keyboard access**, switch it
+     on, **Restart now** (macOS ties the permission to one build).
+  3. In OBS, press a few keys, including a modifier and an F key with Fn: they light up and let go.
+  4. Click through every tab of the settings window: Mac words (⌘, menu bar, Open at login), nothing cut off, no
+     Windows-only option.
+  5. If something is wrong, don't publish: note it in docs/MAC-PORT.md and fix it first.
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
-- The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub on demand, and becomes a required release step once it has passed reliably there
+- The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub for every pull request and on demand, and becomes a required release step once it has passed reliably there
 - Dependency licenses still compatible with MIT: checked automatically (see Third-party notices)
 - Test builds can use a local mock update server via the build-time variable `KEYOVERLAY_TEST_UPDATE_BASE`
   (never set it in a real build)

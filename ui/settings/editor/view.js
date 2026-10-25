@@ -5,21 +5,14 @@
 import { button, el } from '../helpers.js';
 import { showHiddenKeys } from '../profiles.js';
 import { boundsOf } from '../tabs/keys-arrange.js';
-import {
-  BUTTON_ZOOM,
-  ZOOM_MAX,
-  centredView,
-  clampView,
-  coverZoom,
-  stretchPan,
-  wheelFactor,
-  zoomAt,
-} from '../tabs/keys-view.js';
+import { BUTTON_ZOOM, ZOOM_MAX, centredView, clampView, coverZoom, zoomAt } from '../tabs/keys-view.js';
 import { placeArrangeBar } from './arrange-bar.js';
+import { attachViewGestures } from './view-gestures.js';
 import {
   FIRST_VIEW_BOTTOM,
   FIRST_VIEW_PADDING,
-  MIDDLE_BUTTON,
+  DOT_RADIUS,
+  MIN_DOT_RADIUS,
   MIN_DOT_SPACING,
   OVERSCAN,
   UNIT,
@@ -38,7 +31,7 @@ export function buildZoomControls(ctx) {
     'zoom-percent',
     'editor-zoom-reset',
   );
-  zoomLabel.title = 'Zoom to 100% and center the board';
+  zoomLabel.title = 'Reset zoom';
   const zoomBy = (factor) => () => {
     ctx.viewTouched = true;
     setView(
@@ -81,6 +74,8 @@ export function setView(ctx, next) {
   let every = 1;
   while (spacing * every < MIN_DOT_SPACING) every *= 2;
   ctx.canvas.style.setProperty('--dot-spacing', dotStep * UNIT * every + 'px');
+  // the board is scaled by the zoom, so a dot would shrink to nothing when zoomed out: keep it at least MIN_DOT_RADIUS on screen
+  ctx.canvas.style.setProperty('--dot-radius', Math.max(DOT_RADIUS, MIN_DOT_RADIUS / ctx.view.zoom) + 'px');
 }
 
 /** Keep the view legal after the box or the board changed size. */
@@ -109,7 +104,7 @@ export function firstView(ctx) {
   ctx.needsFirstView = false;
 }
 
-/** Start the gestures that move the view: the box's size, the mouse wheel, and the middle button. */
+/** Start what moves the view: the box's size, and the zoom and pan gestures (view-gestures.js). */
 export function bindViewGestures(ctx) {
   // The box is measured while it is on the page; leaving the Keys tab and coming back keeps zoom and pan.
   new ResizeObserver(() => {
@@ -122,63 +117,16 @@ export function bindViewGestures(ctx) {
     else refit(ctx);
   }).observe(ctx.box);
 
-  ctx.box.addEventListener(
-    'wheel',
-    (wheelEvent) => {
-      wheelEvent.preventDefault(); // zoom the board, not the window (this listener is not passive on purpose)
+  // Wheel, pinch, Space + drag and middle-button drag: view-gestures.js (what each means: tabs/keys-gestures.js).
+  attachViewGestures(ctx.box, {
+    view: () => ctx.view,
+    setView: (next) => setView(ctx, next),
+    boxSize: () => ctx.boxSize,
+    content: () => content(ctx),
+    insideBox: (pointerEvent) => insideBox(ctx, pointerEvent),
+    overscan: OVERSCAN,
+    markTouched: () => {
       ctx.viewTouched = true;
-      setView(
-        ctx,
-        zoomAt(
-          ctx.view,
-          wheelFactor(wheelEvent.deltaY),
-          insideBox(ctx, wheelEvent),
-          ctx.boxSize,
-          content(ctx),
-          OVERSCAN,
-        ),
-      );
     },
-    { passive: false },
-  );
-
-  // Middle button + drag pans the view from anywhere in the box, even from on top of a key. Pulling past an edge stretches
-  // the view, and it springs back when the button is released.
-  ctx.box.addEventListener(
-    'pointerdown',
-    (pointerEvent) => {
-      if (pointerEvent.button !== MIDDLE_BUTTON) return;
-      pointerEvent.preventDefault(); // no browser autoscroll
-      pointerEvent.stopPropagation(); // never selects or moves the key under the pointer
-      ctx.viewTouched = true;
-      const start = { x: pointerEvent.clientX, y: pointerEvent.clientY, panX: ctx.view.panX, panY: ctx.view.panY };
-      ctx.box.classList.add('panning');
-      try {
-        ctx.box.setPointerCapture(pointerEvent.pointerId);
-      } catch {
-        /* not a real pointer (tests) */
-      }
-      const move = (moveEvent) => {
-        const panX = start.panX + moveEvent.clientX - start.x;
-        const panY = start.panY + moveEvent.clientY - start.y;
-        setView(ctx, {
-          zoom: ctx.view.zoom,
-          panX: stretchPan(panX, ctx.view.zoom, ctx.boxSize.w, content(ctx).w, OVERSCAN),
-          panY: stretchPan(panY, ctx.view.zoom, ctx.boxSize.h, content(ctx).h, OVERSCAN),
-        });
-      };
-      const done = () => {
-        ctx.box.removeEventListener('pointermove', move);
-        ctx.box.removeEventListener('pointerup', done);
-        ctx.box.removeEventListener('pointercancel', done);
-        ctx.box.classList.remove('panning');
-        setView(ctx, clampView(ctx.view, ctx.boxSize, content(ctx), OVERSCAN)); // springs back with the board's transition
-      };
-      ctx.box.addEventListener('pointermove', move);
-      ctx.box.addEventListener('pointerup', done);
-      ctx.box.addEventListener('pointercancel', done);
-    },
-    true,
-  );
-  ctx.box.addEventListener('auxclick', (clickEvent) => clickEvent.preventDefault());
+  });
 }

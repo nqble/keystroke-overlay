@@ -11,14 +11,14 @@ import { ARRANGE_GAP, UNIT, saveAt, selectedBoardBoxes } from './context.js';
 
 // The arrange bar: [hook name, label, tooltip, kind, how many keys it needs]. It floats above two or more selected keys.
 const ARRANGE_BUTTONS = [
-  ['key-align-left', 'Left', 'Line the keys up along their left edge', 'align', 'left', 2],
-  ['key-align-center', 'Center', 'Line the keys up along their vertical middle', 'align', 'center', 2],
-  ['key-align-right', 'Right', 'Line the keys up along their right edge', 'align', 'right', 2],
-  ['key-align-top', 'Top', 'Line the keys up along their top edge', 'align', 'top', 2],
-  ['key-align-middle', 'Middle', 'Line the keys up along their horizontal middle', 'align', 'middle', 2],
-  ['key-align-bottom', 'Bottom', 'Line the keys up along their bottom edge', 'align', 'bottom', 2],
-  ['key-distribute-across', 'Across', 'Make the gaps between the keys equal, left to right', 'distribute', 'across', 3],
-  ['key-distribute-down', 'Down', 'Make the gaps between the keys equal, top to bottom', 'distribute', 'down', 3],
+  ['key-align-left', 'Left', 'Align left edges', 'align', 'left', 2],
+  ['key-align-center', 'Center', 'Align centers (vertical)', 'align', 'center', 2],
+  ['key-align-right', 'Right', 'Align right edges', 'align', 'right', 2],
+  ['key-align-top', 'Top', 'Align top edges', 'align', 'top', 2],
+  ['key-align-middle', 'Middle', 'Align middles (horizontal)', 'align', 'middle', 2],
+  ['key-align-bottom', 'Bottom', 'Align bottom edges', 'align', 'bottom', 2],
+  ['key-distribute-across', 'Across', 'Equal gaps, left to right', 'distribute', 'across', 3],
+  ['key-distribute-down', 'Down', 'Equal gaps, top to bottom', 'distribute', 'down', 3],
 ];
 
 /** Build the bar (hidden until two keys are selected) and put it in the context. */

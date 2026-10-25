@@ -1,7 +1,17 @@
 // Unit tests for the privacy check's patterns (tools/privacy-patterns.mjs). Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LOG, NET, WRITE, joinSplitPaths, withoutTestModules } from '../../tools/privacy-patterns.mjs';
+import {
+  LINUX_ACTIVE,
+  LINUX_DEVICES,
+  LOG,
+  MAC_ACTIVE,
+  NET,
+  UI_SOCKET,
+  WRITE,
+  joinSplitPaths,
+  withoutTestModules,
+} from '../../tools/privacy-patterns.mjs';
 
 test('network code is caught, including the ways the outside review found missing', () => {
   for (const line of [
@@ -14,6 +24,29 @@ test('network code is caught, including the ways the outside review found missin
     assert.match(line, NET, line);
   }
   assert.doesNotMatch('let listener = TcpListener::bind(addr)', NET); // listening has its own rule
+});
+
+test('a WebSocket client in Rust is network code too (the server only accepts)', () => {
+  for (const line of [
+    'let (socket, _) = tokio_tungstenite::connect_async("ws://127.0.0.1:4455").await?;',
+    'tokio_tungstenite::client_async(request, stream)',
+    'let (socket, _) = tungstenite::connect(url)?;',
+    'let (socket, _) = tungstenite::client::connect(url)?;',
+  ]) {
+    assert.match(line, NET, line);
+  }
+  assert.doesNotMatch('let ws = tokio_tungstenite::accept_async(stream).await?;', NET);
+});
+
+test('the UI may open a WebSocket to its own server only', () => {
+  assert.doesNotMatch('const address = `ws://${location.host}/ws`;', UI_SOCKET);
+  for (const line of [
+    "new WebSocket('ws://127.0.0.1:4455')",
+    'new WebSocket("wss://example.com/feed")',
+    'const obs = `ws://localhost:${port}`;',
+  ]) {
+    assert.match(line, UI_SOCKET, line);
+  }
 });
 
 test('file writes are caught, including File::options and write_all', () => {
@@ -59,4 +92,42 @@ test('only test modules are skipped: code after them is still checked', () => {
 test('unbalanced braces: nothing is skipped', () => {
   const source = '#[cfg(test)]\nmod tests {\n fn t() { std::fs::write("a", "b"); \n';
   assert.equal(withoutTestModules(source), source);
+});
+
+test('macOS code that does more than listen is caught, in any spelling', () => {
+  for (const line of [
+    'CGEventTapOptions::Default,',
+    'CGEventTapOptions :: Default,',
+    'CGEventPost(tap, event);',
+    'ev.post(CGEventTapLocation::HID);',
+    'event.post_to_pid(pid);',
+    'CGEventTapPostEvent(proxy, event);',
+  ]) {
+    assert.match(line, MAC_ACTIVE, line);
+  }
+});
+
+test('the listen-only tap the app really uses is allowed', () => {
+  for (const line of ['CGEventTapOptions::ListenOnly,', 'use core_graphics::event::{CGEventTap, CGEventTapOptions};']) {
+    assert.doesNotMatch(line, MAC_ACTIVE, line);
+  }
+});
+
+test('doing more than reading the keyboards on Linux is caught', () => {
+  for (const line of [
+    'keyboard.grab()?;',
+    'let device = RawDevice::open(path)?;',
+    'let device = VirtualDeviceBuilder::new()?',
+    'std::fs::File::open("/dev/uinput")',
+    'device.send_events(&events)',
+  ]) {
+    assert.match(line, LINUX_ACTIVE, line);
+  }
+});
+
+test('the read-only Linux capture the app really uses is allowed', () => {
+  for (const line of ['let Ok(events) = keyboard.fetch_events() else {', 'RawDevice::from_fd(file.into())']) {
+    assert.doesNotMatch(line, LINUX_ACTIVE, line);
+  }
+  assert.match('use evdev::raw_stream::RawDevice;', LINUX_DEVICES);
 });

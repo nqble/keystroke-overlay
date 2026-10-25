@@ -5,7 +5,7 @@ Date: 2026-10-18
 ## Context
 The secure link ([0002](0002-local-only-server-and-optional-secure-link.md)) stops other programs on the PC from reading key
 presses through the overlay port. For v1.4 it was proposed to turn it on by default for new installs (and keep it off for
-existing ones, so their OBS URL keeps working). Jordan decided against it.
+existing ones, so their OBS URL keeps working). The maintainer decided against it.
 
 ## Decision
 The secure link is **off by default for everyone**, new installs included. It is a choice the user makes in General →

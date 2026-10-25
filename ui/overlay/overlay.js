@@ -1,10 +1,22 @@
 // Overlay core: builds the keyboard from a layout, listens on a WebSocket and
 // toggles a `down` class per key. No timers or polling while connected - CSS
 // transitions do all the animation work on the compositor.
-import { animations, themes, easings } from '/overlay/registry.js';
-import { fitInBox } from '/overlay/fit.js';
+import { animations, themes, easings, byId } from '/overlay/registry.js';
+import { fitInBox, stagePad } from '/overlay/fit.js';
+import { sceneView, watchObs } from '/overlay/obs-source.js';
+import { structureKey } from '/overlay/structure.js';
 
-const PAD = 16; // room around the keys so glows aren't clipped
+// What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
+// own font (San Francisco on a Mac), so the keys look right on any computer that shows the overlay (OBS may run on
+// another PC than the app). Must match the Mac fonts note in ui/settings/system-fonts.js.
+const FONT_FALLBACKS = '"Segoe UI", system-ui, -apple-system, sans-serif';
+
+// What the overlay says to the person looking at it in OBS. The menu path must match the settings window
+// (ui/settings/tabs/general-connection.js).
+const TEXT = {
+  locked: '🔒 This OBS URL is out of date. Copy the new one from Keystroke Overlay (General → Connection).',
+};
+
 const params = new URLSearchParams(location.search);
 const PREVIEW = params.has('preview') && window.parent !== window;
 
@@ -18,10 +30,8 @@ function showLocked() {
   lockedNotice.id = 'locked';
   lockedNotice.style.cssText =
     'position:fixed;left:8px;top:8px;max-width:420px;padding:8px 12px;border-radius:8px;' +
-    'background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",sans-serif';
-  lockedNotice.textContent =
-    '🔒 This overlay link is secured. Copy the current link from Keystroke Overlay ' +
-    '(General → Secure link) into this OBS source.';
+    'background:rgba(0,0,0,.78);color:#fff;font:14px/1.4 "Segoe UI",system-ui,sans-serif';
+  lockedNotice.textContent = TEXT.locked;
   document.body.append(lockedNotice);
 }
 const getJson = async (url) => {
@@ -42,6 +52,11 @@ let settings = null,
   layouts = [],
   fontFiles = [],
   structKey = '';
+// The OBS scene on air, known only inside OBS (obs-source.js), and what its rule says: the layout to draw and whether
+// to hide the keys. Never stored or sent.
+let currentScene = null,
+  drawnLayoutId = '',
+  sceneHidden = false;
 const keyEls = new Map(); // code -> element
 const held = new Set(); // codes currently down (kept across rebuilds)
 
@@ -79,7 +94,7 @@ function applyVars(nextSettings) {
   set('--bc-on', st.borderColorPressed);
   set('--bw', st.borderWidth + 'px');
   set('--radius', st.radius + 'px');
-  set('--font', `"${st.fontFamily}", "Segoe UI", sans-serif`);
+  set('--font', `"${st.fontFamily}", ${FONT_FALLBACKS}`);
   set('--fs', st.fontSize + 'px');
   set('--fw', st.fontWeight);
   set('--tc', st.textColor);
@@ -87,20 +102,33 @@ function applyVars(nextSettings) {
   set('--glow-color', st.glowColor);
   set('--glow-size', st.glowSize + 'px');
   set('--opacity', st.opacity);
+  for (const [name, value] of Object.entries(animationVars(an, st))) set(name, value);
+}
 
+/**
+ * What an animation file asks for, as the CSS variables overlay.css animates with. The settings window's animation
+ * cards use the same variables (sent with the registry), so each card shows the file's own animation.
+ */
+function animationVars(an, st) {
   const anim = animations.get(an.type) || animations.get('none');
   const spec = anim?.apply({ ms: an.speed, intensity: an.intensity, style: st }) ?? {};
   const user = an.easing !== 'default' ? easings.get(an.easing)?.css : null;
-  const pressSpec = spec.press ?? {},
-    releaseSpec = spec.release ?? {};
-  set('--t-idle', spec.idle ?? 'none');
-  set('--t-down', spec.down ?? 'none');
-  set('--glow-down', spec.glow ?? 0);
-  set('--ms-down', (pressSpec.ms ?? an.speed * 0.6) + 'ms');
-  set('--ease-down', user ?? pressSpec.ease ?? 'ease-out');
-  set('--ms-up', (releaseSpec.ms ?? an.speed) + 'ms');
-  set('--ease-up', user ?? releaseSpec.ease ?? 'ease-out');
+  const pressSpec = spec.press ?? {};
+  const releaseSpec = spec.release ?? {};
+  return {
+    '--t-idle': spec.idle ?? 'none',
+    '--t-down': spec.down ?? 'none',
+    '--glow-down': spec.glow ?? 0,
+    '--ms-down': (pressSpec.ms ?? an.speed * 0.6) + 'ms',
+    '--ease-down': user ?? pressSpec.ease ?? 'ease-out',
+    '--ms-up': (releaseSpec.ms ?? an.speed) + 'ms',
+    '--ease-up': user ?? releaseSpec.ease ?? 'ease-out',
+  };
 }
+
+// How the animation cards in the settings window demo each animation: the default speed and strength, so the cards
+// compare like for like (the live preview shows the user's own speed). Default values: settings.rs.
+const DEMO_ANIMATION = { speed: 120, intensity: 1, easing: 'default' };
 
 // Each layout keeps its own disabled keys, custom labels, and moved and resized keys
 // (settings.layout.profiles[layoutId]). Positions and sizes belong to a layout style: "shape" (the layout file's own
@@ -138,8 +166,7 @@ function placedKey(layoutKey, layout, prof) {
   return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width, h: height };
 }
 
-function build(nextSettings) {
-  const layout = layouts.find((l) => l.id === nextSettings.layout.id) ?? layouts[0];
+function build(nextSettings, layout) {
   stage.textContent = '';
   keyEls.clear();
   if (!layout) return;
@@ -196,7 +223,8 @@ function build(nextSettings) {
 
 function reportSize(width, height) {
   const sc = settings.style.scale;
-  const size = { w: Math.ceil(width * sc + PAD * 2), h: Math.ceil(height * sc + PAD * 2) };
+  const pad = stagePad(settings.style.glowSize, sc);
+  const size = { w: Math.ceil(width * sc + pad * 2), h: Math.ceil(height * sc + pad * 2) };
   window.__size = size;
   placeStage();
   if (PREVIEW) parent.postMessage({ type: 'size', ...size }, '*');
@@ -212,37 +240,34 @@ function placeStage() {
   if (!size) return;
   const box = PREVIEW ? size : { w: innerWidth, h: innerHeight };
   const { fit, x, y } = fitInBox(size, box);
+  const pad = stagePad(settings.style.glowSize, settings.style.scale);
   stage.style.left = stage.style.top = '0px';
-  stage.style.transform = `translate(${x + PAD * fit}px, ${y + PAD * fit}px) scale(${settings.style.scale * fit})`;
+  stage.style.transform = `translate(${x + pad * fit}px, ${y + pad * fit}px) scale(${settings.style.scale * fit})`;
 }
 addEventListener('resize', placeStage);
 
 // the layout id we already re-read the layout list for (so an id that truly does not exist cannot loop)
 let reloadedFor = '';
+/** A layout we should draw is not in our list: it was created or imported after we loaded. Re-read the list (once per id). */
+function reloadIfMissing(id) {
+  if (!id || layouts.some((l) => l.id === id) || reloadedFor === id) return;
+  reloadedFor = id;
+  refresh();
+}
 function apply(nextSettings) {
   settings = nextSettings;
-  // The selected layout is not in our list: it was created or imported after we loaded. Re-read the list (once per id).
-  if (
-    nextSettings.layout.id &&
-    !layouts.some((l) => l.id === nextSettings.layout.id) &&
-    reloadedFor !== nextSettings.layout.id
-  ) {
-    reloadedFor = nextSettings.layout.id;
-    refresh();
-  }
-  const layout = layouts.find((l) => l.id === nextSettings.layout.id) ?? layouts[0];
-  const key = JSON.stringify([
-    layout?.id,
-    profileOf(nextSettings, layout),
-    nextSettings.style.keySize,
-    nextSettings.style.gap,
-    nextSettings.style.fontSize,
-    nextSettings.style.scale,
-  ]);
+  reloadIfMissing(nextSettings.layout.id);
+  const view = sceneView(nextSettings, currentScene, layouts);
+  reloadIfMissing(view.wanted); // a scene rule's layout
+  drawnLayoutId = view.layoutId;
+  sceneHidden = view.hidden;
+  showStage();
+  const layout = layouts.find((l) => l.id === drawnLayoutId) ?? layouts[0];
+  const key = structureKey(layout, profileOf(nextSettings, layout), nextSettings.style);
   applyVars(nextSettings);
   if (key !== structKey) {
     structKey = key;
-    build(nextSettings);
+    build(nextSettings, layout);
   }
 }
 
@@ -250,8 +275,12 @@ function apply(nextSettings) {
 let paused = false; // tray "Pause overlay": show nothing, ignore keys
 function setPaused(shouldPause) {
   paused = shouldPause;
-  stage.style.visibility = shouldPause ? 'hidden' : '';
+  showStage();
   if (shouldPause) releaseAll();
+}
+// Pause wins over a scene rule; a scene rule only hides the keys (held keys stay known, so nothing sticks).
+function showStage() {
+  stage.style.visibility = paused || sceneHidden ? 'hidden' : '';
 }
 function setKey(code, down) {
   if (paused && down) return;
@@ -285,7 +314,9 @@ async function refresh() {
 let ws,
   retry = 0;
 function connect() {
-  ws = new WebSocket(withKey(`ws://${location.host}/ws`));
+  // The settings window's preview says so, so the app's "Live in OBS" status counts only OBS (server.rs is_preview).
+  const address = PREVIEW ? `ws://${location.host}/ws?preview=1` : `ws://${location.host}/ws`;
+  ws = new WebSocket(withKey(address));
   ws.onopen = () => {
     retry = 0;
   };
@@ -321,8 +352,14 @@ if (PREVIEW) {
       parent.postMessage(
         {
           type: 'registry',
-          animations: [...animations.values()].map((a) => ({ id: a.id, name: a.name })),
-          themes: [...themes.values()].map((t) => ({ id: t.id, name: t.name, style: t.style, animation: t.animation })),
+          animations: byId(animations).map((a) => ({
+            id: a.id,
+            name: a.name,
+            description: a.description ?? '',
+            usesIntensity: !!a.usesIntensity,
+            demo: animationVars({ ...DEMO_ANIMATION, type: a.id }, settings?.style ?? {}),
+          })),
+          themes: byId(themes).map((t) => ({ id: t.id, name: t.name, style: t.style, animation: t.animation })),
           easings: [...easings.values()].map((x) => ({ id: x.id, name: x.name })),
           layouts: layouts.map((l) => ({ id: l.id, name: l.name })),
         },
@@ -342,4 +379,13 @@ if (PREVIEW) {
 await loadModules();
 await refresh();
 connect();
+// The live preview always shows the chosen layout, so only a page OBS loads follows OBS scenes.
+if (!PREVIEW) {
+  watchObs(window, {
+    onScene: (name) => {
+      currentScene = name;
+      if (settings) apply(settings);
+    },
+  });
+}
 if (PREVIEW) parent.postMessage({ type: 'ready' }, '*');

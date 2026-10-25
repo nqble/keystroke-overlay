@@ -32,10 +32,6 @@ export function el(tag, props = {}, ...children) {
   return element;
 }
 
-export const heading = (text) => el('h2', { textContent: text, test: 'section-heading' });
-
-export const note = (text) => el('p', { className: 'note', textContent: text });
-
 export const button = (text, onclick, className = '', test = '') =>
   el('button', { textContent: text, onclick, className, test });
 
@@ -53,7 +49,13 @@ export const row = (label, ...controls) => {
     field.id ||= `field-${++fieldCounter}`;
     labelElement.htmlFor = field.id;
   }
-  return el('div', { className: 'row' }, labelElement, el('div', { className: 'ctl' }, controls));
+  const hasSwatch = controls.flat().some((control) => control?.matches?.('input[type="color"]'));
+  return el(
+    'div',
+    { className: hasSwatch ? 'row has-swatch' : 'row' },
+    labelElement,
+    el('div', { className: 'ctl' }, controls),
+  );
 };
 
 // The timer that hides the current toast, so a new message restarts it.

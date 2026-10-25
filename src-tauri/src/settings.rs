@@ -14,7 +14,11 @@ use std::path::{Path, PathBuf};
 
 use crate::sanitize::sanitize;
 
-pub const CURRENT_VERSION: u64 = 3;
+pub const CURRENT_VERSION: u64 = 4;
+/// The settings version v1.4.0 wrote. v1.4.0 drops every setting it doesn't know when it saves, and only a higher
+/// number makes it keep a copy of this version's file first (downgrade.rs), so the build fails if this ever stops holding.
+const VERSION_WRITTEN_BY_V1_4: u64 = 3;
+const _: () = assert!(CURRENT_VERSION > VERSION_WRITTEN_BY_V1_4);
 
 pub fn defaults() -> Value {
     json!({
@@ -44,15 +48,24 @@ pub fn defaults() -> Value {
         // (one per layout, saved automatically; disabledKeys and labels are shared by both layout styles).
         // editor = the Keys tab's snap step (0 = off, else 0.25, 0.5 or 1 key), whether it shows the grid, and whether it
         // shows the keys that are hidden in the overlay (dimmed).
-        "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false, "showHidden": true } },
+        // order = the layouts the Layout tab and the tray show, in order (layout_order.rs): a built-in layout shows only
+        //   while it is listed (the others wait in "Other layouts"); the user's own always show.
+        "layout": { "id": "tkl", "profiles": {}, "editor": { "snap": 0.25, "grid": false, "showHidden": true }, "order": crate::layout_order::DEFAULT_ORDER },
         "style": {
             "keyFill": "#1e222bd9", "keyFillPressed": "#4f8cffff",
             "borderColor": "#ffffff40", "borderColorPressed": "#ffffffff", "borderWidth": 2, "radius": 8,
             "fontFamily": "Segoe UI", "fontSize": 18, "fontWeight": 600,
             "textColor": "#e6e9f0ff", "textColorPressed": "#ffffffff",
             "glowColor": "#4f8cffff", "glowSize": 18,
-            "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0
+            "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0,
+            // "keyboard": labels follow the user's keyboard language (key_labels.rs); "layout": the layout files' own
+            "keyLabels": "keyboard"
         },
+        // The global pause shortcut (hotkeys.rs), e.g. "Ctrl+Shift+KeyP". Off and empty by default.
+        "hotkeys": { "enabled": false, "pause": "" },
+        // OBS scenes (obs_scenes.rs): hide the overlay or show another layout in the listed scenes, followed by the
+        // overlay page inside OBS. rules = [{ "scene": "Chat", "show": false, "layout": "" }]; off by default.
+        "obs": { "scenes": { "enabled": false, "rules": [] } },
         "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
     })
 }
@@ -60,7 +73,7 @@ pub fn defaults() -> Value {
 type Migration = fn(&mut Value);
 
 /// MIGRATIONS[i] upgrades a config from version (i+1) to (i+2).
-const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3];
+const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3, v3_to_v4];
 
 /// v1 stored one global `layout.disabledKeys` / `layout.labels`.
 /// v2 stores them per layout in `layout.profiles[layoutId]`.
@@ -92,6 +105,12 @@ fn v2_to_v3(config: &mut Value) {
         }
     }
 }
+
+/// v4 (v2.0) only adds settings (`hotkeys`, `layout.order`, `style.keyLabels`), so nothing moves. The number goes up
+/// anyway: v1.4.0 also wrote version 3, and it drops every setting it doesn't know when it saves. Seeing a newer
+/// version is what makes an older app keep a copy first (downgrade.rs), so going back to v1.4.0 and forward again
+/// loses nothing.
+fn v3_to_v4(_config: &mut Value) {}
 
 pub fn migrate(mut config: Value) -> Value {
     if !config.is_object() {
@@ -245,8 +264,10 @@ impl Paths {
     }
 }
 
-/// True when this is a brand-new install: no settings file and no backup of one. A missing settings.json with a
-/// backup is not new: load() restores the backup, and first-run changes must not overwrite it.
+/// True when this is a brand-new install: no settings file and no backup of one. Then the settings window opens on
+/// the first run setup screen (docs/design/ui-design-v2.md, First run setup). After an update the file is there. A
+/// missing settings.json with a backup is not new: load() restores the backup, and new-install defaults must not
+/// overwrite it (load_at_startup).
 pub fn is_first_run(path: &Path) -> bool {
     !path.exists() && !path.with_extension("json.bak").exists()
 }

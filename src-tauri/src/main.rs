@@ -10,7 +10,11 @@ mod crash;
 mod debug;
 mod downgrade;
 mod grid;
+mod hotkeys;
+mod key_labels;
 mod keyboard;
+mod layout_order;
+mod obs_scenes;
 mod platform;
 mod sanitize;
 mod server;
@@ -26,7 +30,7 @@ use state::AppState;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, RunEvent};
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, watch};
 use window::open_settings_async;
 
 fn main() {
@@ -46,14 +50,19 @@ fn main() {
         ))
         .setup(|app| start_app(app))
         .on_window_event(window::on_event)
+        .on_menu_event(|app, event| platform::on_app_menu_event(app, event.id().as_ref()))
         .invoke_handler(tauri::generate_handler![
             commands::settings::get_state,
             commands::settings::save_settings,
             commands::settings::set_port,
             commands::settings::set_autostart,
+            hotkeys::set_pause_hotkey,
             commands::settings::list_layouts,
             commands::settings::copy_text,
             commands::settings::quit_app,
+            commands::keyboard_access::get_keyboard_access,
+            commands::keyboard_access::request_keyboard_access,
+            commands::keyboard_access::restart_app,
             commands::settings::set_input_method,
             commands::settings::set_secure_link,
             commands::settings::regenerate_link_key,
@@ -62,6 +71,8 @@ fn main() {
             commands::assets::remove_font,
             commands::assets::open_folder,
             commands::assets::create_layout,
+            commands::layout_import::pick_layout_source,
+            commands::layout_import::add_layout,
             commands::assets::export_layouts,
             commands::assets::import_layouts,
             commands::settings::reset_settings,
@@ -87,12 +98,14 @@ fn main() {
             debug::debug_key_monitor,
             commands::updates::open_release_page,
             commands::updates::ack_whats_new,
+            commands::settings::ack_first_run,
             commands::updates::get_release_notes,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build app");
 
-    app.run(|_, ev| {
+    app.run(|app, ev| {
+        platform::on_run_event(app, &ev);
         // Keep running in the tray when the last window closes.
         if let RunEvent::ExitRequested { api, code, .. } = ev {
             if code.is_none() {
@@ -116,13 +129,16 @@ fn start_async_runtime() {
     std::mem::forget(rt); // keep it alive for the whole process
 }
 
-/// Everything that happens once Tauri is ready, in order: settings, event log, keyboard, server, state, tray, update check,
-/// window.
+/// Everything that happens once Tauri is ready, in order: the menu bar (macOS), settings, event log, key labels, keyboard,
+/// server, state, tray, pause shortcut, update check, window.
 fn start_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    platform::set_dock_icon_visible(app.handle(), false); // a menu-bar app until the settings window opens
+    platform::install_app_menu(app)?; // macOS: Command+Q, Command+W and Command+,
     let paths = Paths {
         root: app.path().app_data_dir()?,
     };
     paths.ensure();
+    let first_run = settings::is_first_run(&paths.settings());
     let current = env!("CARGO_PKG_VERSION");
     let (mut cfg, pending) = load_settings(&paths, &app.config().identifier, current);
     let port = cfg["general"]["port"].as_u64().unwrap_or(7878) as u16;
@@ -132,6 +148,7 @@ fn start_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or(keyboard::Method::Hook);
 
     start_event_log(&mut cfg, &paths, current);
+    key_labels::init(app.handle()); // what the user's keyboard prints, asked now and on each layout switch
 
     let shared = make_shared(cfg, paths, method);
     let (srv, err) = match server::start(shared.clone(), port) {
@@ -145,11 +162,17 @@ fn start_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         tray: Mutex::new(None),
         update_cache: Mutex::new(None),
         whats_new: AtomicBool::new(pending),
+        first_run: AtomicBool::new(first_run),
         pending_tab: Mutex::new(None),
         auto_check_changed: tokio::sync::Notify::new(),
     });
 
-    tray::build(app, shared)?;
+    key_labels::follow_switch_keys(app.handle()); // Windows: a layout switch inside one window
+    state::forward_overlay_count(app.handle().clone(), &shared);
+    tray::build(app, shared.clone())?;
+    if let Err(problem) = hotkeys::apply(app.handle(), &shared.settings.read().unwrap()) {
+        debug::log(format!("pause shortcut not registered: {problem}"));
+    }
     commands::updates::start_background_check(app.handle().clone());
 
     open_window_at_launch(app, pending, open_on_launch);
@@ -191,6 +214,7 @@ fn make_shared(cfg: serde_json::Value, paths: Paths, method: keyboard::Method) -
         settings: cfg.into(),
         paths,
         cfg_tx,
+        overlays: watch::channel(0).0,
     });
     match shared.bus.error() {
         Some(e) => debug::log(format!("keyboard input ({}) could not start: {e}", method.id())),

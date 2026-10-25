@@ -1,12 +1,12 @@
 // Visual tests: a picture of every settings screen, compared with the picture saved last time.
 //
 //   npm run test:visual               compare every screen with tests/visual/baselines/ and say which ones changed
-//   npm run test:visual -- --update   take new baselines (only when the look was changed ON PURPOSE; show Jordan before and after)
+//   npm run test:visual -- --update   take new baselines (only when the look was changed ON PURPOSE; show the before and after in the pull request)
 //
 // The pictures come from the real settings window, over the same debugging connection the end-to-end tests use. The window is
 // given a fixed size and 100% scaling, and everything that changes from run to run (the version, the overlay size, animations,
 // the blinking text cursor) is frozen or hidden. A few differing pixels are allowed for anti-aliasing (the smoothing of
-// letter edges). The baselines come from Jordan's PC; they are local, not part of CI.
+// letter edges). The baselines come from one Windows PC (the maintainer's); they are local, not part of CI.
 // Run through tests/e2e/run.mjs (which builds and starts the test copy of the app); it is not part of the normal "all suites" run.
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -29,7 +29,7 @@ const ALLOWED_DIFFERENT_PIXELS = 20;
 // What changes from run to run, or that animates, is frozen or hidden before every picture.
 const FREEZE_CSS = `
   *, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; scroll-behavior: auto !important; }
-  ${['app-version', 'obs-size', 'general-size-note'].map((name) => byTest(name)).join(', ')} { visibility: hidden !important; }
+  ${['app-version', 'general-size-note'].map((name) => byTest(name)).join(', ')} { visibility: hidden !important; }
 `;
 
 const p = await connect();
@@ -82,7 +82,6 @@ const SCREENS = [
   ],
   ['style-tab', () => openTab('style')],
   ['animation-tab', () => openTab('animation')],
-  ['fonts-tab', () => openTab('fonts')],
   ['general-tab', () => openTab('general')],
   [
     'popup-new-layout',
@@ -99,7 +98,13 @@ const SCREENS = [
   ]),
 ];
 
+// A spot with nothing that reacts to hover (the bottom of the tab list). The Animation tab's cards play their demo from a
+// JavaScript timer while the mouse is over them, which FREEZE_CSS can't stop, so wherever the PC's real pointer happened
+// to rest changed the picture. Moving the page's mouse here first makes every run the same.
+const NOTHING_TO_HOVER = { x: 10, y: WINDOW.height - 10 };
+
 const takePicture = async (clipTo = null) => {
+  await p.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...NOTHING_TO_HOVER });
   await p.ev(`document.activeElement && document.activeElement.blur && document.activeElement.blur()`);
   await sleep(400);
   const clip = clipTo
