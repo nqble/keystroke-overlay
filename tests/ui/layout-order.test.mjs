@@ -2,7 +2,7 @@
 // src-tauri/src/layout_order.rs, which the tray uses. Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dropGap, moveBy, moveToGap, otherLayouts, shownLayouts } from '../../ui/settings/layout-order.js';
+import { dropGap, isDragStart, moveBy, moveToGap, otherLayouts, shownLayouts } from '../../ui/settings/layout-order.js';
 
 const layout = (id, user = false) => ({ id, name: id, keys: [], user });
 const ids = (list) => list.map((l) => l.id);
@@ -76,4 +76,12 @@ test('drops work with real page boxes, whose fields are getters (like DOMRect)',
   const boxes = [0, 112].map((left) => new Box(left));
   assert.equal(dropGap(106, 40, boxes), 1);
   assert.equal(dropGap(5, 40, boxes), 0);
+});
+
+test('a press becomes a drag only once the pointer has moved a few pixels, so a click still picks the layout', () => {
+  const start = { x: 100, y: 50 };
+  assert.equal(isDragStart(start, 100, 50), false, 'no movement');
+  assert.equal(isDragStart(start, 102, 51), false, 'a shaky click');
+  assert.equal(isDragStart(start, 104, 50), true, 'four pixels across');
+  assert.equal(isDragStart(start, 103, 53), true, 'diagonally');
 });

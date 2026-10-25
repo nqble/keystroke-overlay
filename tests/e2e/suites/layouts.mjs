@@ -72,6 +72,40 @@ check(
   moved.slice(0, 2).join() === 'tkl,full' && (await p.q(`document.activeElement === ${cardOf('full')}`)),
   moved.join(),
 );
+// ---- drag a card with the mouse: real mouse events through the browser's input (CDP), as a person would
+const centerOf = (layoutId) =>
+  p.q(
+    `(() => { const r = ${cardOf(layoutId)}.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.left]; })()`,
+  );
+const mouse = (type, x, y) =>
+  p.send('Input.dispatchMouseEvent', {
+    type,
+    x,
+    y,
+    button: 'left',
+    buttons: type === 'mouseReleased' ? 0 : 1,
+    clickCount: 1,
+  });
+const [fromX, fromY] = await centerOf('full'); // Full size is second now (tkl, full, ...)
+const [, , firstLeft] = await centerOf('tkl');
+const pickedBefore = (await p.invoke('get_state')).ok.settings.layout.id;
+await mouse('mousePressed', fromX, fromY);
+for (const step of [0.25, 0.5, 0.75, 1]) {
+  await mouse('mouseMoved', fromX + (firstLeft + 4 - fromX) * step, fromY);
+  await sleep(60);
+}
+check(
+  'while a card is dragged, a line shows where it will land',
+  await p.q(`!!document.querySelector('[data-test="layout-cards"] .drop-line')`),
+);
+await mouse('mouseReleased', firstLeft + 4, fromY);
+await sleep(1200);
+const dragged = (await p.invoke('get_state')).ok.settings.layout.order;
+check(
+  'dragging Full size before TKL saves the new order, and the drop does not pick the layout',
+  dragged.slice(0, 2).join() === 'full,tkl' && (await p.invoke('get_state')).ok.settings.layout.id === pickedBefore,
+  `${dragged.join()} (picked: ${pickedBefore})`,
+);
 // ---- Hide a built-in, then add it back from New layout's Built-in
 await rightClick(`[data-test="layout-card"][data-layout-id="gameplay"]`);
 await p.ev(

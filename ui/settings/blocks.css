@@ -325,6 +325,9 @@
   width: 100%;
   height: 48px;
 }
+.layout-card {
+  touch-action: none; /* a finger or pen on a card drags it (layout.js useDrag) instead of scrolling the page */
+}
 .layout-card .gallery-picture {
   padding-right: var(--space-26); /* room for the card's "⋯" button */
 }

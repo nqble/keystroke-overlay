@@ -66,3 +66,11 @@ export function dropGap(x, y, boxes, edge = DROP_EDGE) {
   }
   return row[row.length - 1].index + 1; // after the row's last card
 }
+
+/** How far (pixels) a pressed card must move before the press counts as a drag, not a click. */
+export const DRAG_START_DISTANCE = 4;
+
+/** Whether the pointer has moved far enough from where the card was pressed (`start`: { x, y }) to start a drag. */
+export function isDragStart(start, x, y, distance = DRAG_START_DISTANCE) {
+  return Math.hypot(x - start.x, y - start.y) >= distance;
+}
