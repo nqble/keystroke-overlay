@@ -5,6 +5,9 @@ run of `tests/bench/run.mjs` on one PC; numbers from different entries come from
 
 ## v2.0.1 — two fixes for 2.0
 
+### 🛠 Improved
+- **If Windows Security flags the app** by mistake, the user guide's Troubleshooting section now says how to check your copy is official and how to restore it.
+
 ### 🐛 Fixed
 - **Layout cards can be dragged to reorder again,** on Windows, Mac and Linux.
 - **No grid dot is cut off** at the edge of the key editor's board when Grid is on.
