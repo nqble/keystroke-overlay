@@ -509,7 +509,7 @@ check('switching Snap on and Grid on is saved', await choicesAre(0.25, true), JS
 check(
   'the board draws grid dots at the snap spacing',
   await p.q(
-    `(() => { const s = getComputedStyle(document.querySelector('${byTest('keymap-canvas')}')); return s.backgroundImage.includes('radial-gradient') && parseFloat(s.backgroundSize) > 0; })()`,
+    `(() => { const s = getComputedStyle(document.querySelector('${byTest('keymap-canvas')}'), '::before'); return s.backgroundImage.includes('radial-gradient') && parseFloat(s.backgroundSize) > 0; })()`,
   ),
 );
 await p.ev(`await __ko.resync()`);
@@ -1215,7 +1215,7 @@ check(
 // the Grid switch shows the dots whether or not Snap is on, and in both layout styles
 const dotsShown = () =>
   p.q(
-    `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return c.classList.contains('grid-dots') && parseFloat(getComputedStyle(c).backgroundSize) > 0; })()`,
+    `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); return c.classList.contains('grid-dots') && parseFloat(getComputedStyle(c, '::before').backgroundSize) > 0; })()`,
   );
 if (!(await pressed('key-grid'))) await flip('key-grid');
 if (await pressed('key-snap')) await flip('key-snap');
@@ -1234,11 +1234,13 @@ await p.ev(`document.querySelector('${byTest('layout-style-grid')}').click()`);
 await sleep(800);
 check('...and in the Even grid layout style too', await dotsShown());
 const dotOffset = await p.q(
-  `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); const s = getComputedStyle(c); return [parseFloat(s.backgroundPositionX), parseFloat(s.backgroundPositionY), parseFloat(c.style.getPropertyValue('--dot-spacing'))]; })()`,
+  `(() => { const c = document.querySelector('${byTest('keymap-canvas')}'); const s = getComputedStyle(c, '::before'); return [parseFloat(s.backgroundPositionX), parseFloat(s.backgroundPositionY), parseFloat(c.style.getPropertyValue('--dot-spacing')), parseFloat(s.left), parseFloat(s.right), parseFloat(s.bottom)]; })()`,
 );
 check(
-  'Grid dots sit in the middle of the gap between neighboring keys, on the grid line',
-  dotOffset[0] === -dotOffset[2] / 2 - 1.5 && dotOffset[1] === -dotOffset[2] / 2 - 1.5,
+  'Grid dots sit in the middle of the gap between neighboring keys, on the grid line, and none on the board’s edge',
+  dotOffset[0] === -1.5 &&
+    dotOffset[1] === -1.5 &&
+    [dotOffset[3], dotOffset[4], dotOffset[5]].every((inset) => inset === dotOffset[2] / 2),
   JSON.stringify(dotOffset),
 );
 await p.ev(`document.querySelector('${byTest('layout-style-shape')}').click()`);
