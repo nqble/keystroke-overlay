@@ -127,7 +127,7 @@ a linked label, or `aria-label`). The rest is strong guidance; improve it whenev
   no full stop, under ~72 characters. Types: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `style` (formatting only),
   `build`, `ci`, `chore`. Scope is the area, e.g. `fix(overlay): ...`, `feat(keys): ...`. Add a body when the why isn't
   obvious. A breaking change to settings or the OBS URL gets `!` (e.g. `feat(settings)!: ...`).
-- **No AI co-author or "Generated with" lines** in commits, pull requests or code.
+- **Commits made with Claude Code name it as co-author** (a `Co-Authored-By:` line at the end of the message), so the history says honestly who wrote what.
 - **Ask the maintainer before:** pushing to `main`, force-pushing, rewriting history, creating tags or releases, posting on GitHub,
   changing repository settings, adding any dependency (even development-only), or starting a big refactor (restructuring
   files or moving code between modules). For a refactor, describe the plan first.
