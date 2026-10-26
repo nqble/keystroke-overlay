@@ -36,6 +36,8 @@ const ROOT_FILES = new Set([
   'CODE_OF_CONDUCT.md',
   'CLAUDE.md',
 ]);
+// Claude Code skills copied from other projects (each folder's SOURCE.txt): kept as copied, so not reworded either.
+const COPIED_SKILLS = '.claude/skills/';
 const allowed = (file) =>
   ROOT_FILES.has(file) ||
   file === 'tests/README.md' ||
@@ -44,7 +46,8 @@ const allowed = (file) =>
   /^docs\/[^/]+\.md$/.test(file) ||
   file.startsWith('docs/decisions/') ||
   file.startsWith('docs/design/') ||
-  file.startsWith('docs/proposals/');
+  file.startsWith('docs/proposals/') ||
+  file.startsWith(COPIED_SKILLS);
 
 const files = markdownFiles();
 for (const file of files)
@@ -91,7 +94,11 @@ const appScripts = (dir) =>
     .map((name) => join(dir, name).split(sep).join('/'))
     .filter((path) => path.endsWith('.js') && !path.includes('/vendor/'));
 const NOT_WORDED = new Set(['CHANGELOG.md', 'docs/DOCS-STYLE.md']);
-const worded = [...files.filter((file) => !NOT_WORDED.has(file)), ...APP_TEXT, ...appScripts('ui')];
+const worded = [
+  ...files.filter((file) => !NOT_WORDED.has(file) && !file.startsWith(COPIED_SKILLS)),
+  ...APP_TEXT,
+  ...appScripts('ui'),
+];
 for (const file of worded) {
   readFileSync(file, 'utf8')
     .split('\n')
@@ -114,7 +121,9 @@ const AUDIENCE_EXEMPT = {
   'tests/ui/audience-rules.test.mjs': ['name', 'session', 'branch', 'notes-folder', 'private-link'],
 };
 const tracked = execFileSync('git', ['ls-files'], { encoding: 'utf8' }).split('\n');
-const audienceChecked = tracked.filter((file) => TEXT_FILE.test(file) && !file.includes('/vendor/'));
+const audienceChecked = tracked.filter(
+  (file) => TEXT_FILE.test(file) && !file.includes('/vendor/') && !file.startsWith(COPIED_SKILLS),
+);
 for (const file of audienceChecked) {
   if (!existsSync(file) || file.endsWith('package-lock.json')) continue;
   const skip = AUDIENCE_EXEMPT[file] ?? [];
