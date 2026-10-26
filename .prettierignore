@@ -12,3 +12,5 @@ ui/settings/vendor
 *.md
 # Rust is formatted by rustfmt (cargo fmt), not Prettier
 *.rs
+# Copied Claude Code skills: kept exactly as copied (each folder's SOURCE.txt says from where)
+.claude/skills

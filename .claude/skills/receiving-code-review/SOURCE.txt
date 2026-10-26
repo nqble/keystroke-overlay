@@ -1,0 +1,2 @@
+Copied unchanged from https://github.com/obra/superpowers (skills/receiving-code-review) at commit 2ce8aa1, MIT License (LICENSE here).
+Update: copy the folder again from a newer commit after reading the changes.

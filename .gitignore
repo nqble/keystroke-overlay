@@ -6,7 +6,12 @@ release/
 dist/
 *.key
 *.log
-.claude/
+.claude/*
+# Shared with every session (cloud ones too): copied skills, two git hooks and the settings that turn them on.
+# Local settings and worktrees stay out.
+!.claude/skills/
+!.claude/hooks/
+!.claude/settings.json
 *.tmp
 .DS_Store
 # pictures of what changed in a failed visual test
