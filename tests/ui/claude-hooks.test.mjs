@@ -34,9 +34,9 @@ test('a commit outside the format is refused, with what to write instead', () =>
 
 test('pushing a work branch passes, wherever you are', () => {
   for (const [command, branch] of [
-    ['git push -u origin advisor/v2.0.1', 'advisor/v2.0.1'],
-    ['git push -q origin advisor/v2.0.1', 'main'],
-    ['git push', 'advisor/v2.0.1'],
+    ['git push -u origin fix/drag-cards', 'fix/drag-cards'],
+    ['git push -q origin fix/drag-cards', 'main'],
+    ['git push', 'fix/drag-cards'],
     ['git push origin HEAD:refs/heads/fix/x', 'main'],
     ['git pull origin main', 'main'],
   ]) {
@@ -46,15 +46,15 @@ test('pushing a work branch passes, wherever you are', () => {
 
 test('pushing to main, or forcing anything, is refused', () => {
   for (const [command, branch] of [
-    ['git push origin main', 'advisor/x'],
+    ['git push origin main', 'fix/x'],
     ['git push', 'main'],
-    ['git push -u origin HEAD:main', 'advisor/x'],
-    ['git push origin +advisor/x', 'advisor/x'],
-    ['git push --force origin advisor/x', 'advisor/x'],
-    ['git push -f origin advisor/x', 'advisor/x'],
-    ['git push --force-with-lease origin advisor/x', 'advisor/x'],
-    ['git push origin --delete advisor/x', 'main'],
-    ['cd repo && git push origin main', 'advisor/x'],
+    ['git push -u origin HEAD:main', 'fix/x'],
+    ['git push origin +fix/x', 'fix/x'],
+    ['git push --force origin fix/x', 'fix/x'],
+    ['git push -f origin fix/x', 'fix/x'],
+    ['git push --force-with-lease origin fix/x', 'fix/x'],
+    ['git push origin --delete fix/x', 'main'],
+    ['cd repo && git push origin main', 'fix/x'],
   ]) {
     assert.match(pushProblem(command, branch) ?? '', /maintainer's own word/, command);
   }
