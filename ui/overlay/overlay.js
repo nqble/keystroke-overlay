@@ -3,6 +3,7 @@
 // transitions do all the animation work on the compositor.
 import { animations, themes, easings, byId } from '/overlay/registry.js';
 import { fitInBox, stagePad } from '/overlay/fit.js';
+import { angleOf, turnedBox } from '/overlay/turn.js';
 import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
 
@@ -143,6 +144,7 @@ function profileOf(nextSettings, layout) {
     layoutStyle,
     positions: edits.positions ?? {},
     sizes: edits.sizes ?? {},
+    rotations: edits.rotations ?? {},
   };
 }
 
@@ -163,7 +165,8 @@ function placedKey(layoutKey, layout, prof) {
     resizedHeight === undefined
       ? baseHeight
       : Math.min(MAX_KEY_WIDTH, Math.max(Math.min(1, baseHeight), resizedHeight));
-  return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width, h: height };
+  const r = angleOf(layoutKey.code, layoutKey.r, prof.layoutStyle, prof.rotations);
+  return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width, h: height, r };
 }
 
 function build(nextSettings, layout) {
@@ -182,21 +185,23 @@ function build(nextSettings, layout) {
   }
   const { keySize, gap } = nextSettings.style,
     pitch = keySize + gap;
-  const minX = Math.min(...keys.map((k) => k.x)),
-    minY = Math.min(...keys.map((k) => k.y));
-  let maxX = 0,
-    maxY = 0;
+  // The overlay's size comes from the box each key covers, turned keys included (turn.js); with none turned, these are
+  // the keys' own rectangles.
+  const boxes = keys.map((k) => turnedBox(k.x * pitch, k.y * pitch, k.w * pitch - gap, k.h * pitch - gap, k.r));
+  const minLeft = Math.min(...boxes.map((b) => b.left)),
+    minTop = Math.min(...boxes.map((b) => b.top));
+  const maxX = Math.max(...boxes.map((b) => b.right)) - minLeft,
+    maxY = Math.max(...boxes.map((b) => b.bottom)) - minTop;
   const frag = document.createDocumentFragment();
   for (const layoutKey of keys) {
     const keyWidth = (layoutKey.w ?? 1) * pitch - gap,
       keyHeight = (layoutKey.h ?? 1) * pitch - gap;
-    maxX = Math.max(maxX, (layoutKey.x - minX) * pitch + keyWidth);
-    maxY = Math.max(maxY, (layoutKey.y - minY) * pitch + keyHeight);
     const label = prof.labels[layoutKey.code] ?? layoutKey.label ?? '';
     const el = document.createElement('div');
     el.className = 'key';
     el.dataset.code = layoutKey.code;
-    el.style.cssText = `left:${(layoutKey.x - minX) * pitch}px;top:${(layoutKey.y - minY) * pitch}px;width:${keyWidth}px;height:${keyHeight}px`;
+    el.style.cssText = `left:${layoutKey.x * pitch - minLeft}px;top:${layoutKey.y * pitch - minTop}px;width:${keyWidth}px;height:${keyHeight}px`;
+    if (layoutKey.r) el.style.setProperty('--r', `${layoutKey.r}deg`); // overlay.css turns the face and glow
     // Shrink long labels to fit narrow keys.
     const fit = Math.min(1, (keyWidth - 10) / Math.max(1, [...label].length * nextSettings.style.fontSize * 0.62));
     const mk = (cls) => {
