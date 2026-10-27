@@ -10,6 +10,7 @@ import { changed } from '../preview.js';
 import {
   SNAP,
   editProf,
+  editedCodes,
   forgetKeyEdits,
   forgetStyleEdits,
   gridShown,
@@ -98,7 +99,8 @@ function closeGaps(layout) {
 /** The Reset menu's items: put selected keys, all keys, hidden keys or labels back, or reset the whole layout. */
 function resetMenuItems(layout, profile) {
   const selectedCodes = [...selectedKeys];
-  const isEdited = (code) => !!(profile.positions[code] || profile.sizes[code]);
+  const edited = editedCodes(profile);
+  const isEdited = (code) => edited.has(code);
   return [
     {
       label: 'Put selected keys back',
@@ -223,7 +225,7 @@ function HistoryButtons({ layout }) {
 
 /** The line at the far right of the toolbar: how many keys are moved or hidden, and how many overlap. */
 function StatusLine({ profile, overlapCount }) {
-  const moved = new Set([...Object.keys(profile.positions), ...Object.keys(profile.sizes)]).size;
+  const moved = editedCodes(profile).size;
   const overlap =
     overlapCount > 0 ? html` · <span class="danger-text">${plural(overlapCount, 'key')} overlap</span>` : null;
   // aria-live: read out after a change

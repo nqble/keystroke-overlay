@@ -2,17 +2,18 @@
 //  Where the keys of the current layout are, as the Keys tab edits them: every key with its place and size in keys, and the
 //  selected ones as boxes the arrange maths (tabs/keys-arrange.js) understands.
 // =====================================================================================================================
-import { keyHeight, keyPos, keyWidth, viewProf } from '../profiles.js';
+import { keyAngle, keyHeight, keyPos, keyWidth, viewProf } from '../profiles.js';
 import { selectedKeys } from '../state.js';
 import { boardFrame, evenGridBoxes } from '../tabs/keys-board.js';
 
-/** Every key of the layout with its current place and size in key units: [{ key, x, y, w, h }]. */
+/** Every key of the layout with its current place and size in key units, and its angle: [{ key, x, y, w, h, r }]. */
 export function placeKeys(layout, profile) {
   return layout.keys.map((key) => ({
     key,
     ...keyPos(key, profile),
     w: keyWidth(key, profile),
     h: keyHeight(key, profile),
+    r: keyAngle(key, profile),
   }));
 }
 

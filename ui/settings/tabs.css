@@ -437,6 +437,7 @@ button:disabled:hover {
 }
 .kmk {
   position: absolute;
+  transform: rotate(var(--r, 0deg)); /* a turned key, around its center (key rotation) */
   left: calc(var(--x) * var(--unit));
   top: calc(var(--y) * var(--unit));
   width: calc(var(--w) * var(--unit) - 3px);

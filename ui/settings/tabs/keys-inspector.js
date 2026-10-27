@@ -8,6 +8,8 @@ import { html, useLayoutEffect, useRef } from '../html.js';
 import { PLACEHOLDER_PREFIX } from '../kle-layout.js';
 import { changed } from '../preview.js';
 import {
+  ANGLE_SNAP,
+  MAX_ANGLE,
   MAX_KEY_WIDTH,
   MAX_POSITION,
   MIN_POSITION,
@@ -15,14 +17,18 @@ import {
   baseHeight,
   baseWidth,
   editProf,
+  editedCodes,
   forgetKeyEdits,
+  keyAngle,
   keyHeight,
   keyPos,
   keyWidth,
   round2,
+  setKeyAngle,
   setKeyHeight,
   setKeyPos,
   setKeyWidth,
+  snapStep,
   tidyProf,
 } from '../profiles.js';
 import { render } from '../settings.js';
@@ -58,7 +64,7 @@ function Row({ label, fieldId, children }) {
  * A number field for key units. Typing applies at once (the overlay follows); the keyboard here is drawn again when
  * typing settles (on change), so the field isn't redrawn under the cursor.
  */
-function NumberField({ id, value, min, max, test, onValue }) {
+function NumberField({ id, value, min, max, test, onValue, step = SNAP }) {
   const onInput = (inputEvent) => {
     const typed = parseFloat(inputEvent.currentTarget.value);
     if (!Number.isFinite(typed)) return;
@@ -71,7 +77,7 @@ function NumberField({ id, value, min, max, test, onValue }) {
     class="num-field"
     min=${min}
     max=${max}
-    step=${SNAP}
+    step=${step}
     value=${round2(value)}
     data-test=${test}
     onInput=${onInput}
@@ -105,10 +111,16 @@ function keyTitle(layoutKey) {
   return `${layoutKey.label || 'Blank key'} · ${CANT_LIGHT_UP}`;
 }
 
-/** The inspector for one key: show or hide it, give it a label, set its width, height and exact place. */
+/** The inspector for one key: show or hide it, give it a label, set its width, height, angle and exact place. */
 function KeyInspector({ layoutKey, profile, overlaps }) {
   const code = layoutKey.code;
-  const ids = { label: useId('key-label'), width: useId('key-width'), height: useId('key-height'), x: useId('key-x') };
+  const ids = {
+    label: useId('key-label'),
+    width: useId('key-width'),
+    height: useId('key-height'),
+    angle: useId('key-angle'),
+    x: useId('key-x'),
+  };
   const at = keyPos(layoutKey, profile);
   const minWidth = Math.min(1, baseWidth(layoutKey, profile.layoutStyle));
   const minHeight = Math.min(1, baseHeight(layoutKey));
@@ -126,7 +138,7 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
     forgetKeyEdits([code]);
     changed(true);
   };
-  const edited = !!(profile.positions[code] || profile.sizes[code]);
+  const edited = editedCodes(profile).has(code);
   return html`<div class="editor" data-test="key-editor">
     <div class="inspector-title">
       <b data-test="key-editor-title">${keyTitle(layoutKey)}</b>
@@ -164,6 +176,21 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
         onValue=${(height) => setKeyHeight(layoutKey, height)}
       />
     <//>
+    ${
+      profile.layoutStyle === 'shape'
+        ? html`<${Row} label="Angle in degrees" fieldId=${ids.angle}>
+            <${NumberField}
+              id=${ids.angle}
+              value=${keyAngle(layoutKey, profile)}
+              min=${-MAX_ANGLE}
+              max=${MAX_ANGLE}
+              step=${snapStep() ? ANGLE_SNAP : 1}
+              test="key-angle"
+              onValue=${(angle) => setKeyAngle(layoutKey, angle)}
+            />
+          <//>`
+        : null
+    }
     <${Row} label="Position" fieldId=${ids.x}>
       <span>X</span>
       <${NumberField}
@@ -194,7 +221,8 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
 function GroupInspector({ profile }) {
   const codes = [...selectedKeys];
   const hiddenCount = codes.filter((code) => profile.disabledKeys.includes(code)).length;
-  const anyEdited = codes.some((code) => profile.positions[code] || profile.sizes[code]);
+  const edited = editedCodes(profile);
+  const anyEdited = codes.some((code) => edited.has(code));
   const putBack = () => {
     forgetKeyEdits(codes);
     changed(true);

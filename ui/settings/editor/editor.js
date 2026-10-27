@@ -115,6 +115,7 @@ function paintKey(ctx, node, item, { hidden, clash }) {
   node.style.setProperty('--y', String(item.y));
   node.style.setProperty('--w', String(item.w));
   node.style.setProperty('--h', String(item.h));
+  node.style.setProperty('--r', `${item.r ?? 0}deg`); // a turned key (tabs.css turns it around its center)
   const label = ctx.profile.labels[key.code] ?? key.label;
   if (node.textContent !== (label ?? '')) node.textContent = label ?? '';
   node.title = key.code;

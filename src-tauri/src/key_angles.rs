@@ -8,16 +8,20 @@ pub(crate) const MAX_ANGLE: f64 = 180.0;
 /// Only the "shape" style has rotations: the even grid keeps neat columns (decided 2026-10-24).
 const STYLE_WITH_ROTATIONS: &str = "shape";
 
-/// A clean angle: a finite number limited to ±MAX_ANGLE and rounded to one decimal. None for anything else, and for 0,
-/// which is never written, so files without rotation stay exactly as they were.
-pub(crate) fn clean_angle(raw: &Value) -> Option<f64> {
+/// A clean angle: a finite number limited to ±MAX_ANGLE and rounded to one decimal; None for anything else.
+fn clean_any_angle(raw: &Value) -> Option<f64> {
     let angle = raw.as_f64().filter(|n| n.is_finite())?.clamp(-MAX_ANGLE, MAX_ANGLE);
-    let rounded = (angle * 10.0).round() / 10.0;
-    (rounded != 0.0).then_some(rounded)
+    Some((angle * 10.0).round() / 10.0)
+}
+
+/// A layout file key's clean angle. 0 is never written, so files without rotation stay exactly as they were.
+pub(crate) fn clean_angle(raw: &Value) -> Option<f64> {
+    clean_any_angle(raw).filter(|angle| *angle != 0.0)
 }
 
 /// Adds a style's cleaned `rotations` (key code → angle) to its other edits, when the style can have them and any are
-/// left. The key codes follow the same rule as positions and sizes, and at most `max_keys` are kept.
+/// left. The key codes follow the same rule as positions and sizes, and at most `max_keys` are kept. A 0 is kept here:
+/// it means the user straightened a key that the layout file turns.
 pub(crate) fn add_rotations(edits: &mut Map<String, Value>, style: &str, raw_style: Option<&Value>, max_keys: usize) {
     if style != STYLE_WITH_ROTATIONS {
         return;
@@ -31,7 +35,7 @@ pub(crate) fn add_rotations(edits: &mut Map<String, Value>, style: &str, raw_sty
         .filter(|(k, _)| !k.is_empty() && k.len() <= 40)
         .take(max_keys)
     {
-        if let Some(angle) = clean_angle(raw_angle) {
+        if let Some(angle) = clean_any_angle(raw_angle) {
             rotations.insert(code.clone(), json!(angle));
         }
     }
@@ -61,7 +65,11 @@ mod tests {
         let raw = json!({ "rotations": { "KeyW": 15, "KeyA": 0, "KeyS": "x", "": 10 } });
         let mut shape = Map::new();
         add_rotations(&mut shape, "shape", Some(&raw), 300);
-        assert_eq!(Value::Object(shape), json!({ "rotations": { "KeyW": 15.0 } }));
+        assert_eq!(
+            Value::Object(shape),
+            json!({ "rotations": { "KeyW": 15.0, "KeyA": 0.0 } }),
+            "0 straightens a turned key"
+        );
         let mut grid = Map::new();
         add_rotations(&mut grid, "grid", Some(&raw), 300);
         assert!(grid.is_empty());
@@ -70,7 +78,7 @@ mod tests {
     #[test]
     fn nothing_is_written_when_no_angle_is_left_and_the_key_limit_holds() {
         let mut edits = Map::new();
-        add_rotations(&mut edits, "shape", Some(&json!({ "rotations": { "KeyW": 0 } })), 300);
+        add_rotations(&mut edits, "shape", Some(&json!({ "rotations": { "KeyW": "x" } })), 300);
         assert!(edits.is_empty());
         let many: Map<String, Value> = (0..10).map(|i| (format!("Key{i}"), json!(5))).collect();
         add_rotations(&mut edits, "shape", Some(&json!({ "rotations": many })), 3);

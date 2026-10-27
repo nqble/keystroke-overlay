@@ -2,8 +2,10 @@
 
 Status: **Approved, being built** (decided 2026-10-24: the handle sits top-right, Snap turns in 15° steps, and only
 the Keyboard shape style has rotation). **Built:** the formats (a layout key's `r`, a profile's `rotations`, settings
-version 5, cleaning and tests) and the overlay drawing turned keys (`ui/overlay/turn.js`, tested). **Not built yet:** the
-editor's handle and Angle field, KLE import keeping angles, and the end-to-end and screenshot tests.
+version 5, cleaning and tests) the overlay drawing turned keys (`ui/overlay/turn.js`, tested), and in the Keys tab: turned keys
+on the board, the **Angle** field (15° steps with Snap), Undo, **Put back** and the "N moved" count
+(`profiles.js`, tested). **Not built yet:** the rotation handle, turned boxes for board limits and the overlap warning,
+KLE import keeping angles, and the end-to-end and screenshot tests.
 
 Lets a person turn one key at a time in the Keys tab (for split, ergonomic or artistic layouts), and lets a layout file
 say a key is turned. The whole keyboard is never rotated here: OBS already rotates a source. Imported KLE files keep

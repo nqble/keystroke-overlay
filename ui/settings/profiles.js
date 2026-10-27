@@ -7,10 +7,11 @@ import { settings, layouts } from './state.js';
 // 4. Per-layout key edits
 //    Every layout has its own hidden keys, labels and moved / resized keys in settings.layout.profiles[layoutId]:
 //      { disabledKeys: [], labels: {}, layoutStyle: 'grid' (only when chosen),
-//        styles: { shape: { positions: { KeyW: { x, y } }, sizes: { Space: { w } } }, grid: { ... } } }
+//        styles: { shape: { positions: { KeyW: { x, y } }, sizes: { Space: { w } }, rotations: { KeyW: 15 } }, grid: { ... } } }
 //    hidden keys and labels are shared by both layout styles; positions and sizes belong to one style each ("shape" =
-//    the layout file's own shape, "grid" = even columns). Only keys the user moved or resized are listed; every other
-//    key stays where the layout file puts it. Units are key widths.
+//    the layout file's own shape, "grid" = even columns). Only keys the user moved, resized or turned are listed; every
+//    other key stays where the layout file puts it. Units are key widths; angles are degrees, clockwise, and only the
+//    shape style has them (docs/proposals/key-rotation.md).
 // ---------------------------------------------------------------------------------------------------------------------
 const EMPTY_PROFILE = () => ({ disabledKeys: [], labels: {} });
 
@@ -21,6 +22,9 @@ export const MIN_POSITION = -100; // a key may sit left of or above the layout's
 export const MAX_POSITION = 100;
 export const MIN_KEY_WIDTH = 0.25;
 export const MAX_KEY_WIDTH = 100;
+// The furthest a key turns either way, and Snap's angle step. Keep in step with MAX_ANGLE in src-tauri/src/key_angles.rs.
+export const MAX_ANGLE = 180;
+export const ANGLE_SNAP = 15;
 
 export const curLayout = () => layouts.find((l) => l.id === settings.layout.id) ?? layouts[0];
 
@@ -41,6 +45,7 @@ export const viewProf = () => {
     layoutStyle: style,
     positions: edits.positions ?? {},
     sizes: edits.sizes ?? {},
+    rotations: style === 'shape' ? (edits.rotations ?? {}) : {},
   };
 };
 
@@ -68,12 +73,16 @@ export const editPositions = () => (editStyle().positions ??= {});
 /** The widths of resized keys in the layout style in use, for changing. */
 export const editSizes = () => (editStyle().sizes ??= {});
 
+/** The angles of turned keys (the shape style only), for changing. */
+const editRotations = () => (editStyle().rotations ??= {});
+
+/** The parts of a layout style's edits, each keyed by key code. */
+const EDIT_PARTS = ['positions', 'sizes', 'rotations'];
+
 /** True when a profile differs from the default in any way. */
 function hasEdits(profile) {
   const styles = Object.values(profile.styles ?? {});
-  const editedStyle = styles.some(
-    (edits) => Object.keys(edits.positions ?? {}).length > 0 || Object.keys(edits.sizes ?? {}).length > 0,
-  );
+  const editedStyle = styles.some((edits) => EDIT_PARTS.some((part) => Object.keys(edits[part] ?? {}).length > 0));
   return (
     profile.disabledKeys?.length > 0 ||
     Object.keys(profile.labels ?? {}).length > 0 ||
@@ -95,7 +104,7 @@ export function tidyProf() {
   for (const style of LAYOUT_STYLES) {
     const edits = profile.styles?.[style];
     if (!edits) continue;
-    for (const part of ['positions', 'sizes']) if (!Object.keys(edits[part] ?? {}).length) delete edits[part];
+    for (const part of EDIT_PARTS) if (!Object.keys(edits[part] ?? {}).length) delete edits[part];
     if (!Object.keys(edits).length) delete profile.styles[style];
   }
   if (profile.styles && !Object.keys(profile.styles).length) delete profile.styles;
@@ -109,15 +118,16 @@ export function forgetStyleEdits() {
   tidyProf();
 }
 
-/** Put these keys back where, and as wide as, the layout style in use has them. */
+/** Put these keys back where, as big as and as turned as the layout style in use has them. */
 export function forgetKeyEdits(codes) {
   const edits = editStyle();
-  for (const code of codes) {
-    delete edits.positions?.[code];
-    delete edits.sizes?.[code];
-  }
+  for (const code of codes) for (const part of EDIT_PARTS) delete edits[part]?.[code];
   tidyProf();
 }
+
+/** The codes of the keys the user moved, resized or turned in the layout style in use. */
+export const editedCodes = (profile) =>
+  new Set([...Object.keys(profile.positions), ...Object.keys(profile.sizes), ...Object.keys(profile.rotations)]);
 
 /** The layout's key edits as plain text (for undo and redo). "null" means the layout has no edits. */
 export const profileSnapshot = (id) => JSON.stringify(settings.layout.profiles[id] ?? null);
@@ -211,3 +221,22 @@ export const setKeyWidth = (key, w) => setSize(key, 'w', w, baseWidth(key, style
 
 /** Save a key's height (dropping it when it is back to the layout's own height). */
 export const setKeyHeight = (key, h) => setSize(key, 'h', h, baseHeight(key));
+
+/** How the layout style turns a key before the user does: the layout file's angle, and never in the even grid. */
+export const baseAngle = (key, style) => (style === 'grid' ? 0 : (key.r ?? 0));
+
+/**
+ * The angle a key is drawn at, in degrees clockwise: the user's turn, else the layout's. Keep in step with angleOf in
+ * ui/overlay/turn.js (the overlay can't import from the settings window).
+ */
+export const keyAngle = (key, profile) => profile.rotations[key.code] ?? baseAngle(key, profile.layoutStyle);
+
+/** Save a key's angle (the shape style only), dropping it when it is back to the layout's own angle. */
+export function setKeyAngle(key, degrees) {
+  const style = styleOf(editProf());
+  if (style !== 'shape' || !Number.isFinite(degrees)) return;
+  const angle = Math.round(Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, degrees)) * 10) / 10;
+  if (Math.abs(angle - baseAngle(key, style)) < 1e-6) delete editRotations()[key.code];
+  else editRotations()[key.code] = angle;
+  tidyProf();
+}
