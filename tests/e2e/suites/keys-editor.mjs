@@ -1330,7 +1330,9 @@ await clickKey('KeyW');
 await sleep(400);
 check(
   'a selected key has a handle on all four sides',
-  (await p.q(`document.querySelectorAll('[data-test^="key-handle-"]').length`)) === 4,
+  // the round turning handle is checked in the key-rotation suite
+  (await p.q(`document.querySelectorAll('[data-test^="key-handle-"]:not([data-test="key-handle-turn"])').length`)) ===
+    4,
 );
 check(
   'the handles are thin lines: the visible part is 4 pixels or less on screen at 100% zoom',
