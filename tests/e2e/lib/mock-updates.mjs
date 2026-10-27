@@ -1,5 +1,6 @@
 // A tiny fake "GitHub" for update tests: serves stable.json / latest.json and a throttled, correctly signed fake
 // installer.
+// Meant to be reused: it needs only Node (http and fs) and knows nothing about this app beyond the update file names.
 // Usage: node mock-updates.mjs <work-dir>      (the work dir holds setup-1.1.4.exe + setup-1.1.4.exe.sig)
 // Set MOCK_VERSION to serve another version (the files are then setup-<version>.exe and setup-<version>.exe.sig).
 import http from 'node:http';

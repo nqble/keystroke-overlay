@@ -2,6 +2,7 @@
 //  The key editor's view: zoom and pan over the board (docs/design/key-editor.md §3, Zoom and Pan).
 //  Plain math, no page code, so tests/ui can run it with Node. The page applies the result as one CSS transform:
 //  translate(panX, panY) scale(zoom) on the board layer.
+//  Meant to be reused: it imports nothing and knows only sizes and a zoom and pan state, not what the board holds.
 //
 //  Sizes are in screen pixels: `view` is the editor box ({ w, h }), `content` is the board layer at 100% ({ w, h }).
 //  A view state is { zoom, panX, panY }: the board's top-left corner sits at (panX, panY) inside the box.

@@ -1,5 +1,7 @@
 // Shared helpers for the end-to-end suites: drive the REAL settings window over the WebView2 debug port,
 // inject real key presses, read process stats, and report results.
+// Meant to be reused: it needs Node, tools/app-config.mjs (the app's name and identifiers) and an app with a settings
+// window and a WebView2 debug port. It knows nothing about this app's keys or layouts.
 import { spawn, execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
