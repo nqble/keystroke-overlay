@@ -58,6 +58,18 @@ Paste the OBS URL, set the size the app shows, and leave the background transpar
 **General → OBS scenes** (it listens for OBS's scene changes) and the **Page permissions** setting. These apps aren't
 tested by this project; if one doesn't work, [open an issue](https://github.com/nqble/keystroke-overlay/issues) naming it.
 
+### Showing your mouse too
+
+Keystroke Overlay shows the keyboard only. To show your mouse as well, add a mouse overlay from another program as a
+second source in OBS, next to this one: for example the **input-overlay** OBS plugin, or **Zergatul.Obs.InputOverlay**.
+The two don't talk to each other; each draws its own part in its own look, and you place them side by side in OBS.
+
+Two things to know:
+
+- **They read your input on their own terms.** Keystroke Overlay's privacy promises ([Privacy](#privacy)) cover this app
+  only; check what another program does with your mouse and keys before you install it.
+- **Pause both** before you type something private: **Pause overlay** here doesn't pause the other program.
+
 ## Using two PCs (game on one, OBS on the other)
 
 Keystroke Overlay only talks to `127.0.0.1`, which means "this PC", so OBS has to run on the **same PC as the app**. If you play on
