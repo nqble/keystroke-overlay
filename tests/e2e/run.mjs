@@ -179,7 +179,20 @@ async function runSuite(name) {
       env: { ...process.env, E2E_VERSION: VERSION, E2E_EXE: EXE, E2E_DATA: DATA },
     },
   );
+  if (r.status !== 0) saveDiagnostics(name);
   return r.status === 0;
+}
+
+/** On GitHub's runner (E2E_DIAGNOSTICS set by .github/workflows/e2e.yml), saves why a suite failed: see lib/diagnose.ps1. */
+function saveDiagnostics(name) {
+  const outDir = process.env.E2E_DIAGNOSTICS;
+  if (!outDir) return;
+  const script = join(HERE, 'lib', 'diagnose.ps1');
+  spawnSync(
+    'powershell.exe',
+    ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, name, APP.testApps.e2eExe, DATA, outDir],
+    { stdio: 'inherit' },
+  );
 }
 
 async function main() {
