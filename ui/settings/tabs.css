@@ -378,6 +378,7 @@ button:disabled:hover {
 /* The resize handles sit on the selected key; the container only positions them. */
 .handles {
   position: absolute;
+  transform: rotate(var(--r, 0deg)); /* the handles turn with a turned key */
   left: calc(var(--x) * var(--unit));
   top: calc(var(--y) * var(--unit));
   width: calc(var(--w) * var(--unit) - 3px);
@@ -398,6 +399,18 @@ button:disabled:hover {
   background: var(--color-accent);
   border: 1px solid var(--color-panel);
   border-radius: var(--radius-md);
+}
+.handle.turn {
+  /* The turning handle: a small circle just outside the top-right corner (editor/rotate.js). */
+  top: calc(var(--space-12) * -1);
+  right: calc(var(--space-12) * -1);
+  width: var(--space-12);
+  height: var(--space-12);
+  cursor: grab;
+}
+.handle.turn::before {
+  inset: 0;
+  border-radius: 50%;
 }
 .handle.left,
 .handle.right {
@@ -469,6 +482,7 @@ button:disabled:hover {
 }
 .kmk {
   position: absolute;
+  transform: rotate(var(--r, 0deg)); /* a turned key, around its center (key rotation) */
   left: calc(var(--x) * var(--unit));
   top: calc(var(--y) * var(--unit));
   width: calc(var(--w) * var(--unit) - 3px);

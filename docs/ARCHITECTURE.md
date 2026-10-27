@@ -55,6 +55,7 @@ keystroke-overlay/
 │       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
 │       ├── hotkeys.rs      the optional global pause shortcut (registers only the one the user set)
 │       ├── key_labels.rs   key labels that follow the user's keyboard language and the system's own key names (style.keyLabels)
+│       ├── key_angles.rs   turned keys: cleaning a layout key's `r` and a profile's `rotations` (key rotation, being built)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
 │           ├── mod.rs        lists the command files
@@ -69,7 +70,7 @@ keystroke-overlay/
     │   ├── layouts/*.json     one file per keyboard layout
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
-    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), structure.js (when the keys are rebuilt), obs-source.js (OBS scene rules, inside OBS only)
+    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), obs-source.js (OBS scene rules, inside OBS only)
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png
@@ -93,7 +94,7 @@ keystroke-overlay/
         ├── drag-press.js   one press on a Layout tab card: click or drag, which gap, which click to swallow (tested)
         ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
         ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
-        ├── kle-layout.js  KLE keys → a layout: places (turned keys straightened), each key's code from its legends, Unlinked<n> placeholders (tested)
+        ├── kle-layout.js  KLE keys → a layout: places (turned keys keep their angle, r), each key's code from its legends, Unlinked<n> placeholders (tested)
         ├── kle-import-popup.js  New layout's From a KLE file choice and the Import from KLE popup (picture, name, what was found)
         ├── menu.js        the small "⋯" and right-click menus; no browser right-click menu, no dragging except layout cards
         ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
@@ -124,9 +125,9 @@ keystroke-overlay/
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab, and it sets only CSS variables. Its parts are one file each, sharing one
             `ctx` object (context.js): view.js (zoom and pan; the wheel, pinch, Space + drag and middle-button gestures are
-            attached by view-gestures.js), drag.js (moving keys), resize.js (the handles), marquee.js (selecting with a box)
+            attached by view-gestures.js), drag.js (moving keys), resize.js (the handles), rotate.js (the turning handle), marquee.js (selecting with a box)
             and arrange-bar.js (align and space evenly). places.js says where the keys are. The geometry is in keys-board.js
-            (board size and limits), keys-view.js (zoom and pan), keys-guides.js (snapping guides) and keys-gestures.js (what a
+            (board size and limits), keys-view.js (zoom and pan), keys-guides.js (snapping guides), keys-turn.js (turning keys: angles, covered boxes, overlap) and keys-gestures.js (what a
             wheel, pinch or press over the board means, per system), plain functions with unit tests.
 ```
 

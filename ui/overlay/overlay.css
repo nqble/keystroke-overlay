@@ -46,6 +46,9 @@ body.preview {
   inset: 0;
   box-sizing: border-box;
   border-radius: var(--radius, 8px);
+  /* A turned key (overlay.js sets --r). Only the face and glow turn, and the angle never animates: the key's own
+     transform stays free for the press animations, which move in screen directions. */
+  transform: rotate(var(--r, 0deg));
 }
 .face {
   display: flex;

@@ -15,7 +15,7 @@ import { overlappingCodes } from './keys-board.js';
 import { Inspector } from './keys-inspector.js';
 import { systemWord } from '../system-words.js';
 import { KeysToolbar, hideSelection, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
-import { placeKeys } from '../editor/places.js';
+import { placeKeys, turnedBox } from '../editor/places.js';
 import { platform, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
 
 const LAYOUT_STYLES = [
@@ -41,8 +41,7 @@ export async function keysTab() {
 function overlappingShownKeys(layout, profile) {
   const hidden = new Set(profile.disabledKeys);
   const shown = placeKeys(layout, profile).filter((item) => !hidden.has(item.key.code));
-  const boxes = shown.map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
-  return overlappingCodes(boxes);
+  return overlappingCodes(shown.map(turnedBox)); // a turned key's real shape counts
 }
 
 function KeysTab({ layout, profile, editorElement }) {

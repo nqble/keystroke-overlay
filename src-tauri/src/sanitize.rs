@@ -175,6 +175,9 @@ fn clean_layout_key(raw_key: &Value) -> Option<Value> {
     if let Some(label) = raw_key["label"].as_str() {
         key["label"] = json!(label.chars().take(MAX_LABEL_LENGTH).collect::<String>());
     }
+    if let Some(angle) = crate::key_angles::clean_angle(&raw_key["r"]) {
+        key["r"] = json!(angle);
+    }
     Some(key)
 }
 
@@ -199,7 +202,7 @@ pub fn clean_layout_keys(raw_keys: &Value) -> Vec<Value> {
 }
 
 /// One layout style's edits: only the parts that have something in them, so untouched profiles stay small.
-fn clean_style(raw_style: Option<&Value>, fallback_positions: Option<&Value>) -> Map<String, Value> {
+fn clean_style(style: &str, raw_style: Option<&Value>, fallback_positions: Option<&Value>) -> Map<String, Value> {
     let mut cleaned = Map::new();
     let positions = clean_positions(raw_style.and_then(|s| s.get("positions")).or(fallback_positions));
     if positions.as_object().is_some_and(|m| !m.is_empty()) {
@@ -209,6 +212,7 @@ fn clean_style(raw_style: Option<&Value>, fallback_positions: Option<&Value>) ->
     if sizes.as_object().is_some_and(|m| !m.is_empty()) {
         cleaned.insert("sizes".into(), sizes);
     }
+    crate::key_angles::add_rotations(&mut cleaned, style, raw_style, MAX_EDITED_KEYS);
     cleaned
 }
 
@@ -231,7 +235,11 @@ pub fn clean_profiles(raw_profiles: &Value) -> Value {
                 } else {
                     None
                 };
-                let edits = clean_style(profile.get("styles").and_then(|s| s.get(style)), legacy_positions);
+                let edits = clean_style(
+                    style,
+                    profile.get("styles").and_then(|s| s.get(style)),
+                    legacy_positions,
+                );
                 if !edits.is_empty() {
                     styles.insert(style.to_string(), Value::Object(edits));
                 }

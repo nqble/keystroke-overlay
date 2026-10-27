@@ -7,12 +7,12 @@ Where user files live: `%APPDATA%\com.keyoverlay.app\` on Windows, `~/Library/Ap
 Mac, `~/.local/share/com.keyoverlay.app` on Linux (General → Advanced → Open data folder).
 
 ## Settings (`settings.json`)
-Versioned (`"version": 4` from v2.0, which only adds settings; 3 from v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
+Versioned (`"version": 5` for turned keys, which only adds `rotations`; 4 from v2.0, which only adds settings; 3 from v1.3.0; 2 in v1.2.x) and migrated on load; see [decision 0007](decisions/0007-versioned-settings-with-migrations.md).
 The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the single source of truth. Shape:
 
 ```jsonc
 {
-  "version": 4,
+  "version": 5,
   "general": { "port": 7878, "autostart": false, "minimizeToTray": true, "openOnLaunch": true,
                "autoCheckUpdates": true, "inputMethod": "hook",            // "hook" | "rawinput"
                "secureLink": false, "linkKey": "", "updateChannel": "stable", // "stable" | "latest"
@@ -43,7 +43,8 @@ when chosen), and keeps each style's edits under `styles`:
   "layoutStyle": "grid",                                           // omitted for the default "shape"
   "styles": {
     "shape": { "positions": { "KeyW": { "x": 1.25, "y": 0 } },     // where keys were dragged to, in key units
-               "sizes":     { "Space": { "w": 4.5 }, "KeyW": { "h": 2 } } },  // how wide and tall keys were made (w, h or both), in key sizes
+               "sizes":     { "Space": { "w": 4.5 }, "KeyW": { "h": 2 } },   // how wide and tall keys were made (w, h or both), in key sizes
+               "rotations": { "KeyW": 15 } },                      // how far keys were turned, in degrees clockwise (shape style only)
     "grid":  { "positions": { }, "sizes": { } }
   }
 }
@@ -54,6 +55,10 @@ entries that are not finite numbers are dropped, positions are limited to −100
 2 decimals, at most 300 keys are kept per list, an unknown `layoutStyle` means `"shape"`, and parts with nothing in them are not
 written (so older settings files stay small). Files saved by version 2 kept `positions` directly on the profile; version 3 moves
 them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
+`rotations` (settings version 5) keep angles from −180 to 180, rounded to 1 decimal, and only the `shape` style has
+them. A key is listed only when its angle differs from the layout file's own (`r`), so 0 appears only for a key the
+layout file turns and the user straightened. Key rotation is being built ([proposals/key-rotation.md](proposals/key-rotation.md)): the overlay draws turned
+keys, and the Keys tab turns one with its round handle or its **Angle** field.
 
 **`layout.editor` (since v1.3.0; `showHidden` since v1.4.0).** The Keys tab remembers three choices between sessions: `snap`, how far a
 dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1` are accepted), and `grid`, whether the faint
@@ -82,7 +87,10 @@ Schema: [`schemas/layout.schema.json`](schemas/layout.schema.json).
 }
 ```
 
-`x`, `y` are the key's position and `w`, `h` its size, in key units (1 = one normal key). `code` is a key name from the
+`x`, `y` are the key's position and `w`, `h` its size, in key units (1 = one normal key). A key may also have `r`, its
+angle in degrees, clockwise around its own center (−180 to 180, 1 decimal; 0 is the same as leaving it out). Importing
+keeps `r`, and the overlay and the Keys tab draw the key turned
+([proposals/key-rotation.md](proposals/key-rotation.md)). `code` is a key name from the
 [protocol](PROTOCOL.md). The app keeps at most **20** layouts you made.
 
 A layout made **From a KLE file** (New layout) is an ordinary layout file. A key the import couldn't link to a key of the keyboard

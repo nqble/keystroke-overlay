@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 
 use crate::sanitize::sanitize;
 
-pub const CURRENT_VERSION: u64 = 4;
+pub const CURRENT_VERSION: u64 = 5;
 /// The settings version v1.4.0 wrote. v1.4.0 drops every setting it doesn't know when it saves, and only a higher
 /// number makes it keep a copy of this version's file first (downgrade.rs), so the build fails if this ever stops holding.
 const VERSION_WRITTEN_BY_V1_4: u64 = 3;
@@ -73,7 +73,7 @@ pub fn defaults() -> Value {
 type Migration = fn(&mut Value);
 
 /// MIGRATIONS[i] upgrades a config from version (i+1) to (i+2).
-const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3, v3_to_v4];
+const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5];
 
 /// v1 stored one global `layout.disabledKeys` / `layout.labels`.
 /// v2 stores them per layout in `layout.profiles[layoutId]`.
@@ -111,6 +111,11 @@ fn v2_to_v3(config: &mut Value) {
 /// version is what makes an older app keep a copy first (downgrade.rs), so going back to v1.4.0 and forward again
 /// loses nothing.
 fn v3_to_v4(_config: &mut Value) {}
+
+/// v5 only adds turned keys (`rotations` in a profile's shape style; docs/proposals/key-rotation.md), so nothing moves.
+/// The number goes up so that an older app, which drops `rotations` when it saves, keeps a copy of this file first
+/// (downgrade.rs): going back and forward again keeps every angle.
+fn v4_to_v5(_config: &mut Value) {}
 
 pub fn migrate(mut config: Value) -> Value {
     if !config.is_object() {

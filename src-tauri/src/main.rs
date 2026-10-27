@@ -11,6 +11,7 @@ mod debug;
 mod downgrade;
 mod grid;
 mod hotkeys;
+mod key_angles;
 mod key_labels;
 mod keyboard;
 mod layout_order;

@@ -18,13 +18,13 @@ mod load_and_save_tests {
         );
     }
     #[test]
-    fn a_version_3_file_keeps_everything_on_the_way_to_4() {
+    fn a_version_3_file_keeps_everything_on_the_way_up() {
         let migrated = migrate(json!({
             "version": 3,
             "hotkeys": { "enabled": true, "pause": "Ctrl+Shift+KeyP" },
             "style": { "keyLabels": "layout", "radius": 12 }
         }));
-        assert_eq!(migrated["version"], json!(4));
+        assert_eq!(migrated["version"], json!(CURRENT_VERSION));
         assert_eq!(migrated["hotkeys"]["pause"], json!("Ctrl+Shift+KeyP"));
         assert_eq!(migrated["hotkeys"]["enabled"], json!(true));
         assert_eq!(migrated["style"]["keyLabels"], json!("layout"));
