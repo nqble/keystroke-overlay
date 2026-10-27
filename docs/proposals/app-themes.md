@@ -41,6 +41,12 @@ app is MIT), and the docs thank it.
 - **Icons follow the theme too.** Icons drawn in the page, like the GitHub button's mark under the tabs, use the text
   color of their button (`currentColor`, from `--color-text-dim` and `--color-text`), never a fixed color, so every theme
   recolors them. A new icon does the same.
+- **The logo in the header follows the theme.** Today it is a picture (`ui/settings/logo.png`), which can't change color.
+  It becomes the same drawing inline in `index.html` (from `assets/logo/logo.svg`), with its three colors from tokens:
+  the outer square from the accent, the key from the panel color, the K from the text on the accent. **A devbuild keeps
+  its fixed purple logo in every theme** (`assets/logo/logo-dev.svg`): when the page has the DEV badge, CSS gives the
+  logo the devbuild's own colors, which no theme changes, so a devbuild is always recognizable. The icons the system
+  draws (taskbar, tray or menu bar, installer, Dock) are files and keep the app's own colors in every theme.
 - **Settings:** `appearance: { theme: "default", custom: [] }` in `settings.rs`, cleaned like presets (colors are
   `#rrggbb`), additive, so no migration.
 
@@ -53,6 +59,9 @@ app is MIT), and the docs thank it.
   color.
 - End-to-end: picking a theme changes the window and is kept after a restart; a custom theme with low contrast shows
   the warning.
+- The header logo: with the default theme it looks exactly as today (visual baselines unchanged); with another theme
+  its colors change; with the DEV badge it stays purple whatever the theme (`tools/devbuild.mjs --verify` already
+  checks the logo is purple).
 
 ## Built-in themes
 
