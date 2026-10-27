@@ -32,6 +32,13 @@ test('a commit outside the format is refused, with what to write instead', () =>
   }
 });
 
+test('a script before the commit in the same command is not read as its message', () => {
+  const script = "python3 - <<'EOF'\nimport re\nprint(1)\nEOF\n";
+  assert.equal(commitProblem(`${script}git add -A && git commit -qm "docs(vault): one line"`), null);
+  assert.equal(commitProblem(`${script}git commit -F - <<'MSG'\nfix(keys): a message\nMSG`), null);
+  assert.match(commitProblem(`${script}git commit -qm "Bad message"`) ?? '', /"Bad message"/);
+});
+
 test('pushing a work branch passes, wherever you are', () => {
   for (const [command, branch] of [
     ['git push -u origin fix/drag-cards', 'fix/drag-cards'],

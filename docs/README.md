@@ -22,6 +22,7 @@ CODE_OF_CONDUCT) and [CLAUDE.md](../CLAUDE.md), the rules for Claude sessions.
 
 - [RELEASING.md](RELEASING.md): how a release is made
 - [DOCS-STYLE.md](DOCS-STYLE.md): how the docs and the app's text are written (words, voice, where each fact lives)
+- [HOW-IT-WAS-BUILT.md](HOW-IT-WAS-BUILT.md): how the project is made with Claude Code, and how changes are checked
 
 ## Other platforms
 

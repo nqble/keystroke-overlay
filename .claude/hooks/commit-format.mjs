@@ -11,10 +11,14 @@ const GIT_OWN = /^(Merge|Revert) /;
 
 /** The first line of the message in a `git commit` command, or null when the command has none we can read. */
 export function commitSubject(command) {
-  if (!/\bgit\b[^|;&]*\bcommit\b/.test(command)) return null;
-  const heredoc = /<<-?\s*'?(\w+)'?\n([\s\S]*?)\n\1/.exec(command);
+  const commit = /\bgit\b[^|;&]*\bcommit\b/.exec(command);
+  if (!commit) return null;
+  // Only what comes after `git commit` can be its message: a script earlier in the same command (a heredoc fed to
+  // python, say) must not be read as one.
+  const rest = command.slice(commit.index);
+  const heredoc = /<<-?\s*'?(\w+)'?\n([\s\S]*?)\n\1/.exec(rest);
   if (heredoc) return heredoc[2].split('\n')[0].trim();
-  const quoted = /(?:\s-[a-zA-Z]*m|\s--message)[=\s]+(["'])([\s\S]*?)\1/.exec(command); // -m, or -qm and the like
+  const quoted = /(?:\s-[a-zA-Z]*m|\s--message)[=\s]+(["'])([\s\S]*?)\1/.exec(rest); // -m, or -qm and the like
   if (!quoted || quoted[2].startsWith('$(')) return null;
   return quoted[2].split('\n')[0].trim();
 }

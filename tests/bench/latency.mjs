@@ -6,6 +6,8 @@
 // browser then draws the key, which takes the same time whatever the app does, so it is left out.
 //
 // Used by tests/bench/run.mjs (one set of numbers per version, so two versions can be compared). Only talks to 127.0.0.1.
+// Meant to be reused: it needs Node, latency-inject.ps1 and an app that sends key-down messages on a local WebSocket
+// (the message format is this app's). It knows nothing about settings or layouts.
 import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
