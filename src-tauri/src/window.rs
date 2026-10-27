@@ -11,6 +11,24 @@ const TRIM_MEMORY_AFTER_MS: u64 = 1500;
 /// that (once the minimize has really happened) it is checked once, and a minimized window is closed to the tray.
 const MINIMIZE_CHECK_DELAY_MS: u64 = 400;
 
+/// One renderer process for the settings page + its preview frame instead of two (about 55 MB less while the window is
+/// open, measured). Both pages are our own local content. The first flag keeps Tauri's default WebView2 flags.
+const OWN_BROWSER_ARGS: &str =
+    "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1";
+
+/// WebView2's own variable for extra browser flags. The test runners and developer tools set it to open the debug port
+/// (`--remote-debugging-port=9222`). Some WebView2 versions ignore it when the app passes its own flags, as above (seen on
+/// GitHub's Windows machines with WebView2 155), so the app adds its value itself. Unset for normal users: no change.
+const EXTRA_ARGS_VARIABLE: &str = "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS";
+
+/// The app's own WebView2 flags, followed by the extra ones from `EXTRA_ARGS_VARIABLE` when it is set.
+fn browser_args(extra: Option<String>) -> String {
+    match extra {
+        Some(extra) if !extra.trim().is_empty() => format!("{OWN_BROWSER_ARGS} {}", extra.trim()),
+        _ => OWN_BROWSER_ARGS.to_string(),
+    }
+}
+
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings_window) = app.get_webview_window("settings") {
         let _ = settings_window.unminimize();
@@ -19,7 +37,7 @@ pub fn open_settings(app: &AppHandle) {
     }
     crate::debug::detail("settings window opened");
     let builder = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
-        .title(crate::app_info::NAME)   // still used by the taskbar and Alt+Tab
+        .title(crate::app_info::NAME) // still used by the taskbar and Alt+Tab
         .shadow(true)
         .inner_size(1060.0, 800.0)
         .min_inner_size(820.0, 600.0)
@@ -27,10 +45,7 @@ pub fn open_settings(app: &AppHandle) {
         // Same color as the page: the window appears instantly dark instead of flashing white
         // while the web view loads.
         .background_color(tauri::window::Color(18, 20, 26, 255))
-        // One renderer process for the settings page + its preview frame instead of two (about 55 MB less
-        // while the window is open, measured). Both pages are our own local content. The first flag keeps
-        // Tauri's default WebView2 flags.
-        .additional_browser_args("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-site-isolation-trials --renderer-process-limit=1");
+        .additional_browser_args(&browser_args(std::env::var(EXTRA_ARGS_VARIABLE).ok()));
     crate::platform::set_dock_icon_visible(app, true);
     if let Ok(window) = crate::platform::style_settings_window(builder).build() {
         crate::platform::lock_browser_features(&window);
@@ -89,5 +104,20 @@ fn close_if_minimized(win: &tauri::Window) {
         .unwrap_or(true);
     if crate::platform::minimize_closes_window(minimize_to_tray) && win.is_minimized().unwrap_or(false) {
         let _ = win.close();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn browser_args_add_the_extra_flags_only_when_set() {
+        assert_eq!(browser_args(None), OWN_BROWSER_ARGS);
+        assert_eq!(browser_args(Some("  ".into())), OWN_BROWSER_ARGS);
+        assert_eq!(
+            browser_args(Some("--remote-debugging-port=9222".into())),
+            format!("{OWN_BROWSER_ARGS} --remote-debugging-port=9222")
+        );
     }
 }

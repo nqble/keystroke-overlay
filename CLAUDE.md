@@ -7,7 +7,9 @@ request; the maintainer reviews and merges.
 
 **Where to look:** `docs/ARCHITECTURE.md` (map), `docs/design/key-editor.md` (Keys tab), `docs/design/ui-design-v2.md` (UI Design, Version 2), `docs/design/future-inputs.md`
 (mouse, controller, hotkeys, game detection), `docs/ACCESSIBILITY.md`, `docs/CROSS-PLATFORM.md` and `docs/LINUX-PORT.md`,
-`PRIVACY.md`, `docs/RELEASING.md`.
+`PRIVACY.md`, `docs/RELEASING.md`. Skills for every session are in `.claude/skills/` (use verification-before-completion
+before reporting anything as done, systematic-debugging for any bug, and the two code-review skills for a second look);
+`.claude/settings.json` turns on two git hooks that block a badly formatted commit message and any push to `main`.
 
 ## Commands
 

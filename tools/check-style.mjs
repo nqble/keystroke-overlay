@@ -3,6 +3,7 @@
 // use scrollbar-width / scrollbar-color (in WebView2 they swap the shared scrollbar for the system one, arrows included).
 // It checks only things every editor can get right, so it never fights with anyone's formatter.
 //   node tools/check-style.mjs
+// Meant to be reused: it needs only Node. The stylesheet rule above is this app's; drop or change it in another project.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 

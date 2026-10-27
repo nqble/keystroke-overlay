@@ -2,6 +2,7 @@
 //  Smart guides for the key editor (docs/design/key-editor.md §4, Snap): while a key is dragged with Snap on, its left
 //  or right edge sticks to another key's left or right edge when they come close, and its top edge to another key's top.
 //  Plain math, no page code, so tests/ui can run it with Node. Boxes are { code, x, y, w, h } like keys-arrange.js.
+//  Meant to be reused: it imports nothing and reads only x, y, w and h of each box, never what the box stands for.
 // =====================================================================================================================
 
 /** How close (in keys) an edge must come to another key's edge before it sticks to it. */
