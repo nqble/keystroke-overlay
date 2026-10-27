@@ -1,6 +1,6 @@
 // =====================================================================================================================
 //  A KLE file → a layout of ours: { name, keys, report }. kle.js reads the file; this file places each key (the main
-//  rectangle only, turned keys straightened at the same center, the layout moved to 0, 0), leaves out decorations,
+//  rectangle only, a turned key at the same center with its angle as `r`, the layout moved to 0, 0), leaves out decorations,
 //  ghosts and tiny keys, and picks each key's code and label from its legends with the tables in key-names.js. A key it
 //  can't link keeps its place with a placeholder code (Unlinked1, Unlinked2, ...), which never lights up. The Rust side
 //  cleans the keys again before saving (clean_layout_keys in src-tauri/src/sanitize.rs). Plain logic, tested by
@@ -32,8 +32,6 @@ export const MAX_NAME_LENGTH = 30;
 /** The start of a placeholder code: a key that is drawn but linked to no key of the keyboard. */
 export const PLACEHOLDER_PREFIX = 'Unlinked';
 
-const QUARTER_TURN = 90; // degrees
-const SWAP_WITHIN = 45; // a key turned within this many degrees of a quarter turn swaps its width and height
 const EDGE_TOLERANCE = 0.05; // keys this close (in keys) count as touching
 const LOWEST_ROW_TOLERANCE = 0.5; // keys whose tops are this close to the lowest top are in the lowest row
 const SPACE_BAR_MIN_WIDTH = 3; // a blank key at least this wide in the lowest row is the space bar
@@ -73,7 +71,7 @@ export const NUMBER_PAD_SYMBOLS = { '*': 'NumpadMultiply', '+': 'NumpadAdd' };
 
 /**
  * Turn the text of a file the user picked into a layout. Returns { name, keys, report } (report: the counts the popup
- * shows: keys, linked, notLinked, straightened, leftOut), or { problem } when the file can't be used: 'brokenFile' (not
+ * shows: keys, linked, notLinked, unlit, leftOut), or { problem } when the file can't be used: 'brokenFile' (not
  * JSON), 'notKle', 'noKeys', or 'tooManyKeys' (with `count`).
  */
 export function layoutFromKle(text, fileName = '') {
@@ -91,13 +89,13 @@ export function layoutFromKle(text, fileName = '') {
     throw error;
   }
   if (kle.keys.length > MAX_RAW_KEYS) return { problem: 'tooManyKeys', count: kle.keys.length };
-  const { placed, straightened, leftOut } = placeKeys(kle.keys);
+  const { placed, leftOut } = placeKeys(kle.keys);
   if (!placed.length) return { problem: 'noKeys' };
   if (placed.length > MAX_LAYOUT_KEYS) return { problem: 'tooManyKeys', count: placed.length };
   const keys = linkKeys(placed);
   const linked = keys.filter((key) => !key.code.startsWith(PLACEHOLDER_PREFIX)).length;
   const unlit = unlitNames(keys);
-  const report = { keys: keys.length, linked, notLinked: keys.length - linked, unlit, straightened, leftOut };
+  const report = { keys: keys.length, linked, notLinked: keys.length - linked, unlit, leftOut };
   return { name: layoutName(kle.name, fileName), keys, report };
 }
 
@@ -119,46 +117,41 @@ const oneLine = (text) => cleanText(text ?? '');
 
 // ---- Geometry -------------------------------------------------------------------------------------------------------
 /**
- * The keys we keep, each { x, y, w, h, legends } in keys from the layout's top-left, in reading order (top to bottom,
- * then left to right); plus how many were turned and how many were left out.
+ * The keys we keep, each { x, y, w, h, r, legends } in keys from the layout's top-left, in reading order (top to bottom,
+ * then left to right); plus how many were left out.
  */
 function placeKeys(kleKeys) {
-  let straightened = 0;
   let leftOut = 0;
   const kept = [];
   for (const kleKey of kleKeys) {
-    const shape = straighten(kleKey);
+    const shape = placeTurned(kleKey);
     const tiny = shape.w < MIN_KEY_WIDTH || shape.h < MIN_KEY_WIDTH;
     // a decal is a legend with no keycap and a ghost is drawn faint (usually another layout choice): nothing to draw
     if (kleKey.decal || kleKey.ghost || tiny) {
       leftOut += 1;
       continue;
     }
-    if (isTurned(kleKey.r)) straightened += 1;
     kept.push({ ...shape, legends: kleKey.labels.map(cleanLegend) });
   }
-  return { placed: inReadingOrder(moveToOrigin(kept)), straightened, leftOut };
+  return { placed: inReadingOrder(moveToOrigin(kept)), leftOut };
 }
 
 /** An angle in -180..180 degrees. */
 const normalAngle = (degrees) => ((((degrees + 180) % 360) + 360) % 360) - 180;
-const isTurned = (degrees) => normalAngle(degrees) !== 0;
 
 /**
- * A KLE key's main rectangle, placed straight at the center the turned key has: its center is turned by r degrees
- * around (rx, ry), clockwise on screen (y grows downwards). A key turned closer to a quarter turn than to straight
- * swaps its width and height, so a key standing on its side stays on its side.
+ * A KLE key's main rectangle as we draw it: its own size, at the center the turned key has, turned by `r` around that
+ * center (key rotation, docs/proposals/key-rotation.md). KLE turns the key by r degrees around (rx, ry), clockwise on
+ * screen (y grows downwards); turning a rectangle around another point is the same as moving its center there and
+ * turning it in place.
  */
-export function straighten({ x, y, w, h, r, rx, ry }) {
+export function placeTurned({ x, y, w, h, r, rx, ry }) {
   const angle = (r * Math.PI) / 180;
   const centerX = x + w / 2 - rx;
   const centerY = y + h / 2 - ry;
   const turnedX = rx + centerX * Math.cos(angle) - centerY * Math.sin(angle);
   const turnedY = ry + centerX * Math.sin(angle) + centerY * Math.cos(angle);
-  const onItsSide = Math.abs(Math.abs(normalAngle(r)) - QUARTER_TURN) < SWAP_WITHIN;
-  const width = onItsSide ? h : w;
-  const height = onItsSide ? w : h;
-  return { x: turnedX - width / 2, y: turnedY - height / 2, w: width, h: height };
+  return { x: turnedX - w / 2, y: turnedY - h / 2, w, h, r: Math.round(normalAngle(r) * 10) / 10 };
 }
 
 /** Move the keys so the layout's top-left is 0, 0 (like the built-in layouts), rounded to 2 decimals. */
@@ -345,7 +338,9 @@ function finishKeys(keys) {
     used.add(code);
     const firstLegend = key.legends.find((legend) => legend.text)?.text ?? '';
     const label = [...(key.legend || firstLegend)].slice(0, MAX_LABEL_LENGTH).join('');
-    return withSize({ code, label, x: key.x, y: key.y }, key);
+    const layoutKey = withSize({ code, label, x: key.x, y: key.y }, key);
+    if (key.r) layoutKey.r = key.r; // a layout file writes r only for a turned key
+    return layoutKey;
   });
 }
 

@@ -28,7 +28,6 @@ const TEXT = {
     "Dashed keys can't light up, because the app can't tell which key they are (Fn, for example). You can delete them on the Keys tab.",
   blankKey: 'a blank key',
   andMore: (count) => `and ${count} more`,
-  straightened: (count) => `${plural(count, 'turned key')} shown straight.`,
   leftOut: (count) => `${plural(count, 'key')} left out: decorations and extra layout choices.`,
   back: 'Back',
   create: 'Create layout',
@@ -133,7 +132,6 @@ function reportLines(report) {
     TEXT.summary(report.keys, report.linked) +
     (report.notLinked ? TEXT.unlit(report.notLinked, unlitList(report.unlit)) : '');
   const lines = [summary];
-  if (report.straightened) lines.push(TEXT.straightened(report.straightened));
   if (report.leftOut) lines.push(TEXT.leftOut(report.leftOut));
   return lines;
 }

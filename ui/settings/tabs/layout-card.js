@@ -8,6 +8,7 @@ import { MenuButton } from '../blocks.js';
 import { html } from '../html.js';
 import { showMenu } from '../menu.js';
 import { isCustom } from '../profiles.js';
+import { turnedBounds } from './keys-turn.js';
 
 const WORDS = {
   customized: 'Customized',
@@ -27,9 +28,15 @@ const PICTURE_LABEL_SIZE = 0.3;
  * light up).
  */
 export function LayoutPicture({ keys, labels = false, marked = null }) {
-  const width = Math.max(1, ...keys.map((key) => key.x + (key.w ?? 1)));
-  const height = Math.max(1, ...keys.map((key) => key.y + (key.h ?? 1)));
-  return html`<svg class="layout-picture" viewBox=${`0 0 ${width} ${height}`} aria-hidden="true">
+  // the picture holds what every key covers, turned keys included (keys-turn.js)
+  const covered = keys.map((key) => turnedBounds({ x: key.x, y: key.y, w: key.w ?? 1, h: key.h ?? 1, r: key.r }));
+  const left = Math.min(0, ...covered.map((box) => box.x));
+  const top = Math.min(0, ...covered.map((box) => box.y));
+  const width = Math.max(1, ...covered.map((box) => box.x + box.w)) - left;
+  const height = Math.max(1, ...covered.map((box) => box.y + box.h)) - top;
+  /** A turned key turns around its own center; an upright one has no transform. */
+  const turn = (key) => (key.r ? `rotate(${key.r} ${key.x + (key.w ?? 1) / 2} ${key.y + (key.h ?? 1) / 2})` : null);
+  return html`<svg class="layout-picture" viewBox=${`${left} ${top} ${width} ${height}`} aria-hidden="true">
     ${keys.map(
       (key) =>
         html`<rect
@@ -39,6 +46,7 @@ export function LayoutPicture({ keys, labels = false, marked = null }) {
           width=${(key.w ?? 1) - 0.12}
           height=${(key.h ?? 1) - 0.12}
           rx="0.12"
+          transform=${turn(key)}
         />`,
     )}
     ${
@@ -51,6 +59,7 @@ export function LayoutPicture({ keys, labels = false, marked = null }) {
                 font-size=${PICTURE_LABEL_SIZE}
                 text-anchor="middle"
                 dominant-baseline="central"
+                transform=${turn(key)}
               >
                 ${key.label ?? ''}
               </text>`,

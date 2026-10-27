@@ -13,7 +13,7 @@ import {
   cleanLegend,
   layoutFromKle,
   layoutName,
-  straighten,
+  placeTurned,
 } from '../../ui/settings/kle-layout.js';
 
 const read = (url) => readFileSync(url, 'utf8');
@@ -42,7 +42,6 @@ for (const [file, id] of [
       linked: original.keys.length,
       notLinked: 0,
       unlit: [],
-      straightened: 0,
       leftOut: 0,
     });
   });
@@ -61,24 +60,26 @@ test("the layout is named after the file's own name, else the file, else 'Import
 });
 
 // ---- Geometry -------------------------------------------------------------------------------------------------------
-test('a turned key keeps its center, and swaps width and height near a quarter turn', () => {
+test('a turned key keeps its center, its own size and its angle', () => {
   const center = ({ x, y, w, h }) => [x + w / 2, y + h / 2];
   const turned = { x: 1, y: 0, w: 2, h: 1, r: 90, rx: 1, ry: 0 };
-  const straight = straighten(turned);
+  const placed = placeTurned(turned);
   // the center (2, 0.5), turned 90 degrees clockwise around (1, 0), is at (0.5, 1)
-  center(straight).forEach((value, index) => assert.ok(Math.abs(value - [0.5, 1][index]) < 1e-9));
-  assert.deepEqual([straight.w, straight.h], [1, 2]);
-  const slightly = straighten({ ...turned, r: 30 });
-  assert.deepEqual([slightly.w, slightly.h], [2, 1]);
-  assert.deepEqual([straighten({ ...turned, r: -100 }).w, straighten({ ...turned, r: 270 }).w], [1, 1]);
-  const unturned = straighten({ ...turned, r: 0 });
-  assert.deepEqual([unturned.x, unturned.y], [1, 0]);
+  center(placed).forEach((value, index) => assert.ok(Math.abs(value - [0.5, 1][index]) < 1e-9));
+  assert.deepEqual([placed.w, placed.h, placed.r], [2, 1, 90]);
+  assert.equal(placeTurned({ ...turned, r: 270 }).r, -90, 'angles come into -180..180');
+  assert.equal(placeTurned({ ...turned, r: 12.345 }).r, 12.3, 'one decimal');
+  const unturned = placeTurned({ ...turned, r: 0 });
+  assert.deepEqual([unturned.x, unturned.y, unturned.r], [1, 0, 0]);
 });
 
-test('the Atreus: every key is placed straight, the layout starts at 0, 0, Fn is a placeholder', () => {
+test('the Atreus: every key keeps its angle, the layout starts at 0, 0, Fn is a placeholder', () => {
   const result = layoutFromKle(fixture('atreus-rotated.kle.json'), 'atreus.json');
   assert.equal(result.report.keys, 42);
-  assert.equal(result.report.straightened, 42);
+  assert.ok(
+    result.keys.every((key) => typeof key.r === 'number' && key.r !== 0),
+    'every key turned',
+  );
   assert.equal(Math.min(...result.keys.map((key) => key.x)), 0);
   assert.equal(Math.min(...result.keys.map((key) => key.y)), 0);
   const byLabel = new Map(result.keys.map((key) => [key.label, key.code]));
