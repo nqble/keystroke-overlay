@@ -81,9 +81,6 @@ nav button:hover {
 .github-link:hover {
   border-color: var(--color-accent);
 }
-.github-link:active {
-  background: var(--color-control-pressed); /* held: a step darker (docs/design/ui-design-v2.md, "States") */
-}
 .github-link svg {
   width: var(--space-18);
   height: var(--space-18);
@@ -229,6 +226,20 @@ button.primary:hover {
 button.danger:hover {
   border-color: var(--color-danger);
   color: var(--color-danger);
+}
+/* Held down: a step darker (docs/design/ui-design-v2.md, "States"). Only the plain buttons and the blue ones: cards,
+   tabs, switches, menus and the header's buttons have their own states. */
+#pane button:not([class]):active:not(:disabled),
+.dialog button:not([class]):active:not(:disabled),
+button.toggle:not(.on):active:not(:disabled),
+button.zoom-step:active:not(:disabled),
+button.zoom-percent:active:not(:disabled),
+.github-link:active {
+  background: var(--color-control-pressed);
+}
+button.primary:active:not(:disabled) {
+  background: var(--color-accent-pressed);
+  border-color: var(--color-accent-pressed);
 }
 /* anything that cannot be used right now looks dimmed, and does not react to the mouse */
 button:disabled,
