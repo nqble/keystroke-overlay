@@ -137,7 +137,7 @@ npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":fals
 First launch, keyboard access and troubleshooting: [docs/USER-GUIDE.md](docs/USER-GUIDE.md#on-a-mac).
 
 Built with [Tauri](https://tauri.app) (Rust + the system's own web view), plain JavaScript with [Preact](https://preactjs.com) in the
-settings window, and the help of [Claude Code](https://claude.com/claude-code).
+settings window, and the help of [Claude Code](https://claude.com/claude-code): [how it's built](docs/HOW-IT-WAS-BUILT.md).
 
 ## Contributing
 
