@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The small GitHub button at the bottom of the tab bar: opens the project's page in the browser. The Rust side
+//  The small square GitHub button at the bottom of the tab bar: opens the project's page in the browser. The Rust side
 //  (commands/updates.rs, open_project_page) builds the address itself, so this button can open nothing else.
 // =====================================================================================================================
 import { html } from './html.js';
