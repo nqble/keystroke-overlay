@@ -9,7 +9,6 @@
     "module": "es2022",
     "moduleResolution": "bundler",
     "lib": ["es2022", "dom", "dom.iterable"],
-    "baseUrl": ".",
     "paths": { "/overlay/*": ["./ui/overlay/*"] }
   },
   "include": ["ui/**/*.js", "ui/globals.d.ts"],
