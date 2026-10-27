@@ -375,10 +375,20 @@ check for updates): download each new version of it. The plan and what has been 
   permissions** to **Read access to user information** (right-click the source → **Properties**).
 - **"Port already in use" message:** another program is using that port. Pick a different one in **General → Connection → Port** (then **Apply**), then update the URL in OBS.
 - **Keys don't light up in a certain game:** (1) if the game runs **as administrator**, start Keystroke Overlay as administrator too (Windows blocks normal programs from seeing keys typed into elevated windows); (2) otherwise switch **General → Keyboard input** to **Compatibility** — some games and anti-cheat tools block the standard method but not that one. Still nothing? Check [the games tested so far](GAMES.md), then open an issue naming the game and its anti-cheat.
-- **Your antivirus flags the app:** check the file came from this project's
-  [Releases](https://github.com/nqble/keystroke-overlay/releases) page, then
-  [open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus. Each release is reported to
-  Microsoft as a false positive when needed (docs/RELEASING.md).
+- **Your antivirus flags the app** (for example, Windows Security names it `Trojan:Win32/Bearfoos.A!ml` and removes it):
+  a program that reads every key press and starts with Windows looks like a keylogger to antivirus tools, so a new,
+  unsigned version is sometimes flagged by mistake. The `!ml` in a Windows Security name means its machine-learning model
+  guessed; it did not recognize known malware. What to do:
+  1. Check that your copy is official: it must come from this project's
+     [Releases](https://github.com/nqble/keystroke-overlay/releases) page. Each download there shows its SHA-256
+     fingerprint; compare it with `Get-FileHash <the file>` in PowerShell. They must match exactly.
+  2. If it matches, restore the app: **Windows Security → Virus & threat protection → Protection history**, open the
+     entry, then **Actions → Restore**.
+  3. [Open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus and the detection name, so
+     it can be reported. Each flagged release is reported to Microsoft as a false positive (docs/RELEASING.md); once
+     cleared, the warning goes away with Windows Security's normal updates.
+
+  Don't turn your antivirus off for the app, and don't add an exclusion for a copy you didn't check.
 - **Reporting a bug:** turn on **General → Advanced → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → Advanced → Reset all settings…** puts every option back to its default (your layouts, presets, fonts, port and secure link are kept).
 - **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size the app

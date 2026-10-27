@@ -2288,7 +2288,7 @@ dependencies = [
 
 [[package]]
 name = "keyoverlay"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "axum",
  "core-foundation 0.10.1",
