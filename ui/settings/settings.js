@@ -9,6 +9,7 @@
 // =====================================================================================================================
 import { $, call, invoke } from './helpers.js';
 import { openFirstRun } from './first-run.js';
+import { GitHubLink } from './github-link.js';
 import { paintAccess, setKeyboardAccess } from './keyboard-access.js';
 import { paintHeader } from './header.js';
 import { html, render as draw } from './html.js';
@@ -51,7 +52,7 @@ function TabBar({ tabs, current }) {
     setTab(id);
     render(scrollOf.get(id) ?? 0);
   };
-  return tabs.map(
+  const buttons = tabs.map(
     ({ id, name }) =>
       html`<button
         type="button"
@@ -64,6 +65,7 @@ function TabBar({ tabs, current }) {
         ${name}
       </button>`,
   );
+  return [...buttons, html`<${GitHubLink} />`];
 }
 
 const scrollOf = new Map(); // where each tab was scrolled to when you left it, so coming back lands there again

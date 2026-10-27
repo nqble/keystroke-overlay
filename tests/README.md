@@ -113,6 +113,7 @@ Rules:
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
 | `preview-frame` | The live preview frame |
 | `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `general`, `debug`) | The tab bar and its buttons |
+| `github-link` | The GitHub button at the bottom of the tab bar |
 | `pane` | The area that shows the current tab |
 | `section-heading` | Each tab's heading |
 | `toast` | The message at the bottom |

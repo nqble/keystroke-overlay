@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/nqble/keystroke-overlay/releases/latest"><img src="https://img.shields.io/github/v/release/nqble/keystroke-overlay?style=flat-square" alt="Latest release"></a>
-  <a href="https://github.com/nqble/keystroke-overlay/releases"><img src="https://img.shields.io/github/downloads/nqble/keystroke-overlay/total?style=flat-square" alt="Downloads"></a>
+  <a href="https://github.com/nqble/keystroke-overlay/releases/latest"><img src="https://img.shields.io/github/downloads/nqble/keystroke-overlay/latest/total?style=flat-square" alt="Downloads of the latest release"></a>
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=flat-square" alt="Windows, macOS and Linux">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/nqble/keystroke-overlay?style=flat-square" alt="MIT license"></a>
 </p>
