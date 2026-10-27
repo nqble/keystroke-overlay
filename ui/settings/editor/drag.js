@@ -10,6 +10,7 @@ import { clampMove, movedPositions } from '../tabs/keys-arrange.js';
 import { boardArea } from '../tabs/keys-board.js';
 import { snapToGuides } from '../tabs/keys-guides.js';
 import { DRAG_START_DISTANCE, UNIT, isAdditive, saveAt } from './context.js';
+import { coveredBox } from './places.js';
 
 /**
  * Drag a key, or the whole selection when the pressed key is part of it. Snaps to the snap step, keeps the group's
@@ -23,6 +24,8 @@ export function dragKeys(ctx, pointerEvent, node, pressedKey) {
     .map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
   const pressed = boxes.find((boxOf) => boxOf.code === pressedKey.code);
   const area = boardArea(ctx.board);
+  // the board's edge stops what the keys cover, so a turned key stays on the board too
+  const covered = ctx.placed.filter((item) => movingCodes.includes(item.key.code)).map(coveredBox);
   // Smart guides (shape style, Snap on): the key edges stick to the edges of the keys that stay where they are.
   const hiddenCodes = new Set(ctx.profile.disabledKeys);
   const others = ctx.placed
@@ -63,7 +66,7 @@ export function dragKeys(ctx, pointerEvent, node, pressedKey) {
     const stuck = useGuides ? snapToGuides(pressed, rawX, rawY, others) : null;
     const wishedX = (stuck?.guideX != null ? stuck.x : snap(rawX)) - pressed.x;
     const wishedY = (stuck?.guideY != null ? stuck.y : snap(rawY)) - pressed.y;
-    const allowed = clampMove(boxes, wishedX, wishedY, area);
+    const allowed = clampMove(covered, wishedX, wishedY, area);
     if (lastMove && lastMove.dx === allowed.dx && lastMove.dy === allowed.dy) return;
     lastMove = allowed;
     const positions = movedPositions(boxes, allowed.dx, allowed.dy);

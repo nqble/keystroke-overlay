@@ -58,7 +58,7 @@ them into `styles.shape.positions`. The Keys tab limits keys more tightly than t
 `rotations` (settings version 5) keep angles from −180 to 180, rounded to 1 decimal, and only the `shape` style has
 them. A key is listed only when its angle differs from the layout file's own (`r`), so 0 appears only for a key the
 layout file turns and the user straightened. Key rotation is being built ([proposals/key-rotation.md](proposals/key-rotation.md)): the overlay draws turned
-keys, and the Keys tab turns one with the key's **Angle** field (its drag handle comes next).
+keys, and the Keys tab turns one with its round handle or its **Angle** field.
 
 **`layout.editor` (since v1.3.0; `showHidden` since v1.4.0).** The Keys tab remembers three choices between sessions: `snap`, how far a
 dragged or nudged key jumps in key widths (only `0` for off, `0.25`, `0.5` or `1` are accepted), and `grid`, whether the faint

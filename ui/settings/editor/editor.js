@@ -24,7 +24,7 @@ import { isAdditive } from './context.js';
 import { dragKeys } from './drag.js';
 import { startMarquee } from './marquee.js';
 import { updateHandles } from './resize.js';
-import { layoutBoxesFor, placeKeys } from './places.js';
+import { coveredBox, layoutBoxesFor, placeKeys, turnedBox } from './places.js';
 import { bindViewGestures, buildZoomControls, firstView, refit, setView } from './view.js';
 
 let editor = null;
@@ -146,10 +146,7 @@ function update(ctx, nextLayout, nextProfile) {
   ctx.profile = nextProfile;
   const savedPlaces = placeKeys(ctx.layout, ctx.profile);
   ctx.layoutPlaces = layoutBoxesFor(ctx.layout, ctx.profile);
-  ctx.frame = boardFrame(
-    ctx.layoutPlaces,
-    savedPlaces.map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h })),
-  );
+  ctx.frame = boardFrame(ctx.layoutPlaces, savedPlaces.map(coveredBox)); // turned keys cover more of the board
   ctx.board = { w: ctx.frame.w, h: ctx.frame.h };
   // everything below works in board places: the saved place plus the origin (the layout sits in the middle of the board)
   ctx.placed = savedPlaces.map((item) => ({
@@ -157,7 +154,7 @@ function update(ctx, nextLayout, nextProfile) {
     x: round2(item.x + ctx.frame.originX),
     y: round2(item.y + ctx.frame.originY),
   }));
-  const placedBoxes = ctx.placed.map((item) => ({ code: item.key.code, x: item.x, y: item.y, w: item.w, h: item.h }));
+  const placedBoxes = ctx.placed.map(turnedBox); // the overlap warning uses a turned key's real shape
   ctx.canvas.style.setProperty('--board-w', String(ctx.board.w));
   ctx.canvas.style.setProperty('--board-h', String(ctx.board.h));
   ctx.box.style.setProperty('--board-w', String(ctx.board.w));

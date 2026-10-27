@@ -4,8 +4,9 @@ Status: **Approved, being built** (decided 2026-10-24: the handle sits top-right
 the Keyboard shape style has rotation). **Built:** the formats (a layout key's `r`, a profile's `rotations`, settings
 version 5, cleaning and tests) the overlay drawing turned keys (`ui/overlay/turn.js`, tested), and in the Keys tab: turned keys
 on the board, the **Angle** field (15° steps with Snap), Undo, **Put back** and the "N moved" count
-(`profiles.js`, tested). **Not built yet:** the rotation handle, turned boxes for board limits and the overlap warning,
-KLE import keeping angles, and the end-to-end and screenshot tests.
+(`profiles.js`, tested). the rotation handle (`editor/rotate.js`, 15° with Snap, not in the Even grid), and turned keys in
+the board's limits (the box they cover) and the overlap warning (their real shape) (`tabs/keys-turn.js`, tested).
+**Not built yet:** KLE import keeping angles, and the end-to-end and screenshot tests.
 
 Lets a person turn one key at a time in the Keys tab (for split, ergonomic or artistic layouts), and lets a layout file
 say a key is turned. The whole keyboard is never rotated here: OBS already rotates a source. Imported KLE files keep
@@ -62,8 +63,8 @@ unit test checks a version 4 file loads unchanged, and one checks `rotations` su
 - **Editor** (`ui/settings/editor/`): a new `rotate.js` next to `resize.js` for the handle; the angle math (angle from
   a pointer position, snapping, the turned bounding box) goes in a plain module under `ui/settings/tabs/` with unit
   tests, like `keys-view.js`.
-- **Board limits and overlap**: use the turned key's bounding box, so a turned key stays on the board and the overlap
-  warning stays honest. Align, Space evenly and Close gaps keep working on the keys' straight rectangles (simpler, and
+- **Board limits and overlap**: the board's edges use the upright box a turned key covers, so it stays on the board; the
+  overlap warning uses the key's real turned shape, so neighbors it doesn't reach aren't flagged. Align, Space evenly and Close gaps keep working on the keys' straight rectangles (simpler, and
   what a person lining up turned keys by their centers expects).
 - **KLE import** (`ui/settings/kle-layout.js`): keep `r` instead of straightening: the key's center is still found with
   the existing rotation math, then the key is placed straight at that center with `r` set. The import summary's

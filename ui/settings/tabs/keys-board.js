@@ -8,6 +8,7 @@
 // =====================================================================================================================
 import { boundsOf } from './keys-arrange.js';
 import { round2 } from '../profiles.js';
+import { turnedOverlap } from './keys-turn.js';
 
 // Free space around the layout, and the smallest board, all in keys (docs/design/key-editor.md §3).
 export const BOARD_MARGIN_W = 8;
@@ -138,8 +139,9 @@ export function resizeBox(box, side, delta, board, step, layoutSize = MIN_RESIZE
   return { x: side === 'right' ? box.x : round2(box.x + box.w - size), w: size };
 }
 
-/** True when two boxes cover some of the same area (touching edges do not count). */
+/** True when two boxes cover some of the same area (touching edges do not count). A turned key (`r`) uses its real shape. */
 function overlaps(first, second) {
+  if (first.r || second.r) return turnedOverlap(first, second, EPSILON);
   const apartX = first.x + first.w <= second.x + EPSILON || second.x + second.w <= first.x + EPSILON;
   const apartY = first.y + first.h <= second.y + EPSILON || second.y + second.h <= first.y + EPSILON;
   return !apartX && !apartY;

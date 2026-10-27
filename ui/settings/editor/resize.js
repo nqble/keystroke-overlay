@@ -7,8 +7,9 @@ import { baseHeight, baseWidth, round2, setKeyHeight, setKeyWidth, snapStep } fr
 import { selectedKeys } from '../state.js';
 import { resizeBox } from '../tabs/keys-board.js';
 import { UNIT, saveAt } from './context.js';
+import { turnHandle } from './rotate.js';
 
-/** Show the resize handles on the left and right edge of the selected key (only when one shown key is selected). */
+/** Show the resize handles on the four sides of the selected key, and its turning handle (only when one shown key is selected). */
 export function updateHandles(ctx, hidden) {
   const code = selectedKeys.size === 1 ? [...selectedKeys][0] : null;
   const item = code && !hidden.has(code) ? ctx.placed.find((candidate) => candidate.key.code === code) : null;
@@ -28,6 +29,9 @@ export function updateHandles(ctx, hidden) {
       };
       ctx.handles.append(handle);
     }
+    // Turning: the Keyboard shape style only (the even grid keeps neat columns). The handles are made again when the
+    // style changes (editor.js), so this choice holds while they live.
+    if (ctx.profile.layoutStyle === 'shape') ctx.handles.append(turnHandle(ctx));
     ctx.canvas.append(ctx.handles);
   }
   ctx.handles.hidden = false;
@@ -36,6 +40,7 @@ export function updateHandles(ctx, hidden) {
   ctx.handles.style.setProperty('--y', String(item.y));
   ctx.handles.style.setProperty('--w', String(item.w));
   ctx.handles.style.setProperty('--h', String(item.h));
+  ctx.handles.style.setProperty('--r', `${item.r ?? 0}deg`); // the handles turn with the key
 }
 
 /**
