@@ -67,6 +67,17 @@ nav button:hover {
   background: var(--color-panel-raised);
   color: var(--color-text);
 }
+.github-link {
+  margin-top: auto; /* the bottom of the tab bar, under the tabs */
+  align-self: flex-start;
+  display: flex;
+  padding: var(--space-8);
+  color: var(--color-text-dim);
+}
+.github-link svg {
+  width: var(--space-20);
+  height: var(--space-20);
+}
 nav button.active {
   background: var(--color-accent-strong);
   color: var(--color-on-fill);

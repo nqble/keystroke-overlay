@@ -186,6 +186,13 @@ pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
     do_check(&app).await
 }
 
+/// Opens the project's front page on GitHub in the default browser (the GitHub button under the tabs). It takes no
+/// address, so nothing else can be opened through it.
+#[tauri::command]
+pub fn open_project_page() -> Result<(), String> {
+    platform::open_url(&format!("https://github.com/{REPO}")).map_err(|e| e.to_string())
+}
+
 /// Opens the project's GitHub page in the default browser. Only this repo's URLs are allowed.
 #[tauri::command]
 pub fn open_release_page(url: String) -> Result<(), String> {
