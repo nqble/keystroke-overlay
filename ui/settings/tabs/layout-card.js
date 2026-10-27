@@ -90,13 +90,14 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
       aria-pressed=${selected ? 'true' : 'false'}
       data-test="layout-card"
       data-layout-id=${layout.id}
-      onClick=${() => drag.swallowClick() || actions.pick()}
+      onClick=${(clickEvent) => drag.swallowClick(clickEvent) || actions.pick()}
       onKeyDown=${onKeyDown}
       onContextMenu=${(menuEvent) => showMenu(menuEvent, items)}
       onPointerDown=${(pointerEvent) => drag.down(pointerEvent, layout.id)}
       onPointerMove=${drag.move}
       onPointerUp=${drag.up}
       onPointerCancel=${drag.cancel}
+      onLostPointerCapture=${drag.lostCapture}
     >
       <span class="gallery-picture"><${LayoutPicture} keys=${layout.keys} /></span>
       <span class="gallery-name">

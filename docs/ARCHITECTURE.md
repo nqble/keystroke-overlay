@@ -88,6 +88,7 @@ keystroke-overlay/
         ├── first-run.js   the first run setup screen (new installs; General → First run setup opens it again)
         ├── other-layouts.js  New layout's Built-in choice: built-in layouts not on the Layout tab
         ├── layout-order.js  which layouts the Layout tab shows and in what order; moving and dropping (tested)
+        ├── drag-press.js   one press on a Layout tab card: click or drag, which gap, which click to swallow (tested)
         ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
         ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
         ├── kle-layout.js  KLE keys → a layout: places (turned keys straightened), each key's code from its legends, Unlinked<n> placeholders (tested)

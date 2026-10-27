@@ -8,7 +8,8 @@ import { addLayoutDialog } from '../dialogs.js';
 import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js';
 import { call, el, invoke, plural, toast } from '../helpers.js';
 import { html, useRef, useState } from '../html.js';
-import { dropGap, isDragStart, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
+import { createDragPress } from '../drag-press.js';
+import { dropGap, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
 import { dialog } from '../popup.js';
 import { resync } from '../messages.js';
 import { changed, saveNow } from '../preview.js';
@@ -151,21 +152,25 @@ function Layout() {
 /**
  * Dragging a card to a new place, with pointer events (mouse, pen or touch). The browser's own drag and drop is not
  * used: each system's web view (WebView2, WebKit) and Tauri's file-drop handling treat it differently, and on some it
- * never delivers the drop. A press turns into a drag once the pointer moves DRAG_START_DISTANCE; while it is over a gap
- * between cards, a line shows where the card will land (CSS variables, blocks.css .drop-line), and letting go there
- * saves the new order. The click that follows a drag is swallowed, so a drag never also picks the layout.
+ * never delivers the drop. Whether a press is a click or a drag lives in drag-press.js (with its edge cases); this
+ * hook only shows it: while the dragged card is over a gap between cards, a line shows where it will land (CSS
+ * variables, blocks.css .drop-line), and letting go there saves the new order.
  */
 function useDrag(shownIds) {
+  const tracker = useRef(null);
+  tracker.current ??= createDragPress();
+  const grid = useRef(null);
   const [id, setId] = useState(null);
   const [drop, setDrop] = useState({ gap: null, line: null });
-  const press = useRef(null); // { layoutId, x, y, grid } from pointerdown until pointerup
-  const dragged = useRef(false); // true from a drag's start until the click after it
-  const boxesOf = (grid) =>
-    [...grid.querySelectorAll('[data-layout-item]')].map((item) => item.getBoundingClientRect());
-  const finish = () => {
-    press.current = null;
+  const clear = () => {
     setId(null);
     setDrop({ gap: null, line: null });
+  };
+  const showGap = (pointerEvent) => {
+    const boxes = [...grid.current.querySelectorAll('[data-layout-item]')].map((item) => item.getBoundingClientRect());
+    const gap = dropGap(pointerEvent.clientX, pointerEvent.clientY, boxes);
+    tracker.current.setGap(gap);
+    setDrop({ gap, line: gap === null ? null : lineAt(gap, boxes, grid.current.getBoundingClientRect()) });
   };
   return {
     id,
@@ -173,37 +178,29 @@ function useDrag(shownIds) {
     lineStyle: drop.line,
     down: (pointerEvent, layoutId) => {
       if (pointerEvent.button !== 0) return;
-      const grid = pointerEvent.currentTarget.closest('[data-test="layout-cards"]');
-      press.current = { layoutId, x: pointerEvent.clientX, y: pointerEvent.clientY, grid };
-      dragged.current = false;
+      grid.current = pointerEvent.currentTarget.closest('[data-test="layout-cards"]');
+      tracker.current.down(layoutId, pointerEvent.clientX, pointerEvent.clientY, pointerEvent.pointerId);
       pointerEvent.currentTarget.setPointerCapture?.(pointerEvent.pointerId);
     },
     move: (pointerEvent) => {
-      const start = press.current;
-      if (!start) return;
-      if (id === null) {
-        if (!isDragStart(start, pointerEvent.clientX, pointerEvent.clientY)) return;
-        dragged.current = true;
-        setId(start.layoutId);
-      }
-      const boxes = boxesOf(start.grid);
-      const gap = dropGap(pointerEvent.clientX, pointerEvent.clientY, boxes);
-      if (gap === drop.gap) return;
-      setDrop({ gap, line: gap === null ? null : lineAt(gap, boxes, start.grid.getBoundingClientRect()) });
+      if (!tracker.current.move(pointerEvent.clientX, pointerEvent.clientY, pointerEvent.pointerId)) return;
+      setId(tracker.current.dragId);
+      showGap(pointerEvent);
     },
-    up: () => {
-      const moved = id;
-      const gap = drop.gap;
-      finish();
-      if (moved !== null && gap !== null) saveOrder(moveToGap(shownIds, moved, gap), moved);
+    up: (pointerEvent) => {
+      const ended = tracker.current.up(pointerEvent.pointerId);
+      clear();
+      if (ended) saveOrder(moveToGap(shownIds, ended.layoutId, ended.gap), ended.layoutId);
     },
-    cancel: finish,
-    /** True once for the click a drag ends with, which must not pick the layout. */
-    swallowClick: () => {
-      const wasDrag = dragged.current;
-      dragged.current = false;
-      return wasDrag;
+    cancel: (pointerEvent) => {
+      tracker.current.cancel(pointerEvent.pointerId);
+      clear();
     },
+    lostCapture: (pointerEvent) => {
+      tracker.current.lostCapture(pointerEvent.pointerId);
+      if (id !== null) clear();
+    },
+    swallowClick: (clickEvent) => tracker.current.swallowClick(clickEvent.detail),
   };
 }
 
