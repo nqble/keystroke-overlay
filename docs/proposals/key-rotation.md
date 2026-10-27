@@ -7,7 +7,8 @@ on the board, the **Angle** field (15° steps with Snap), Undo, **Put back** and
 (`profiles.js`, tested). the rotation handle (`editor/rotate.js`, 15° with Snap, not in the Even grid), and turned keys in
 the board's limits (the box they cover) and the overlap warning (their real shape) (`tabs/keys-turn.js`, tested).
 KLE import keeps each key's angle, and layout pictures (the cards, the import popup) draw turned
-keys (`kle-layout.js`, `layout-card.js`). **Not built yet:** the end-to-end and screenshot tests.
+keys (`kle-layout.js`, `layout-card.js`). End-to-end suite `key-rotation` and a `keys-turned-key` screenshot written. **Not done yet:** the
+screenshot's baseline (taken on Windows after the maintainer has seen it).
 
 Lets a person turn one key at a time in the Keys tab (for split, ergonomic or artistic layouts), and lets a layout file
 say a key is turned. The whole keyboard is never rotated here: OBS already rotates a source. Imported KLE files keep

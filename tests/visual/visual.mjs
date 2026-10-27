@@ -96,6 +96,18 @@ const SCREENS = [
     overlayWithTheme(id),
     '#previewBox',
   ]),
+  // last, so its turned key can't show in the pictures above: one key turned with the Angle field (key rotation)
+  [
+    'keys-turned-key',
+    async () => {
+      await openTab('keys');
+      await clickKey('KeyA');
+      await p.ev(
+        `const f = document.querySelector('${byTest('key-angle')}'); f.value = '15'; f.dispatchEvent(new Event('input', { bubbles: true })); f.dispatchEvent(new Event('change', { bubbles: true }))`,
+      );
+      await sleep(800);
+    },
+  ],
 ];
 
 // A spot with nothing that reacts to hover (the bottom of the tab list). The Animation tab's cards play their demo from a
