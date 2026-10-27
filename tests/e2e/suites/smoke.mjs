@@ -23,6 +23,13 @@ check(
     `document.querySelector('${byTest('brand-title')}').textContent.trim() === 'Keystroke Overlay' && !!document.querySelector('${byTest('window-minimize')}') && !!document.querySelector('${byTest('window-maximize')}') && !!document.querySelector('${byTest('window-close')}')`,
   ),
 );
+// Not clicked: it would open a browser on the test machine.
+check(
+  'the GitHub button sits at the bottom of the tab bar and has a name',
+  await q(
+    `(() => { const b = document.querySelector('${byTest('tab-bar')}').lastElementChild; return b.matches('${byTest('github-link')}') && b.tagName === 'BUTTON' && b.ariaLabel === 'Keystroke Overlay on GitHub'; })()`,
+  ),
+);
 const st = (await inv('get_state')).ok;
 check('get_state', st.version === VERSION && st.settings.version === SETTINGS_VERSION && st.paused === false);
 check(
