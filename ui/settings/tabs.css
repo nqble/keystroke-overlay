@@ -312,16 +312,23 @@ button:disabled:hover {
 .keymap.instant .keymap-canvas {
   transition: none;
 }
-.keymap-canvas.grid-dots {
+.keymap-canvas.grid-dots::before {
+  /* The dots are their own layer, under the keys, inset half a dot step from every edge of the board: a dot on the
+     board's outer edge would be cut in half (most visibly in the bottom-right corner when zoomed out). */
+  content: '';
+  position: absolute;
+  inset: calc(var(--dot-spacing, 10px) / 2);
+  pointer-events: none;
   background-image: radial-gradient(
     circle,
     var(--color-text-dim) var(--dot-radius, 0.8px),
     transparent calc(var(--dot-radius, 0.8px) * 1.75)
   );
   background-size: var(--dot-spacing, 10px) var(--dot-spacing, 10px);
-  /* The gradient draws its dot in the middle of each tile, so shift it half a tile to put it on the grid line. A key is drawn
-     KEY_GAP (3px) narrower than its cell, so the line's visible spot is the middle of that gap: half the gap further back. */
-  background-position: calc(var(--dot-spacing, 10px) / -2 - 1.5px) calc(var(--dot-spacing, 10px) / -2 - 1.5px);
+  /* Each tile draws its dot in its middle. The layer starts half a step in, so a tile starting there would put its dot
+     on a grid line; a key is drawn KEY_GAP (3px) narrower than its cell, so the line's visible spot is the middle of that
+     gap, half the gap (1.5px) further back. */
+  background-position: -1.5px -1.5px;
 }
 .keymap-canvas.holding .kmk:not(.drag) {
   opacity: 0.35;

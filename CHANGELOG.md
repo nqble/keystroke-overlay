@@ -3,6 +3,15 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
+## v2.0.1 — two fixes for 2.0
+
+### 🛠 Improved
+- **If Windows Security flags the app** by mistake, the user guide's Troubleshooting section now says how to check your copy is official and how to restore it.
+
+### 🐛 Fixed
+- **Layout cards can be dragged to reorder again,** on Windows, Mac and Linux.
+- **No grid dot is cut off** at the edge of the key editor's board when Grid is on.
+
 ## v2.0.0 — Keystroke Overlay 2.0
 
 **This is the release the app has been building toward.** Version 2.0 is a new Keystroke Overlay: a settings window redesigned from the ground up, downloads for Windows, Mac and Linux, a key editor that does what you expect, and many small touches that make it feel finished. It is still private by design (your key presses never leave your PC) and still uses next to nothing while you stream. If you tried an earlier version, now is the time to take another look.

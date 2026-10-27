@@ -36,5 +36,14 @@ jobs:
         shell: bash
         env:
           SUITE: ${{ inputs.suite || 'all' }} # through the environment, never pasted into the script; a pull request runs all
+          E2E_DIAGNOSTICS: ${{ runner.temp }}/e2e-diagnostics # a failed suite saves a screenshot and report here
         run: |
           if [ "$SUITE" = "all" ]; then npm run test:e2e; else npm run test:e2e -- --suite "$SUITE"; fi
+      - name: Keep the diagnostics of failed suites
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-diagnostics
+          path: ${{ runner.temp }}/e2e-diagnostics
+          if-no-files-found: ignore
+          retention-days: 7
