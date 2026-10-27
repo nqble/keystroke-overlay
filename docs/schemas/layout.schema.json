@@ -31,7 +31,8 @@
           "x": { "type": "number" },
           "y": { "type": "number" },
           "w": { "type": "number", "exclusiveMinimum": 0, "default": 1 },
-          "h": { "type": "number", "exclusiveMinimum": 0, "default": 1 }
+          "h": { "type": "number", "exclusiveMinimum": 0, "default": 1 },
+          "r": { "type": "number", "minimum": -180, "maximum": 180, "default": 0 }
         },
         "additionalProperties": false
       }

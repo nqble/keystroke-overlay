@@ -55,6 +55,7 @@ keystroke-overlay/
 │       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
 │       ├── hotkeys.rs      the optional global pause shortcut (registers only the one the user set)
 │       ├── key_labels.rs   key labels that follow the user's keyboard language and the system's own key names (style.keyLabels)
+│       ├── key_angles.rs   turned keys: cleaning a layout key's `r` and a profile's `rotations` (key rotation, being built)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
 │           ├── mod.rs        lists the command files
