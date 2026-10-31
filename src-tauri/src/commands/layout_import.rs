@@ -13,8 +13,9 @@ use serde_json::{json, Value};
 use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt as _;
 
-/// The file picker for a keyboard file. Returns None if the user canceled, otherwise { fileName, text }: the file's
-/// name (the window names the layout after it when the file has no name of its own) and its text, as it is.
+/// The file picker for a keyboard file. Returns None if the user canceled, otherwise { fileName, folderName, text }: the
+/// file's name and its folder's (the window names the layout after one of them when the file has no name of its own: a
+/// NohBoard keyboard is named by its folder) and its text, as it is.
 #[tauri::command]
 pub async fn pick_layout_source(app: AppHandle) -> Result<Option<Value>, String> {
     let Some(picked_file) = app
@@ -33,7 +34,14 @@ pub async fn pick_layout_source(app: AppHandle) -> Result<Option<Value>, String>
     // A file that isn't UTF-8 text can't be JSON either: the window then says it couldn't read the file.
     let text = String::from_utf8_lossy(&bytes).into_owned();
     let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-    Ok(Some(json!({ "fileName": file_name, "text": text })))
+    let folder_name = path
+        .parent()
+        .and_then(|folder| folder.file_name())
+        .and_then(|n| n.to_str())
+        .unwrap_or_default();
+    Ok(Some(
+        json!({ "fileName": file_name, "folderName": folder_name, "text": text }),
+    ))
 }
 
 /// The typing keys by the virtual key this PC's keyboard gives them, as {"65": "KeyQ", ...}: a NohBoard keyboard file

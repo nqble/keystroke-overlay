@@ -259,7 +259,7 @@ function useNumberPad(keys) {
 }
 
 /** "Shift", "Ctrl", "Alt" and "Win" become their Left or Right key by place (step 5); explicit sides win. */
-function pickSides(keys) {
+export function pickSides(keys) {
   const layoutWidth = largest(keys.map((key) => key.x + key.w));
   const centerX = (key) => key.x + key.w / 2;
   for (const [generic, [leftCode, rightCode]] of Object.entries(SIDED_KEYS)) {

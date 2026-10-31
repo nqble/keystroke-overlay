@@ -1,34 +1,36 @@
 // =====================================================================================================================
-//  The small dialogs built on popup.js: New layout (Blank, Built-in or From a KLE file; the 20-layout limit), Reset
+//  The small dialogs built on popup.js: New layout (Blank, Built-in, From a KLE file or, on Windows, From a NohBoard file; the 20-layout limit), Reset
 //  all settings, and a plain "are you sure" for things that are hard to undo by hand.
 // =====================================================================================================================
 import { call, el, invoke, toast } from './helpers.js';
 import { html, render as drawPreact } from './html.js';
 import { Segmented } from './blocks.js';
-import { FromKleFile, KLE_WORDS, pickKleFile } from './kle-import-popup.js';
+import { FromKleFile, FromNohBoardFile, KLE_WORDS, pickLayoutFile } from './kle-import-popup.js';
 import { otherLayouts, shownLayouts } from './layout-order.js';
 import { OtherLayouts } from './other-layouts.js';
 import { dialog } from './popup.js';
 import { changed, frame, previewSrc, updateObs } from './preview.js';
 import { render } from './settings.js';
-import { MAX_LAYOUTS, settings, layouts, setLayouts, setObsUrl, setSelectedKey, setTab } from './state.js';
+import { MAX_LAYOUTS, platform, settings, layouts, setLayouts, setObsUrl, setSelectedKey, setTab } from './state.js';
 import { TEXT } from './text.js';
 
-// The three ways to start a layout, in the order the popup shows them (docs/design/ui-design-v2.md, Layouts).
-const START = { blank: 'blank', builtIn: 'builtIn', kle: 'kle' };
+// The ways to start a layout, in the order the popup shows them (docs/design/ui-design-v2.md, Layouts). NohBoard is a
+// Windows program, so From a NohBoard file is only offered on Windows.
+const START = { blank: 'blank', builtIn: 'builtIn', kle: 'kle', nohboard: 'nohboard' };
 const START_WORDS = {
   label: 'Start from',
   blank: 'Blank',
   builtIn: 'Built-in',
   kle: 'From a KLE file',
+  nohboard: 'From a NohBoard file',
   close: 'Close',
 };
 
 /**
  * New layout: start Blank (a name, then Create), from a Built-in layout that isn't on the Layout tab (Add puts it back
- * at the end), or From a KLE file (kle-import-popup.js). Each choice shows only what it needs, and the buttons at the
+ * at the end), or From a KLE or NohBoard file (kle-import-popup.js). Each choice shows only what it needs, and the buttons at the
  * bottom follow the choice. At MAX_LAYOUTS layouts of your own only Built-in is left. `start` picks the first choice
- * (the KLE review's Back button comes back to From a KLE file).
+ * (the import review's Back button comes back to the file choice it came from).
  */
 export function addLayoutDialog(start = START.blank) {
   const full = layouts.filter((l) => l.user).length >= MAX_LAYOUTS;
@@ -51,12 +53,14 @@ export function addLayoutDialog(start = START.blank) {
   showChoice(full ? START.builtIn : start, true);
 }
 
-/** The buttons at the bottom for each choice: Create for Blank, Choose file… for KLE, only Close for Built-in. */
+/** The buttons at the bottom for each choice: Create for Blank, Choose file… for a file, only Close for Built-in. */
 function buttonsFor(choice, full, nameField) {
   if (full || choice === START.builtIn) return [{ label: START_WORDS.close, test: 'dialog-cancel' }];
   const cancel = { label: 'Cancel', test: 'dialog-cancel' };
-  if (choice === START.kle)
-    return [cancel, { label: KLE_WORDS.chooseFile, test: 'dialog-from-kle', primary: true, run: pickKleFile }];
+  if (choice === START.kle || choice === START.nohboard) {
+    const pick = () => pickLayoutFile(choice);
+    return [cancel, { label: KLE_WORDS.chooseFile, test: `dialog-from-${choice}`, primary: true, run: pick }];
+  }
   return [
     cancel,
     { label: 'Create', test: 'dialog-create', primary: true, run: () => createBlank(nameField.current.value) },
@@ -85,6 +89,9 @@ function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }
     { value: START.blank, text: START_WORDS.blank, test: 'new-layout-blank' },
     ...(builtIns.length ? [{ value: START.builtIn, text: START_WORDS.builtIn, test: 'new-layout-built-in' }] : []),
     { value: START.kle, text: START_WORDS.kle, test: 'new-layout-kle' },
+    ...(platform === 'windows'
+      ? [{ value: START.nohboard, text: START_WORDS.nohboard, test: 'new-layout-nohboard' }]
+      : []),
   ];
   return html`<div class="new-layout">
     ${
@@ -111,6 +118,7 @@ function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }
     }
     ${choice === START.builtIn ? html`<${OtherLayouts} choices=${builtIns} onAdd=${addBuiltIn} />` : null}
     ${choice === START.kle && !full ? html`<${FromKleFile} />` : null}
+    ${choice === START.nohboard && !full ? html`<${FromNohBoardFile} />` : null}
   </div>`;
 }
 
