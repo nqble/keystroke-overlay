@@ -281,6 +281,7 @@ const FREE_FORM: &[(&str, CleanFreeForm)] = &[("layout.profiles", clean_profiles
 const LIST_RULES: &[(&str, CleanFreeForm)] = &[
     ("layout.order", crate::layout_order::clean_order),
     ("obs.scenes.rules", crate::obs_scenes::clean_scene_rules),
+    ("appearance.custom", crate::commands::appearance::clean_custom_themes),
 ];
 
 /// Numbers that must be one of a fixed set of choices; anything else goes back to the default.

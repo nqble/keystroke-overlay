@@ -68,8 +68,10 @@ pub fn defaults() -> Value {
         "obs": { "scenes": { "enabled": false, "rules": [] } },
         "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 },
         // The settings window's theme (commands/appearance.rs, ui/settings/app-themes.js): a file name in
-        // ui/settings/themes/ without ".json". "default" is today's look; an unknown name falls back to it.
-        "appearance": { "theme": "default" }
+        // ui/settings/themes/ without ".json", or the id of one of the person's own themes in `custom`
+        // ([{ id, name, colors }], at most 20; commands/appearance.rs cleans them). "default" is today's look; an unknown
+        // name falls back to it.
+        "appearance": { "theme": "default", "custom": [] }
     })
 }
 

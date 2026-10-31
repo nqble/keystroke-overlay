@@ -60,6 +60,7 @@
     "intensity": 1.0
   },
   "appearance": {
-    "theme": "default"
+    "theme": "default",
+    "custom": []
   }
 }
