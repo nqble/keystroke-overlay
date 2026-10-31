@@ -78,7 +78,7 @@ header {
   align-items: center;
   height: 20px;
   padding: 0 var(--space-6);
-  border-radius: var(--radius-round);
+  border-radius: var(--radius-sm);
   background: var(--color-dev-bg);
   color: var(--color-dev-text);
   font-size: var(--text-xs);
