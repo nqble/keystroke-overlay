@@ -3,10 +3,11 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
-## v2.1.0 — turn your keys
+## v2.1.0 — turn your keys, theme the app
 
 ### ✨ New
 - **Turn single keys.** Select a key in the Keys tab and drag the round handle at its top-right corner to turn it, or type an angle in the **Angle** field (15° steps with Snap on). Turned keys show turned in the live preview and in OBS, and a layout imported from KLE keeps its turned keys. Works in the keyboard's own shape; the Even grid keeps keys straight.
+- **Themes for the settings window.** **General → Appearance** has 18 looks for this window, from Default to light ones like Paper and a High contrast theme, plus keycap palettes such as Olivia and Laser. The header logo takes the theme's colors. Or make your own: **+ New theme** opens a bar along the bottom where you pick six colors and watch the whole window change; it warns if text gets hard to read. Share themes with **Export…** and **Import…**. The overlay in OBS keeps its own look.
 - **A GitHub button** at the bottom of the tab bar opens the project's page, for news, help and the source.
 - **A link to keyboard-layout-editor.com** in **+ New layout → From a KLE file**, so you can open the site straight from the app.
 
