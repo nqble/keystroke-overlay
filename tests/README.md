@@ -132,6 +132,7 @@ Rules:
 | `new-layout-start`, `new-layout-blank`, `new-layout-built-in`, `new-layout-kle` | New layout popup: the Start from choice and its three buttons |
 | `other-layouts`, `other-layout-add` | New layout popup, Built-in: the list of built-in layouts, one card's Add |
 | `dialog-from-kle` | New layout popup, From a KLE file: the **Choose file…** button (opens the file picker) |
+| `kle-site-link` | New layout popup, From a KLE file: the keyboard-layout-editor.com link (opens the site in the browser) |
 | `kle-import-name`, `kle-import-summary`, `kle-import-back`, `kle-import-create` | The Import from KLE popup: its Name box, the summary line, Back (to New layout) and Create layout |
 | `animation-cards`, `animation-card-<id>` | The Animation tab's card gallery, and one animation's card |
 | `animation-fine-tune` | Its Fine-tune card (Speed, Strength, Easing) |

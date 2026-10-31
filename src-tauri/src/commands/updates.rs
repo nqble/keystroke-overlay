@@ -193,6 +193,16 @@ pub fn open_project_page() -> Result<(), String> {
     platform::open_url(&format!("https://github.com/{REPO}")).map_err(|e| e.to_string())
 }
 
+/// keyboard-layout-editor.com, where a user draws a keyboard to import (the "From a KLE file" choice in the New
+/// layout popup). Fixed here, like the project page above, so this command can open nothing else.
+const KLE_SITE: &str = "https://www.keyboard-layout-editor.com/";
+
+/// Opens keyboard-layout-editor.com in the default browser. It takes no address.
+#[tauri::command]
+pub fn open_kle_site() -> Result<(), String> {
+    platform::open_url(KLE_SITE).map_err(|e| e.to_string())
+}
+
 /// Opens the project's GitHub page in the default browser. Only this repo's URLs are allowed.
 #[tauri::command]
 pub fn open_release_page(url: String) -> Result<(), String> {
