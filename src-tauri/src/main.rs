@@ -99,6 +99,7 @@ fn main() {
             debug::debug_key_monitor,
             commands::updates::open_release_page,
             commands::updates::open_project_page,
+            commands::updates::open_kle_site,
             commands::updates::ack_whats_new,
             commands::settings::ack_first_run,
             commands::updates::get_release_notes,

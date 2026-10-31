@@ -16,7 +16,9 @@ import { LayoutPicture } from './tabs/layout-card.js';
 
 const TEXT = {
   chooseFile: 'Choose file…',
-  fromFileHelp: 'In keyboard-layout-editor.com, use Download → Download JSON, then choose that file.',
+  fromFileBefore: 'In ',
+  kleSite: 'keyboard-layout-editor.com', // a link: opens the site in the browser
+  fromFileAfter: ', use Download → Download JSON, then choose that file.',
   title: 'Import from KLE',
   name: 'Name',
   // One line: how many keys, how many light up, and by name the ones that can't (drawn dashed in the picture).
@@ -47,7 +49,12 @@ export const KLE_WORDS = { chooseFile: TEXT.chooseFile };
 
 /** The From a KLE file choice in the New layout popup: what to do in KLE first. */
 export function FromKleFile() {
-  return html`<p class="from-kle">${TEXT.fromFileHelp}</p>`;
+  const openSite = () => invoke('open_kle_site').catch(() => {}); // the browser not opening needs no message
+  return html`<p class="from-kle">
+    ${TEXT.fromFileBefore}<button type="button" class="text-link" data-test="kle-site-link" onClick=${openSite}>
+      ${TEXT.kleSite}</button
+    >${TEXT.fromFileAfter}
+  </p>`;
 }
 
 /** Why a file can't be used, in words (the problems layoutFromKle reports, with `count` for too many keys). */
