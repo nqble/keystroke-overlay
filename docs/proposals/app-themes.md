@@ -1,7 +1,9 @@
 # Proposal: themes for the settings window
 
 Status: **Approved, in progress** (2026-10-24; started 2026-10-31): themes change the settings window only, and a
-custom theme sets a few base colors. Step 1 (colors from base colors) is built; the gallery and editing are next.
+custom theme sets a few base colors. Built: colors from base colors, 18 built-in themes, the General → Appearance
+gallery and the theme-colored header logo. Next: making your own theme (the edit bar, import and export, the
+contrast warning).
 
 Lets a person change how the settings window looks: pick a built-in theme from a gallery, or make their own by changing
 a few base colors. The overlay OBS shows keeps its own themes (`ui/overlay/themes/`), as today. Inspired by the wide

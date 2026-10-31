@@ -107,7 +107,7 @@ Rules:
 
 | Hook | What it is |
 |---|---|
-| `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge, added by `tools/devbuild-title.mjs` |
+| `app-header`, `brand-logo`, `brand-logo-drawn`, `brand-title`, `dev-badge` | The top bar, its logo picture (shown in devbuilds), the drawn logo that follows the settings theme, its title and (devbuilds only) the DEV badge, added by `tools/devbuild-title.mjs` |
 | `keyboard-access-banner`, `keyboard-access-text`, `keyboard-access-button`, `keyboard-access-command` | macOS and Linux Wayland: the notice under the header that asks for keyboard access, asks for a restart, explains Secure Input, or gives the input-group command (Linux) |
 | `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS URL button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
@@ -166,7 +166,7 @@ Rules:
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | General's switches (`Switch` in `blocks.js`, `role="switch"`, `aria-checked`) |
 | `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS URL: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number in **General → Updates** |
-| `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page) |
+| `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle`, `general-appearance`, `app-themes`, `app-theme-<id>` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page), the Appearance card, its gallery and each settings theme's card |
 | `server-port`, `server-port-apply` | Connection: the port; `server-restart` is in Advanced |
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | Connection: the secure-link switch (`aria-checked`), its note, and its buttons |
 | `input-method-select`, `input-method-info`, `input-method-error` | Keyboard input: the segmented choice (a radiogroup; the chosen button has `aria-checked="true"`), its note, its error |

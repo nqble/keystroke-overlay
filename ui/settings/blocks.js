@@ -99,11 +99,12 @@ export function Segmented({ label, choices, value, onChange, test = '' }) {
  * A card in a gallery (a layout, theme, preset or animation). Selected shows on the border only. `children` is the
  * card's picture; `menu` (optional) adds a "⋯" button beside it, which is a separate control (a button can't hold one).
  */
-export function GalleryCard({ title, selected, onSelect, menu = null, test = '', children }) {
+export function GalleryCard({ title, selected, onSelect, menu = null, test = '', tip = null, children }) {
   const card = html`<button
     type="button"
     class=${selected ? 'gallery-card sel' : 'gallery-card'}
     aria-pressed=${selected ? 'true' : 'false'}
+    title=${tip}
     data-test=${test || null}
     onClick=${onSelect}
   >

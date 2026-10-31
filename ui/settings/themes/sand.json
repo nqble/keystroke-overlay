@@ -1,0 +1,13 @@
+{
+  "id": "sand",
+  "name": "Sand",
+  "order": 13,
+  "colors": {
+    "background": "#f2ece2",
+    "panel": "#fbf7f0",
+    "text": "#251f18",
+    "dim": "#6f6253",
+    "accent": "#b0632a",
+    "error": "#b8322f"
+  }
+}

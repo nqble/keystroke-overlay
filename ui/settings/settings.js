@@ -7,6 +7,7 @@
 //  HOW TO ADD A SETTING: add a line to CONTROLS in controls.js; it is drawn automatically. Also add its default value
 //  in src-tauri/src/settings.rs and, if the overlay uses it, read it in ui/overlay/overlay.js.
 // =====================================================================================================================
+import { applySavedAppTheme } from './app-themes.js';
 import { $, call, invoke } from './helpers.js';
 import { openFirstRun } from './first-run.js';
 import { GitHubLink } from './github-link.js';
@@ -110,6 +111,7 @@ addEventListener('resize', () => {
   // so it never delays the first screen.
   const [state, layoutList, fonts] = await Promise.all([call('get_state'), call('list_layouts'), call('list_fonts')]);
   setSettings(state.settings);
+  applySavedAppTheme(state.settings.appearance.theme); // before the first draw where it can: the theme files load in parallel
   setObsUrl(state.url);
   setAppVersion(state.version);
   setPaused(state.paused);

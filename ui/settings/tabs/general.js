@@ -13,6 +13,7 @@ import { inputActive, inputError, platform, setInputActive, setInputError, setti
 import { hasMinimizeSetting, inputMethods, systemWord } from '../system-words.js';
 import { resetDialog } from '../dialogs.js';
 import { TEXT } from '../text.js';
+import { Appearance } from './general-appearance.js';
 import { Connection } from './general-connection.js';
 import { PauseShortcut } from './general-hotkey.js';
 import { ObsScenes } from './general-obs-scenes.js';
@@ -66,6 +67,7 @@ function General() {
       <${PauseShortcut} />
       <${Updates} />
     </div>
+    <${Appearance} />
     <${Advanced} />
   </div>`;
 }

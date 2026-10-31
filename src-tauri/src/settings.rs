@@ -66,7 +66,10 @@ pub fn defaults() -> Value {
         // OBS scenes (obs_scenes.rs): hide the overlay or show another layout in the listed scenes, followed by the
         // overlay page inside OBS. rules = [{ "scene": "Chat", "show": false, "layout": "" }]; off by default.
         "obs": { "scenes": { "enabled": false, "rules": [] } },
-        "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
+        "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 },
+        // The settings window's theme (commands/appearance.rs, ui/settings/app-themes.js): a file name in
+        // ui/settings/themes/ without ".json". "default" is today's look; an unknown name falls back to it.
+        "appearance": { "theme": "default" }
     })
 }
 

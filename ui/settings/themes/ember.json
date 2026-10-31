@@ -1,0 +1,13 @@
+{
+  "id": "ember",
+  "name": "Ember",
+  "order": 6,
+  "colors": {
+    "background": "#1a1311",
+    "panel": "#241a17",
+    "text": "#f1e6e1",
+    "dim": "#ab968d",
+    "accent": "#ff8a4c",
+    "error": "#ff5d6c"
+  }
+}

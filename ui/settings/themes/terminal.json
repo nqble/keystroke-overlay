@@ -1,0 +1,13 @@
+{
+  "id": "terminal",
+  "name": "Terminal",
+  "order": 14,
+  "colors": {
+    "background": "#0a0d0a",
+    "panel": "#101510",
+    "text": "#c8f5c8",
+    "dim": "#6fa06f",
+    "accent": "#39ff6a",
+    "error": "#ff5555"
+  }
+}

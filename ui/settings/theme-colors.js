@@ -75,6 +75,17 @@ function derive(rule, lch) {
   return fromOklch({ l: lightness, c: lch[source].c * chromaScale, h: lch[source].h + hueShift });
 }
 
+/** The WCAG contrast ratio of two '#rrggbb' colors (1 to 21): 4.5 or more is easy to read for normal text. */
+export function contrastRatio(one, other) {
+  const [lighter, darker] = [luminance(one), luminance(other)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function luminance(hex) {
+  const [r, g, b] = [1, 3, 5].map((at) => toLinear(parseInt(hex.slice(at, at + 2), 16) / 255));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 // ---- OKLCH conversions (https://bottosson.github.io/posts/oklab/), for '#rrggbb' colors ----
 
 const toLinear = (channel) => (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);

@@ -16,7 +16,7 @@
   position: relative;
   height: 230px;
   flex: none;
-  background: var(--color-well);
+  background: var(--color-stage);
   border-bottom: 1px solid var(--color-line);
   overflow: hidden;
 }
@@ -624,4 +624,51 @@ button:disabled:hover {
 .scene-rule-headings {
   font-size: var(--text-sm);
   color: var(--color-text-dim);
+}
+
+/* General → Appearance (general-appearance.js): each settings theme's card shows a tiny window in its own colors.
+   The colors come from the theme file as variables, like the Style tab's theme keys. */
+.theme-swatch {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  height: 48px;
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--swatch-background);
+}
+.swatch-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+  padding: var(--space-6);
+  border-radius: var(--radius-sm);
+  background: var(--swatch-panel);
+}
+.swatch-text,
+.swatch-dim {
+  height: 4px;
+  border-radius: 2px;
+}
+.swatch-text {
+  width: 70%;
+  background: var(--swatch-text);
+}
+.swatch-dim {
+  width: 45%;
+  background: var(--swatch-dim);
+}
+.swatch-accent {
+  width: 18px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--swatch-accent);
+}
+.theme-kind {
+  display: block;
+  margin-top: var(--space-4);
+  color: var(--color-text-dim);
+  font-size: var(--text-xs);
 }

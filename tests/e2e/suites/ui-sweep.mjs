@@ -37,8 +37,32 @@ for (const [name, id] of Object.entries(TAB_IDS)) {
 check(
   'General cards are in the tidy order (ui-design-v2.md)',
   JSON.stringify(await p.q(`[...document.querySelectorAll('#pane .section-title')].map(h => h.textContent)`)) ===
-    JSON.stringify(['Connection', 'OBS scenes', 'Keyboard input', 'Startup', 'Pause shortcut', 'Updates', 'Advanced']),
+    JSON.stringify([
+      'Connection',
+      'OBS scenes',
+      'Keyboard input',
+      'Startup',
+      'Pause shortcut',
+      'Updates',
+      'Appearance',
+      'Advanced',
+    ]),
 );
+
+// ---- settings window themes (General → Appearance; app-themes.js)
+const windowColor = () => p.q(`getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim()`);
+const defaultColor = await windowColor();
+check(
+  'General → Appearance lists the settings themes',
+  (await p.q(`document.querySelectorAll('${byTestStart('app-theme-')}').length`)) >= 2,
+);
+await p.ev(`document.querySelector('${byTest('app-theme-paper')}').click()`);
+await sleep(600);
+check('picking a theme changes the whole window at once', (await windowColor()) === '#f4f5f8', await windowColor());
+check('the choice is saved', (await p.invoke('get_state')).ok.settings.appearance.theme === 'paper');
+await p.ev(`document.querySelector('${byTest('app-theme-default')}').click()`);
+await sleep(600);
+check('Default brings back the original colors', (await windowColor()) === defaultColor, await windowColor());
 
 // the overlay as OBS loads it (no ?preview) skips the theme files; the settings preview still loads them
 await p.ev(

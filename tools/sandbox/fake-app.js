@@ -168,6 +168,7 @@
       return id;
     },
     list_fonts: () => [],
+    list_app_themes: () => fetch('/__sandbox__/app-themes.json').then((response) => response.json()),
     // presets live in memory for the visit, so saving, loading and deleting can be tried
     list_presets: () => Object.keys(presets),
     save_preset: ({ name, data }) => {

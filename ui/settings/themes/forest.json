@@ -1,0 +1,13 @@
+{
+  "id": "forest",
+  "name": "Forest",
+  "order": 5,
+  "colors": {
+    "background": "#111814",
+    "panel": "#18221c",
+    "text": "#e3ece5",
+    "dim": "#8ea597",
+    "accent": "#4fcf8a",
+    "error": "#ff6b6b"
+  }
+}
