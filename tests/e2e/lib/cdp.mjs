@@ -77,25 +77,33 @@ async function evalInSeparateTarget(originPart, body) {
   return valueOrThrow(answer);
 }
 
-/** Connect to the test app's settings window. */
-export async function connect() {
-  const target = await findSettingsWindow();
-  const ws = new WebSocket(target.webSocketDebuggerUrl);
-  await new Promise((r) => (ws.onopen = r));
+/** Keeps `contexts` in step with the JavaScript worlds the browser reports (the settings page, the preview frame...). */
+function followContexts(contexts, message) {
+  if (message.method === 'Runtime.executionContextCreated') contexts.push(message.params.context);
+  // a removed iframe must not be picked later
+  else if (message.method === 'Runtime.executionContextDestroyed') {
+    const i = contexts.findIndex((c) => c.id === message.params.executionContextId);
+    if (i >= 0) contexts.splice(i, 1);
+  } else if (message.method === 'Runtime.executionContextsCleared') contexts.length = 0;
+}
+
+/** The newest default world whose address contains `originPart`, or undefined. */
+const contextFor = (contexts, originPart) =>
+  [...contexts].reverse().find((c) => (c.origin || '').includes(originPart) && c.auxData?.isDefault !== false);
+
+/** Sends commands over a page's debugging connection (`send` resolves to the answer) and tracks its worlds. */
+function messenger(ws) {
   let id = 0;
   const pending = new Map();
-  const contexts = []; // JavaScript worlds (the settings page, the preview frame, ...) reported by the browser
+  const contexts = [];
   ws.onmessage = (e) => {
     const m = JSON.parse(e.data);
     if (m.id && pending.has(m.id)) {
       pending.get(m.id)(m);
       pending.delete(m.id);
-    } else if (m.method === 'Runtime.executionContextCreated') contexts.push(m.params.context);
-    // a removed iframe must not be picked later
-    else if (m.method === 'Runtime.executionContextDestroyed') {
-      const i = contexts.findIndex((c) => c.id === m.params.executionContextId);
-      if (i >= 0) contexts.splice(i, 1);
-    } else if (m.method === 'Runtime.executionContextsCleared') contexts.length = 0;
+      return;
+    }
+    followContexts(contexts, m);
   };
   const send = (method, params = {}) =>
     new Promise((res) => {
@@ -103,16 +111,27 @@ export async function connect() {
       pending.set(i, res);
       ws.send(JSON.stringify({ id: i, method, params }));
     });
-  /** Run JavaScript in the settings page (async body, use `return`). */
-  const ev = async (body) => {
-    return valueOrThrow(
+  return { send, contexts };
+}
+
+/** Connect to the test app's settings window. */
+export async function connect() {
+  const target = await findSettingsWindow();
+  const ws = new WebSocket(target.webSocketDebuggerUrl);
+  await new Promise((r) => (ws.onopen = r));
+  const { send, contexts } = messenger(ws);
+  /** Runs an async body (use `return`) in the settings page, or in the world `contextId` when given. */
+  const evaluate = async (body, contextId) =>
+    valueOrThrow(
       await send('Runtime.evaluate', {
         expression: `(async()=>{${body}})()`,
         awaitPromise: true,
         returnByValue: true,
+        ...(contextId === undefined ? {} : { contextId }),
       }),
     );
-  };
+  /** Run JavaScript in the settings page (async body, use `return`). */
+  const ev = (body) => evaluate(body);
   /** Call a Tauri command; resolves to {ok} or {err}. */
   const invoke = (cmd, args) =>
     ev(
@@ -121,19 +140,8 @@ export async function connect() {
   await send('Runtime.enable');
   /** Run JavaScript inside the page whose address contains `originPart` (e.g. the live preview frame). */
   const evIn = async (originPart, body) => {
-    const c = [...contexts]
-      .reverse()
-      .find((c) => (c.origin || '').includes(originPart) && c.auxData?.isDefault !== false);
-    if (c)
-      return valueOrThrow(
-        await send('Runtime.evaluate', {
-          expression: `(async()=>{${body}})()`,
-          awaitPromise: true,
-          returnByValue: true,
-          contextId: c.id,
-        }),
-      );
-    return evalInSeparateTarget(originPart, body);
+    const context = contextFor(contexts, originPart);
+    return context ? evaluate(body, context.id) : evalInSeparateTarget(originPart, body);
   };
   return { ev, evIn, send, invoke, q: (expr) => ev(`return ${expr}`), close: () => ws.close() };
 }
