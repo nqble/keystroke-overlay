@@ -33,10 +33,10 @@ export const styleOf = (profile) => (profile?.layoutStyle === 'grid' ? 'grid' : 
 
 /**
  * For reading only: the profile with the positions and sizes of the layout style in use pulled up to the top. Always
- * has every part, even for settings saved by older versions.
+ * has every part, even for settings saved by older versions. `id` picks another layout than the one in use (a card).
  */
-export const viewProf = () => {
-  const profile = settings.layout.profiles[curLayout()?.id];
+export const viewProf = (id = curLayout()?.id) => {
+  const profile = settings.layout.profiles[id];
   const style = styleOf(profile);
   const edits = profile?.styles?.[style] ?? {};
   return {
@@ -173,8 +173,8 @@ export const snap = (v, step = snapStep()) => (step === 0 ? v : Math.round(v / s
 export const round2 = (v) => Math.round(v * 100) / 100;
 
 /** Where the layout style puts a key before the user moves it: the layout file's place, or its place in the even grid. */
-export function basePosition(key, style) {
-  const place = style === 'grid' ? curLayout()?.grid?.[key.code] : null;
+export function basePosition(key, style, layout = curLayout()) {
+  const place = style === 'grid' ? layout?.grid?.[key.code] : null;
   return place ?? { x: key.x, y: key.y };
 }
 
@@ -182,7 +182,8 @@ export function basePosition(key, style) {
 export const baseWidth = (key, style) => (style === 'grid' ? 1 : (key.w ?? 1));
 
 /** Where a key is drawn: its saved position if the user moved it, otherwise where the layout style puts it. */
-export const keyPos = (key, profile) => profile.positions[key.code] ?? basePosition(key, profile.layoutStyle);
+export const keyPos = (key, profile, layout = curLayout()) =>
+  profile.positions[key.code] ?? basePosition(key, profile.layoutStyle, layout);
 
 /** How tall the layout makes a key before the user resizes it. */
 export const baseHeight = (key) => key.h ?? 1;

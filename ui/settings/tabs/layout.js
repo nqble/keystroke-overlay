@@ -4,7 +4,7 @@
 //  One card: layout-card.js. Which layouts show, and the moving rules: layout-order.js. The New layout popup and its
 //  Start from choices (Blank, Built-in, From a KLE file): dialogs.js.
 // =====================================================================================================================
-import { addLayoutDialog } from '../dialogs.js';
+import { addLayoutDialog, renameLayoutDialog } from '../dialogs.js';
 import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js';
 import { call, el, invoke, plural, toast } from '../helpers.js';
 import { html, useRef, useState } from '../html.js';
@@ -97,9 +97,10 @@ function confirmDelete(layout) {
   });
 }
 
-/** What a card can do: be picked, move left or right (Alt+arrows), be removed. */
+/** What a card can do: be picked, be renamed (your own layouts), move left or right (Alt+arrows), be removed. */
 const cardActions = (layout, shownIds) => ({
   pick: () => pick(layout.id),
+  rename: () => renameLayoutDialog(layout),
   move: (step) => saveOrder(moveBy(shownIds, layout.id, step), layout.id),
   remove: () => remove(layout, shownIds),
 });

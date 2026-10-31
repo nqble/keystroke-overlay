@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The small dialogs built on popup.js: New layout (Blank, Built-in, From a KLE file or, on Windows, From a NohBoard file; the 20-layout limit), Reset
+//  The small dialogs built on popup.js: Rename layout, New layout (Blank, Built-in, From a KLE file or, on Windows, From a NohBoard file; the 20-layout limit), Reset
 //  all settings, and a plain "are you sure" for things that are hard to undo by hand.
 // =====================================================================================================================
 import { call, el, invoke, toast } from './helpers.js';
@@ -120,6 +120,36 @@ function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }
     ${choice === START.kle && !full ? html`<${FromKleFile} />` : null}
     ${choice === START.nohboard && !full ? html`<${FromNohBoardFile} />` : null}
   </div>`;
+}
+
+/** Rename a layout the person made: a name box with the current name, then Rename. The layout keeps its key edits. */
+export function renameLayoutDialog(layout) {
+  const nameBox = el('input', { type: 'text', value: layout.name, maxLength: 30, placeholder: 'Layout name' });
+  nameBox.dataset.test = 'dialog-rename-name';
+  const rename = async () => {
+    try {
+      await invoke('rename_layout', { id: layout.id, name: nameBox.value });
+      setLayouts(await call('list_layouts'));
+      toast('Layout renamed');
+      render();
+      return true;
+    } catch (error) {
+      toast(String(error), true);
+      return false;
+    }
+  };
+  dialog({
+    title: 'Rename layout',
+    body: [nameBox],
+    buttons: [
+      { label: 'Cancel', test: 'dialog-cancel' },
+      { label: 'Rename', test: 'dialog-rename', primary: true, run: rename },
+    ],
+  });
+  queueMicrotask(() => {
+    nameBox.focus();
+    nameBox.select();
+  });
 }
 
 /** Ask before something that is hard to undo by hand. `onConfirm` runs when the danger button is pressed. */

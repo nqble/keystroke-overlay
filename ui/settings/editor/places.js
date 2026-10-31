@@ -11,7 +11,7 @@ import { turnedBounds } from '../tabs/keys-turn.js';
 export function placeKeys(layout, profile) {
   return layout.keys.map((key) => ({
     key,
-    ...keyPos(key, profile),
+    ...keyPos(key, profile, layout),
     w: keyWidth(key, profile),
     h: keyHeight(key, profile),
     r: keyAngle(key, profile),
