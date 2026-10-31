@@ -102,6 +102,7 @@ keystroke-overlay/
         ├── update-popup.js  the update button, its popup and the download progress
         ├── github-link.js the small GitHub button under the tabs (opens the project page through open_project_page)
         ├── icons.js       the small icons (pause, play, close, menu dots, zoom, arrows) drawn as centered shapes
+        ├── theme-colors.js  settings window themes: every color worked out from six base colors (default stays in settings.css)
         ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)

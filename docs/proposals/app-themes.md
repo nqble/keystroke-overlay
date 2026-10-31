@@ -1,7 +1,7 @@
 # Proposal: themes for the settings window
 
-Status: **Approved, planned for after v2.0** (2026-10-24): themes change the settings window only, and a custom theme
-sets a few base colors. Nothing is built.
+Status: **Approved, in progress** (2026-10-24; started 2026-10-31): themes change the settings window only, and a
+custom theme sets a few base colors. Step 1 (colors from base colors) is built; the gallery and editing are next.
 
 Lets a person change how the settings window looks: pick a built-in theme from a gallery, or make their own by changing
 a few base colors. The overlay OBS shows keeps its own themes (`ui/overlay/themes/`), as today. Inspired by the wide
@@ -29,14 +29,19 @@ app is MIT), and the docs thank it.
 
 ## How it is built
 
-- **Tokens from base colors.** Today `ui/settings/settings.css` has 58 color tokens in its `:root` block. They are
-  rewritten so that each one is either a base color or worked out from base colors with `color-mix()` (lighter, darker,
-  see-through versions). The look of the default theme must not change: the screenshot tests prove it
-  (`npm run test:visual` with no baseline changes). This restructure is the big step, and comes first, on its own.
+- **Colors from base colors, in JavaScript** (decided 2026-10-31). `ui/settings/theme-colors.js` works out every
+  themed color from the six base colors: each keeps the hue of a source base color, and its lightness is a fraction of
+  the way from an anchor color toward the text color, so light themes get darker lines and dark themes lighter ones. The
+  numbers were fitted so the default theme gives back today's colors exactly (`tests/ui/theme-colors.test.mjs`). The
+  default theme's colors stay written out in `settings.css`; a picked theme sets the results as CSS variables. Not CSS
+  `color-mix()`: matching the default's blues needs CSS relative colors, which the WebKit on macOS 11 and 12 lacks.
+  Colors that mean something (live green, paused amber, the window's red close button, release-note colors) stay the
+  same in every theme. **Built (step 1).**
 - **A theme is one plain data file** in `ui/settings/themes/` (`{ id, name, colors: { background, panel, text, dim,
   accent, error } }`), listed automatically like the overlay's themes and layouts (decision 0006). Adding a theme
   touches one place (CLAUDE.md §1, principle 4).
-- **Applying a theme** sets the six base colors as CSS variables on the root element; nothing else changes at run time.
+- **Applying a theme** sets its colors (`themeColors()`) as CSS variables on the root element; nothing else changes at
+  run time.
   No timers, no extra cost while idle.
 - **Icons follow the theme too.** Icons drawn in the page, like the GitHub button's mark under the tabs, use the text
   color of their button (`currentColor`, from `--color-text-dim` and `--color-text`), never a fixed color, so every theme
