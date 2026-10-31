@@ -1,6 +1,6 @@
 // The JavaScript linter (ESLint): `npm run check:lint`, also in CI. It catches likely mistakes (a name used but never
-// defined, a variable never used) as errors, and shows the house rules from CLAUDE.md section 2 (short functions,
-// shallow nesting, files under ~400 lines) as warnings, to be fixed whenever someone touches that file.
+// defined, a variable never used) and the house rules from CLAUDE.md section 2 (short functions, shallow nesting, files
+// under ~400 lines), all as errors, so CI fails on them.
 // The UI code is type-checked by `npm run check:types` (jsconfig.json), which already knows every browser name, so
 // "is this name defined?" is checked here only for the Node scripts (tools/, tests/, .claude/hooks/).
 import js from '@eslint/js';
@@ -42,11 +42,14 @@ export default [
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
     rules: {
       eqeqeq: ['error', 'smart'],
-      'max-depth': ['warn', MAX_DEPTH],
-      'max-lines-per-function': ['warn', { max: MAX_FUNCTION_LINES, skipBlankLines: true, skipComments: true }],
-      'max-lines': ['warn', { max: MAX_FILE_LINES, skipBlankLines: true, skipComments: true }],
+      'max-depth': ['error', MAX_DEPTH],
+      'max-lines-per-function': ['error', { max: MAX_FUNCTION_LINES, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: MAX_FILE_LINES, skipBlankLines: true, skipComments: true }],
     },
   },
+  // The one file still over the length limit: the key-editor e2e suite, one long script whose later steps build on the
+  // earlier ones. Splitting it needs an e2e run on Windows to prove each part still passes on its own.
+  { files: ['tests/e2e/suites/keys-editor.mjs'], rules: { 'max-lines': 'off' } },
   // Pages that run in a browser (the UI, and the sandbox's stand-ins for the app).
   { files: ['ui/**/*.js', 'tools/sandbox/**/*.js'], rules: { 'no-undef': 'off' } },
   {
