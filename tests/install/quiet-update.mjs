@@ -90,6 +90,22 @@ mkdirSync(WORK, { recursive: true });
 let failed = false,
   mock = null,
   watcher = null;
+/** A connection to the updated app once it has reopened, or null while it hasn't (or isn't reachable yet). */
+async function updatedAppIfBack(idBefore) {
+  try {
+    const q = await connect();
+    const now = ps(`(Get-Process ${APP.testApps.installExe} -ErrorAction SilentlyContinue).Id`);
+    const onDisk = ps(`(Get-Item '${EXE}').VersionInfo.FileVersion`);
+    // The app reports its version from Cargo.toml, which a test build does not change, so the new version is told apart
+    // by the program file's own version number and by a new process id (the old one was closed and a new one started).
+    if ((await q.invoke('get_state')).ok && now && now !== idBefore && onDisk === NEW_VERSION) return q;
+    q.close();
+  } catch {
+    /* not back yet */
+  }
+  return null;
+}
+
 try {
   for (const port of [7879, 7999, 9222])
     if (await portBusy(port)) throw new Error(`Port ${port} is busy; close what uses it first.`);
@@ -168,17 +184,7 @@ try {
   while (Date.now() < deadline && !back) {
     await sleep(2500);
     console.log(`  +${Math.round((Date.now() - started) / 1000)} s: ${snapshot()}`);
-    try {
-      const q = await connect();
-      const now = ps(`(Get-Process ${APP.testApps.installExe} -ErrorAction SilentlyContinue).Id`);
-      const onDisk = ps(`(Get-Item '${EXE}').VersionInfo.FileVersion`);
-      // The app reports its version from Cargo.toml, which a test build does not change, so the new version is told apart
-      // by the program file's own version number and by a new process id (the old one was closed and a new one started).
-      if ((await q.invoke('get_state')).ok && now && now !== idBefore && onDisk === NEW_VERSION) back = q;
-      else q.close();
-    } catch {
-      /* not back yet */
-    }
+    back = await updatedAppIfBack(idBefore);
   }
 
   console.log(`\n== 3. what happened`);
