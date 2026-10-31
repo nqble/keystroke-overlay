@@ -34,7 +34,9 @@
     "notices": "node tools/notices.mjs"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@tauri-apps/cli": "^2",
+    "eslint": "10.14.0",
     "pixelmatch": "8.0.0",
     "pngjs": "7.0.0",
     "prettier": "3.9.10",
