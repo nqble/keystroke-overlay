@@ -127,6 +127,18 @@ check(
   back[back.length - 1] === 'gameplay' && (await p.q(`!!${cardOf('gameplay')}`)),
   back.join(),
 );
+await p.ev(`document.querySelector('${byTest('layout-add')}').click()`);
+await sleep(300);
+await p.ev(`document.querySelector('${byTest('new-layout-kle')}').click()`);
+await sleep(300);
+check(
+  'From a KLE file links to keyboard-layout-editor.com (a real button, so the keyboard reaches it)',
+  await p.q(
+    `document.querySelector('${byTest('kle-site-link')}')?.tagName === 'BUTTON' && document.querySelector('${byTest('kle-site-link')}').textContent.trim() === 'keyboard-layout-editor.com'`,
+  ),
+);
+await p.ev(`document.querySelector('${byTest('dialog-cancel')}')?.click()`);
+await sleep(300);
 await p.invoke('save_settings', {
   settings: {
     ...(await p.invoke('get_state')).ok.settings,
