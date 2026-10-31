@@ -24,14 +24,15 @@ header {
 }
 /* The logo is drawn (index.html) so it follows the settings theme (app-themes.js): the outer square is the accent, the
    key the panel color, the K the text color. A devbuild shows its purple logo picture instead (tools/devbuild.mjs
-   swaps logo.png and adds the DEV badge), whatever the theme, so it is always recognizable. */
+   swaps logo.png and adds the DEV badge), whatever the theme, so it is always recognizable, unless the "Devbuild
+   look" switch in General → Advanced is off (devbuild-look.js): then the drawn logo shows, to test a theme. */
 .brand img.logo {
   display: none;
 }
-.brand:has(.dev-badge) img.logo {
+:root:not([data-dev-look='off']) .brand:has(.dev-badge) img.logo {
   display: block;
 }
-.brand:has(.dev-badge) .logo-drawn {
+:root:not([data-dev-look='off']) .brand:has(.dev-badge) .logo-drawn {
   display: none;
 }
 .logo-outer {

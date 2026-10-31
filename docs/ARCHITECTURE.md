@@ -105,6 +105,7 @@ keystroke-overlay/
         ├── icons.js       the small icons (pause, play, close, menu dots, zoom, arrows) drawn as centered shapes
         ├── theme-colors.js  settings window themes: every color worked out from six base colors (default stays in settings.css)
         ├── app-themes.js  settings window themes: loading the theme files, applying one (colors, logo); themes/*.json, one per theme
+        ├── devbuild-look.js  a devbuild's switch (General → Advanced) between its purple logo and the theme-colored one
         ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)
