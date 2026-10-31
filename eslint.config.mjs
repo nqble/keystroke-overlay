@@ -47,9 +47,6 @@ export default [
       'max-lines': ['error', { max: MAX_FILE_LINES, skipBlankLines: true, skipComments: true }],
     },
   },
-  // The one file still over the length limit: the key-editor e2e suite, one long script whose later steps build on the
-  // earlier ones. Splitting it needs an e2e run on Windows to prove each part still passes on its own.
-  { files: ['tests/e2e/suites/keys-editor.mjs'], rules: { 'max-lines': 'off' } },
   // Pages that run in a browser (the UI, and the sandbox's stand-ins for the app).
   { files: ['ui/**/*.js', 'tools/sandbox/**/*.js'], rules: { 'no-undef': 'off' } },
   {

@@ -23,7 +23,7 @@ Linux ([LINUX-PORT.md](../docs/LINUX-PORT.md)).
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | keys-editor-snap | keys-editor-board | keys-editor-styles | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -38,7 +38,10 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
 - `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay).
-- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape), the Reset ▾ menu, the History / View / Tidy toolbar, that the preview and overlay size follow, and that junk positions are cleaned.
+- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape), the Reset ▾ menu, moving several keys, align and space evenly, Undo and Redo. The four `keys-editor*` suites share their test layout and helpers in `tests/e2e/lib/keys-editor-kit.mjs`.
+- `keys-editor-snap` — the Snap and Grid switches, the drag readout and status line, keyboard use and screen-reader labels, the keyboard shortcuts, and that saved sizes and the Even grid style reach the preview and overlay size.
+- `keys-editor-board` — the board: zoom, pan, view memory, board limits, the hidden preview, resize handles, smart guides, the held-key fade and the inspector.
+- `keys-editor-styles` — the view staying put, the layout styles (Keyboard shape | Even grid) and the Reset menu, the centered board, the Hidden keys switch, key height, that junk positions are cleaned, and deleting a layout.
 - `accessibility` — axe-core scans every tab, the Keys tab with a key selected and the new-layout popup. A control without a name a screen reader can say, or one the keyboard can't reach, fails the suite; everything else axe finds (contrast and more) is printed as advice. Accepted exceptions, with a reason, go in the suite's `ACCEPTED` list.
 - `key-rotation` — turning keys: the round handle with and without Snap, the Angle field, Undo and Put back, none in the Even grid, and the live preview drawing a turned key.
 - `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
