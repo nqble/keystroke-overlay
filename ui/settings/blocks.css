@@ -536,6 +536,7 @@
 }
 .icon-fill {
   fill: currentColor;
+}
 
 /* A link inside a sentence (it opens a website in the browser through a Rust command, so it's a button). */
 .text-link {
