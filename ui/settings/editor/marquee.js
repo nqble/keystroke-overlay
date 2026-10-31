@@ -4,7 +4,7 @@
 import { el } from '../helpers.js';
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
-import { DRAG_START_DISTANCE, KEY_GAP, UNIT, boardPoint, isAdditive } from './context.js';
+import { DRAG_START_DISTANCE, KEY_GAP, UNIT, boardPoint, followPointer, isAdditive } from './context.js';
 
 /** The codes of the keys that touch the rectangle (board pixels at 100% zoom). */
 function keysInside(ctx, rectangle) {
@@ -22,6 +22,14 @@ function keysInside(ctx, rectangle) {
  * Drag a box on the empty part of the board to select the keys it touches. Ctrl or Shift keeps the keys that are
  * already selected. A plain click on the empty part clears the selection.
  */
+/** Draws the selection box over the board rectangle { left, top, right, bottom }. */
+function drawRubberBand(rubberBand, rectangle) {
+  rubberBand.style.setProperty('--left', rectangle.left + 'px');
+  rubberBand.style.setProperty('--top', rectangle.top + 'px');
+  rubberBand.style.setProperty('--width', rectangle.right - rectangle.left + 'px');
+  rubberBand.style.setProperty('--height', rectangle.bottom - rectangle.top + 'px');
+}
+
 export function startMarquee(ctx, pointerEvent) {
   if (pointerEvent.button !== 0) return;
   const origin = boardPoint(ctx, pointerEvent);
@@ -29,11 +37,6 @@ export function startMarquee(ctx, pointerEvent) {
   const rubberBand = el('div', { className: 'marquee' });
   let chosen = keep;
   let drawing = false;
-  try {
-    ctx.box.setPointerCapture(pointerEvent.pointerId);
-  } catch {
-    /* not a real pointer (tests) */
-  }
 
   const move = (moveEvent) => {
     const point = boardPoint(ctx, moveEvent);
@@ -53,22 +56,14 @@ export function startMarquee(ctx, pointerEvent) {
       right: Math.max(origin.x, point.x),
       bottom: Math.max(origin.y, point.y),
     };
-    rubberBand.style.setProperty('--left', rectangle.left + 'px');
-    rubberBand.style.setProperty('--top', rectangle.top + 'px');
-    rubberBand.style.setProperty('--width', rectangle.right - rectangle.left + 'px');
-    rubberBand.style.setProperty('--height', rectangle.bottom - rectangle.top + 'px');
+    drawRubberBand(rubberBand, rectangle);
     chosen = [...new Set([...keep, ...keysInside(ctx, rectangle)])];
     for (const [code, node] of ctx.nodes) node.classList.toggle('sel', chosen.includes(code));
   };
   const done = () => {
-    ctx.box.removeEventListener('pointermove', move);
-    ctx.box.removeEventListener('pointerup', done);
-    ctx.box.removeEventListener('pointercancel', done);
     rubberBand.remove();
     setSelectedKeys(chosen);
     render();
   };
-  ctx.box.addEventListener('pointermove', move);
-  ctx.box.addEventListener('pointerup', done);
-  ctx.box.addEventListener('pointercancel', done);
+  followPointer(ctx.box, pointerEvent, move, done);
 }
