@@ -29,48 +29,46 @@ function functionRow() {
   return k;
 }
 
-/** The number row down to the bottom row (Ctrl, Win, Alt, Space ...). */
-function typingRows() {
-  const k = [];
-  k.push(
-    ...row(1.5, 0, [
+/** The number row down to the bottom row (Ctrl, Win, Alt, Space ...): each row's y and its keys. */
+const TYPING_ROWS = [
+  [
+    1.5,
+    [
       ['Backquote', '`'],
       ...'1234567890'.split('').map((d) => ['Digit' + d, d]),
       ['Minus', '-'],
       ['Equal', '='],
       ['Backspace', 'Bksp', 2],
-    ]),
-  );
-  k.push(
-    ...row(2.5, 0, [
+    ],
+  ],
+  [
+    2.5,
+    [
       ['Tab', 'Tab', 1.5],
       ...letters('QWERTYUIOP'),
       ['BracketLeft', '['],
       ['BracketRight', ']'],
       ['Backslash', '\\', 1.5],
-    ]),
-  );
-  k.push(
-    ...row(3.5, 0, [
-      ['CapsLock', 'Caps', 1.75],
-      ...letters('ASDFGHJKL'),
-      ['Semicolon', ';'],
-      ['Quote', "'"],
-      ['Enter', 'Enter', 2.25],
-    ]),
-  );
-  k.push(
-    ...row(4.5, 0, [
+    ],
+  ],
+  [
+    3.5,
+    [['CapsLock', 'Caps', 1.75], ...letters('ASDFGHJKL'), ['Semicolon', ';'], ['Quote', "'"], ['Enter', 'Enter', 2.25]],
+  ],
+  [
+    4.5,
+    [
       ['ShiftLeft', 'Shift', 2.25],
       ...letters('ZXCVBNM'),
       ['Comma', ','],
       ['Period', '.'],
       ['Slash', '/'],
       ['ShiftRight', 'Shift', 2.75],
-    ]),
-  );
-  k.push(
-    ...row(5.5, 0, [
+    ],
+  ],
+  [
+    5.5,
+    [
       ['ControlLeft', 'Ctrl', 1.25],
       ['MetaLeft', 'Win', 1.25],
       ['AltLeft', 'Alt', 1.25],
@@ -79,10 +77,11 @@ function typingRows() {
       ['MetaRight', 'Win', 1.25],
       ['ContextMenu', 'Menu', 1.25],
       ['ControlRight', 'Ctrl', 1.25],
-    ]),
-  );
-  return k;
-}
+    ],
+  ],
+];
+
+const typingRows = () => TYPING_ROWS.flatMap(([y, keys]) => row(y, 0, keys));
 
 /** Print Screen to Pause, Insert to Page Down, and the arrow keys. */
 function navigationCluster() {

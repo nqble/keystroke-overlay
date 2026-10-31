@@ -105,46 +105,59 @@ function describeSelf(label, expectedMinutes) {
 
 const writeInfo = (info) => writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2));
 
+/** Creates the lock file for `info` if no other run holds it ('wx': only if it does not exist, atomically). */
+function tryToTake(info) {
+  try {
+    writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2), { flag: 'wx' });
+    return true;
+  } catch (e) {
+    if (e.code !== 'EEXIST') throw e;
+    return false;
+  }
+}
+
+/** Removes the lock when its owner is gone (and says so); true when it did, so the caller can try again at once. */
+function clearIfAbandoned() {
+  const l = read(),
+    why = staleReason(l);
+  if (!why) return false;
+  console.log(
+    `[test lock] taking over an abandoned lock (${why})${l ? `: it was "${l.label}", started ${hhmm(l.started)}` : ''}`,
+  );
+  rmSync(LOCK_FILE, { force: true });
+  return true;
+}
+
+/** Stops this run when it may not wait: KO_TEST_LOCK=fail, or an hour has passed. */
+function stopIfWaitingIsOver(t0) {
+  if (process.env.KO_TEST_LOCK === 'fail') {
+    console.error(`[test lock] another test run is in progress, and KO_TEST_LOCK=fail:
+${describe(read())}`);
+    process.exit(3);
+  }
+  if (Date.now() - t0 > MAX_WAIT_MS) {
+    console.error('[test lock] gave up after waiting an hour.');
+    process.exit(3);
+  }
+}
+
 /** Waits until the lock file can be created for `info`. Returns true if it had to wait (and said so). */
 async function waitForTurn(info) {
   const t0 = Date.now();
   let lastReport = 0,
     announced = false;
-  for (;;) {
-    // 'wx' = create only if it does not exist (atomic)
-    try {
-      writeFileSync(LOCK_FILE, JSON.stringify(info, null, 2), { flag: 'wx' });
-      break;
-    } catch (e) {
-      if (e.code !== 'EEXIST') throw e;
-      const l = read(),
-        why = staleReason(l);
-      if (why) {
-        console.log(
-          `[test lock] taking over an abandoned lock (${why})${l ? `: it was "${l.label}", started ${hhmm(l.started)}` : ''}`,
-        );
-        rmSync(LOCK_FILE, { force: true });
-        continue;
-      }
-      if (process.env.KO_TEST_LOCK === 'fail') {
-        console.error(`[test lock] another test run is in progress, and KO_TEST_LOCK=fail:
-${describe(l)}`);
-        process.exit(3);
-      }
-      if (!announced || Date.now() - lastReport > REPORT_MS) {
-        console.log(
-          `[test lock] waiting for another test run to finish (they share ports and the keyboard):
-${describe(l)}`,
-        );
-        announced = true;
-        lastReport = Date.now();
-      }
-      if (Date.now() - t0 > MAX_WAIT_MS) {
-        console.error('[test lock] gave up after waiting an hour.');
-        process.exit(3);
-      }
-      await sleep(POLL_MS);
+  while (!tryToTake(info)) {
+    if (clearIfAbandoned()) continue;
+    stopIfWaitingIsOver(t0);
+    if (!announced || Date.now() - lastReport > REPORT_MS) {
+      console.log(
+        `[test lock] waiting for another test run to finish (they share ports and the keyboard):
+${describe(read())}`,
+      );
+      announced = true;
+      lastReport = Date.now();
     }
+    await sleep(POLL_MS);
   }
   if (announced) console.log(`[test lock] it's my turn now (waited ${ago(Date.now() - t0)}).`);
   return announced;
@@ -186,22 +199,21 @@ export async function acquire(label, { expectedMinutes = 0 } = {}) {
 }
 
 // ---- command line: show or clear
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+/** What `npm run test:lock` prints, and with --clear removes an abandoned lock. */
+function showOrClear() {
   const l = existsSync(LOCK_FILE) ? read() : null;
-  if (!l) {
-    console.log('No test run holds the lock: the tests are free to run.');
-  } else {
-    const why = staleReason(l);
-    if (process.argv.includes('--clear')) {
-      if (why) {
-        rmSync(LOCK_FILE, { force: true });
-        console.log(`Cleared an abandoned lock (${why}).`);
-      } else console.log('Not cleared: its owner is still running.\n' + describe(l));
-    } else
-      console.log(
-        why
-          ? `A lock file exists but is abandoned (${why}); the next run will take it over.\n${describe(l)}`
-          : 'A test run is in progress:\n' + describe(l),
-      );
+  if (!l) return console.log('No test run holds the lock: the tests are free to run.');
+  const why = staleReason(l);
+  if (!process.argv.includes('--clear')) {
+    return console.log(
+      why
+        ? `A lock file exists but is abandoned (${why}); the next run will take it over.\n${describe(l)}`
+        : 'A test run is in progress:\n' + describe(l),
+    );
   }
+  if (!why) return console.log('Not cleared: its owner is still running.\n' + describe(l));
+  rmSync(LOCK_FILE, { force: true });
+  console.log(`Cleared an abandoned lock (${why}).`);
 }
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) showOrClear();
