@@ -668,12 +668,6 @@ button:disabled:hover {
   border-radius: var(--radius-sm);
   background: var(--swatch-accent);
 }
-.theme-kind {
-  display: block;
-  margin-top: var(--space-4);
-  color: var(--color-text-dim);
-  font-size: var(--text-xs);
-}
 
 /* The theme edit bar (theme-edit-bar.js): docked along the bottom of the window, above everything but popups and
    toasts, so every tab can be checked in the new colors. The page leaves room for it while it is open. */

@@ -224,6 +224,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.gallery-note {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-dim);
+  font-size: var(--text-xs);
+}
 .gallery-name {
   display: flex;
   align-items: center;

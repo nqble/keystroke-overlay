@@ -65,6 +65,7 @@ export function Appearance() {
 function ThemeCard({ theme, current, menu = null }) {
   return html`<${GalleryCard}
     title=${theme.name}
+    note=${theme.kind === 'keycaps' ? WORDS.keycaps : null}
     tip=${theme.credit ?? null}
     selected=${theme.id === current}
     onSelect=${() => choose(theme)}
@@ -72,7 +73,6 @@ function ThemeCard({ theme, current, menu = null }) {
     test=${'app-theme-' + theme.id}
   >
     <${ThemeSwatch} colors=${theme.colors} />
-    ${theme.kind === 'keycaps' ? html`<span class="theme-kind">${WORDS.keycaps}</span>` : null}
   <//>`;
 }
 

@@ -97,9 +97,9 @@ export function Segmented({ label, choices, value, onChange, test = '' }) {
 
 /**
  * A card in a gallery (a layout, theme, preset or animation). Selected shows on the border only. `children` is the
- * card's picture; `menu` (optional) adds a "⋯" button beside it, which is a separate control (a button can't hold one).
+ * card's picture; `note` (optional) is a small dim line under the title; `menu` (optional) adds a "⋯" button beside it, which is a separate control (a button can't hold one).
  */
-export function GalleryCard({ title, selected, onSelect, menu = null, test = '', tip = null, children }) {
+export function GalleryCard({ title, note = null, selected, onSelect, menu = null, test = '', tip = null, children }) {
   const card = html`<button
     type="button"
     class=${selected ? 'gallery-card sel' : 'gallery-card'}
@@ -110,6 +110,7 @@ export function GalleryCard({ title, selected, onSelect, menu = null, test = '',
   >
     ${children ? html`<span class="gallery-picture" aria-hidden="true">${children}</span>` : null}
     <b class="gallery-title">${title}</b>
+    ${note ? html`<span class="gallery-note">${note}</span>` : null}
   </button>`;
   if (!menu) return card;
   return html`<div class="gallery-item">
