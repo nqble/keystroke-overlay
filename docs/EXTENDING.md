@@ -83,6 +83,6 @@ when it takes more than one, a check or test catches a forgotten one.
 | A tab | its file in `ui/settings/tabs/` plus one line in `ui/settings/tabs/index.js` (order, name, Debug-only); `tests/ui/tabs.test.mjs` checks the line | 2 |
 
 ## Before you open a pull request
-`npm test` (Rust and UI unit tests, privacy check), `npm run check:format`, `npm run check:types`, `npm run check:style` and
+`npm test` (Rust and UI unit tests, privacy check), `npm run check:format`, `npm run check:types`, `npm run check:lint`, `npm run check:style` and
 clippy with zero warnings; for anything visible also `npm run test:visual` and, where it applies, `npm run test:e2e`. See
 [CONTRIBUTING.md](../CONTRIBUTING.md) and [tests/README.md](../tests/README.md).

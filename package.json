@@ -24,6 +24,7 @@
     "check:docs": "node tools/check-docs.mjs",
     "check:config": "node tools/check-config.mjs",
     "check:types": "tsc -p jsconfig.json",
+    "check:lint": "eslint .",
     "test:lock": "node tests/lib/lock.mjs",
     "test:e2e": "node tests/e2e/run.mjs",
     "test:quiet-update": "node tests/install/quiet-update.mjs",
