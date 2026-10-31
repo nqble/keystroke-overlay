@@ -30,12 +30,12 @@
   font-weight: var(--weight-bold);
 }
 
-/* ---- A tab's page: its heading row, then section cards in a grid (two columns when there is room) */
+/* ---- A tab's page: its heading row, then section cards in columns. It fills the window, so a maximized window has no
+   empty strip on the right; the cards add columns as the window grows (see .section-grid). */
 .tab-page {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  max-width: 980px;
 }
 /* The tab's title: larger and in normal case, unlike the small section headings older tabs use (tabs.css, h2) */
 .tab-heading h2 {
@@ -56,11 +56,16 @@
   justify-content: space-between;
   gap: var(--space-16);
 }
+/* The cards flow down one column, then the next, so a short card never leaves a hole beside a tall one (a grid of rows
+   did). The column count follows the window's width: about 360px each. */
 .section-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: var(--space-14);
-  align-items: start;
+  columns: 360px;
+  column-gap: var(--space-14);
+  margin-bottom: calc(-1 * var(--space-14)); /* the last card's own bottom margin */
+}
+.section-grid > * {
+  break-inside: avoid;
+  margin-bottom: var(--space-14);
 }
 /* A section that opens and closes (General → Advanced): its title is the button */
 .section-toggle {
