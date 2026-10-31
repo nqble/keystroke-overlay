@@ -82,6 +82,13 @@
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
+.section-chevron {
+  --icon-size: 16px;
+  transition: transform 150ms ease-out;
+}
+.section-chevron.chevron-closed {
+  transform: rotate(-90deg);
+}
 .section-body {
   display: flex;
   flex-direction: column;
@@ -282,6 +289,7 @@
 
 /* ---- "⋯" menu button */
 .menu-button {
+  --icon-size: 16px;
   width: 28px;
   height: 28px;
   padding: 0;
@@ -292,6 +300,10 @@
   cursor: pointer;
 }
 .menu-button.with-text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  --icon-size: 12px;
   width: auto;
   height: 32px;
   padding: 0 var(--space-12);
@@ -506,4 +518,22 @@
 }
 .first-run-steps .note {
   margin: 0;
+}
+
+/* Icons (icons.js): drawn shapes, centered in their button; they take the text color. A button sets --icon-size. */
+.icon {
+  display: block;
+  width: var(--icon-size, 14px);
+  height: var(--icon-size, 14px);
+  margin: auto;
+}
+.icon-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-fill {
+  fill: currentColor;
 }

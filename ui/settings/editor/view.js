@@ -3,6 +3,7 @@
 //  tabs/keys-view.js.
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
+import { iconElement } from '../icons.js';
 import { showHiddenKeys } from '../profiles.js';
 import { boundsOf } from '../tabs/keys-arrange.js';
 import { BUTTON_ZOOM, ZOOM_MAX, centredView, clampView, coverZoom, zoomAt } from '../tabs/keys-view.js';
@@ -40,8 +41,10 @@ export function buildZoomControls(ctx) {
     );
   };
   const zoomOut = button('−', zoomBy(1 / BUTTON_ZOOM), 'zoom-step', 'editor-zoom-out');
+  zoomOut.replaceChildren(iconElement('minus'));
   zoomOut.title = 'Zoom out';
   const zoomIn = button('+', zoomBy(BUTTON_ZOOM), 'zoom-step', 'editor-zoom-in');
+  zoomIn.replaceChildren(iconElement('plus'));
   zoomIn.title = 'Zoom in';
   const zoomControls = el('div', { className: 'zoom-controls' }, zoomOut, zoomLabel, zoomIn);
   ctx.zoomLabel = zoomLabel;

@@ -6,6 +6,7 @@
 import { Note } from './blocks.js';
 import { el } from './helpers.js';
 import { html, render as drawPreact, useState } from './html.js';
+import { Icon } from './icons.js';
 import { shownLayouts } from './layout-order.js';
 import { HIDE_CHOICE, choiceOf, ruleFromChoice, rowProblem, rulesToSave } from './obs-scene-rules.js';
 import { dialog } from './popup.js';
@@ -146,7 +147,7 @@ function Rule({ row, index, problem, onChange, onRemove }) {
         data-test="obs-scene-remove"
         onClick=${onRemove}
       >
-        ✕
+        <${Icon} name="close" />
       </button>
     </div>
     ${problem ? html`<p class="note" id=${problemId} data-test="obs-scene-problem">${TEXT.problem[problem]}</p>` : null}

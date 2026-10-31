@@ -125,6 +125,7 @@ header {
 }
 .update-arrow {
   display: block;
+  --icon-size: 12px;
 }
 .update-arrow.dropping {
   animation: update-arrow-drop 520ms ease-in-out 1;

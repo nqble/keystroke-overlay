@@ -7,6 +7,7 @@
 import { Detail, Note, Section, Segmented, Switch } from '../blocks.js';
 import { call, invoke, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
+import { Icon } from '../icons.js';
 import { changed } from '../preview.js';
 import { inputActive, inputError, platform, setInputActive, setInputError, settings } from '../state.js';
 import { hasMinimizeSetting, inputMethods, systemWord } from '../system-words.js';
@@ -171,7 +172,7 @@ function Advanced() {
       onClick=${() => setOpen(!open)}
     >
       <span id="advancedTitle" class="section-title">${WORDS.advanced}</span>
-      <span aria-hidden="true">${open ? '▾' : '▸'}</span>
+      <span class=${open ? 'section-chevron' : 'section-chevron chevron-closed'}><${Icon} name="chevronDown" /></span>
     </button>
     <div id="advancedBody" class="section-body" hidden=${!open}>
       <${SettingSwitch}
