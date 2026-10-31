@@ -6,6 +6,7 @@
 // =====================================================================================================================
 import { $ } from './helpers.js';
 import { html, render as draw, useRef, useState } from './html.js';
+import { Icon } from './icons.js';
 import { obsStatus, obsStatusDetail } from './obs-status.js';
 import { copyUrl } from './preview.js';
 import { render } from './settings.js';
@@ -82,8 +83,7 @@ function UpdateChip({ hidden }) {
   >
     <span class="update-arrow-box" aria-hidden="true"
       ><span class=${dropping ? 'update-arrow dropping' : 'update-arrow'} onAnimationEnd=${() => setDropping(false)}
-        >↓</span
-      ></span
+        ><${Icon} name="arrowDown" /></span></span
     >${TEXT.update}
   </button>`;
 }
