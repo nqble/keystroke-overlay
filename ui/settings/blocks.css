@@ -61,11 +61,17 @@
 .section-grid {
   columns: 360px;
   column-gap: var(--space-14);
-  margin-bottom: calc(-1 * var(--space-14)); /* the last card's own bottom margin */
 }
 .section-grid > * {
   break-inside: avoid;
   margin-bottom: var(--space-14);
+}
+/* The last card in a column ends the column without its bottom margin, so the gap below the whole grid comes from
+   the page's own gap, not from here. A card alone in its grid (Animation's Fine-tune) takes more room, so its
+   longer rows (the easing choices) don't wrap. */
+.section-grid > :only-child {
+  column-span: all;
+  max-width: 640px;
 }
 /* A section that opens and closes (General → Advanced): its title is the button */
 .section-toggle {
