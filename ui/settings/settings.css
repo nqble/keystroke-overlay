@@ -63,6 +63,9 @@
   /* Keys in the Keys tab picture */
   --color-key-fill: #2a3042;
   --color-key-line: #50597a;
+  --color-stage: #0d0f14; /* behind the overlay (live preview, Style's theme cards): dark in every settings theme, like OBS */
+  --logo-key: #1e222b; /* the header logo's key (index.html); a settings theme sets it to its panel color */
+  --logo-mark: #fff; /* the logo's K; a settings theme sets it to its text color */
   --color-key-unlit: #ffd27a; /* a key that can't light up: drawn dashed in the Import from KLE picture */
 
   /* Release-note sections (release-notes.js): one color each, on the heading and the line beside its list */

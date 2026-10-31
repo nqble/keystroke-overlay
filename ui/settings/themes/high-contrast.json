@@ -1,0 +1,13 @@
+{
+  "id": "high-contrast",
+  "name": "High contrast",
+  "order": 17,
+  "colors": {
+    "background": "#000000",
+    "panel": "#0d0d0d",
+    "text": "#ffffff",
+    "dim": "#c8c8c8",
+    "accent": "#ffd400",
+    "error": "#ff6b6b"
+  }
+}

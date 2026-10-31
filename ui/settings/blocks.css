@@ -224,6 +224,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.gallery-note {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-dim);
+  font-size: var(--text-xs);
+}
 .gallery-name {
   display: flex;
   align-items: center;
@@ -272,7 +280,7 @@
   gap: var(--space-8);
   padding: var(--space-12) 0;
   border-radius: var(--radius-xl);
-  background: var(--color-well);
+  background: var(--color-stage);
 }
 .theme-key {
   display: flex;

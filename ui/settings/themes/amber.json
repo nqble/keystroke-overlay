@@ -1,0 +1,13 @@
+{
+  "id": "amber",
+  "name": "Amber",
+  "order": 15,
+  "colors": {
+    "background": "#120d05",
+    "panel": "#1a1309",
+    "text": "#ffd9a0",
+    "dim": "#b08a55",
+    "accent": "#ffb000",
+    "error": "#ff6b4a"
+  }
+}

@@ -22,6 +22,32 @@ header {
   border-radius: var(--radius-lg);
   flex: none;
 }
+/* The logo is drawn (index.html) so it follows the settings theme (app-themes.js): the outer square is the accent, the
+   key the panel color, the K the text color. A devbuild shows its purple logo picture instead (tools/devbuild.mjs
+   swaps logo.png and adds the DEV badge), whatever the theme, so it is always recognizable, unless the "Devbuild
+   look" switch in General → Advanced is off (devbuild-look.js): then the drawn logo shows, to test a theme. */
+.brand img.logo {
+  display: none;
+}
+:root:not([data-dev-look='off']) .brand:has(.dev-badge) img.logo {
+  display: block;
+}
+:root:not([data-dev-look='off']) .brand:has(.dev-badge) .logo-drawn {
+  display: none;
+}
+.logo-outer {
+  fill: var(--color-accent);
+}
+.logo-key {
+  fill: var(--logo-key);
+}
+.logo-mark {
+  fill: none;
+  stroke: var(--logo-mark);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 /* header.js draws into this; it adds no box of its own, so its two groups sit in the header's row directly. */
 .header-controls {
   display: contents;
@@ -53,7 +79,7 @@ header {
   align-items: center;
   height: 20px;
   padding: 0 var(--space-6);
-  border-radius: var(--radius-round);
+  border-radius: var(--radius-sm);
   background: var(--color-dev-bg);
   color: var(--color-dev-text);
   font-size: var(--text-xs);

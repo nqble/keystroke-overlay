@@ -176,7 +176,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 | **Style** | A theme gallery, My presets as cards with a "Save current look" card, then short sections: Colors, Shape, Text (font picker, **Add font file…**, **Your fonts**), Size. **Reset ▾**. | built (Preact; Reset ▾ has \"Back to the default look\"; the app doesn't record which theme was chosen, so \"Back to the chosen theme\" waits for that) |
 | **Animation** | A gallery of animation cards that demo only while hovered or focused; then Speed, Strength (only for animations that use it) and Easing as a segmented switch. | built (Preact; cards demo at the default speed and strength so they compare like for like) |
 | **Fonts** | Removed as a tab: fonts are in Style → Text. | built |
-| **General** | Section cards: **Connection** (the OBS URL box with Copy, port, secure link, and **First run setup**), **OBS scenes** (a switch and **Edit scenes…**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and a collapsed **Advanced** (Debug mode, Restart server, Open data folder, Reset all settings, Quit app). | built (Preact) |
+| **General** | Section cards: **Connection** (the OBS URL box with Copy, port, secure link, and **First run setup**), **OBS scenes** (a switch and **Edit scenes…**), **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, **Appearance** (the settings window's themes, full width; section 14), and a collapsed **Advanced** (Debug mode, Restart server, Open data folder, Reset all settings, Quit app). | built (Preact) |
 | **Debug** | Only with Debug mode on. Cards for the app's state, the log and self-tests; **Copy bug report** copies the scrubbed report (`debug-report.js`, `BUG_REPORT_FORMAT`). | built (one file per card in `debug/`) |
 
 ### Layouts
@@ -235,7 +235,33 @@ layout's real size).
 Design A, "Keycap K". Sources in `assets/logo/`: `logo.svg`, `logo-tray.svg`, and `logo-dev.svg` for devbuilds (purple
 `#8b5cf6` on near-black `#0a0810`). A devbuild also shows the DEV badge in the header (`tools/devbuild-title.mjs`).
 
-## 14. Trying it
+## 14. Settings window themes
+
+General → **Appearance** changes how this window looks; the overlay in OBS keeps its own themes (Style tab).
+
+- **18 built-in themes**, one file each in `ui/settings/themes/` (format: FILE-FORMATS.md). Gallery order: Default,
+  then borrowed palettes (keycap sets marked **keycaps**; each borrowed theme's card shows its credit as a tooltip),
+  then our own. Inspired by Monkeytype's range of themes; no theme files or code come from it.
+- **A theme sets six base colors** (window, panels, text, dim text, accent, errors); every other color is worked out
+  from them (`theme-colors.js`, [decision 0015](../decisions/0015-settings-theme-colors-in-javascript.md)). Colors that
+  mean something (live green, paused amber, the red window close button, release-note colors) stay the same in every
+  theme. Text on accent fills is white or black, whichever reads better.
+- **Readable by default:** every built-in theme passes WCAG AA (4.5 : 1 for text and dim text, 3 : 1 for control
+  borders), checked by `tests/ui/app-themes.test.mjs`. A person's own theme gets a **warning, never a lock**: the edit
+  bar says "Easy to read" or names the worst problem with its ratio.
+- **Making your own:** **+ New theme** (a dashed card after the themes) starts from the theme in use; a custom theme's
+  **⋯** menu has **Edit**, **Export…** and **Delete…**; **Import…** sits under the gallery. Up to 20, saved in the
+  settings. Editing happens in a **docked edit bar** along the bottom of the window, never a popup, so the whole window
+  changes live; it stays while the person moves between tabs. **Cancel** puts the colors back; **Save** keeps and picks
+  the theme.
+- **What stays dark:** the stage behind the overlay in the live preview and the Style tab's overlay theme cards
+  (`--color-stage`), because they show what OBS shows. The strip around the preview follows the theme.
+- **The header logo follows the theme** (outer square: accent; key: panel; K: text). A devbuild shows its purple logo
+  picture in every theme, unless **Devbuild look** in General → Advanced (devbuilds only) is turned off, which shows the
+  drawn logo so a theme can be tested; the DEV badge stays. The icons the system draws (taskbar, tray or menu bar, installer, Dock) are files and keep
+  the app's own colors.
+
+## 15. Trying it
 
 `npm run ui-sandbox` opens the real settings window in a browser at http://127.0.0.1:7882/ with a stand-in app. Pick a
 screen with `?state=live|off|paused|paused-no-obs|port-in-use|first-run|update|whats-new|whats-new-long|mac-allow|mac-restart|mac-secure`, `&tab=…` and
@@ -243,5 +269,5 @@ screen with `?state=live|off|paused|paused-no-obs|port-in-use|first-run|update|w
 
 ## Not in v2.0
 
-New navigation, a setup wizard, a light theme (tokens make it a later change), new themes or animations, and any
+New navigation, a setup wizard, new overlay themes or animations, and any
 change to how the overlay looks in OBS.

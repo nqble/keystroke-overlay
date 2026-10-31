@@ -1,0 +1,15 @@
+{
+  "id": "laser",
+  "name": "Laser",
+  "order": 3,
+  "kind": "keycaps",
+  "credit": "Colors of the GMK Laser keycap set",
+  "colors": {
+    "background": "#221b44",
+    "panel": "#2c2452",
+    "text": "#dbe7e8",
+    "dim": "#9a97c4",
+    "accent": "#00b8c9",
+    "error": "#ff5c8a"
+  }
+}

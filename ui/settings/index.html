@@ -37,7 +37,17 @@
           height="26"
           draggable="false"
           data-tauri-drag-region
-        /><span data-test="brand-title" data-tauri-drag-region>Keystroke Overlay</span>
+        /><svg
+          class="logo logo-drawn"
+          data-test="brand-logo-drawn"
+          viewBox="0 0 64 64"
+          aria-hidden="true"
+          data-tauri-drag-region
+        >
+          <rect x="4" y="4" width="56" height="56" rx="14" class="logo-outer" />
+          <rect x="12" y="10" width="40" height="38" rx="9" class="logo-key" />
+          <path d="M25 19v20M25 30l11-11M28 27l9 12" class="logo-mark" /></svg
+        ><span data-test="brand-title" data-tauri-drag-region>Keystroke Overlay</span>
       </div>
       <!-- The status, Copy OBS URL and Update ready: drawn by header.js (Preact). Status on the left; the other two
            always top right, just before the window buttons. -->
@@ -121,6 +131,8 @@
         <div class="mfoot" id="dFoot" data-test="dialog-footer"></div>
       </div>
     </div>
+    <!-- The theme edit bar (theme-edit-bar.js), docked along the bottom while a theme is being made or changed -->
+    <div id="themeEditBar"></div>
     <div id="toast" data-test="toast" role="status" aria-live="polite" hidden></div>
     <script type="module" src="settings.js"></script>
   </body>

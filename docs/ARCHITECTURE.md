@@ -60,6 +60,7 @@ keystroke-overlay/
 │       └── commands/       what the settings window can call
 │           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart, input method, secure link, reset, first run, copy, quit
+│           ├── appearance.rs settings window themes: lists the theme files built into the app
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
 │           ├── layout_import.rs  a layout from a keyboard file the user picks (KLE): the file picker and add_layout (keys cleaned by sanitize.rs)
 │           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
@@ -102,6 +103,9 @@ keystroke-overlay/
         ├── update-popup.js  the update button, its popup and the download progress
         ├── github-link.js the small GitHub button under the tabs (opens the project page through open_project_page)
         ├── icons.js       the small icons (pause, play, close, menu dots, zoom, arrows) drawn as centered shapes
+        ├── theme-colors.js  settings window themes: every color worked out from six base colors (default stays in settings.css)
+        ├── app-themes.js  settings window themes: loading the theme files, applying one (colors, logo); themes/*.json, one per theme
+        ├── devbuild-look.js  a devbuild's switch (General → Advanced) between its purple logo and the theme-colored one
         ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)

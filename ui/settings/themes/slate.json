@@ -1,0 +1,13 @@
+{
+  "id": "slate",
+  "name": "Slate",
+  "order": 9,
+  "colors": {
+    "background": "#1e2126",
+    "panel": "#272b31",
+    "text": "#d9dde3",
+    "dim": "#8d949e",
+    "accent": "#8aa4c8",
+    "error": "#d9737b"
+  }
+}

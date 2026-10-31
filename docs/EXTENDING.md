@@ -68,6 +68,7 @@ when it takes more than one, a check or test catches a forgotten one.
 | To add, remove or change… | Where | Places |
 |---|---|---|
 | A layout, theme or animation | one file in `ui/overlay/layouts/`, `themes/` or `animations/` | 1 |
+| A settings window theme (General → Appearance) | one file in `ui/settings/themes/` (`{ id, name, order, colors: { background, panel, text, dim, accent, error } }`, plus `kind` and `credit` for a borrowed palette); `tests/ui/app-themes.test.mjs` checks it is complete and easy to read | 1 |
 | Words the user reads | the `TEXT` block of the file that shows them (shared ones: `ui/settings/text.js`) | 1 |
 | Words that differ per system (Windows / Mac / Linux) | one entry in `ui/settings/system-words.js` (`npm run check:systems` catches a Windows word left elsewhere) | 1 |
 | The look of one part of the window | its own CSS file next to `settings.css` (`header.css`, `popups.css`, ...; a new part gets a new file and a `<link>` in `index.html`) | 1–2 |

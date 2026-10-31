@@ -1,0 +1,13 @@
+{
+  "id": "paper",
+  "name": "Paper",
+  "order": 11,
+  "colors": {
+    "background": "#f4f5f8",
+    "panel": "#ffffff",
+    "text": "#1d2230",
+    "dim": "#5c6478",
+    "accent": "#2f6fe0",
+    "error": "#c8303f"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "dusk",
+  "name": "Dusk",
+  "order": 7,
+  "colors": {
+    "background": "#16121f",
+    "panel": "#1f192b",
+    "text": "#ece6f5",
+    "dim": "#9d93b3",
+    "accent": "#a77bff",
+    "error": "#ff6b8a"
+  }
+}
