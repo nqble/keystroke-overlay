@@ -36,6 +36,18 @@ pub async fn pick_layout_source(app: AppHandle) -> Result<Option<Value>, String>
     Ok(Some(json!({ "fileName": file_name, "text": text })))
 }
 
+/// The typing keys by the virtual key this PC's keyboard gives them, as {"65": "KeyQ", ...}: a NohBoard keyboard file
+/// stores keys that way, and on a non-US keyboard the same virtual key is another key (ui/settings/nohboard-layout.js).
+/// Windows only (platform.rs).
+#[tauri::command]
+pub fn typing_virtual_keys() -> Result<Value, String> {
+    let by_virtual_key = crate::platform::typing_keys_by_virtual_key()?;
+    let entries = by_virtual_key
+        .into_iter()
+        .map(|(virtual_key, code)| (virtual_key.to_string(), json!(code)));
+    Ok(Value::Object(entries.collect()))
+}
+
 /// Saves `keys` (from the window, so cleaned first) as a new layout named `name` in `dir`, next to the `existing`
 /// layouts. The same rules as a layout made with New layout: a name, at most MAX_USER_LAYOUTS of your own, a fresh id.
 /// Returns the new layout's id.
@@ -133,6 +145,26 @@ mod tests {
             "nothing written"
         );
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn typing_virtual_keys_name_the_typing_keys_or_say_not_available() {
+        let result = typing_virtual_keys();
+        if cfg!(windows) {
+            let table = result.unwrap();
+            assert!(!table.as_object().unwrap().is_empty(), "Windows names the typing keys");
+            for code in table.as_object().unwrap().values() {
+                let code = code.as_str().unwrap();
+                assert!(
+                    crate::keyboard::keymap::TYPING_KEYS
+                        .iter()
+                        .any(|&(typing, _)| typing == code),
+                    "{code}"
+                );
+            }
+        } else {
+            assert_eq!(result.unwrap_err(), "not available on this system yet");
+        }
     }
 
     /// Hostile input: whatever the window sends, only a clean layout file inside the folder comes out.

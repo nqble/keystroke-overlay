@@ -73,6 +73,7 @@ fn main() {
             commands::assets::open_folder,
             commands::assets::create_layout,
             commands::layout_import::pick_layout_source,
+            commands::layout_import::typing_virtual_keys,
             commands::layout_import::add_layout,
             commands::assets::export_layouts,
             commands::assets::import_layouts,
