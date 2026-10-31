@@ -1,7 +1,9 @@
 # Accessibility
 
 Keystroke Overlay should be usable with a keyboard alone and with a screen reader, and readable for people with low
-vision. This page is **guidance, not a gate**: nothing here blocks a change in CI, and most developers won't need to think
+vision. This page is **guidance, not a gate**, with one exception: the two basics below are checked automatically by the
+`accessibility` end-to-end suite (axe-core, see `tests/README.md`), so a control without a name or out of keyboard
+reach fails CI. Nothing else here blocks a change, and most developers won't need to think
 about it, because the shared building blocks (`Section`, `Switch`, `Segmented`, `GalleryCard`, `MenuButton` in `blocks.js`, the popup, the tab bar) do the work for them.
 
 ## The approach
@@ -42,6 +44,9 @@ All nine issues above are fixed in v1.4.0. Still to do:
   about 0.45 would be easier to read.
 
 ## Checking it (optional, a few minutes)
+
+- **Automatic:** `npm run test:e2e -- --suite accessibility` checks the two basics and prints axe-core's other advice
+  (contrast and the rest). It can't judge everything: the hands-on checks below still matter.
 
 - **Keyboard only:** unplug the mouse or don't touch it; Tab through every tab and use each control.
 - **Screen reader:** NVDA (free) or Windows Narrator (Ctrl+Win+Enter); listen to each tab once.

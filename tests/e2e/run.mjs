@@ -40,6 +40,7 @@ const SUITES = [
   'layout-preview',
   'keys-editor',
   'key-rotation',
+  'accessibility',
   'ui-sweep',
   'csp',
   'soak',
