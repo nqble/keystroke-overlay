@@ -22,7 +22,7 @@ test('a color box keeps its width when the row is narrow (flex: none), or it shr
   assert.match(colorBox, /width:\s*40px/);
 });
 
-test('every gallery card has the one fixed height, even the \"+ New\" cards', () => {
+test('every gallery card has the one fixed height, even the "+ New" cards', () => {
   assert.match(settingsCss, /--gallery-card-height:\s*\d+px/);
   assert.match(rule(blocksCss, '.gallery-card'), /height:\s*var\(--gallery-card-height\)/);
   assert.doesNotMatch(rule(blocksCss, '.gallery-card.add'), /min-height/);

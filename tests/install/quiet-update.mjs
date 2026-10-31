@@ -9,7 +9,7 @@
 //   4. the app must come back by itself, and it must be v9.9.9
 // Needs ~4 GB temporarily in TEMP (deleted afterwards unless --keep) and about 10 to 15 minutes. Do not use the PC's
 // mouse and keyboard while it runs: it opens and closes real windows.
-import { spawnSync, spawn, execSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync, copyFileSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
