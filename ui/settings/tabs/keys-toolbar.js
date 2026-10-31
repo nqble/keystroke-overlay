@@ -97,48 +97,68 @@ function closeGaps(layout) {
 }
 
 /** The Reset menu's items: put selected keys, all keys, hidden keys or labels back, or reset the whole layout. */
+// What each Reset menu item does; every one can be undone.
+function putSelectedBack(codes) {
+  forgetKeyEdits(codes);
+  changed(true);
+}
+function putAllBack() {
+  forgetStyleEdits();
+  changed(true);
+}
+function showAllHidden() {
+  editProf().disabledKeys = [];
+  tidyProf();
+  changed(true);
+}
+function resetAllLabels() {
+  editProf().labels = {};
+  tidyProf();
+  changed(true);
+}
+function resetLayoutCompletely(layout) {
+  confirmDialog({
+    title: 'Reset this layout?',
+    body: TEXT.resetLayoutBody,
+    confirmLabel: 'Reset layout',
+    test: 'dialog-reset-layout-confirm',
+    onConfirm: () => {
+      delete settings.layout.profiles[layout.id];
+      setSelectedKey(null);
+      changed(true);
+      toast(layout.name + ' reset');
+      return true;
+    },
+  });
+}
+
 function resetMenuItems(layout, profile) {
   const selectedCodes = [...selectedKeys];
   const edited = editedCodes(profile);
-  const isEdited = (code) => edited.has(code);
   return [
     {
       label: 'Put selected keys back',
       test: 'keys-put-selected-back',
-      disabled: !selectedCodes.some(isEdited),
-      run: () => {
-        forgetKeyEdits(selectedCodes);
-        changed(true);
-      },
+      disabled: !selectedCodes.some((code) => edited.has(code)),
+      run: () => putSelectedBack(selectedCodes),
     },
     {
       label: 'Put all keys back',
       test: 'keys-reset-positions',
       disabled: !Object.keys(profile.positions).length && !Object.keys(profile.sizes).length,
-      run: () => {
-        forgetStyleEdits();
-        changed(true);
-      },
+      run: putAllBack,
     },
     {
       label: 'Show all hidden keys',
       test: 'keys-enable-all',
       disabled: !profile.disabledKeys.length,
-      run: () => {
-        editProf().disabledKeys = [];
-        tidyProf();
-        changed(true);
-      },
+      run: showAllHidden,
     },
     {
       label: 'Reset all labels',
       test: 'keys-reset-labels',
       disabled: !Object.keys(profile.labels).length,
-      run: () => {
-        editProf().labels = {};
-        tidyProf();
-        changed(true);
-      },
+      run: resetAllLabels,
     },
     { separator: true },
     {
@@ -146,20 +166,7 @@ function resetMenuItems(layout, profile) {
       test: 'keys-revert',
       danger: true,
       disabled: !isCustom(layout.id),
-      run: () =>
-        confirmDialog({
-          title: 'Reset this layout?',
-          body: TEXT.resetLayoutBody,
-          confirmLabel: 'Reset layout',
-          test: 'dialog-reset-layout-confirm',
-          onConfirm: () => {
-            delete settings.layout.profiles[layout.id];
-            setSelectedKey(null);
-            changed(true);
-            toast(layout.name + ' reset');
-            return true;
-          },
-        }),
+      run: () => resetLayoutCompletely(layout),
     },
   ];
 }

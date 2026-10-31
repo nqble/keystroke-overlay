@@ -7,6 +7,7 @@
 import { gestureFactor, isTypingTarget, startsPan, wheelAction } from '../tabs/keys-gestures.js';
 import { clampView, panBy, stretchPan, zoomAt } from '../tabs/keys-view.js';
 import { platform } from '../state.js';
+import { followPointer } from './context.js';
 
 const SPACE_CODE = 'Space';
 /** How long after the last scroll or pinch event the board is given back its smooth sliding. */
@@ -31,8 +32,22 @@ export function attachViewGestures(box, editor) {
     clearTimeout(state.idleTimer);
     state.idleTimer = setTimeout(() => box.classList.remove('panning'), STREAM_IDLE_MS);
   };
+  attachWheel(box, editor, followExactly);
+  attachPinch(box, editor, state, followExactly);
+  attachSpace(box, state);
+  attachDragToPan(box, editor, state);
+  box.addEventListener('auxclick', (clickEvent) => clickEvent.preventDefault());
+}
 
-  // ---- Wheel and pinch ----------------------------------------------------------------------------------------------
+/** Zooms the view by `factor` around the point of `event`. */
+function zoomAround(editor, factor, event) {
+  editor.setView(
+    zoomAt(editor.view(), factor, editor.insideBox(event), editor.boxSize(), editor.content(), editor.overscan),
+  );
+}
+
+// ---- Wheel and pinch ----------------------------------------------------------------------------------------------
+function attachWheel(box, editor, followExactly) {
   // Not passive on purpose: the board zooms or pans, the window does not scroll.
   box.addEventListener(
     'wheel',
@@ -45,21 +60,14 @@ export function attachViewGestures(box, editor) {
         editor.setView(panBy(editor.view(), action.dx, action.dy, editor.boxSize(), editor.content(), editor.overscan));
         return;
       }
-      editor.setView(
-        zoomAt(
-          editor.view(),
-          action.factor,
-          editor.insideBox(wheelEvent),
-          editor.boxSize(),
-          editor.content(),
-          editor.overscan,
-        ),
-      );
+      zoomAround(editor, action.factor, wheelEvent);
     },
     { passive: false },
   );
+}
 
-  // Safari's engine (the Mac window) sends a pinch as gesture events, not as a Ctrl + wheel.
+// Safari's engine (the Mac window) sends a pinch as gesture events, not as a Ctrl + wheel.
+function attachPinch(box, editor, state, followExactly) {
   box.addEventListener('gesturestart', (gestureEvent) => {
     gestureEvent.preventDefault();
     state.lastScale = 1;
@@ -70,21 +78,14 @@ export function attachViewGestures(box, editor) {
     followExactly();
     const factor = gestureFactor(gestureEvent.scale, state.lastScale);
     state.lastScale = gestureEvent.scale;
-    editor.setView(
-      zoomAt(
-        editor.view(),
-        factor,
-        editor.insideBox(gestureEvent),
-        editor.boxSize(),
-        editor.content(),
-        editor.overscan,
-      ),
-    );
+    zoomAround(editor, factor, gestureEvent);
   });
+}
 
-  // ---- Space ----------------------------------------------------------------------------------------------------------
-  // Holding Space only makes a drag over the board pan; a tap of Space on a focused key still selects it, because the
-  // press is judged when the pointer goes down, not when Space does.
+// ---- Space ----------------------------------------------------------------------------------------------------------
+// Holding Space only makes a drag over the board pan; a tap of Space on a focused key still selects it, because the
+// press is judged when the pointer goes down, not when Space does.
+function attachSpace(box, state) {
   const showSpace = (held) => {
     state.spaceHeld = held;
     box.classList.toggle('space-held', held);
@@ -104,10 +105,12 @@ export function attachViewGestures(box, editor) {
   addEventListener('blur', () => showSpace(false)); // never stay stuck in pan mode when the window loses focus
   box.addEventListener('pointerenter', () => (state.pointerInside = true));
   box.addEventListener('pointerleave', () => (state.pointerInside = false));
+}
 
-  // ---- Drag to pan -----------------------------------------------------------------------------------------------------
-  // The middle button, or Space + the main button, pans from anywhere in the box, even from on top of a key. Pulling
-  // past an edge stretches the view, and it springs back when the button is released.
+// ---- Drag to pan -----------------------------------------------------------------------------------------------------
+// The middle button, or Space + the main button, pans from anywhere in the box, even from on top of a key. Pulling
+// past an edge stretches the view, and it springs back when the button is released.
+function attachDragToPan(box, editor, state) {
   box.addEventListener(
     'pointerdown',
     (pointerEvent) => {
@@ -118,35 +121,26 @@ export function attachViewGestures(box, editor) {
       const before = editor.view();
       const start = { x: pointerEvent.clientX, y: pointerEvent.clientY, panX: before.panX, panY: before.panY };
       box.classList.add('panning');
-      try {
-        box.setPointerCapture(pointerEvent.pointerId);
-      } catch {
-        /* not a real pointer (tests) */
-      }
-      const move = (moveEvent) => {
-        const now = editor.view();
-        const size = editor.boxSize();
-        const content = editor.content();
-        const panX = start.panX + moveEvent.clientX - start.x;
-        const panY = start.panY + moveEvent.clientY - start.y;
-        editor.setView({
-          zoom: now.zoom,
-          panX: stretchPan(panX, now.zoom, size.w, content.w, editor.overscan),
-          panY: stretchPan(panY, now.zoom, size.h, content.h, editor.overscan),
-        });
-      };
       const done = () => {
-        box.removeEventListener('pointermove', move);
-        box.removeEventListener('pointerup', done);
-        box.removeEventListener('pointercancel', done);
         box.classList.remove('panning');
         editor.setView(clampView(editor.view(), editor.boxSize(), editor.content(), editor.overscan)); // springs back
       };
-      box.addEventListener('pointermove', move);
-      box.addEventListener('pointerup', done);
-      box.addEventListener('pointercancel', done);
+      followPointer(box, pointerEvent, (moveEvent) => panTo(editor, start, moveEvent), done);
     },
     true,
   );
-  box.addEventListener('auxclick', (clickEvent) => clickEvent.preventDefault());
+}
+
+/** Pans by how far the pointer moved since `start`; past an edge the view stretches instead (keys-view.js). */
+function panTo(editor, start, moveEvent) {
+  const now = editor.view();
+  const size = editor.boxSize();
+  const content = editor.content();
+  const panX = start.panX + moveEvent.clientX - start.x;
+  const panY = start.panY + moveEvent.clientY - start.y;
+  editor.setView({
+    zoom: now.zoom,
+    panX: stretchPan(panX, now.zoom, size.w, content.w, editor.overscan),
+    panY: stretchPan(panY, now.zoom, size.h, content.h, editor.overscan),
+  });
 }

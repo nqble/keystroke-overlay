@@ -137,12 +137,8 @@ function buildTestCopy() {
   mock = spawn(process.execPath, [join(HERE, 'lib', 'mock-updates.mjs'), WORK], { stdio: 'ignore' });
 }
 
-/** Runs one suite against a fresh app with a fresh data folder. Returns true when the suite passed. */
-async function runSuite(name) {
-  log(`Suite: ${name}`);
-  lock?.stage(`suite ${name}`);
-  killApp();
-  await sleep(1500);
+/** A fresh, empty data folder with the few settings every suite starts from. */
+function freshDataFolder(name) {
   rmSync(DATA, { recursive: true, force: true });
   mkdirSync(DATA, { recursive: true });
   const autoCheck = name === 'smoke'; // the smoke suite needs the background update check; the key suite doesn't
@@ -154,6 +150,10 @@ async function runSuite(name) {
       layout: { id: 'tkl', profiles: {} },
     }),
   );
+}
+
+/** Starts the test copy with its settings window open to the debugging connection, and waits for its server. */
+async function startApp() {
   spawnSync(
     'powershell.exe',
     [
@@ -163,15 +163,21 @@ async function runSuite(name) {
     ],
     { stdio: 'ignore' },
   );
-  for (let i = 0; i < 80; i++) {
-    if (
-      await fetch('http://localhost:7879/api/config')
-        .then((r) => r.ok)
-        .catch(() => false)
-    )
-      break;
-    await sleep(250);
-  }
+  const serverUp = () =>
+    fetch('http://localhost:7879/api/config')
+      .then((r) => r.ok)
+      .catch(() => false);
+  for (let i = 0; i < 80 && !(await serverUp()); i++) await sleep(250);
+}
+
+/** Runs one suite against a fresh app with a fresh data folder. Returns true when the suite passed. */
+async function runSuite(name) {
+  log(`Suite: ${name}`);
+  lock?.stage(`suite ${name}`);
+  killApp();
+  await sleep(1500);
+  freshDataFolder(name);
+  await startApp();
   const r = spawnSync(
     process.execPath,
     [name === 'visual' ? join(ROOT, 'tests/visual/visual.mjs') : join(HERE, 'suites', `${name}.mjs`)],

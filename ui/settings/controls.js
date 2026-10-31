@@ -265,24 +265,26 @@ function segmentedCtl(control) {
  * The font picker: the user's own fonts, this system's fonts (each shown in its own font; Windows or Mac fonts, from
  * system-fonts.js), or "Other" to type any name.
  */
+/** One font in the font list, shown in its own font. A font is a name, or { value, label }. */
+function fontOption(font) {
+  const { value, label } = typeof font === 'string' ? { value: font, label: font } : font;
+  const item = el('option', { value, textContent: label });
+  item.dataset.font = value;
+  item.style.setProperty('--option-font', `"${value}", "${DEFAULT_FONT}", system-ui, sans-serif`); // the list shows each name in its own font
+  return item;
+}
+
 function fontCtl(control) {
   const system = systemFonts(platform);
   const current = get(settings, control.path);
   const mine = customFonts.map((file) => file.replace(/\.[^.]+$/, '')); // "My Font.ttf" -> "My Font"
   const known = new Set([...mine, ...system.fonts.map((font) => font.value)]);
-  const option = (font) => {
-    const { value, label } = typeof font === 'string' ? { value: font, label: font } : font;
-    const item = el('option', { value, textContent: label });
-    item.dataset.font = value;
-    item.style.setProperty('--option-font', `"${value}", "${DEFAULT_FONT}", system-ui, sans-serif`); // the list shows each name in its own font
-    return item;
-  };
   const select = el(
     'select',
     { test: testName('control', control.path) },
     [
-      mine.length ? el('optgroup', { label: 'Your fonts' }, mine.map(option)) : null,
-      el('optgroup', { label: system.group }, system.fonts.map(option)),
+      mine.length ? el('optgroup', { label: 'Your fonts' }, mine.map(fontOption)) : null,
+      el('optgroup', { label: system.group }, system.fonts.map(fontOption)),
       el('option', { value: '__custom', textContent: 'Other (type a name)…' }),
     ].filter(Boolean),
   );
