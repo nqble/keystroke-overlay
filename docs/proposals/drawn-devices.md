@@ -35,7 +35,7 @@ settings and privacy follow [design/future-inputs.md](../design/future-inputs.md
 
 ## The design (agreed)
 
-The clickable mockup of the eye button, with the approved look, is linked from the pull request that adds this plan.
+A clickable mockup of the eye button, with the approved look, was shared with the maintainer.
 
 ### A device is one block on the board
 
