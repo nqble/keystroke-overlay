@@ -23,7 +23,7 @@ Linux ([LINUX-PORT.md](../docs/LINUX-PORT.md)).
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | key-rotation | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -39,6 +39,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
 - `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay).
 - `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape), the Reset ▾ menu, the History / View / Tidy toolbar, that the preview and overlay size follow, and that junk positions are cleaned.
+- `accessibility` — axe-core scans every tab, the Keys tab with a key selected and the new-layout popup. A control without a name a screen reader can say, or one the keyboard can't reach, fails the suite; everything else axe finds (contrast and more) is printed as advice. Accepted exceptions, with a reason, go in the suite's `ACCEPTED` list.
 - `key-rotation` — turning keys: the round handle with and without Snap, the Angle field, Undo and Put back, none in the Even grid, and the live preview drawing a turned key.
 - `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
 - `csp` — the settings window's content-security policy: normal use (every tab, dialogs, the live preview) causes no policy violations,

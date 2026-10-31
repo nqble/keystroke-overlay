@@ -62,9 +62,10 @@ function Row({ label, fieldId, children }) {
 
 /**
  * A number field for key units. Typing applies at once (the overlay follows); the keyboard here is drawn again when
- * typing settles (on change), so the field isn't redrawn under the cursor.
+ * typing settles (on change), so the field isn't redrawn under the cursor. `name` is what a screen reader says when the
+ * field has no label of its own (the second field in a row).
  */
-function NumberField({ id, value, min, max, test, onValue, step = SNAP }) {
+function NumberField({ id, value, min, max, test, onValue, name = null, step = SNAP }) {
   const onInput = (inputEvent) => {
     const typed = parseFloat(inputEvent.currentTarget.value);
     if (!Number.isFinite(typed)) return;
@@ -73,6 +74,7 @@ function NumberField({ id, value, min, max, test, onValue, step = SNAP }) {
   };
   return html`<input
     id=${id}
+    aria-label=${name}
     type="number"
     class="num-field"
     min=${min}
@@ -199,6 +201,7 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
         min=${MIN_POSITION}
         max=${MAX_POSITION}
         test="key-x"
+        name=${TEXT.positionX}
         onValue=${(x) => moveTo(x, keyPos(layoutKey, profile).y)}
       />
       <span>Y</span>
@@ -207,6 +210,7 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
         min=${MIN_POSITION}
         max=${MAX_POSITION}
         test="key-y"
+        name=${TEXT.positionY}
         onValue=${(y) => moveTo(keyPos(layoutKey, profile).x, y)}
       />
     <//>

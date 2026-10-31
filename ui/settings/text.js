@@ -10,6 +10,8 @@ export const TEXT = {
   noKeySelected: 'No key selected',
   inspectorTip: 'Click a key to label or hide it.',
   overlapNote: 'This key overlaps another.',
+  positionX: 'Position X',
+  positionY: 'Position Y',
   closeGapsHelp: 'Fill the holes hidden keys leave in a row.',
   gapsClosed: 'Gaps closed',
   noGapsToClose: 'No holes to fill',
