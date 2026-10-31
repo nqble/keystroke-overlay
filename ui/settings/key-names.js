@@ -258,3 +258,77 @@ export function iconCode(className) {
   const found = ICON_CLASSES.find(([prefix]) => className.startsWith(prefix));
   return found ? found[1] : null;
 }
+
+// ---- Windows virtual keys -------------------------------------------------------------------------------------------
+// The number NohBoard gives the number pad's Enter (Windows itself gives it the same virtual key as Enter).
+const NOHBOARD_NUMPAD_ENTER = 1025;
+const FIRST_DIGIT_KEY = 48; // virtual key of "0"
+const FIRST_LETTER_KEY = 65; // virtual key of "A"
+const FIRST_NUMPAD_KEY = 96; // virtual key of the number pad's 0
+const FIRST_FUNCTION_KEY = 112; // virtual key of F1
+
+/**
+ * Windows virtual keys → codes, for NohBoard keyboard files (nohboard-layout.js), which store a key as the virtual key
+ * Windows reports for it. 16, 17 and 18 don't say a side ('Shift', 'Control', 'Alt' from SIDED_KEYS: the side is picked
+ * by place). The typing keys (digits, letters, punctuation) are the US keyboard's here; on another keyboard language the
+ * same key has another virtual key, so the importer asks Windows first and uses these only for what it doesn't say.
+ * Every code is checked against keymap.rs by tests/ui/key-names.test.mjs.
+ */
+export const VIRTUAL_KEY_CODES = {
+  8: 'Backspace',
+  9: 'Tab',
+  13: 'Enter',
+  16: 'Shift',
+  17: 'Control',
+  18: 'Alt',
+  19: 'Pause',
+  20: 'CapsLock',
+  27: 'Escape',
+  32: 'Space',
+  33: 'PageUp',
+  34: 'PageDown',
+  35: 'End',
+  36: 'Home',
+  37: 'ArrowLeft',
+  38: 'ArrowUp',
+  39: 'ArrowRight',
+  40: 'ArrowDown',
+  44: 'PrintScreen',
+  45: 'Insert',
+  46: 'Delete',
+  91: 'MetaLeft',
+  92: 'MetaRight',
+  93: 'ContextMenu',
+  106: 'NumpadMultiply',
+  107: 'NumpadAdd',
+  109: 'NumpadSubtract',
+  110: 'NumpadDecimal',
+  111: 'NumpadDivide',
+  144: 'NumLock',
+  145: 'ScrollLock',
+  160: 'ShiftLeft',
+  161: 'ShiftRight',
+  162: 'ControlLeft',
+  163: 'ControlRight',
+  164: 'AltLeft',
+  165: 'AltRight',
+  186: 'Semicolon',
+  187: 'Equal',
+  188: 'Comma',
+  189: 'Minus',
+  190: 'Period',
+  191: 'Slash',
+  192: 'Backquote',
+  219: 'BracketLeft',
+  220: 'Backslash',
+  221: 'BracketRight',
+  222: 'Quote',
+  226: 'IntlBackslash',
+  [NOHBOARD_NUMPAD_ENTER]: 'NumpadEnter',
+  ...Object.fromEntries(DIGITS.map((digit) => [FIRST_DIGIT_KEY + Number(digit), `Digit${digit}`])),
+  ...Object.fromEntries(LETTERS.map((letter, index) => [FIRST_LETTER_KEY + index, `Key${letter}`])),
+  ...Object.fromEntries(DIGITS.map((digit) => [FIRST_NUMPAD_KEY + Number(digit), `Numpad${digit}`])),
+  ...Object.fromEntries(
+    Array.from({ length: FUNCTION_KEY_COUNT }, (_, index) => [FIRST_FUNCTION_KEY + index, `F${index + 1}`]),
+  ),
+};

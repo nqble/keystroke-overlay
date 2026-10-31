@@ -15,7 +15,6 @@ the top and a line in this list.
 | [key-rotation.md](key-rotation.md) | Turn single keys in the Keys tab and in layout files (KLE angles kept) | Being built: formats and settings v5 done; overlay and editor next |
 | [mouse-input.md](mouse-input.md) | Mouse buttons and wheel on the overlay (never the pointer's position) | Open idea: wanted; how it looks is open |
 | [controllers-gilrs.md](controllers-gilrs.md) | Game controller input, with the gilrs library compared to our own code | Proposed; a spike exists, idle cost measured on Windows and Linux |
-| [keyboard-files.md](keyboard-files.md) | Import NohBoard keyboard files (Windows only) | Planned; builds on KLE import (built in v2.0) |
 | [obs-source-events.md](obs-source-events.md) | OBS scene awareness through the Browser source's page API | Scene rules built in v2.0; pausing while hidden is open |
 | [accessibility-checks.md](accessibility-checks.md) | Automatic accessibility checks (axe-core) in the end-to-end tests | Proposed |
 | [stream-deck-companion.md](stream-deck-companion.md) | Stream Deck control through Bitfocus Companion | Open idea: wanted; how it is built is open |

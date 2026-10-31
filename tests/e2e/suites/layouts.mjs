@@ -137,6 +137,23 @@ check(
     `document.querySelector('${byTest('kle-site-link')}')?.tagName === 'BUTTON' && document.querySelector('${byTest('kle-site-link')}').textContent.trim() === 'keyboard-layout-editor.com'`,
   ),
 );
+// From a NohBoard file (Windows only): the choice is offered, and Windows names the typing keys by virtual key (the
+// file picker itself is the system's, so the reading is covered by tests/ui/nohboard-layout.test.mjs)
+await p.ev(`document.querySelector('${byTest('new-layout-nohboard')}').click()`);
+await sleep(300);
+check(
+  'From a NohBoard file is offered on Windows, with its Choose file… button',
+  await p.q(`!!document.querySelector('${byTest('dialog-from-nohboard')}')`),
+);
+// keymap.rs TYPING_KEYS has 38 keys (letters and punctuation; the digits keep the fixed table); a few may share a
+// virtual key on some keyboards
+const MIN_TYPING_KEYS = 30;
+const typingKeys = (await p.invoke('typing_virtual_keys')).ok ?? {};
+check(
+  'Windows names the typing keys by virtual key (W is 87 on a US keyboard)',
+  Object.keys(typingKeys).length >= MIN_TYPING_KEYS && typingKeys['87'] === 'KeyW',
+  JSON.stringify(typingKeys).slice(0, 200),
+);
 await p.ev(`document.querySelector('${byTest('dialog-cancel')}')?.click()`);
 await sleep(300);
 await p.invoke('save_settings', {
