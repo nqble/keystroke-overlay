@@ -3,6 +3,25 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
+## v2.1.0 — turn your keys
+
+### ✨ New
+- **Turn single keys.** Select a key in the Keys tab and drag the round handle at its top-right corner to turn it, or type an angle in the **Angle** field (15° steps with Snap on). Turned keys show turned in the live preview and in OBS, and a layout imported from KLE keeps its turned keys. Works in the keyboard's own shape; the Even grid keeps keys straight.
+- **A GitHub button** at the bottom of the tab bar opens the project's page, for news, help and the source.
+- **A link to keyboard-layout-editor.com** in **+ New layout → From a KLE file**, so you can open the site straight from the app.
+
+### 🛠 Improved
+- **Icons sit in the middle of their buttons on every system,** drawn as shapes instead of font characters: the live preview's pause button (off center on Windows before), close buttons, the "⋯" menus, zoom, and the update arrow.
+- **Easier-to-see arrows** on General → Advanced and the Reset menus.
+- **Buttons show they're pressed** while you hold them down.
+- **Screen readers name the X and Y position fields** of a selected key ("Position X", "Position Y").
+- **The user guide explains how to show your mouse too,** next to the keyboard in OBS.
+
+### 🧰 Under the hood
+- **Settings version 5** (for turned keys). Going back to 2.0 keeps a copy of the newer settings first, as always.
+- **Two new automatic checks:** a JavaScript linter (ESLint) and accessibility scans (axe-core) of the real settings window in the Windows tests. The linter found and fixed a broken layout generator script.
+- **TypeScript 7** and the usual dependency updates.
+
 ## v2.0.1 — two fixes for 2.0
 
 ### 🛠 Improved
