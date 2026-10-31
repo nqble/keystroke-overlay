@@ -47,7 +47,9 @@ Install the Xcode Command Line Tools (`xcode-select --install`), [Rust](https://
 ## How the code is split
 
 - **Windows-only code** lives in `src-tauri/src/keyboard/hook.rs`, `src-tauri/src/keyboard/rawinput.rs`,
-  `src-tauri/src/keyboard/windows_labels.rs` (key labels for the layout in front), the `#[cfg(windows)]` part of
+  `src-tauri/src/keyboard/windows_labels.rs` (key labels for the layout in front, and the typing keys by virtual key for
+  importing NohBoard keyboards, whose New layout choice is hidden on a Mac and Linux, where `platform.rs` says "not
+  available on this system yet"), the `#[cfg(windows)]` part of
   `keyboard/tracker.rs` and the `#[cfg(windows)]` functions in `src-tauri/src/platform.rs`. The `windows` and `webview2-com`
   crates are only dependencies on Windows (`[target.'cfg(windows)'.dependencies]` in `src-tauri/Cargo.toml`;
   `webview2-com` switches off the settings window's browser shortcuts, `platform::lock_browser_features`).

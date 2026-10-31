@@ -94,10 +94,20 @@ keeps `r`, and the overlay and the Keys tab draw the key turned
 ([proposals/key-rotation.md](proposals/key-rotation.md)). `code` is a key name from the
 [protocol](PROTOCOL.md). The app keeps at most **20** layouts you made.
 
-A layout made **From a KLE file** (New layout) is an ordinary layout file. A key the import couldn't link to a key of the keyboard
+A layout made **From a KLE file** or **From a NohBoard file** (New layout) is an ordinary layout file. A key the import couldn't link to a key of the keyboard
 gets a placeholder `code`, `Unlinked` and a number (`Unlinked1`, `Unlinked2`, ..., unique in the layout): it is drawn
 like any key and never lights up, because no capture method produces such a name. The names are reserved
-([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change.
+([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change. A NohBoard keyboard's mouse
+buttons and wheel get the mouse names from that design (`MouseLeft`, `MouseRight`, `MouseMiddle`, `MouseBack`,
+`MouseForward`, `WheelUp`, `WheelDown`, `WheelLeft`, `WheelRight`): drawn like any key, and lit once mouse support exists.
+
+**NohBoard keyboard files** (`keyboards/<category>/<name>/keyboard.json`, read by `ui/settings/nohboard-layout.js`, never
+shipped): JSON as .NET writes it (a byte-order mark and trailing commas are accepted), with `Version` and `Elements`, a
+list. Each element has `__type` (`KeyboardKey`, `MouseKey`, `MouseScroll`, `MouseSpeedIndicator`), `Boundaries` (a
+polygon in pixels, a list of `{ X, Y }`), `KeyCodes` and `Text`. A keyboard key's codes are Windows virtual keys (1025 is
+the number pad's Enter); a mouse button's are 0 to 4 (left, right, middle, back, forward) and a wheel's 0 to 3 (up, down,
+right, left). One key is the most common key width plus the most common gap (usually 43 + 1 pixels); a polygon that
+isn't a rectangle keeps the part that runs its full height. The speed indicator and styles (`*.style`) are left out.
 
 **Exported layout file** (**Layout → Export to file…**, and what **Import from file…** reads):
 
