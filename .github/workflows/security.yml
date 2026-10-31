@@ -31,7 +31,7 @@ jobs:
       - name: Copied libraries in the settings window (Preact, htm; npm audit can't see them)
         run: node tools/vendor.mjs --check
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
-      - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2
+      - uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2
         with:
           tool: cargo-audit
       # Known and accepted (the maintainer decided, 2026-10-24): three advisories in zip 4.6.1, which only the updater
