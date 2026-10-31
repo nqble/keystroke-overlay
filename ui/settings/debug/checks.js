@@ -66,15 +66,9 @@ function accessTests(access) {
 }
 
 /** The facts for "Copy bug report" (debug-report.js formats them). No key presses, no personal paths. */
-export async function buildReport() {
-  const [info, selfTest, log, defaults] = await Promise.all([
-    invoke('debug_info'),
-    runSelfTest(),
-    invoke('debug_log'),
-    invoke('debug_defaults'),
-  ]);
-  const engine = engineName(navigator.userAgent);
-  const state = {
+/** Where the app stands right now, for the bug report. */
+function reportState(info) {
+  return {
     paused,
     port: info.port,
     serverError: info.serverError,
@@ -92,6 +86,18 @@ export async function buildReport() {
     window: `${innerWidth}x${innerHeight} at ${devicePixelRatio}x`,
     overlaySize: size ? `${size.w}x${size.h}` : null,
   };
+}
+
+export async function buildReport() {
+  const [info, selfTest, log, defaults] = await Promise.all([
+    invoke('debug_info'),
+    runSelfTest(),
+    invoke('debug_log'),
+    invoke('debug_defaults'),
+  ]);
+  const engine = engineName(navigator.userAgent);
+  const state = reportState(info);
+
   return bugReport({
     version: info.version,
     build: info.build,

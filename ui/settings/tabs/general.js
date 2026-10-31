@@ -168,16 +168,31 @@ function DevLook() {
 }
 
 /** Collapsed until opened; its controls stay in the page while closed, so tests and the keyboard order don't change. */
+async function restartServer() {
+  try {
+    await invoke('restart_server');
+    toast(WORDS.restarted);
+  } catch (error) {
+    toast(String(error), true);
+  }
+}
+
+/** Advanced's row of buttons: restart the server, open the data folder, reset everything, quit. */
+function AdvancedButtons() {
+  return html`<div class="btns">
+    <button type="button" data-test="server-restart" onClick=${restartServer}>${WORDS.restart}</button>
+    <button type="button" data-test="general-open-folder" onClick=${() => call('open_folder', { kind: 'root' })}>
+      ${WORDS.dataFolder}
+    </button>
+    <button type="button" class="danger" data-test="general-reset" onClick=${resetDialog}>${WORDS.reset}</button>
+    <button type="button" class="danger" data-test="general-quit" onClick=${() => call('quit_app')}>
+      ${WORDS.quit}
+    </button>
+  </div>`;
+}
+
 function Advanced() {
   const [open, setOpen] = useState(false);
-  const restart = async () => {
-    try {
-      await invoke('restart_server');
-      toast(WORDS.restarted);
-    } catch (error) {
-      toast(String(error), true);
-    }
-  };
   return html`<section class="section-card" aria-labelledby="advancedTitle" data-test="general-advanced">
     <button
       type="button"
@@ -199,16 +214,7 @@ function Advanced() {
       />
       <${Note} text=${TEXT.debugModeHelp} />
       ${isDevbuild() ? html`<${DevLook} />` : null}
-      <div class="btns">
-        <button type="button" data-test="server-restart" onClick=${restart}>${WORDS.restart}</button>
-        <button type="button" data-test="general-open-folder" onClick=${() => call('open_folder', { kind: 'root' })}>
-          ${WORDS.dataFolder}
-        </button>
-        <button type="button" class="danger" data-test="general-reset" onClick=${resetDialog}>${WORDS.reset}</button>
-        <button type="button" class="danger" data-test="general-quit" onClick=${() => call('quit_app')}>
-          ${WORDS.quit}
-        </button>
-      </div>
+      <${AdvancedButtons} />
     </div>
   </section>`;
 }

@@ -43,16 +43,10 @@ export function describeUpdate(update) {
   return { status: WORDS.upToDate(update.current), install: null };
 }
 
-export function Updates() {
-  // The answer is read fresh on every draw: a background check can arrive after the tab was drawn (update-popup.js
-  // redraws General then). Only what this card itself is doing is kept here.
-  const update = lastUpdate;
-  const [ownStatus, setOwnStatus] = useState(null); // "Checking…" or an error, while it applies
+/** "Check now": its own status line ("Checking…" or an error) while it runs, and whether it is running. */
+function useUpdateCheck() {
+  const [ownStatus, setOwnStatus] = useState(null);
   const [checking, setChecking] = useState(false);
-  const [auto, setAuto] = useState(!!settings.general.autoCheckUpdates);
-  const [channel, setChannel] = useState(settings.general.updateChannel);
-  useEffect(paintProgress, []); // a download already running shows its progress straight away
-
   const checkNow = async () => {
     setChecking(true);
     setOwnStatus(WORDS.checking);
@@ -64,6 +58,46 @@ export function Updates() {
     }
     setChecking(false);
   };
+  return { ownStatus, checking, checkNow };
+}
+
+/** This version, and its release notes. */
+function VersionRow() {
+  return html`<div class="row">
+    <label>${WORDS.version}</label>
+    <div class="ctl">
+      <b data-test="app-version">v${appVersion}</b>
+      <button type="button" data-test="update-release-notes" onClick=${() => showNotes(appVersion)}>
+        ${WORDS.notes}
+      </button>
+    </div>
+  </div>`;
+}
+
+/** The status line, the download's progress (update-popup.js paints it) and, for a by-hand update, how to do it. */
+function UpdateStatus({ text, manual }) {
+  return html`<span class="hint" data-test="update-status">${text}</span>
+    <div class="bar" id="upBar" hidden data-test="general-update-progress"><div class="fill" id="upFill"></div></div>
+    <span class="hint" id="upText" data-test="general-update-progress-text"></span>
+    ${manual ? html`<p class="note">${TEXT.manualInstall}</p>` : null}`;
+}
+
+/** Saves "Check automatically" right away and returns it. */
+function saveAutoCheck(on) {
+  settings.general.autoCheckUpdates = on;
+  changed(false, true);
+  return on;
+}
+
+export function Updates() {
+  // The answer is read fresh on every draw: a background check can arrive after the tab was drawn (update-popup.js
+  // redraws General then). Only what this card itself is doing is kept here.
+  const update = lastUpdate;
+  const { ownStatus, checking, checkNow } = useUpdateCheck();
+  const [auto, setAuto] = useState(!!settings.general.autoCheckUpdates);
+  const [channel, setChannel] = useState(settings.general.updateChannel);
+  useEffect(paintProgress, []); // a download already running shows its progress straight away
+
   const chooseChannel = async (value) => {
     settings.general.updateChannel = value;
     setChannel(value);
@@ -71,22 +105,10 @@ export function Updates() {
     setUpdate(null);
     await checkNow();
   };
-  const turnAuto = (on) => {
-    settings.general.autoCheckUpdates = on;
-    setAuto(on);
-    changed(false, true);
-  };
+  const turnAuto = (on) => setAuto(saveAutoCheck(on));
   const { status, install } = describeUpdate(update);
   return html`<${Section} title=${WORDS.title} test="general-updates">
-    <div class="row">
-      <label>${WORDS.version}</label>
-      <div class="ctl">
-        <b data-test="app-version">v${appVersion}</b>
-        <button type="button" data-test="update-release-notes" onClick=${() => showNotes(appVersion)}>
-          ${WORDS.notes}
-        </button>
-      </div>
-    </div>
+    <${VersionRow} />
     <${Segmented}
       label=${WORDS.channel}
       choices=${CHANNELS}
@@ -102,10 +124,7 @@ export function Updates() {
         ${install || WORDS.install}
       </button>
     </div>
-    <span class="hint" data-test="update-status">${ownStatus ?? status}</span>
-    <div class="bar" id="upBar" hidden data-test="general-update-progress"><div class="fill" id="upFill"></div></div>
-    <span class="hint" id="upText" data-test="general-update-progress-text"></span>
-    ${update?.available && update.manual ? html`<p class="note">${TEXT.manualInstall}</p>` : null}
+    <${UpdateStatus} text=${ownStatus ?? status} manual=${!!(update?.available && update.manual)} />
     <${Note} text=${TEXT.updatesNote} />
     <${Detail} text=${WORDS.detail(channel)} />
   <//>`;
