@@ -1,7 +1,7 @@
 # Proposal: drawn devices (a mouse and a controller on the overlay)
 
-Status: **Proposed** (2026-10-31); the design choices below were made with the maintainer, the plan itself is waiting
-for approval. Nothing is built. The mouse comes first; the controller follows on the same groundwork.
+Status: **Proposed** (2026-10-31); the design choices below, and the answers to its questions, were made with the
+maintainer; the plan itself is waiting for approval. Nothing is built. The mouse comes first; the controller follows on the same groundwork.
 
 The overlay shows a keyboard as keys. A mouse or a game controller looks wrong as a row of square keys, so this plan
 draws them as the device itself: a picture of a mouse or a controller with each button, the wheel, the sticks and the
@@ -77,7 +77,7 @@ A layout file gains one kind of entry in its `keys` list, with a `device` field:
   and `opacity` animate (CLAUDE.md).
 - Wheel notches use the short-press rule from mouse-input.md (`MIN_TAP_MS`), so a notch is seen.
 - Key animations (bounce, pop) apply to keys only. Parts use the theme's pressed look with a short fade, so a drawing
-  never jumps around (open question 2).
+  never jumps around.
 - Loose mouse keys (a NohBoard layout's `MouseLeft` as a key) keep working as keys.
 
 ### Keys → Add ▾
@@ -215,10 +215,12 @@ Steps 1 and 2 can ship on their own (a release can have the eye button and Keybo
 A rough estimate in working sessions: groundwork 2–3, eye button 1, mouse capture and UI 6–8 (mouse-input.md), controller
 6–9 (controllers-gilrs.md), docs 1. About 16 to 22 in all, spread over several releases.
 
-## Open questions
+## Decided with the maintainer (2026-10-31)
 
-1. **Tray menu:** should the tray menu also get Show keyboard / mouse / controller, or is the eye button enough?
-2. **Animations on device parts:** the theme's pressed look with a short fade only (as proposed), or should key
-   animations (bounce, pop) also move a pressed part a little?
-3. **A built-in "WASD + mouse" layout:** add one to Other layouts when the mouse ships?
-4. **OBS scene rules:** later, should a scene rule be able to hide an input ("hide the keyboard in this scene")?
+1. **Tray menu:** it also gets **Show keyboard**, **Show mouse** and **Show controller** (checked items, the same
+   choice as the eye button; mouse and controller unavailable while their input is off). Built with the eye button
+   (work order step 2).
+2. **Device parts** only change color when pressed (the theme's pressed look with a short fade); no movement for now.
+3. **A built-in "WASD + mouse" layout** goes into Other layouts when the mouse ships (work order step 3).
+4. **OBS scene rules** will be able to hide an input ("hide the keyboard in this scene"), after the eye button exists:
+   an addition to `obs.scenes.rules` (proposals/obs-source-events.md), planned when it is picked up.
