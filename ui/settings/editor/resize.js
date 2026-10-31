@@ -6,7 +6,7 @@ import { changed, push } from '../preview.js';
 import { baseHeight, baseWidth, round2, setKeyHeight, setKeyWidth, snapStep } from '../profiles.js';
 import { selectedKeys } from '../state.js';
 import { resizeBox } from '../tabs/keys-board.js';
-import { UNIT, saveAt } from './context.js';
+import { UNIT, followPointer, saveAt } from './context.js';
 import { turnHandle } from './rotate.js';
 
 /** Show the resize handles on the four sides of the selected key, and its turning handle (only when one shown key is selected). */
@@ -47,6 +47,17 @@ export function updateHandles(ctx, hidden) {
  * Drag a handle to resize the key: the opposite edge stays put, the width snaps to the snap step, and it stays between
  * the layout own width (or one key) and the board edge. Saved once, when the handle is let go.
  */
+/** Draws a key (or its handles) at its new size while the handle is dragged. */
+function showResized(target, resized, vertical) {
+  if (vertical) {
+    target?.style.setProperty('--y', String(resized.y));
+    target?.style.setProperty('--h', String(resized.h));
+    return;
+  }
+  target?.style.setProperty('--x', String(resized.x));
+  target?.style.setProperty('--w', String(resized.w));
+}
+
 function resizeKey(ctx, pointerEvent, handle, side) {
   const item = ctx.placed.find((candidate) => candidate.key.code === ctx.handles.dataset.code);
   if (!item) return;
@@ -62,24 +73,11 @@ function resizeKey(ctx, pointerEvent, handle, side) {
   node?.classList.add('drag');
   ctx.box.classList.add('panning');
   ctx.arrangeBar.hidden = true;
-  try {
-    handle.setPointerCapture(pointerEvent.pointerId);
-  } catch {
-    /* not a real pointer (tests) */
-  }
   const move = (moveEvent) => {
     const delta = (vertical ? moveEvent.clientY - start.y : moveEvent.clientX - start.x) / (UNIT * ctx.view.zoom);
     const resized = resizeBox(startBox, side, delta, ctx.board, snapStep(), layoutSize);
     const at = { x: resized.x ?? startBox.x, y: resized.y ?? startBox.y };
-    for (const target of [node, ctx.handles]) {
-      if (vertical) {
-        target?.style.setProperty('--y', String(resized.y));
-        target?.style.setProperty('--h', String(resized.h));
-      } else {
-        target?.style.setProperty('--x', String(resized.x));
-        target?.style.setProperty('--w', String(resized.w));
-      }
-    }
+    for (const target of [node, ctx.handles]) showResized(target, resized, vertical);
     if (side === 'left' || side === 'top') saveAt(ctx, key, at.x, at.y); // the opposite edge stays put, so the place moves
     if (vertical) setKeyHeight(key, resized.h);
     else setKeyWidth(key, resized.w);
@@ -90,15 +88,10 @@ function resizeKey(ctx, pointerEvent, handle, side) {
   };
   const done = () => {
     readout.remove();
-    handle.removeEventListener('pointermove', move);
-    handle.removeEventListener('pointerup', done);
-    handle.removeEventListener('pointercancel', done);
     ctx.box.classList.remove('panning');
     ctx.canvas.classList.remove('holding');
     node?.classList.remove('drag');
     changed(true);
   };
-  handle.addEventListener('pointermove', move);
-  handle.addEventListener('pointerup', done);
-  handle.addEventListener('pointercancel', done);
+  followPointer(handle, pointerEvent, move, done);
 }

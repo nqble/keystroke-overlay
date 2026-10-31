@@ -111,9 +111,27 @@ const Headings = () =>
   </div>`;
 
 /** One scene: its name and what the overlay does there. A row that won't be saved says why. */
+/** What the overlay does in a rule's scene: hide, show the chosen layout, or show a named layout. */
+function RuleChoice({ row, onChange }) {
+  const choices = shownLayouts(layouts, settings.layout.order);
+  return html`<select
+    aria-label=${TEXT.choiceHeading}
+    data-test="obs-scene-layout"
+    onChange=${(event) => onChange(ruleFromChoice(event.currentTarget.value))}
+  >
+    <option value=${HIDE_CHOICE} selected=${choiceOf(row) === HIDE_CHOICE}>${TEXT.hide}</option>
+    <option value="" selected=${choiceOf(row) === ''}>${TEXT.chosenLayout}</option>
+    ${choices.map(
+      (layout) =>
+        html`<option value=${layout.id} selected=${choiceOf(row) === layout.id}>
+          ${TEXT.showLayout(layout.name)}
+        </option>`,
+    )}
+  </select>`;
+}
+
 function Rule({ row, index, problem, onChange, onRemove }) {
   const problemId = `obs-scene-problem-${row.id}`;
-  const choices = shownLayouts(layouts, settings.layout.order);
   return html`<div class="scene-rule-block">
     <div class="scene-rule" data-test="obs-scene-rule" data-index=${index}>
       <input
@@ -126,20 +144,7 @@ function Rule({ row, index, problem, onChange, onRemove }) {
         data-test="obs-scene-name"
         onInput=${(event) => onChange({ scene: event.currentTarget.value })}
       />
-      <select
-        aria-label=${TEXT.choiceHeading}
-        data-test="obs-scene-layout"
-        onChange=${(event) => onChange(ruleFromChoice(event.currentTarget.value))}
-      >
-        <option value=${HIDE_CHOICE} selected=${choiceOf(row) === HIDE_CHOICE}>${TEXT.hide}</option>
-        <option value="" selected=${choiceOf(row) === ''}>${TEXT.chosenLayout}</option>
-        ${choices.map(
-          (layout) =>
-            html`<option value=${layout.id} selected=${choiceOf(row) === layout.id}>
-              ${TEXT.showLayout(layout.name)}
-            </option>`,
-        )}
-      </select>
+      <${RuleChoice} row=${row} onChange=${onChange} />
       <button
         type="button"
         class="menu-button"

@@ -22,6 +22,17 @@ const WORDS = {
   saved: (name) => `Pause shortcut: ${name}`,
 };
 
+/** A key press while choosing: Esc stops, a lone modifier waits for more, a key without a modifier is refused. */
+function readShortcutKey(event, stopListening, useShortcut) {
+  event.preventDefault();
+  if (event.code === 'Escape') return stopListening();
+  const text = shortcutFromKey(event);
+  if (text === '') return;
+  stopListening();
+  if (text === null) return toast(WORDS.needsModifier(systemWord('modifiers', platform)), true);
+  useShortcut(text);
+}
+
 export function PauseShortcut() {
   const [enabled, setEnabled] = useState(!!settings.hotkeys?.enabled);
   const [shortcut, setShortcut] = useState(settings.hotkeys?.pause ?? '');
@@ -39,21 +50,12 @@ export function PauseShortcut() {
     }
   };
 
-  const onKeyDown = (event) => {
-    event.preventDefault();
-    if (event.code === 'Escape') {
-      setListening(false);
-      return;
-    }
-    const text = shortcutFromKey(event);
-    if (text === '') return;
-    setListening(false);
-    if (text === null) {
-      toast(WORDS.needsModifier(systemWord('modifiers', platform)), true);
-      return;
-    }
-    save(enabled, text);
-  };
+  const onKeyDown = (event) =>
+    readShortcutKey(
+      event,
+      () => setListening(false),
+      (text) => save(enabled, text),
+    );
 
   return html`<${Section} title=${WORDS.title} test="general-hotkey">
     <${Switch}

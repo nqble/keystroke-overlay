@@ -103,13 +103,25 @@ async function shareExport() {
   if (await call('export_preset', { data: currentLook() })) toast(WORDS.exported);
 }
 
+const loadPreset = async (name) => applyLook(await call('load_preset', { name }));
+
+async function removePreset(name) {
+  await call('delete_preset', { name });
+  setPresets(null);
+  render();
+}
+
+/** A saved preset's ⋯ menu. */
+const presetMenu = (name) => ({
+  label: WORDS.more(name),
+  test: 'preset-menu',
+  items: [
+    { label: WORDS.load, run: () => loadPreset(name) },
+    { label: WORDS.remove, danger: true, run: () => removePreset(name) },
+  ],
+});
+
 export function PresetGallery({ names }) {
-  const load = async (name) => applyLook(await call('load_preset', { name }));
-  const remove = async (name) => {
-    await call('delete_preset', { name });
-    setPresets(null);
-    render();
-  };
   return html`<div class="gallery-block">
     <h3 class="section-title">${WORDS.presets}</h3>
     <div class="gallery" data-test="style-presets">
@@ -121,16 +133,9 @@ export function PresetGallery({ names }) {
           html`<${GalleryCard}
             title=${name}
             selected=${false}
-            onSelect=${() => load(name)}
+            onSelect=${() => loadPreset(name)}
             test="preset-card"
-            menu=${{
-              label: WORDS.more(name),
-              test: 'preset-menu',
-              items: [
-                { label: WORDS.load, run: () => load(name) },
-                { label: WORDS.remove, danger: true, run: () => remove(name) },
-              ],
-            }}
+            menu=${presetMenu(name)}
           />`,
       )}
     </div>
