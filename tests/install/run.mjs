@@ -117,13 +117,12 @@ await acquire('install and upgrade test', { expectedMinutes: 12 });
 mkdirSync(WORK, { recursive: true });
 let failed = false;
 try {
-  for (const port of [7878, 7879, 9222]) {
-    /* 7878 may legitimately be the user's real app; only the test ports must be free */ if (port !== 7878) {
-      const busy = await fetch(`http://127.0.0.1:${port}/json`)
-        .then(() => true)
-        .catch(() => false);
-      if (busy) throw new Error(`Port ${port} is busy; close what uses it first.`);
-    }
+  // 7878 may legitimately be the user's real app; only the test ports must be free
+  for (const port of [7879, 9222]) {
+    const busy = await fetch(`http://127.0.0.1:${port}/json`)
+      .then(() => true)
+      .catch(() => false);
+    if (busy) throw new Error(`Port ${port} is busy; close what uses it first.`);
   }
   const setupOld = await build('old', OLD.ref);
   const setupNew = await build('new', null);

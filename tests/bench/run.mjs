@@ -107,39 +107,49 @@ async function launch(v, openWindow) {
   c.unref();
   return t0;
 }
+/** The settings window's page, once the app is up enough to list it; null while it isn't. */
+async function settingsPage() {
+  const pages = await (await fetch('http://127.0.0.1:9222/json')).json();
+  return pages.find((page) => page.type === 'page' && page.url.includes('tauri.localhost')) ?? null;
+}
+
+/** Asks a page, over its debugging connection, whether the settings window has drawn its tabs and first tab. */
+function askDrawn(ws) {
+  return new Promise((resolve) => {
+    ws.onmessage = (message) => resolve(JSON.parse(message.data).result?.result?.value === true);
+    ws.send(
+      JSON.stringify({
+        id: 1,
+        method: 'Runtime.evaluate',
+        params: {
+          expression: `!!document.getElementById('pane') && document.getElementById('pane').children.length > 0 && document.querySelectorAll('nav button').length > 0`,
+          returnByValue: true,
+        },
+      }),
+    );
+  });
+}
+
+/** Milliseconds from t0 until the page has drawn, asking every 20 ms for up to 6 s; null if it never does. */
+async function msUntilDrawn(page, t0) {
+  const ws = new WebSocket(page.webSocketDebuggerUrl);
+  await new Promise((resolve) => (ws.onopen = resolve));
+  try {
+    for (let attempt = 0; attempt < 300; attempt++) {
+      if (await askDrawn(ws)) return Date.now() - t0;
+      await sleep(20);
+    }
+    return null;
+  } finally {
+    ws.close();
+  }
+}
+
 async function usableMs(t0) {
   for (let i = 0; i < 600; i++) {
     try {
-      const t = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(
-        (x) => x.type === 'page' && x.url.includes('tauri.localhost'),
-      );
-      if (t) {
-        const ws = new WebSocket(t.webSocketDebuggerUrl);
-        await new Promise((r) => (ws.onopen = r));
-        const ask = () =>
-          new Promise((res) => {
-            ws.onmessage = (e) => res(JSON.parse(e.data));
-            ws.send(
-              JSON.stringify({
-                id: 1,
-                method: 'Runtime.evaluate',
-                params: {
-                  expression: `!!document.getElementById('pane') && document.getElementById('pane').children.length > 0 && document.querySelectorAll('nav button').length > 0`,
-                  returnByValue: true,
-                },
-              }),
-            );
-          });
-        for (let j = 0; j < 300; j++) {
-          if ((await ask()).result?.result?.value) {
-            ws.close();
-            return Date.now() - t0;
-          }
-          await sleep(20);
-        }
-        ws.close();
-        return null;
-      }
+      const page = await settingsPage();
+      if (page) return await msUntilDrawn(page, t0);
     } catch {
       /* not up yet */
     }

@@ -128,6 +128,33 @@ const takePicture = async (clipTo = null) => {
   return PNG.sync.read(Buffer.from(shot.result.data, 'base64'));
 };
 
+/** Compares a screen's picture with its baseline; a changed one is listed and saved in tests/visual/diff/. */
+function compareWithBaseline(name, picture, file) {
+  const baseline = PNG.sync.read(readFileSync(file));
+  const sameSize = baseline.width === picture.width && baseline.height === picture.height;
+  const differing = sameSize ? countDifferingPixels(name, baseline, picture) : Infinity;
+  const allowed = sameSize ? ALLOWED_DIFFERENT_PIXELS : 0;
+  const ok = sameSize && differing <= allowed;
+  if (!ok) {
+    changed.push(name);
+    writeFileSync(join(DIFFS, `${name}.new.png`), PNG.sync.write(picture));
+  }
+  const detail = sameSize
+    ? `${differing} pixels differ (up to ${allowed} allowed)`
+    : 'the picture has a different size';
+  check(`${name} looks the same as its baseline`, ok, detail);
+}
+
+/** How many pixels differ between two same-size pictures; saves a picture of the differences when any do. */
+function countDifferingPixels(name, baseline, picture) {
+  const diff = new PNG({ width: picture.width, height: picture.height });
+  const differing = pixelmatch(baseline.data, picture.data, diff.data, picture.width, picture.height, {
+    threshold: PIXEL_COLOUR_TOLERANCE,
+  });
+  if (differing > 0) writeFileSync(join(DIFFS, `${name}.diff.png`), PNG.sync.write(diff));
+  return differing;
+}
+
 mkdirSync(BASELINES, { recursive: true });
 mkdirSync(DIFFS, { recursive: true });
 const changed = [];
@@ -143,26 +170,7 @@ for (const [name, setUp, clipTo] of SCREENS) {
     console.log(`  ${UPDATE ? 'updated' : 'new baseline'}: ${name}`);
     check(`${name}: baseline ${UPDATE ? 'updated' : 'saved (there was none)'}`, true);
   } else {
-    const baseline = PNG.sync.read(readFileSync(file));
-    const sameSize = baseline.width === picture.width && baseline.height === picture.height;
-    let differing = Infinity;
-    if (sameSize) {
-      const diff = new PNG({ width: picture.width, height: picture.height });
-      differing = pixelmatch(baseline.data, picture.data, diff.data, picture.width, picture.height, {
-        threshold: PIXEL_COLOUR_TOLERANCE,
-      });
-      if (differing > 0) writeFileSync(join(DIFFS, `${name}.diff.png`), PNG.sync.write(diff));
-    }
-    const allowed = sameSize ? ALLOWED_DIFFERENT_PIXELS : 0;
-    const ok = sameSize && differing <= allowed;
-    if (!ok) {
-      changed.push(name);
-      writeFileSync(join(DIFFS, `${name}.new.png`), PNG.sync.write(picture));
-    }
-    const detail = sameSize
-      ? `${differing} pixels differ (up to ${allowed} allowed)`
-      : 'the picture has a different size';
-    check(`${name} looks the same as its baseline`, ok, detail);
+    compareWithBaseline(name, picture, file);
   }
   // close the popup if this screen opened one, so it does not appear in the next picture
   await p.ev(`document.querySelector('${byTest('dialog-cancel')}')?.click()`);
