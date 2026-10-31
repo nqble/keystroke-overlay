@@ -254,8 +254,8 @@ General → **Appearance** changes how this window looks; the overlay in OBS kee
   settings. Editing happens in a **docked edit bar** along the bottom of the window, never a popup, so the whole window
   changes live; it stays while the person moves between tabs. **Cancel** puts the colors back; **Save** keeps and picks
   the theme.
-- **What stays dark:** the live preview and the Style tab's overlay theme cards (`--color-stage`), because they show
-  what OBS shows.
+- **What stays dark:** the stage behind the overlay in the live preview and the Style tab's overlay theme cards
+  (`--color-stage`), because they show what OBS shows. The strip around the preview follows the theme.
 - **The header logo follows the theme** (outer square: accent; key: panel; K: text). A devbuild shows its purple logo
   picture in every theme. The icons the system draws (taskbar, tray or menu bar, installer, Dock) are files and keep
   the app's own colors.

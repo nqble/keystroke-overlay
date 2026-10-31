@@ -16,7 +16,7 @@
   position: relative;
   height: 230px;
   flex: none;
-  background: var(--color-stage);
+  background: var(--color-bg);
   border-bottom: 1px solid var(--color-line);
   overflow: hidden;
 }
@@ -33,8 +33,10 @@
   top: var(--frame-y, 0);
   transform: scale(var(--frame-scale, 1));
   border: 0;
+  border-radius: var(--radius-xl);
   transform-origin: 0 0;
-  background: transparent;
+  /* the dark stage sits behind the overlay only, like OBS; the strip around it follows the settings theme */
+  background: var(--color-stage);
   color-scheme: normal;
 }
 
