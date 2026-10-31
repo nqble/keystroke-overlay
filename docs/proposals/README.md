@@ -12,7 +12,6 @@ the top and a line in this list.
 
 | Proposal | What it is | Status |
 |---|---|---|
-| [app-themes.md](app-themes.md) | Built-in and custom themes for the settings window | In progress: 18 built-in themes and the gallery built; making your own theme next |
 | [key-rotation.md](key-rotation.md) | Turn single keys in the Keys tab and in layout files (KLE angles kept) | Being built: formats and settings v5 done; overlay and editor next |
 | [mouse-input.md](mouse-input.md) | Mouse buttons and wheel on the overlay (never the pointer's position) | Open idea: wanted; how it looks is open |
 | [controllers-gilrs.md](controllers-gilrs.md) | Game controller input, with the gilrs library compared to our own code | Proposed; a spike exists, idle cost measured on Windows and Linux |

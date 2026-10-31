@@ -1,9 +1,9 @@
 // =====================================================================================================================
 //  Settings window themes, step 1: every color of the settings window, worked out from a theme's six base colors
-//  (docs/proposals/app-themes.md). The default theme's colors stay written out in settings.css (:root), so today's look
+//  (docs/design/ui-design-v2.md, section 14). The default theme's colors stay written out in settings.css (:root), so today's look
 //  never depends on this file; a picked theme sets the results as CSS variables instead.
 //  Why JavaScript and not CSS color-mix(): the exact formulas need CSS relative colors, which the WebKit on macOS 11
-//  and 12 lacks, and plain color-mix() can't match the default's blues (decision of 2026-10-31).
+//  and 12 lacks, and plain color-mix() can't match the default's blues (decision 0015).
 //  Each derived color keeps the hue of a source base color, and its lightness is a fraction of the way from an anchor
 //  base color toward the text color, so a light theme (dark text) gets darker lines where a dark theme gets lighter
 //  ones. The numbers were fitted so the default theme gives back today's colors exactly (tests/ui/theme-colors.test.mjs).
@@ -73,6 +73,37 @@ function derive(rule, lch) {
   const from = lch[anchor];
   const lightness = how === 'shift' ? from.l + amount : from.l + amount * (lch.text.l - from.l);
   return fromOklch({ l: lightness, c: lch[source].c * chromaScale, h: lch[source].h + hueShift });
+}
+
+// Readability (WCAG AA): text and dim text need 4.5 : 1 on the window and panels, the text on accent fills too; the
+// borders of controls need 3 : 1. The edit bar warns with this (general-appearance.js), and every built-in theme must
+// pass it (tests/ui/app-themes.test.mjs).
+export const TEXT_CONTRAST = 4.5;
+const CONTROL_LINE_CONTRAST = 3;
+const WHITE = '#ffffff';
+const BLACK = '#000000';
+
+/** The text color for a theme's accent fills: white when it reads well enough, black otherwise. */
+export const textOnAccent = (colors) =>
+  contrastRatio(WHITE, colors['--color-accent-strong']) >= TEXT_CONTRAST ? WHITE : BLACK;
+
+/** What is hard to read in a theme: [{ what, ratio, needs }], empty when everything passes. */
+export function readabilityProblems(base) {
+  const colors = themeColors(base);
+  const checks = [
+    ['text on the window', base.text, base.background, TEXT_CONTRAST],
+    ['text on panels', base.text, base.panel, TEXT_CONTRAST],
+    ['dim text on the window', base.dim, base.background, TEXT_CONTRAST],
+    ['dim text on panels', base.dim, base.panel, TEXT_CONTRAST],
+    ['text on accent buttons', textOnAccent(colors), colors['--color-accent-strong'], TEXT_CONTRAST],
+    ['control borders', colors['--color-control-line'], base.panel, CONTROL_LINE_CONTRAST],
+  ];
+  const problems = [];
+  for (const [what, one, other, needs] of checks) {
+    const ratio = contrastRatio(one, other);
+    if (ratio < needs) problems.push({ what, ratio, needs });
+  }
+  return problems;
 }
 
 /** The WCAG contrast ratio of two '#rrggbb' colors (1 to 21): 4.5 or more is easy to read for normal text. */

@@ -672,3 +672,54 @@ button:disabled:hover {
   color: var(--color-text-dim);
   font-size: var(--text-xs);
 }
+
+/* The theme edit bar (theme-edit-bar.js): docked along the bottom of the window, above everything but popups and
+   toasts, so every tab can be checked in the new colors. The page leaves room for it while it is open. */
+.theme-edit-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 15; /* below popups (20, popups.css) and the toast */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12) var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-top: 1px solid var(--color-line);
+  background: var(--color-panel);
+}
+body.editing-theme main {
+  padding-bottom: 140px; /* about the bar's height when it wraps to two rows */
+}
+.theme-edit-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+.theme-edit-name input {
+  width: 180px;
+}
+.theme-edit-color {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--text-sm);
+}
+.theme-edit-color input[type='color'] {
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+}
+.theme-edit-note {
+  margin: 0;
+}
+.theme-edit-buttons {
+  display: flex;
+  gap: var(--space-8);
+  margin-left: auto;
+}

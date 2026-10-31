@@ -64,6 +64,36 @@ await p.ev(`document.querySelector('${byTest('app-theme-default')}').click()`);
 await sleep(600);
 check('Default brings back the original colors', (await windowColor()) === defaultColor, await windowColor());
 
+// ---- making your own theme (theme-edit-bar.js)
+await p.ev(`document.querySelector('${byTest('app-theme-add')}').click()`);
+await sleep(400);
+check('+ New theme opens the edit bar', await p.q(`!!document.querySelector('${byTest('theme-edit-bar')}')`));
+await p.ev(
+  `const field = document.querySelector('${byTest('theme-edit-background')}'); field.value = '#203040'; field.dispatchEvent(new Event('input', { bubbles: true }))`,
+);
+await sleep(300);
+check('the window follows the edit bar live', (await windowColor()) === '#203040', await windowColor());
+await p.ev(
+  `const field = document.querySelector('${byTest('theme-edit-dim')}'); field.value = '#2a3a4a'; field.dispatchEvent(new Event('input', { bubbles: true }))`,
+);
+await sleep(300);
+check(
+  'hard-to-read colors get a warning',
+  await p.q(`!!document.querySelector('${byTest('theme-edit-hard-to-read')}')`),
+);
+await p.ev(`document.querySelector('${byTest('theme-edit-save')}').click()`);
+await sleep(600);
+const appearance = (await p.invoke('get_state')).ok.settings.appearance;
+check(
+  'Save keeps the theme and picks it (a warning never blocks saving)',
+  appearance.custom.length === 1 && appearance.theme === appearance.custom[0].id,
+  JSON.stringify(appearance),
+);
+check('the edit bar closes after Save', !(await p.q(`!!document.querySelector('${byTest('theme-edit-bar')}')`)));
+await p.invoke('save_settings', {
+  settings: { ...(await p.invoke('get_state')).ok.settings, appearance: { theme: 'default', custom: [] } },
+});
+
 // the overlay as OBS loads it (no ?preview) skips the theme files; the settings preview still loads them
 await p.ev(
   `const f = document.createElement('iframe'); f.id = 'obsview'; f.style.display = 'none'; f.src = 'http://localhost:7879/'; document.body.append(f);`,

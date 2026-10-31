@@ -28,7 +28,8 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
              "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language and Win/Alt/Ctrl follow the system (⌘ ⌥ ⌃ on a Mac); "layout": the files' labels
   "hotkeys": { "enabled": false, "pause": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP"; registered only when on and set
   "obs": { "scenes": { "enabled": false, "rules": [] } },   // per OBS scene: { "scene": "Chat", "show": false, "layout": "" }; at most 20 rules, names up to 100 characters, each scene once (case ignored); layout "" = the chosen layout
-  "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
+  "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 },
+  "appearance": { "theme": "default", "custom": [] } // the settings window's theme: a built-in id or a custom one's; custom = up to 20 { id, name, colors }
 }
 ```
 
@@ -121,6 +122,20 @@ settings, nothing else:
 ```
 
 Any subset of fields is allowed; missing ones keep their current value.
+
+## Settings window theme (`ui/settings/themes/<id>.json`, and Export…)
+One theme for the settings window (General → Appearance; docs/design/ui-design-v2.md, section 14). A built-in theme is
+one file in `ui/settings/themes/`; an exported theme is the same shape without `order`, `kind` and `credit`. The
+person's own themes are kept in the settings, under `appearance.custom`.
+
+```json
+{ "id": "ocean", "name": "Ocean", "order": 8,
+  "colors": { "background": "#0e1820", "panel": "#14222d", "text": "#e2edf3",
+              "dim": "#86a1b2", "accent": "#2fb6d9", "error": "#ff6b6b" } }
+```
+
+All six colors are required, as `#rrggbb`. `kind` (`"keycaps"` or `"palette"`) and `credit` mark a borrowed palette.
+Import… gives the theme a new id; a file missing any color is refused.
 
 ## Themes and animations (JavaScript modules)
 Small files that register themselves. They are loaded only by the overlay page. How to write one is in
