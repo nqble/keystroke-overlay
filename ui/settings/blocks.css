@@ -537,3 +537,25 @@
 .icon-fill {
   fill: currentColor;
 }
+
+/* A link inside a sentence (it opens a website in the browser through a Rust command, so it's a button). */
+.text-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.text-link:hover,
+.text-link:active {
+  background: transparent;
+  text-decoration-thickness: 2px;
+}
+.text-link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
