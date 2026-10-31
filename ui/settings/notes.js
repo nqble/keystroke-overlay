@@ -79,13 +79,12 @@ function closeModal() {
  */
 let typingRun = 0;
 
-function typeIn(root) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // respect the "reduce motion" setting
-  const run = ++typingRun;
+/** Replaces every piece of text in `root` with an empty typed part and the rest, still hidden; returns the parts. */
+function hideText(root) {
   const textNodes = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node; (node = walker.nextNode());) if (node.nodeValue) textNodes.push(node);
-  const parts = textNodes.map((node) => {
+  return textNodes.map((node) => {
     const full = node.nodeValue,
       typed = document.createTextNode(''),
       rest = el('span', { textContent: full });
@@ -93,31 +92,39 @@ function typeIn(root) {
     /** @type {ChildNode} */ (node).replaceWith(typed, rest);
     return { full, typed, rest, done: 0 };
   });
+}
+
+/** Reveals letters until `want` are shown in all; `cursor` ({ shown, index }) remembers where it got to. */
+function revealUpTo(parts, cursor, want) {
+  while (cursor.shown < want && cursor.index < parts.length) {
+    const part = parts[cursor.index],
+      take = Math.min(part.full.length - part.done, want - cursor.shown);
+    if (take > 0) {
+      part.done += take;
+      cursor.shown += take;
+      part.typed.nodeValue = part.full.slice(0, part.done);
+      part.rest.textContent = part.full.slice(part.done);
+    }
+    if (part.done < part.full.length) return;
+    part.rest.remove();
+    cursor.index++;
+  }
+}
+
+function typeIn(root) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // respect the "reduce motion" setting
+  const run = ++typingRun;
+  const parts = hideText(root);
   const total = parts.reduce((sum, p) => sum + p.full.length, 0);
   if (!total) return;
   const duration = Math.min(800, Math.max(300, total * 7)); // always under one second
-  let shown = 0,
-    index = 0,
-    startTime = 0;
+  const cursor = { shown: 0, index: 0 };
+  let startTime = 0;
   const step = (now) => {
     if (run !== typingRun || $('#modal').hidden) return; // canceled or closed
     startTime ||= now;
-    const want = Math.min(total, Math.ceil((total * (now - startTime)) / duration));
-    while (shown < want && index < parts.length) {
-      const part = parts[index],
-        take = Math.min(part.full.length - part.done, want - shown);
-      if (take > 0) {
-        part.done += take;
-        shown += take;
-        part.typed.nodeValue = part.full.slice(0, part.done);
-        part.rest.textContent = part.full.slice(part.done);
-      }
-      if (part.done >= part.full.length) {
-        part.rest.remove();
-        index++;
-      } else break;
-    }
-    if (shown < total) requestAnimationFrame(step);
+    revealUpTo(parts, cursor, Math.min(total, Math.ceil((total * (now - startTime)) / duration)));
+    if (cursor.shown < total) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
   // safety net if animation frames are paused

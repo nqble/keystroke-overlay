@@ -32,6 +32,20 @@ async function switchMonitor(on) {
   }
 }
 
+/** Switches the monitor on and calls `onKey` for each key event, `onStopped` if the app stops it; returns the stop. */
+function listenToKeys(onKey, onStopped) {
+  const unlisten = [
+    tauriEvent.listen('debug-key', ({ payload }) => onKey(payload)),
+    tauriEvent.listen('debug-key-stopped', onStopped),
+  ];
+  // Start only once both listeners are in place, so the first key is not missed.
+  Promise.all(unlisten).then(() => switchMonitor(true));
+  return () => {
+    unlisten.forEach((pending) => pending.then((stop) => stop()));
+    switchMonitor(false);
+  };
+}
+
 function KeyMonitor() {
   const [running, setRunning] = useState(false);
   const [lines, setLines] = useState([]);
@@ -42,21 +56,13 @@ function KeyMonitor() {
   // Listen only while running; stopping, or leaving the tab, removes the listeners and switches the monitor off.
   useEffect(() => {
     if (!running) return undefined;
-    const unlisten = [
-      tauriEvent.listen('debug-key', ({ payload }) => {
-        const line = keyLine(payload, previous.current);
-        previous.current = payload.ms;
-        setCount((n) => n + 1);
-        setLines((old) => [...old, line].slice(-MAX_LINES));
-      }),
-      tauriEvent.listen('debug-key-stopped', () => setRunning(false)),
-    ];
-    // Start only once both listeners are in place, so the first key is not missed.
-    Promise.all(unlisten).then(() => switchMonitor(true));
-    return () => {
-      unlisten.forEach((pending) => pending.then((stop) => stop()));
-      switchMonitor(false);
+    const onKey = (payload) => {
+      const line = keyLine(payload, previous.current);
+      previous.current = payload.ms;
+      setCount((n) => n + 1);
+      setLines((old) => [...old, line].slice(-MAX_LINES));
     };
+    return listenToKeys(onKey, () => setRunning(false));
   }, [running]);
   useLayoutEffect(() => {
     if (list.current) list.current.scrollTop = list.current.scrollHeight;
