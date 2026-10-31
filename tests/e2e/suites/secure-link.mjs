@@ -1,7 +1,7 @@
 // Suite: the optional "secure link" (General -> Connection -> Secure my OBS URL).
 // Off by default; when on, the local server refuses data requests and the key-press stream without the private key,
 // the key never reaches the overlay, "Make a new key" invalidates old links, and the live preview keeps working.
-import { connect, byTest, inject, listenKeys, check, finish, sleep, PORT, INJECTED_KEYS } from '../lib/cdp.mjs';
+import { connect, byTest, inject, check, finish, sleep, PORT, INJECTED_KEYS } from '../lib/cdp.mjs';
 
 const p = await connect();
 await sleep(2000);

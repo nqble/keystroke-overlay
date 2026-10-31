@@ -69,7 +69,7 @@ function launch() {
     env: { ...process.env, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9222' },
   }).unref();
 }
-async function build(label, ref, version) {
+async function build(label, ref) {
   const out = join(WORK, `setup-${label}.exe`);
   if (existsSync(out)) return out;
   console.log(`\n> Building the ${label} installer`);
@@ -113,7 +113,7 @@ const installer = (exe) => {
   return r.status;
 };
 
-const lock = await acquire('install and upgrade test', { expectedMinutes: 12 });
+await acquire('install and upgrade test', { expectedMinutes: 12 });
 mkdirSync(WORK, { recursive: true });
 let failed = false;
 try {
@@ -125,8 +125,8 @@ try {
       if (busy) throw new Error(`Port ${port} is busy; close what uses it first.`);
     }
   }
-  const setupOld = await build('old', OLD.ref, OLD.version);
-  const setupNew = await build('new', null, VERSION);
+  const setupOld = await build('old', OLD.ref);
+  const setupNew = await build('new', null);
   killTest();
   rmSync(DATA, { recursive: true, force: true });
   rmSync(INSTALL, { recursive: true, force: true });

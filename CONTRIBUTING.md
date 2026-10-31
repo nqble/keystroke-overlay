@@ -38,6 +38,7 @@ Useful commands:
 | `npm run check:format` | Checks the formatting without changing anything (CI runs it) |
 | `npm run check:style` | No tabs, no trailing spaces, files end with a newline in every source file; no raw colors outside the `:root` design tokens and no inline styles in the settings scripts (CI runs it) |
 | `npm run check:types` | Type-checks the UI JavaScript with no build step (`jsconfig.json`, loose mode, CI runs it). Your editor (e.g. VS Code) shows the same hints as you type. To describe a value's type, use a JSDoc comment such as `/** @type {HTMLElement} */`; the app's globals are described in `ui/globals.d.ts` |
+| `npm run check:lint` | Finds likely JavaScript mistakes such as a name that is used but never defined (CI fails on them), and shows the house rules (short functions, shallow nesting, files under ~400 lines) as warnings to fix when you touch that file. Settings: `eslint.config.mjs` |
 | `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings` | Rust lints; CI requires zero warnings |
 | `npm run dev:debug` | Runs a separate development copy with **Debug mode** on (a Debug tab with self-test, event log, key monitor and more). See [docs/DEBUGGING.md](docs/DEBUGGING.md) |
 | `npm run build` | Builds the app + installer into `src-tauri/target/release/bundle/` |

@@ -2,7 +2,7 @@
 // real signed update (download with progress -> verify -> hand-off). Uses the local mock update server.
 import { execSync } from 'node:child_process';
 import net from 'node:net';
-import { connect, byTest, listenKeys, appAlive, check, finish, sleep, EXE_NAME, PORT } from '../lib/cdp.mjs';
+import { connect, byTest, appAlive, check, finish, sleep, EXE_NAME, PORT } from '../lib/cdp.mjs';
 
 const SETTINGS_VERSION = 5; // the settings file format version (CURRENT_VERSION in src-tauri/src/settings.rs)
 const VERSION = process.env.E2E_VERSION; // the app's real version, provided by run.mjs

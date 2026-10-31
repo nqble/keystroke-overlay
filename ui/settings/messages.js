@@ -11,8 +11,6 @@ import { findTab } from './tabs/index.js';
 import { paintPauseButton } from './pause-button.js';
 import { render } from './settings.js';
 import {
-  overlays,
-  serverError,
   paused,
   settings,
   setInputActive,

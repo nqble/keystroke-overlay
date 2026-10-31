@@ -36,6 +36,8 @@ jobs:
         run: npm run check:config
       - name: JavaScript types (loose; see jsconfig.json)
         run: npm run check:types
+      - name: JavaScript lint (mistakes fail; house-rule warnings are shown; see eslint.config.mjs)
+        run: npm run check:lint
       - name: JavaScript syntax
         shell: bash
         run: for f in ui/overlay/*.js ui/overlay/*/*.js ui/settings/*.js tools/*.mjs; do node --check "$f"; done

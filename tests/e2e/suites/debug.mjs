@@ -25,7 +25,7 @@ check(
 );
 check(
   'while Debug mode is off the Debug tab code is not even loaded',
-  await p.q(`!performance.getEntriesByType('resource').some((entry) => /debug\.js/.test(entry.name))`),
+  await p.q(`!performance.getEntriesByType('resource').some((entry) => /debug\\.js/.test(entry.name))`),
 );
 // With Debug mode off the log keeps only the important events (docs/DEBUGGING.md): the app starting, yes; the
 // settings window opening (a Debug-mode detail), no.

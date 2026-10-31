@@ -5,7 +5,6 @@ import { connect, byTest, byTestStart, check, finish, sleep } from '../lib/cdp.m
 
 const p = await connect();
 await sleep(3000);
-const errors = [];
 await p.send('Log.enable');
 await p.ev(
   `window.__errs = []; addEventListener('error', e => __errs.push(String(e.message))); addEventListener('unhandledrejection', e => __errs.push('rejection: ' + e.reason));`,

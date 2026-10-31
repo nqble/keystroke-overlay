@@ -167,10 +167,10 @@ const NAV_AND_ARROWS = new Set([
   'ArrowRight',
 ]);
 const F_ROW = (k) => k.code === 'Escape' || /^F\d+$/.test(k.code);
-/** The alphanumeric block (rows y = 1.5 ... 5.5 of main()) moved up to start at y = 0. */
+/** The alphanumeric block (rows y = 1.5 ... 5.5 of mainBlock()) moved up to start at y = 0. */
 const alphaBlock = () =>
   moveBy(
-    only(main(), (k) => !F_ROW(k) && !NAV_AND_ARROWS.has(k.code)),
+    only(mainBlock(), (k) => !F_ROW(k) && !NAV_AND_ARROWS.has(k.code)),
     0,
     -1.5,
   );
@@ -272,8 +272,8 @@ const out = {
   60: { id: 'compact-60', name: '60%', keys: sixty() },
   arrows: { name: 'Arrows', keys: arrows() },
   numpad: { name: 'Numpad', keys: numpadOnly() },
-  'full-iso': { name: 'Full size (ISO)', keys: [...iso(main()), ...numpad()] },
-  'tkl-iso': { name: 'TKL (ISO)', keys: iso(main()) },
+  'full-iso': { name: 'Full size (ISO)', keys: [...iso(mainBlock()), ...numpad()] },
+  'tkl-iso': { name: 'TKL (ISO)', keys: iso(mainBlock()) },
 };
 for (const [key, v] of Object.entries(out)) {
   const id = v.id ?? key;

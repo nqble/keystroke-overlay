@@ -140,8 +140,7 @@ addEventListener('keydown', (keyEvent) => {
   else if (withCtrl && key === 'a') {
     setSelectedKeys(layout.keys.map((layoutKey) => layoutKey.code));
     render();
-  } else if (!withCtrl && (key === 'delete' || key === 'backspace') && hasSelection && !onControl)
-    hideSelection(layout);
+  } else if (!withCtrl && (key === 'delete' || key === 'backspace') && hasSelection && !onControl) hideSelection();
   else if (key === 'escape' && hasSelection) {
     setSelectedKey(null);
     render();

@@ -185,7 +185,7 @@ export const undoLastChange = (layout) => stepHistory(layout, undo);
 export const redoLastChange = (layout) => stepHistory(layout, redo);
 
 /** Hide every selected key in the overlay (they stay clickable here, so they can be shown again). */
-export function hideSelection(layout) {
+export function hideSelection() {
   const edits = editProf();
   const hidden = new Set(edits.disabledKeys);
   for (const code of selectedKeys) hidden.add(code);
