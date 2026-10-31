@@ -268,7 +268,7 @@ export function KeysToolbar({ layout, profile, overlapCount }) {
       <button type="button" data-test="keys-tidy" title=${TEXT.closeGapsHelp} onClick=${() => closeGaps(layout)}>
         Close gaps
       </button>
-      <${MenuButton} label="Reset" text="Reset ▾" items=${resetMenuItems(layout, profile)} test="keys-reset-menu" />
+      <${MenuButton} label="Reset" text="Reset" items=${resetMenuItems(layout, profile)} test="keys-reset-menu" />
     <//>
     <${StatusLine} profile=${profile} overlapCount=${overlapCount} />
   </div>`;

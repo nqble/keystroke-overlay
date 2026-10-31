@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 import { pauseButtonLook } from '../../ui/settings/pause-button.js';
 
 test('running: offers to pause', () => {
-  assert.deepEqual(pauseButtonLook(false), { word: 'Pause', icon: '⏸', name: 'Pause overlay' });
+  assert.deepEqual(pauseButtonLook(false), { word: 'Pause', icon: 'pause', name: 'Pause overlay' });
 });
 
 test('paused: offers to resume', () => {
-  assert.deepEqual(pauseButtonLook(true), { word: 'Resume', icon: '▶', name: 'Resume overlay' });
+  assert.deepEqual(pauseButtonLook(true), { word: 'Resume', icon: 'play', name: 'Resume overlay' });
 });

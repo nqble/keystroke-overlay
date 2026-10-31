@@ -10,6 +10,7 @@
 // =====================================================================================================================
 import { stepChoice } from './choice-keys.js';
 import { html, useEffect, useLayoutEffect, useRef, useState } from './html.js';
+import { Icon } from './icons.js';
 import { showMenu } from './menu.js';
 import { md } from './notes.js';
 import { settings } from './state.js';
@@ -118,7 +119,7 @@ export function GalleryCard({ title, selected, onSelect, menu = null, test = '',
 
 /**
  * The "⋯" button that opens a small menu (menu.js) just below itself. items: [{ label, run?, danger?, disabled? }]. With
- * `text` it is a labeled button instead (a tab's "Reset ▾"); `tip` is its tooltip.
+ * `text` it is a labeled button instead, with a small down arrow (a tab's "Reset"); `tip` is its tooltip.
  */
 export function MenuButton({ label, items, test = '', text = '', tip = '' }) {
   const openMenu = (clickEvent) => {
@@ -134,7 +135,7 @@ export function MenuButton({ label, items, test = '', text = '', tip = '' }) {
     data-test=${test || null}
     onClick=${openMenu}
   >
-    ${text || '⋯'}
+    ${text ? html`${text}<${Icon} name="chevronDown" />` : html`<${Icon} name="menu" />`}
   </button>`;
 }
 

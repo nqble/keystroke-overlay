@@ -13,7 +13,7 @@ import { PresetGallery, ThemeGallery, applyLook } from './style-themes.js';
 
 const WORDS = {
   title: 'Style',
-  reset: 'Reset ▾',
+  reset: 'Reset',
   resetLabel: 'Reset the look',
   resetDefault: 'Back to the default look',
   colors: 'Colors',

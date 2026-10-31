@@ -7,6 +7,7 @@
 // =====================================================================================================================
 import { call } from './helpers.js';
 import { html } from './html.js';
+import { Icon } from './icons.js';
 import { copyUrl, obsSize } from './preview.js';
 import { render } from './settings.js';
 import { overlays, setTab } from './state.js';
@@ -63,7 +64,7 @@ export function FirstRun() {
       data-test="first-run-close"
       onClick=${close}
     >
-      ✕
+      <${Icon} name="close" />
     </button>
     <div class="tab-heading">
       <h2 id="firstRunTitle">${WORDS.title}</h2>
