@@ -169,6 +169,45 @@ function placedKey(layoutKey, layout, prof) {
   return { ...layoutKey, x: moved?.x ?? base.x, y: moved?.y ?? base.y, w: width, h: height, r };
 }
 
+/** The area the keys cover, turned keys included (turn.js): its top-left corner and size, in pixels. */
+function overlayBounds(keys, pitch, gap) {
+  // With none turned, these are the keys' own rectangles.
+  const boxes = keys.map((k) => turnedBox(k.x * pitch, k.y * pitch, k.w * pitch - gap, k.h * pitch - gap, k.r));
+  const minLeft = Math.min(...boxes.map((b) => b.left)),
+    minTop = Math.min(...boxes.map((b) => b.top));
+  const width = Math.max(...boxes.map((b) => b.right)) - minLeft,
+    height = Math.max(...boxes.map((b) => b.bottom)) - minTop;
+  return { minLeft, minTop, width, height };
+}
+
+/** One key's element: its glow and two faces (idle and pressed), placed inside the bounds. */
+function keyElement(layoutKey, label, style, bounds) {
+  const { keySize, gap, fontSize } = style,
+    pitch = keySize + gap;
+  const keyWidth = (layoutKey.w ?? 1) * pitch - gap,
+    keyHeight = (layoutKey.h ?? 1) * pitch - gap;
+  const el = document.createElement('div');
+  el.className = 'key';
+  el.dataset.code = layoutKey.code;
+  el.style.cssText = `left:${layoutKey.x * pitch - bounds.minLeft}px;top:${layoutKey.y * pitch - bounds.minTop}px;width:${keyWidth}px;height:${keyHeight}px`;
+  if (layoutKey.r) el.style.setProperty('--r', `${layoutKey.r}deg`); // overlay.css turns the face and glow
+  // Shrink long labels to fit narrow keys.
+  const fit = Math.min(1, (keyWidth - 10) / Math.max(1, [...label].length * fontSize * 0.62));
+  const mk = (cls) => {
+    const face = document.createElement('div');
+    face.className = 'face ' + cls;
+    const sp = document.createElement('span');
+    sp.textContent = label;
+    if (fit < 1) sp.style.setProperty('--f', fit.toFixed(3));
+    face.appendChild(sp);
+    return face;
+  };
+  const glow = document.createElement('div');
+  glow.className = 'glow';
+  el.append(glow, mk('idle'), mk('on'));
+  return el;
+}
+
 function build(nextSettings, layout) {
   stage.textContent = '';
   keyEls.clear();
@@ -183,47 +222,20 @@ function build(nextSettings, layout) {
     reportSize(0, 0);
     return;
   }
-  const { keySize, gap } = nextSettings.style,
-    pitch = keySize + gap;
-  // The overlay's size comes from the box each key covers, turned keys included (turn.js); with none turned, these are
-  // the keys' own rectangles.
-  const boxes = keys.map((k) => turnedBox(k.x * pitch, k.y * pitch, k.w * pitch - gap, k.h * pitch - gap, k.r));
-  const minLeft = Math.min(...boxes.map((b) => b.left)),
-    minTop = Math.min(...boxes.map((b) => b.top));
-  const maxX = Math.max(...boxes.map((b) => b.right)) - minLeft,
-    maxY = Math.max(...boxes.map((b) => b.bottom)) - minTop;
+  const { keySize, gap } = nextSettings.style;
+  const bounds = overlayBounds(keys, keySize + gap, gap);
   const frag = document.createDocumentFragment();
   for (const layoutKey of keys) {
-    const keyWidth = (layoutKey.w ?? 1) * pitch - gap,
-      keyHeight = (layoutKey.h ?? 1) * pitch - gap;
     const label = prof.labels[layoutKey.code] ?? layoutKey.label ?? '';
-    const el = document.createElement('div');
-    el.className = 'key';
-    el.dataset.code = layoutKey.code;
-    el.style.cssText = `left:${layoutKey.x * pitch - minLeft}px;top:${layoutKey.y * pitch - minTop}px;width:${keyWidth}px;height:${keyHeight}px`;
-    if (layoutKey.r) el.style.setProperty('--r', `${layoutKey.r}deg`); // overlay.css turns the face and glow
-    // Shrink long labels to fit narrow keys.
-    const fit = Math.min(1, (keyWidth - 10) / Math.max(1, [...label].length * nextSettings.style.fontSize * 0.62));
-    const mk = (cls) => {
-      const face = document.createElement('div');
-      face.className = 'face ' + cls;
-      const sp = document.createElement('span');
-      sp.textContent = label;
-      if (fit < 1) sp.style.setProperty('--f', fit.toFixed(3));
-      face.appendChild(sp);
-      return face;
-    };
-    const glow = document.createElement('div');
-    glow.className = 'glow';
-    el.append(glow, mk('idle'), mk('on'));
+    const el = keyElement(layoutKey, label, nextSettings.style, bounds);
     if (held.has(layoutKey.code)) el.classList.add('down');
     frag.appendChild(el);
     keyEls.set(layoutKey.code, el);
   }
   stage.appendChild(frag);
-  stage.style.width = maxX + 'px';
-  stage.style.height = maxY + 'px';
-  reportSize(maxX, maxY);
+  stage.style.width = bounds.width + 'px';
+  stage.style.height = bounds.height + 'px';
+  reportSize(bounds.width, bounds.height);
 }
 
 function reportSize(width, height) {
