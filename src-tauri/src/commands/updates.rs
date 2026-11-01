@@ -41,6 +41,7 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
     app.updater_builder()
         .endpoints(vec![url])
         .map_err(|e| e.to_string())?
+        .timeout(Duration::from_secs(CHECK_TIMEOUT_SECS))
         .build()
         .map_err(|e| e.to_string())
 }
@@ -115,8 +116,12 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
     Ok(result)
 }
 
-/// How long a request to GitHub may take before the app gives up (release notes, update checks go through the updater).
+/// How long the release notes request to GitHub may take before the app gives up.
 const REQUEST_TIMEOUT_SECS: u64 = 8;
+/// The longest an update check may take before it gives up (a stalled connection would otherwise leave "Checking…"
+/// up forever). The download gets longer: the Linux AppImage is about 80 MB on a slow connection.
+const CHECK_TIMEOUT_SECS: u64 = 30;
+const DOWNLOAD_TIMEOUT_SECS: u64 = 15 * 60;
 
 /// How long after the app starts the first automatic check runs (PRIVACY.md says 45 seconds).
 const FIRST_CHECK_AFTER_SECS: u64 = 45;
@@ -179,7 +184,7 @@ pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
     }
     let channel = channel_of(&app);
     if let Some((checked_at, cached_channel, cached_result)) = st.update_cache.lock().unwrap().as_ref() {
-        if *cached_channel == channel && checked_at.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) {
+        if *cached_channel == channel && checked_at.elapsed() < Duration::from_secs(CHECK_EVERY_SECS) {
             return Ok(cached_result.clone());
         }
     }
@@ -221,9 +226,11 @@ pub async fn install_update(app: AppHandle) -> Result<(), String> {
     }
     let channel = channel_of(&app);
     let upd = updater_for(&app, &channel)?;
-    let Some(update) = upd.check().await.map_err(|e| e.to_string())? else {
+    let Some(mut update) = upd.check().await.map_err(|e| e.to_string())? else {
         return Err("Already up to date".into());
     };
+    // the check's time limit doesn't carry over to the download (tauri-plugin-updater starts it empty), so set it here
+    update.timeout = Some(Duration::from_secs(DOWNLOAD_TIMEOUT_SECS));
     crate::debug::log(format!("installing update v{}", update.version));
     let (progress_app, installing_app) = (app.clone(), app.clone());
     let mut done: u64 = 0;
@@ -280,7 +287,7 @@ pub async fn get_release_notes(version: Option<String>) -> Result<Value, String>
     }
     let client = reqwest::Client::builder()
         .user_agent(concat!("KeystrokeOverlay/", env!("CARGO_PKG_VERSION")))
-        .timeout(std::time::Duration::from_secs(REQUEST_TIMEOUT_SECS))
+        .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
         .build()
         .map_err(|e| e.to_string())?;
     let resp = client
