@@ -1,7 +1,8 @@
 /* ---- The eye button under the live preview's pause button (eye-button.js; docs/proposals/drawn-devices.md).
    The same build and timing as the pause button (pause-button.css): two round caps and a straight middle, the left cap
    slides while the middle stretches. Pointing opens it 150 ms after arriving and closes it 150 ms after leaving; the
-   keyboard and a click (.open) open it at once. Only transform and opacity animate (CLAUDE.md). */
+   keyboard and a click (.open) open it at once. A click on the eye while it is open closes it (.shut) even though the
+   pointer is still on it; .shut ends when the pointer leaves. Only transform and opacity animate (CLAUDE.md). */
 .eye-box {
   --eye-size: 34px;
   --eye-open: 98px; /* how far the pill grows: three 28 px toggles, their gaps and the room around them */
@@ -67,18 +68,18 @@
     opacity 120ms ease-out 150ms,
     transform 260ms ease-in-out 150ms;
 }
-.eye-box:hover .eye-cap-left,
-.eye-box:focus-within .eye-cap-left,
+.eye-box:not(.shut):hover .eye-cap-left,
+.eye-box:not(.shut):focus-within .eye-cap-left,
 .eye-box.open .eye-cap-left {
   transform: translateX(calc(-1 * var(--eye-open)));
 }
-.eye-box:hover .eye-mid,
-.eye-box:focus-within .eye-mid,
+.eye-box:not(.shut):hover .eye-mid,
+.eye-box:not(.shut):focus-within .eye-mid,
 .eye-box.open .eye-mid {
   transform: scaleX(1);
 }
-.eye-box:hover .eye-options,
-.eye-box:focus-within .eye-options,
+.eye-box:not(.shut):hover .eye-options,
+.eye-box:not(.shut):focus-within .eye-options,
 .eye-box.open .eye-options {
   opacity: 1;
   transform: translateX(0);

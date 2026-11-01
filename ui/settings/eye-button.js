@@ -48,6 +48,7 @@ export function paintEyeButton() {
 /** Open or close the toggles by clicking the eye (pointing at it opens them too, in CSS). */
 function setPinnedOpen(box, open) {
   box.classList.toggle('open', open);
+  if (open) box.classList.remove('shut');
   $('#eyeBtn').setAttribute('aria-expanded', String(open));
 }
 
@@ -58,7 +59,15 @@ export function setUpEyeButton() {
   eye.append(iconElement('eye'));
   eye.setAttribute('aria-label', TEXT.button);
   box.querySelector('.eye-options').setAttribute('aria-label', TEXT.button);
-  eye.onclick = () => setPinnedOpen(box, !box.classList.contains('open'));
+  // the toggles show while pointed at, focused or clicked open, so a click on the eye while they show closes them: .shut
+  // keeps them closed while the pointer stays on the eye, and ends when it leaves
+  const showing = () => Number(getComputedStyle(box.querySelector('.eye-options')).opacity) >= 0.5;
+  eye.onclick = () => {
+    if (!showing()) return setPinnedOpen(box, true);
+    setPinnedOpen(box, false);
+    box.classList.add('shut');
+  };
+  box.addEventListener('pointerleave', () => box.classList.remove('shut'));
   /** @type {NodeListOf<HTMLButtonElement>} */
   const options = box.querySelectorAll('button.eye-option');
   for (const option of options) {
