@@ -90,7 +90,7 @@ When two principles conflict, the higher one wins.
 - **Settings:** a default in `settings.rs`, a line in `CONTROLS`, used in `overlay.js`. Renaming or restructuring needs a
   migration and a unit test. New features are **off by default**. A downgrade must never lose a user's settings: keep a
   copy of a file written by a newer version before rewriting it.
-- **OS-specific code** goes in `platform.rs` or `keyboard/`, nowhere else, with a "not available on this system yet"
+- **OS-specific code** goes in `platform.rs`, `keyboard/`, `mouse/` or `gamepad/` (input capture), nowhere else, with a "not available on this system yet"
   fallback for other systems (CI builds Windows, Linux and macOS; see `docs/CROSS-PLATFORM.md`).
 - **Every system.** The app ships for Windows and macOS (Linux builds too), so every new text, shortcut, font or feature
   says how it behaves on each system. Words that differ per system (Windows, Ctrl, tray, ⌘, menu bar…) come from

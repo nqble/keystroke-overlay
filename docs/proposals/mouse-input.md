@@ -348,7 +348,7 @@ About **6 to 8 working sessions** (a rough estimate): Windows with tests 2, over
 
 ## Open questions
 
-1. CLAUDE.md §4: may `mouse/` (and `gamepad/`) hold system code, as future-inputs.md §1.4 allows?
+1. ~~CLAUDE.md §4: may `mouse/` (and `gamepad/`) hold system code?~~ Yes (maintainer, 2026-11-01; CLAUDE.md §4 says so).
 2. May the Linux device helpers move out of `keyboard/linux_devices.rs` into a shared file, so mice and keyboards use one copy?
 3. Raw Input only on Windows (no mouse hook, no choice for the user), as this plan proposes?
 4. Physical buttons (a left-handed setup shows the physical left button as `MouseLeft`), or the system's swapped meaning?
