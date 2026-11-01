@@ -115,7 +115,10 @@ try {
     sh('npx', ['tauri', 'signer', 'generate', '-w', `"${key}"`, '--ci', '-p', '""'], { stdio: 'ignore' });
   const setupNow = build(VERSION, key);
   const setupNew = build(NEW_VERSION, key);
-  sh('npx', ['tauri', 'signer', 'sign', '-f', `"${key}"`, '-p', '""', `"${setupNew}"`], { stdio: 'ignore' });
+  // the version goes inside the signature, as for real releases: the app requires it (requireSignedVersion)
+  sh('npx', ['tauri', 'signer', 'sign', '-f', `"${key}"`, '-p', '""', '--app-version', NEW_VERSION, `"${setupNew}"`], {
+    stdio: 'ignore',
+  });
   // the fake server serves setup-<MOCK_VERSION>.exe and setup-<MOCK_VERSION>.exe.sig from the work folder
 
   killTest();

@@ -12,6 +12,10 @@ app, put it in `ui/overlay/layouts/`: it appears in the New layout popup's "Othe
 new installs, add its id to `DEFAULT_ORDER` in `src-tauri/src/layout_order.rs`.
 
 ## 2. A theme
+Themes and animations are JavaScript that the overlay runs, so a theme or animation can see every key the overlay
+sees. The built-in ones are reviewed with the rest of the code; if you add one someone else wrote, read it first, as
+you would any program ([PRIVACY.md](../PRIVACY.md)).
+
 A theme is a named bundle of style values and an animation. Create `ui/overlay/themes/my-theme.js`:
 
 ```js

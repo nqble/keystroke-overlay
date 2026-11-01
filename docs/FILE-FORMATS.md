@@ -59,7 +59,7 @@ written (so older settings files stay small). Files saved by version 2 kept `pos
 them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
 `rotations` (settings version 5) keep angles from −180 to 180, rounded to 1 decimal, and only the `shape` style has
 them. A key is listed only when its angle differs from the layout file's own (`r`), so 0 appears only for a key the
-layout file turns and the user straightened. Key rotation is being built ([proposals/key-rotation.md](proposals/key-rotation.md)): the overlay draws turned
+layout file turns and the user straightened. Key rotation is built ([proposals/key-rotation.md](proposals/key-rotation.md)): the overlay draws turned
 keys, and the Keys tab turns one with its round handle or its **Angle** field.
 
 **`layout.editor` (since v1.3.0; `showHidden` since v1.4.0).** The Keys tab remembers three choices between sessions: `snap`, how far a

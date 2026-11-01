@@ -357,6 +357,14 @@ impl Bus {
         self.capture.lock().unwrap().error.clone()
     }
 
+    /// Starts a capture method, watched (the hook's health check) if an overlay is connected now. Both a new method and
+    /// a restored old one start here, so neither can miss the watch.
+    fn start_watched(&self, method: Method) -> Result<Source, String> {
+        let source = Source::start(method, self.ev_tx.clone())?;
+        source.set_watch(self.watchers.load(Ordering::Relaxed) > 0);
+        Ok(source)
+    }
+
     /// Switch capture method while running. If the new method can't start, the old one is restored and an error
     /// returned.
     pub fn set_method(&self, new: Method) -> Result<(), String> {
@@ -373,9 +381,8 @@ impl Bus {
         for code in held {
             let _ = self.ev_tx.send(KeyEvent { down: false, code });
         }
-        match Source::start(new, self.ev_tx.clone()) {
+        match self.start_watched(new) {
             Ok(source) => {
-                source.set_watch(self.watchers.load(Ordering::Relaxed) > 0); // a new hook keeps watching
                 capture.method = new;
                 capture.source = Some(source);
                 capture.error = None;
@@ -383,7 +390,7 @@ impl Bus {
             }
             Err(e) => {
                 let msg = format!("{} couldn't start: {e}", new.label());
-                capture.source = Source::start(old_method, self.ev_tx.clone()).ok(); // keep the overlay working
+                capture.source = self.start_watched(old_method).ok(); // keep the overlay working
                 capture.method = old_method;
                 capture.error = if capture.source.is_none() {
                     Some(msg.clone())

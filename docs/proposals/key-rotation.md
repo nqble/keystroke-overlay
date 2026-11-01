@@ -1,7 +1,8 @@
 # Proposal: rotate single keys
 
-Status: **Approved, being built** (decided 2026-10-24: the handle sits top-right, Snap turns in 15° steps, and only
-the Keyboard shape style has rotation). **Built:** the formats (a layout key's `r`, a profile's `rotations`, settings
+Status: **Built** (ships in v2.1.0; its lasting facts move to the reference docs, and this plan is deleted, once that
+release is out). Decided 2026-10-24: the handle sits top-right, Snap turns in 15° steps, and only
+the Keyboard shape style has rotation. **Built:** the formats (a layout key's `r`, a profile's `rotations`, settings
 version 5, cleaning and tests) the overlay drawing turned keys (`ui/overlay/turn.js`, tested), and in the Keys tab: turned keys
 on the board, the **Angle** field (15° steps with Snap), Undo, **Put back** and the "N moved" count
 (`profiles.js`, tested). the rotation handle (`editor/rotate.js`, 15° with Snap, not in the Even grid), and turned keys in

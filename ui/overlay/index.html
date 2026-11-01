@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <title>Keystroke Overlay</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- What this page may load and contact: only this app's own server on this computer. Custom themes and animations
+         run here and can see the key presses, so this is what stops one from sending them anywhere else (PRIVACY.md).
+         Inline styles are allowed for the font list (#fonts) and key positions; they can't load anything from outside. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'"
+    />
     <!-- no icon: stops the browser asking for /favicon.ico on every load -->
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/overlay/overlay.css" />
