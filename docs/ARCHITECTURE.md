@@ -72,7 +72,7 @@ keystroke-overlay/
     │   ├── layouts/*.json     one file per keyboard layout
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
-    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), obs-source.js (OBS scene rules, inside OBS only)
+    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), devices.js and devices/*.svg (drawn mice and controllers), obs-source.js (OBS scene rules, inside OBS only)
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png

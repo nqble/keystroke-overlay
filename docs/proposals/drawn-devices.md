@@ -1,7 +1,9 @@
 # Proposal: drawn devices (a mouse and a controller on the overlay)
 
-Status: **Being built** (approved 2026-10-31). Built: the eye button, `hiddenInputs` and the tray's Show menu (work order
-step 2; Mouse and Controller stay grayed out until their inputs exist). Next: the groundwork (step 1). The mouse comes first; the controller follows on the same groundwork.
+Status: **Being built** (approved 2026-10-31). Built: the eye button, `hiddenInputs` and the tray's Show menu (step 2);
+the groundwork's `device` entry, the mouse drawing and the overlay drawing it (step 1). Next: the key editor and Add ▾
+with mouse capture (step 3). A drawing turned out to need no registry line: the file name is enough. The mouse comes
+first; the controller follows on the same groundwork.
 
 The overlay shows a keyboard as keys. A mouse or a game controller looks wrong as a row of square keys, so this plan
 draws them as the device itself: a picture of a mouse or a controller with each button, the wheel, the sticks and the
@@ -59,14 +61,14 @@ A layout file gains one kind of entry in its `keys` list, with a `device` field:
 
 ### A drawing is one plain file
 
-`ui/overlay/devices/<id>.svg`, one per drawing, listed in a small registry the way themes and animations are:
+`ui/overlay/devices/<id>.svg`, one per drawing; the file name is the drawing's id, so nothing else lists it:
 
 - Each part that lights up is an element with `data-code`: `data-code="MouseLeft"`, `data-code="PadA"`.
 - Analog parts carry `data-stick="PadStickL"` (moves with the stick) or `data-trigger="PadLT"` (fills with the trigger).
 - The body and parts use classes (`device-body`, `device-part`), never fixed colors, so every theme colors them: the
   body takes the key fill, a part takes the key look, a pressed part the theme's pressed look.
 - The drawing's `viewBox` sets its shape; the block's `w` and `h` scale it.
-- `docs/EXTENDING.md` gets a short "Add a device drawing" section: draw the SVG, mark the parts, add one registry line.
+- `docs/EXTENDING.md` gets a short "Add a device drawing" section: draw the SVG and mark the parts (built: EXTENDING.md §4).
   A test checks every drawing: it parses, each `data-code` is a reserved name, and every part a device needs is there.
 
 ### How the overlay draws it
@@ -164,7 +166,6 @@ the eye button stays grayed out.
 |---|---|
 | `ui/overlay/devices/mouse.svg`, `controller.svg` (new) | The drawings |
 | `ui/overlay/devices.js` (new) | Loads a drawing, lights its parts, moves sticks and fills triggers |
-| `ui/overlay/registry.js` | The list of drawings (one line each) |
 | `ui/overlay/overlay.js` | Draws a `device` entry with devices.js; hides the kinds in `hiddenInputs` |
 | `ui/settings/eye-button.js`, `eye-button.css` (new) | The eye button |
 | `ui/settings/tabs/keys-toolbar.js` | Add ▾ |

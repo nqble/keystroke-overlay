@@ -31,6 +31,7 @@ their prefix, and never collide with keyboard names (DOM `KeyboardEvent.code`).
 | Mouse wheel | `WheelUp`, `WheelDown`, `WheelLeft`, `WheelRight`: each notch is sent as a short press (down, then up) |
 | Controller buttons | The web's standard gamepad layout: `PadA`, `PadB`, `PadX`, `PadY`, `PadLB`, `PadRB`, `PadLT`, `PadRT`, `PadBack`, `PadStart`, `PadLS`, `PadRS`, `PadUp`, `PadDown`, `PadLeft`, `PadRight`, `PadHome` (A/B/X/Y by position, as on an Xbox pad, whatever the controller's own labels say) |
 | Controller analog | Sticks `PadStickL`, `PadStickR` (x and y), triggers `PadLT`, `PadRT` (0 to 1): see §3 |
+| Drawn devices (reserved) | `Mouse`, `Controller`: a layout entry drawn as the device itself, its parts named as above ([proposals/drawn-devices.md](../proposals/drawn-devices.md)); no capture source may produce them |
 | Placeholders (reserved) | `Unlinked1`, `Unlinked2`, …: a layout key that is drawn but linked to nothing (Import from KLE); no capture source may produce a name starting with `Unlinked` |
 
 Several controllers: the first one connected uses the names above. A second one adds a number (`Pad2A`, …). Only
