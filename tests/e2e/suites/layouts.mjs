@@ -242,16 +242,10 @@ check(
   shownName === 'My Board' && renamed?.name === 'Renamed Board',
   `${shownName} → ${renamed?.name}`,
 );
-check(
-  '…and its card shows the new name',
-  await p.q(`${cardOf(mine.id)}.textContent.includes('Renamed Board')`),
-);
+check('…and its card shows the new name', await p.q(`${cardOf(mine.id)}.textContent.includes('Renamed Board')`));
 await rightClick(`[data-test="layout-card"][data-layout-id="${mine.id}"]`);
 await renameVia('My Board');
-check(
-  'renaming it back works too',
-  (await api()).find((l) => l.id === mine.id)?.name === 'My Board',
-);
+check('renaming it back works too', (await api()).find((l) => l.id === mine.id)?.name === 'My Board');
 await rightClick(`[data-test="layout-card"][data-layout-id="${mine.id}"]`);
 await p.ev(
   `[...document.querySelectorAll('${byTest('context-menu-item')}')].find((b) => b.textContent === 'Delete…').click()`,
