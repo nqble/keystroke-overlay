@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="blocks.css" />
     <link rel="stylesheet" href="header.css" />
     <link rel="stylesheet" href="pause-button.css" />
+    <link rel="stylesheet" href="eye-button.css" />
     <link rel="stylesheet" href="popups.css" />
     <link rel="stylesheet" href="keyboard-access.css" />
     <link rel="stylesheet" href="debug.css" />
@@ -100,6 +101,16 @@
         ><span class="pause-mid" aria-hidden="true"></span><span class="pause-cap" aria-hidden="true"></span
         ><span class="pause-word" aria-hidden="true">Pause</span><span class="pause-icon" aria-hidden="true"></span>
       </button>
+      <div id="eyeBox" class="eye-box">
+        <span class="eye-cap eye-cap-left" aria-hidden="true"></span><span class="eye-mid" aria-hidden="true"></span
+        ><span class="eye-cap" aria-hidden="true"></span>
+        <button id="eyeBtn" class="eye-btn" data-test="eye-button" type="button" aria-expanded="false"></button>
+        <div class="eye-options" role="group">
+          <button class="eye-option" data-input="keyboard" data-test="eye-keyboard" type="button"></button>
+          <button class="eye-option" data-input="mouse" data-test="eye-mouse" type="button"></button>
+          <button class="eye-option" data-input="controller" data-test="eye-controller" type="button"></button>
+        </div>
+      </div>
     </section>
     <main>
       <nav id="tabs" data-test="tab-bar" aria-label="Settings sections"></nav>

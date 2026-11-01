@@ -16,6 +16,7 @@ import { paintAccess, setKeyboardAccess } from './keyboard-access.js';
 import { paintHeader } from './header.js';
 import { html, render as draw } from './html.js';
 import { paintPause, showServerError, resync } from './messages.js';
+import { paintEyeButton, setUpEyeButton } from './eye-button.js';
 import { hideMenu } from './menu.js';
 import { refreshFades } from './scroll-fade.js';
 import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
@@ -89,6 +90,7 @@ export async function render(scroll = null) {
   pane.scrollTop = scroll;
   refreshFades();
   paintHeader(); // a tab may have changed the link (new port or key), which the header status shows
+  paintEyeButton(); // the selected layout or its hidden inputs may have changed
 }
 
 // When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to
@@ -128,6 +130,7 @@ addEventListener('resize', () => {
   // e.g. the tray's "Update available" opens General
   if (state.gotoTab && findTab(state.gotoTab, !!state.settings.general?.debugMode)) setTab(state.gotoTab);
   paintPause();
+  setUpEyeButton();
   updateObs();
   // the overlay can't load, but the port can still be fixed
   if (state.serverError) {
