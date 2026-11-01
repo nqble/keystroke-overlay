@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Nothing is built.
+below stands. Step 1 (the Windows spike, with its numbers) is built behind the cargo feature `mouse`; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -341,6 +341,23 @@ Each step one small commit, checks between steps, stop and report on any failure
    the CI steps.
 10. macOS: `mouse/macos.rs`, the Mac checklist.
 11. Docs and this plan's status.
+
+## Step 1 result: the Windows numbers (2026-11-01)
+
+Built as in the plan: `mouse/rawinput.rs` (Raw Input on a message-only window, `RIDEV_INPUTSINK`) and `mouse/names.rs` (flags to names, 5 unit tests), behind the cargo feature `mouse` (off by default), started and stopped by the Debug command `debug_mouse_trial`. Only the button flags and the wheel turn of each record are read. Measured with `tests/bench/mouse-trial.mjs` (30 s per row, a release build with the feature, the app process only; fake input from `SendInput`, so it is a good model of a real mouse, not an 8,000 Hz one):
+
+| State | CPU (one core) | Threads (start to end) | Handles | Memory |
+|---|---|---|---|---|
+| Capture off, idle | 0% | 20 to 17 (start-up settling) | 373 | 30.4 MB |
+| On, mouse not used | 0% | 18 to 17 | 375 | 30.4 MB |
+| On, the mouse moving at 1,000 a second | 0.1% | 17 to 17 | 375 | 30.5 MB |
+| On, 50 clicks and 50 wheel notches | 0% | 17 to 17 | 375 | 30.5 MB |
+| Off again, idle | 0% | 16 to 15 | 372 | 30.4 MB |
+
+- **Moving:** 30,000 fake moves were sent, 29,999 Raw Input records arrived, and none was passed on (no button or wheel flag): about 0.1% of one core, so **batching with `GetRawInputBuffer` is not needed** at 1,000 Hz. An 8,000 Hz mouse is eight times that and is not measured.
+- **Buttons and wheel:** 50 clicks (a press and a release each, cycling all five buttons) and 50 notches (up and down in turn) gave exactly the 150 events sent.
+- **On and off:** 20 cycles left the thread count at 14 and the handle count at 370, the same as before. Nothing leaks.
+- **Not yet checked:** the overlay showing the clicks (the names go into the keyboard stream; the Windows e2e suite of step 8 checks it), a left-handed button swap (the plan says physical buttons), and the cost with a real 8,000 Hz mouse.
 
 ## Effort
 
