@@ -1,9 +1,10 @@
 # Keystroke Overlay: how we build it
 
-Read this before changing anything. It is the standing brief for every session and contributor, human or Claude.
-When this file and your habits disagree, this file wins. When this file is unclear, ask before guessing.
-Where a rule says to ask the maintainer, outside contributors ask by opening an issue (for anything big, first) or a pull
-request; the maintainer reviews and merges.
+Read this before changing anything. It is the standing brief for every Claude Code session working on this project,
+the maintainer's or a contributor's. **People contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) is your guide; it has
+the same code rules, and you don't need this file. When this file and your habits disagree, this file wins. When this
+file is unclear, ask before guessing. Where a rule says to ask the maintainer, a session working for an outside
+contributor asks through that contributor's issue or pull request; the maintainer reviews and merges.
 
 **Where to look:** `docs/ARCHITECTURE.md` (map), `docs/design/key-editor.md` (Keys tab), `docs/design/ui-design-v2.md` (UI Design, Version 2), `docs/design/future-inputs.md`
 (mouse, controller, hotkeys, game detection), `docs/ACCESSIBILITY.md`, `docs/CROSS-PLATFORM.md` and `docs/LINUX-PORT.md`,
