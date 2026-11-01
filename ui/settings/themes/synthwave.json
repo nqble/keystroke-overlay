@@ -1,0 +1,13 @@
+{
+  "id": "synthwave",
+  "name": "Synthwave",
+  "order": 16,
+  "colors": {
+    "background": "#1a1029",
+    "panel": "#241638",
+    "text": "#f6e8ff",
+    "dim": "#b09ac9",
+    "accent": "#ff4fd8",
+    "error": "#ff6b6b"
+  }
+}

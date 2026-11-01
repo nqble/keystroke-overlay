@@ -114,19 +114,10 @@ function keyTitle(layoutKey) {
 }
 
 /** The inspector for one key: show or hide it, give it a label, set its width, height, angle and exact place. */
-function KeyInspector({ layoutKey, profile, overlaps }) {
+/** The key's own label, and Reset to go back to the layout's. */
+function LabelRow({ layoutKey, profile }) {
   const code = layoutKey.code;
-  const ids = {
-    label: useId('key-label'),
-    width: useId('key-width'),
-    height: useId('key-height'),
-    angle: useId('key-angle'),
-    x: useId('key-x'),
-  };
-  const at = keyPos(layoutKey, profile);
-  const minWidth = Math.min(1, baseWidth(layoutKey, profile.layoutStyle));
-  const minHeight = Math.min(1, baseHeight(layoutKey));
-  const moveTo = (x, y) => setKeyPos(layoutKey, x, y);
+  const fieldId = useId('key-label');
   const setLabel = (inputEvent) => {
     editProf().labels[code] = inputEvent.currentTarget.value;
     changed();
@@ -136,84 +127,107 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
     tidyProf();
     changed(true);
   };
-  const putBack = () => {
-    forgetKeyEdits([code]);
-    changed(true);
-  };
-  const edited = editedCodes(profile).has(code);
-  return html`<div class="editor" data-test="key-editor">
-    <div class="inspector-title">
-      <b data-test="key-editor-title">${keyTitle(layoutKey)}</b>
-      <${ShowBox} checked=${!profile.disabledKeys.includes(code)} onChange=${(shown) => setShown([code], shown)} />
-    </div>
-    <${Row} label="Label" fieldId=${ids.label}>
-      <input
-        id=${ids.label}
-        type="text"
-        placeholder="Label"
-        maxlength=${LABEL_MAX_LENGTH}
-        value=${profile.labels[code] ?? layoutKey.label ?? ''}
-        data-test="key-label"
-        onInput=${setLabel}
-      />
-      <button type="button" data-test="key-label-reset" onClick=${resetLabel}>Reset</button>
-    <//>
-    <${Row} label="Width in keys" fieldId=${ids.width}>
+  return html`<${Row} label="Label" fieldId=${fieldId}>
+    <input
+      id=${fieldId}
+      type="text"
+      placeholder="Label"
+      maxlength=${LABEL_MAX_LENGTH}
+      value=${profile.labels[code] ?? layoutKey.label ?? ''}
+      data-test="key-label"
+      onInput=${setLabel}
+    />
+    <button type="button" data-test="key-label-reset" onClick=${resetLabel}>Reset</button>
+  <//>`;
+}
+
+/** Width and height in keys (never narrower or shorter than one key, or than the key already is). */
+function SizeRows({ layoutKey, profile }) {
+  const widthId = useId('key-width');
+  const heightId = useId('key-height');
+  return html`<${Row} label="Width in keys" fieldId=${widthId}>
       <${NumberField}
-        id=${ids.width}
+        id=${widthId}
         value=${keyWidth(layoutKey, profile)}
-        min=${minWidth}
+        min=${Math.min(1, baseWidth(layoutKey, profile.layoutStyle))}
         max=${MAX_KEY_WIDTH}
         test="key-width"
         onValue=${(width) => setKeyWidth(layoutKey, width)}
       />
     <//>
-    <${Row} label="Height in keys" fieldId=${ids.height}>
+    <${Row} label="Height in keys" fieldId=${heightId}>
       <${NumberField}
-        id=${ids.height}
+        id=${heightId}
         value=${keyHeight(layoutKey, profile)}
-        min=${minHeight}
+        min=${Math.min(1, baseHeight(layoutKey))}
         max=${MAX_KEY_WIDTH}
         test="key-height"
         onValue=${(height) => setKeyHeight(layoutKey, height)}
       />
-    <//>
-    ${
-      profile.layoutStyle === 'shape'
-        ? html`<${Row} label="Angle in degrees" fieldId=${ids.angle}>
-            <${NumberField}
-              id=${ids.angle}
-              value=${keyAngle(layoutKey, profile)}
-              min=${-MAX_ANGLE}
-              max=${MAX_ANGLE}
-              step=${snapStep() ? ANGLE_SNAP : 1}
-              test="key-angle"
-              onValue=${(angle) => setKeyAngle(layoutKey, angle)}
-            />
-          <//>`
-        : null
-    }
-    <${Row} label="Position" fieldId=${ids.x}>
-      <span>X</span>
-      <${NumberField}
-        id=${ids.x}
-        value=${at.x}
-        min=${MIN_POSITION}
-        max=${MAX_POSITION}
-        test="key-x"
-        name=${TEXT.positionX}
-        onValue=${(x) => moveTo(x, keyPos(layoutKey, profile).y)}
-      />
-      <span>Y</span>
-      <${NumberField}
-        value=${at.y}
-        min=${MIN_POSITION}
-        max=${MAX_POSITION}
-        test="key-y"
-        name=${TEXT.positionY}
-        onValue=${(y) => moveTo(keyPos(layoutKey, profile).x, y)}
-      />
-    <//>
+    <//>`;
+}
+
+/** The key's angle (the keyboard's own shape only; the Even grid keeps keys straight). */
+function AngleRow({ layoutKey, profile }) {
+  const fieldId = useId('key-angle');
+  return html`<${Row} label="Angle in degrees" fieldId=${fieldId}>
+    <${NumberField}
+      id=${fieldId}
+      value=${keyAngle(layoutKey, profile)}
+      min=${-MAX_ANGLE}
+      max=${MAX_ANGLE}
+      step=${snapStep() ? ANGLE_SNAP : 1}
+      test="key-angle"
+      onValue=${(angle) => setKeyAngle(layoutKey, angle)}
+    />
+  <//>`;
+}
+
+/** The key's exact place, X and Y in keys. */
+function PositionRow({ layoutKey, profile }) {
+  const fieldId = useId('key-x');
+  const at = keyPos(layoutKey, profile);
+  const moveTo = (x, y) => setKeyPos(layoutKey, x, y);
+  return html`<${Row} label="Position" fieldId=${fieldId}>
+    <span>X</span>
+    <${NumberField}
+      id=${fieldId}
+      value=${at.x}
+      min=${MIN_POSITION}
+      max=${MAX_POSITION}
+      test="key-x"
+      name=${TEXT.positionX}
+      onValue=${(x) => moveTo(x, keyPos(layoutKey, profile).y)}
+    />
+    <span>Y</span>
+    <${NumberField}
+      value=${at.y}
+      min=${MIN_POSITION}
+      max=${MAX_POSITION}
+      test="key-y"
+      name=${TEXT.positionY}
+      onValue=${(y) => moveTo(keyPos(layoutKey, profile).x, y)}
+    />
+  <//>`;
+}
+
+function KeyInspector({ layoutKey, profile, overlaps }) {
+  const code = layoutKey.code;
+  const putBack = () => {
+    forgetKeyEdits([code]);
+    changed(true);
+  };
+  const edited = editedCodes(profile).has(code);
+  const rowProps = { layoutKey, profile };
+  return html`<div class="editor" data-test="key-editor">
+    <div class="inspector-title">
+      <b data-test="key-editor-title">${keyTitle(layoutKey)}</b>
+      <${ShowBox} checked=${!profile.disabledKeys.includes(code)} onChange=${(shown) => setShown([code], shown)} />
+    </div>
+    <${LabelRow} ...${rowProps} />
+    <${SizeRows} ...${rowProps} />
+    ${profile.layoutStyle === 'shape' ? html`<${AngleRow} ...${rowProps} />` : null}
+    <${PositionRow} ...${rowProps} />
     ${overlaps ? html`<p class="danger-note">${TEXT.overlapNote}</p>` : null}
     <button type="button" data-test="key-position-reset" disabled=${!edited} onClick=${putBack}>
       Put back where it was

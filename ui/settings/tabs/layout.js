@@ -4,7 +4,7 @@
 //  One card: layout-card.js. Which layouts show, and the moving rules: layout-order.js. The New layout popup and its
 //  Start from choices (Blank, Built-in, From a KLE file): dialogs.js.
 // =====================================================================================================================
-import { addLayoutDialog } from '../dialogs.js';
+import { addLayoutDialog, renameLayoutDialog } from '../dialogs.js';
 import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js';
 import { call, el, invoke, plural, toast } from '../helpers.js';
 import { html, useRef, useState } from '../html.js';
@@ -97,6 +97,32 @@ function confirmDelete(layout) {
   });
 }
 
+/** What a card can do: be picked, be renamed (your own layouts), move left or right (Alt+arrows), be removed. */
+const cardActions = (layout, shownIds) => ({
+  pick: () => pick(layout.id),
+  rename: () => renameLayoutDialog(layout),
+  move: (step) => saveOrder(moveBy(shownIds, layout.id, step), layout.id),
+  remove: () => remove(layout, shownIds),
+});
+
+/** Import… and Export… of layouts (Export needs at least one layout of the person's own). */
+function ShareButtons({ mine }) {
+  return html`<div class="btns">
+    <button type="button" data-test="layout-import" title=${WORDS.importTip} onClick=${importLayouts}>
+      ${WORDS.import}
+    </button>
+    <button
+      type="button"
+      data-test="layout-export"
+      title=${WORDS.exportTip}
+      disabled=${mine === 0}
+      onClick=${exportLayouts}
+    >
+      ${WORDS.export}
+    </button>
+  </div>`;
+}
+
 function Layout() {
   const shown = shownLayouts(layouts, settings.layout.order);
   const shownIds = shown.map((layout) => layout.id);
@@ -120,11 +146,7 @@ function Layout() {
             place=${placeOf(index, shown.length)}
             dragging=${drag.id === layout.id}
             drag=${drag}
-            actions=${{
-              pick: () => pick(layout.id),
-              move: (step) => saveOrder(moveBy(shownIds, layout.id, step), layout.id),
-              remove: () => remove(layout, shownIds),
-            }}
+            actions=${cardActions(layout, shownIds)}
           />`,
       )}
       <button type="button" class="gallery-card add" data-test="layout-add" onClick=${() => addLayoutDialog()}>
@@ -132,20 +154,7 @@ function Layout() {
       </button>
       ${drag.gap === null ? null : html`<span class="drop-line" aria-hidden="true"></span>`}
     </div>
-    <div class="btns">
-      <button type="button" data-test="layout-import" title=${WORDS.importTip} onClick=${importLayouts}>
-        ${WORDS.import}
-      </button>
-      <button
-        type="button"
-        data-test="layout-export"
-        title=${WORDS.exportTip}
-        disabled=${mine === 0}
-        onClick=${exportLayouts}
-      >
-        ${WORDS.export}
-      </button>
-    </div>
+    <${ShareButtons} mine=${mine} />
   </div>`;
 }
 
@@ -156,6 +165,26 @@ function Layout() {
  * hook only shows it: while the dragged card is over a gap between cards, a line shows where it will land (CSS
  * variables, blocks.css .drop-line), and letting go there saves the new order.
  */
+/** Where a dragged card would land: the gap under the pointer and the drop line's place (null when none). */
+function dropAt(pointerEvent, gridElement) {
+  const boxes = [...gridElement.querySelectorAll('[data-layout-item]')].map((item) => item.getBoundingClientRect());
+  const gap = dropGap(pointerEvent.clientX, pointerEvent.clientY, boxes);
+  return { gap, line: gap === null ? null : lineAt(gap, boxes, gridElement.getBoundingClientRect()) };
+}
+
+/** A left-button press on a card: remember it, and its card grid, and keep the pointer while it moves. */
+function startPress(pointerEvent, layoutId, press, grid) {
+  if (pointerEvent.button !== 0) return;
+  grid.current = pointerEvent.currentTarget.closest('[data-test="layout-cards"]');
+  press.down(layoutId, pointerEvent.clientX, pointerEvent.clientY, pointerEvent.pointerId);
+  pointerEvent.currentTarget.setPointerCapture?.(pointerEvent.pointerId);
+}
+
+/** A press ended: when it was a drag over a gap, the card moves there and the new order is saved. */
+function endPress(ended, shownIds) {
+  if (ended) saveOrder(moveToGap(shownIds, ended.layoutId, ended.gap), ended.layoutId);
+}
+
 function useDrag(shownIds) {
   const tracker = useRef(null);
   tracker.current ??= createDragPress();
@@ -167,30 +196,23 @@ function useDrag(shownIds) {
     setDrop({ gap: null, line: null });
   };
   const showGap = (pointerEvent) => {
-    const boxes = [...grid.current.querySelectorAll('[data-layout-item]')].map((item) => item.getBoundingClientRect());
-    const gap = dropGap(pointerEvent.clientX, pointerEvent.clientY, boxes);
-    tracker.current.setGap(gap);
-    setDrop({ gap, line: gap === null ? null : lineAt(gap, boxes, grid.current.getBoundingClientRect()) });
+    const at = dropAt(pointerEvent, grid.current);
+    tracker.current.setGap(at.gap);
+    setDrop(at);
   };
   return {
     id,
     gap: drop.gap,
     lineStyle: drop.line,
-    down: (pointerEvent, layoutId) => {
-      if (pointerEvent.button !== 0) return;
-      grid.current = pointerEvent.currentTarget.closest('[data-test="layout-cards"]');
-      tracker.current.down(layoutId, pointerEvent.clientX, pointerEvent.clientY, pointerEvent.pointerId);
-      pointerEvent.currentTarget.setPointerCapture?.(pointerEvent.pointerId);
-    },
+    down: (pointerEvent, layoutId) => startPress(pointerEvent, layoutId, tracker.current, grid),
     move: (pointerEvent) => {
       if (!tracker.current.move(pointerEvent.clientX, pointerEvent.clientY, pointerEvent.pointerId)) return;
       setId(tracker.current.dragId);
       showGap(pointerEvent);
     },
     up: (pointerEvent) => {
-      const ended = tracker.current.up(pointerEvent.pointerId);
       clear();
-      if (ended) saveOrder(moveToGap(shownIds, ended.layoutId, ended.gap), ended.layoutId);
+      endPress(tracker.current.up(pointerEvent.pointerId), shownIds);
     },
     cancel: (pointerEvent) => {
       tracker.current.cancel(pointerEvent.pointerId);

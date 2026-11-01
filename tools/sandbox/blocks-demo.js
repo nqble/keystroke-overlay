@@ -5,53 +5,65 @@ import { html, render, useState } from '/html.js';
 
 const MENU = [{ label: 'Rename' }, { label: 'Duplicate' }, { label: 'Delete…', danger: true }];
 
-function Demo() {
+function SwitchDemo() {
   const [startup, setStartup] = useState(true);
   const [tray, setTray] = useState(false);
+  return html`<${Section} title="Switches" test="demo-section">
+    <${Switch} label="Start with Windows" checked=${startup} onChange=${setStartup} test="demo-switch-on" />
+    <${Switch} label="Close to the tray" checked=${tray} onChange=${setTray} test="demo-switch-off" />
+  <//>`;
+}
+
+function SegmentedDemo() {
   const [channel, setChannel] = useState('stable');
   const [method, setMethod] = useState('hook');
+  return html`<${Section} title="Segmented choices">
+    <${Segmented}
+      label="Update channel"
+      value=${channel}
+      onChange=${setChannel}
+      test="demo-segmented"
+      choices=${[
+        { value: 'stable', text: 'Stable' },
+        { value: 'latest', text: 'Latest' },
+      ]}
+    />
+    <${Segmented}
+      label="Keyboard input"
+      value=${method}
+      onChange=${setMethod}
+      choices=${[
+        { value: 'hook', text: 'Standard' },
+        { value: 'rawinput', text: 'Compatibility' },
+      ]}
+    />
+  <//>`;
+}
+
+function CardDemo() {
   const [card, setCard] = useState('tkl');
+  return html`<${Section} title="Gallery cards">
+    <div class="sandbox-cards">
+      ${['full', 'tkl', 'wasd'].map(
+        (id) =>
+          html`<${GalleryCard}
+            title=${id.toUpperCase()}
+            detail="Built in"
+            selected=${card === id}
+            onSelect=${() => setCard(id)}
+            test=${'demo-card-' + id}
+            menu=${{ label: `More for ${id}`, items: MENU, test: 'demo-card-menu-' + id }}
+          />`,
+      )}
+    </div>
+  <//>`;
+}
+
+function Demo() {
   return html`<div class="sandbox-grid">
-    <${Section} title="Switches" test="demo-section">
-      <${Switch} label="Start with Windows" checked=${startup} onChange=${setStartup} test="demo-switch-on" />
-      <${Switch} label="Close to the tray" checked=${tray} onChange=${setTray} test="demo-switch-off" />
-    <//>
-    <${Section} title="Segmented choices">
-      <${Segmented}
-        label="Update channel"
-        value=${channel}
-        onChange=${setChannel}
-        test="demo-segmented"
-        choices=${[
-          { value: 'stable', text: 'Stable' },
-          { value: 'latest', text: 'Latest' },
-        ]}
-      />
-      <${Segmented}
-        label="Keyboard input"
-        value=${method}
-        onChange=${setMethod}
-        choices=${[
-          { value: 'hook', text: 'Standard' },
-          { value: 'rawinput', text: 'Compatibility' },
-        ]}
-      />
-    <//>
-    <${Section} title="Gallery cards">
-      <div class="sandbox-cards">
-        ${['full', 'tkl', 'wasd'].map(
-          (id) =>
-            html`<${GalleryCard}
-              title=${id.toUpperCase()}
-              detail="Built in"
-              selected=${card === id}
-              onSelect=${() => setCard(id)}
-              test=${'demo-card-' + id}
-              menu=${{ label: `More for ${id}`, items: MENU, test: 'demo-card-menu-' + id }}
-            />`,
-        )}
-      </div>
-    <//>
+    <${SwitchDemo} />
+    <${SegmentedDemo} />
+    <${CardDemo} />
     <${Section} title="Menu button">
       <div><${MenuButton} label="More" items=${MENU} test="demo-menu" /></div>
     <//>

@@ -154,13 +154,13 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20), starting **Blank**, from a **Built-in** layout, or **From a KLE file** (a keyboard you drew on keyboard-layout-editor.com). Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu moves, hides or deletes it. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Built-in** in the New layout popup. **Import… / Export…** share your layouts as a file. |
+| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20), starting **Blank**, from a **Built-in** layout, **From a KLE file** (a keyboard you drew on keyboard-layout-editor.com) or, on Windows, **From a NohBoard file**. Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu (or right-click) renames, moves, hides or deletes it (**Rename…** is for layouts you made). A card's picture shows the layout as you edited it, hidden keys left out. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Built-in** in the New layout popup. **Import… / Export…** share your layouts as a file. |
 | **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height), and drag the round handle at its top-right corner to **turn it** (or type its angle; 15° steps with Snap, in the keyboard's own shape only). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** fills the holes hidden keys leave in a row: the keys to their right slide over. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts, and where **Key labels** chooses between the letters your keyboard prints (**My keyboard**) and the layout file's own. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
-| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **OBS scenes**, **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
+| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **OBS scenes**, **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, **Appearance** (18 looks for this window, from Default to Paper and High contrast, or **+ New theme** to pick your own six colors in a bar along the bottom, which warns if text gets hard to read; **Export…** and **Import…** share a theme as a file; the overlay in OBS keeps its own look), and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
-A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
+A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation. Its round buttons in the top right are **Pause** and, under it, the **eye**: point at the eye (or click it) and **Keyboard**, **Mouse** and **Controller** slide out; click one to show or hide it on the overlay. Hiding the keyboard keeps the keys you hid one by one as they were. The choice is saved for each layout. Mouse and Controller are grayed out until the app reads them.
 
 **Debug mode (for developers).** **General → Advanced → Debug mode (for developers)** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one tiny test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](DEBUGGING.md).
 
@@ -193,6 +193,7 @@ Under **General → Connection** (**Secure my OBS URL**) you can choose how lock
 Right-click the tray icon for quick actions without opening settings:
 
 - **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume. You can also set a key combination for it that works from any app, even in a game: **General → Pause shortcut** (off until you set one).
+- **Show** — **Keyboard**, **Mouse** and **Controller**: show or hide each on the overlay, for the current layout (the same as the eye button under the live preview's pause button). Mouse and Controller can be picked once the app reads them.
 - **Layout** — switch between layouts.
 - **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
 - **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to **General → Updates**.
@@ -233,6 +234,18 @@ are left out. A key the app can't link (an **Fn** key, a macro key, a blank key)
 yours, but it never lights up; the popup draws these keys dashed and names them before you create the layout, and the Keys tab
 calls them, for example, "Fn · can't light up" (delete one there if you'd rather not see it). The
 file itself is only read: nothing is sent anywhere, and the app never opens the KLE website.
+
+**From a NohBoard keyboard (Windows only):** NohBoard keeps each keyboard in its own folder, under the `keyboards` folder
+next to `NohBoard.exe`. In the New layout popup choose **From a NohBoard file**, click **Choose file…** and pick the
+`keyboard.json` in your keyboard's folder. The same review popup as for KLE shows the layout, named after its folder.
+NohBoard files say which key is which, so almost every key lights up by itself; the app asks Windows what your keyboard
+language is, so an AZERTY or QWERTZ keyboard links the right keys. Key places and sizes are kept, an ISO Enter becomes one
+rectangle, and NohBoard's colors and fonts are left out. **Mouse buttons and the scroll wheel** are kept and drawn dashed:
+they will light up by themselves once the app supports the mouse, with no need to import again. The mouse speed indicator
+is left out (the app never reads where the mouse is). NohBoard is a Windows program, so the choice is only there on
+Windows; on a Mac or Linux, From a KLE file works for any keyboard. The file is only read and nothing is sent anywhere.
+NohBoard and the keyboards shared for it are under the GPL license; a layout you make from one is a file in your own
+data folder.
 
 **Share layouts:** in the Layout tab, **Export…** saves every layout you made (plus your hidden keys and labels) into one `.json` file, and **Import…** adds layouts from such a file. Imported layouts are checked and cleaned, they never replace a layout you already have (the copy gets its own file; its name stays the same), and they count toward the 20-layout limit.
 

@@ -1,18 +1,20 @@
 // =====================================================================================================================
 //  One card of the Layout tab (docs/design/ui-design-v2.md, Layouts): a mini picture of the layout's shape, its name,
-//  and its "⋯" menu (also on right-click and the Menu key): Move left, Move right, and Hide (built-in) or Delete… (your
-//  own). The card itself is a button: click or Enter picks the layout, Alt+← / Alt+→ moves it, and it can be dragged
+//  and its "⋯" menu (also on right-click and the Menu key): Rename… (your own layouts), Move left, Move right, and Hide
+//  (built-in) or Delete… (your own). The card itself is a button: click or Enter picks the layout, Alt+← / Alt+→ moves it, and it can be dragged
 //  (layout.js does the dropping). Part of the Layout tab (layout.js).
 // =====================================================================================================================
 import { MenuButton } from '../blocks.js';
 import { html } from '../html.js';
 import { showMenu } from '../menu.js';
-import { isCustom } from '../profiles.js';
+import { placeKeys } from '../editor/places.js';
+import { isCustom, viewProf } from '../profiles.js';
 import { turnedBounds } from './keys-turn.js';
 
 const WORDS = {
   customized: 'Customized',
   more: (name) => `More for ${name}`,
+  rename: 'Rename…',
   moveLeft: 'Move left',
   moveRight: 'Move right',
   hide: 'Hide',
@@ -69,26 +71,52 @@ export function LayoutPicture({ keys, labels = false, marked = null }) {
   </svg>`;
 }
 
+/** The layout's keys as the person has edited them (hidden keys left out, moved, resized and turned ones where they are). */
+function editedKeys(layout) {
+  const profile = viewProf(layout.id);
+  return placeKeys(layout, profile)
+    .filter((placed) => !profile.disabledKeys.includes(placed.key.code))
+    .map(({ key, x, y, w, h, r }) => ({ code: key.code, x, y, w, h, r }));
+}
+
 /**
  * actions: { pick, move(step), remove } from layout.js. `place` says where the card is ('first', 'last', 'only' or
  * ''), so the menu greys out the moves that can't happen. `dragging` draws the card's spot as a faint placeholder.
  */
+/** A card's ⋯ and right-click menu: move left, move right, and remove (a layout of the person's own) or hide. */
+const cardMenuItems = (layout, place, actions) => [
+  ...(layout.user ? [{ label: WORDS.rename, run: actions.rename }] : []),
+  { label: WORDS.moveLeft, disabled: place === 'first' || place === 'only', run: () => actions.move(-1) },
+  { label: WORDS.moveRight, disabled: place === 'last' || place === 'only', run: () => actions.move(1) },
+  {
+    label: layout.user ? WORDS.remove : WORDS.hide,
+    danger: !!layout.user,
+    disabled: place === 'only',
+    run: actions.remove,
+  },
+];
+
+/** Alt+Left / Alt+Right on a card moves it, like dragging. */
+function moveWithAltArrows(keyEvent, actions) {
+  if (!keyEvent.altKey || (keyEvent.key !== 'ArrowLeft' && keyEvent.key !== 'ArrowRight')) return;
+  keyEvent.preventDefault();
+  actions.move(keyEvent.key === 'ArrowLeft' ? -1 : 1);
+}
+
+/** The small dot that marks a layout the person changed. */
+function CustomDot() {
+  return html`<span
+    class="custom-dot"
+    data-test="custom-dot"
+    role="img"
+    title=${WORDS.customized}
+    aria-label=${WORDS.customized}
+  ></span>`;
+}
+
 export function LayoutCard({ layout, selected, place, dragging, actions, drag }) {
-  const items = [
-    { label: WORDS.moveLeft, disabled: place === 'first' || place === 'only', run: () => actions.move(-1) },
-    { label: WORDS.moveRight, disabled: place === 'last' || place === 'only', run: () => actions.move(1) },
-    {
-      label: layout.user ? WORDS.remove : WORDS.hide,
-      danger: !!layout.user,
-      disabled: place === 'only',
-      run: actions.remove,
-    },
-  ];
-  const onKeyDown = (keyEvent) => {
-    if (!keyEvent.altKey || (keyEvent.key !== 'ArrowLeft' && keyEvent.key !== 'ArrowRight')) return;
-    keyEvent.preventDefault();
-    actions.move(keyEvent.key === 'ArrowLeft' ? -1 : 1);
-  };
+  const items = cardMenuItems(layout, place, actions);
+  const onKeyDown = (keyEvent) => moveWithAltArrows(keyEvent, actions);
   return html`<div
     class=${dragging ? 'gallery-item layout-item dragging' : 'gallery-item layout-item'}
     data-layout-item=${layout.id}
@@ -108,20 +136,10 @@ export function LayoutCard({ layout, selected, place, dragging, actions, drag })
       onPointerCancel=${drag.cancel}
       onLostPointerCapture=${drag.lostCapture}
     >
-      <span class="gallery-picture"><${LayoutPicture} keys=${layout.keys} /></span>
+      <span class="gallery-picture"><${LayoutPicture} keys=${editedKeys(layout)} /></span>
       <span class="gallery-name">
         <b class="gallery-title">${layout.name}</b>
-        ${
-          isCustom(layout.id)
-            ? html`<span
-                class="custom-dot"
-                data-test="custom-dot"
-                role="img"
-                title=${WORDS.customized}
-                aria-label=${WORDS.customized}
-              ></span>`
-            : null
-        }
+        ${isCustom(layout.id) ? html`<${CustomDot} />` : null}
       </span>
     </button>
     <${MenuButton} label=${WORDS.more(layout.name)} items=${items} test="layout-menu" />

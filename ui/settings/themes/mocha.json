@@ -1,0 +1,13 @@
+{
+  "id": "mocha",
+  "name": "Mocha",
+  "order": 10,
+  "colors": {
+    "background": "#1e1916",
+    "panel": "#28211d",
+    "text": "#e8ddd5",
+    "dim": "#a3958a",
+    "accent": "#c9a27e",
+    "error": "#d9736b"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "default",
+  "name": "Default",
+  "order": 0,
+  "colors": {
+    "background": "#12141a",
+    "panel": "#1a1d26",
+    "text": "#e6e9f0",
+    "dim": "#8b93a7",
+    "accent": "#4f8cff",
+    "error": "#ff5d6c"
+  }
+}

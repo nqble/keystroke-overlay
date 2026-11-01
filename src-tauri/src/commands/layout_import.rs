@@ -13,8 +13,9 @@ use serde_json::{json, Value};
 use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt as _;
 
-/// The file picker for a keyboard file. Returns None if the user canceled, otherwise { fileName, text }: the file's
-/// name (the window names the layout after it when the file has no name of its own) and its text, as it is.
+/// The file picker for a keyboard file. Returns None if the user canceled, otherwise { fileName, folderName, text }: the
+/// file's name and its folder's (the window names the layout after one of them when the file has no name of its own: a
+/// NohBoard keyboard is named by its folder) and its text, as it is.
 #[tauri::command]
 pub async fn pick_layout_source(app: AppHandle) -> Result<Option<Value>, String> {
     let Some(picked_file) = app
@@ -33,7 +34,26 @@ pub async fn pick_layout_source(app: AppHandle) -> Result<Option<Value>, String>
     // A file that isn't UTF-8 text can't be JSON either: the window then says it couldn't read the file.
     let text = String::from_utf8_lossy(&bytes).into_owned();
     let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-    Ok(Some(json!({ "fileName": file_name, "text": text })))
+    let folder_name = path
+        .parent()
+        .and_then(|folder| folder.file_name())
+        .and_then(|n| n.to_str())
+        .unwrap_or_default();
+    Ok(Some(
+        json!({ "fileName": file_name, "folderName": folder_name, "text": text }),
+    ))
+}
+
+/// The typing keys by the virtual key this PC's keyboard gives them, as {"65": "KeyQ", ...}: a NohBoard keyboard file
+/// stores keys that way, and on a non-US keyboard the same virtual key is another key (ui/settings/nohboard-layout.js).
+/// Windows only (platform.rs).
+#[tauri::command]
+pub fn typing_virtual_keys() -> Result<Value, String> {
+    let by_virtual_key = crate::platform::typing_keys_by_virtual_key()?;
+    let entries = by_virtual_key
+        .into_iter()
+        .map(|(virtual_key, code)| (virtual_key.to_string(), json!(code)));
+    Ok(Value::Object(entries.collect()))
 }
 
 /// Saves `keys` (from the window, so cleaned first) as a new layout named `name` in `dir`, next to the `existing`
@@ -133,6 +153,26 @@ mod tests {
             "nothing written"
         );
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn typing_virtual_keys_name_the_typing_keys_or_say_not_available() {
+        let result = typing_virtual_keys();
+        if cfg!(windows) {
+            let table = result.unwrap();
+            assert!(!table.as_object().unwrap().is_empty(), "Windows names the typing keys");
+            for code in table.as_object().unwrap().values() {
+                let code = code.as_str().unwrap();
+                assert!(
+                    crate::keyboard::keymap::TYPING_KEYS
+                        .iter()
+                        .any(|&(typing, _)| typing == code),
+                    "{code}"
+                );
+            }
+        } else {
+            assert_eq!(result.unwrap_err(), "not available on this system yet");
+        }
     }
 
     /// Hostile input: whatever the window sends, only a clean layout file inside the folder comes out.

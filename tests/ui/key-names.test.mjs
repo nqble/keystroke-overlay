@@ -11,6 +11,7 @@ import {
   LEGEND_ENTRIES,
   RANK,
   SIDED_KEYS,
+  VIRTUAL_KEY_CODES,
   groupName,
   iconCode,
   isKnownKey,
@@ -93,4 +94,16 @@ test('KLE icon classes name their keys', () => {
   assert.equal(iconCode('kb-Unicode-BackSpace-DeleteLeft-Big'), 'Backspace');
   assert.equal(iconCode('kb-logo-windows-8'), 'Meta');
   assert.equal(iconCode('kb-Unknown-Thing'), null);
+});
+
+test('every Windows virtual key names a key keymap.rs produces, or a modifier whose side is picked by place', () => {
+  for (const [virtualKey, code] of Object.entries(VIRTUAL_KEY_CODES)) {
+    assert.ok(isTableCode(code), `${virtualKey} → ${code}`);
+  }
+  assert.equal(VIRTUAL_KEY_CODES[65], 'KeyA');
+  assert.equal(VIRTUAL_KEY_CODES[48], 'Digit0');
+  assert.equal(VIRTUAL_KEY_CODES[105], 'Numpad9');
+  assert.equal(VIRTUAL_KEY_CODES[123], 'F12');
+  assert.equal(VIRTUAL_KEY_CODES[1025], 'NumpadEnter');
+  assert.equal(VIRTUAL_KEY_CODES[124], undefined, 'F13 is not a key the app can see');
 });

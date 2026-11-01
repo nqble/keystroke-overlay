@@ -21,6 +21,19 @@ const SHAPES = {
   plus: { line: 'M3.5 8h9M8 3.5v9' },
   arrowDown: { line: 'M8 2.5v11M3.5 9 8 13.5 12.5 9' },
   chevronDown: { line: 'M3.5 6 8 10.5 12.5 6' }, // turned with CSS for "closed" (.chevron-closed)
+  // the eye button under the live preview and its three inputs (eye-button.js)
+  eye: {
+    line: 'M1.75 8C3.2 5.6 5.3 4.3 8 4.3s4.8 1.3 6.25 3.7C12.8 10.4 10.7 11.7 8 11.7S3.2 10.4 1.75 8zM9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0',
+  },
+  keyboard: {
+    line: 'M2.75 4.25h10.5a1 1 0 0 1 1 1v5.5a1 1 0 0 1-1 1H2.75a1 1 0 0 1-1-1v-5.5a1 1 0 0 1 1-1zM5.25 9.75h5.5',
+    fill: 'M4 6.5h1.25v1.25H4zM6.25 6.5H7.5v1.25H6.25zM8.5 6.5h1.25v1.25H8.5zM10.75 6.5H12v1.25h-1.25z',
+  },
+  mouse: { line: 'M8 2.25a3.75 3.75 0 0 1 3.75 3.75v4a3.75 3.75 0 0 1-7.5 0V6A3.75 3.75 0 0 1 8 2.25zM8 4.5v2' },
+  controller: {
+    line: 'M4.75 4.75h6.5a3 3 0 0 1 3 2.8l.3 3.6a1.6 1.6 0 0 1-2.8 1.1L10 10.5H6l-1.75 1.75a1.6 1.6 0 0 1-2.8-1.1l.3-3.6a3 3 0 0 1 3-2.8zM5 6.75v2M4 7.75h2',
+    fill: 'M10.25 6.75a.7.7 0 1 0 1.4 0 .7.7 0 1 0-1.4 0M11.5 8.25a.7.7 0 1 0 1.4 0 .7.7 0 1 0-1.4 0',
+  },
 };
 
 /** One icon, for Preact screens. Hidden from screen readers: its button carries the name. */

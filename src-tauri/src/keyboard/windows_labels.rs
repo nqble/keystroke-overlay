@@ -118,6 +118,24 @@ pub fn keyboard_labels() -> HashMap<&'static str, String> {
     labels
 }
 
+/// The typing keys by the virtual key Windows gives them on the keyboard layout in use: {65: "KeyA", ...} on a US
+/// keyboard, {65: "KeyQ", ...} on a French AZERTY one. For NohBoard keyboard files, which store each key as its virtual
+/// key (commands/layout_import.rs). Unlike `keyboard_labels`, US English is asked too. Nothing typed is read.
+pub fn typing_keys_by_virtual_key() -> HashMap<u32, &'static str> {
+    let mut by_virtual_key = HashMap::new();
+    let Some(keyboard) = layout_in_use() else {
+        return by_virtual_key;
+    };
+    for &(code, scancode) in TYPING_KEYS {
+        // SAFETY: a plain lookup on a keyboard layout handle Windows gave us.
+        let virtual_key = unsafe { MapVirtualKeyExW(scancode, MAPVK_VSC_TO_VK_EX, Some(keyboard)) };
+        if virtual_key != 0 {
+            by_virtual_key.entry(virtual_key).or_insert(code);
+        }
+    }
+    by_virtual_key
+}
+
 /// Called by Windows (on the watcher thread) each time another window comes to the front.
 unsafe extern "system" fn foreground_changed(_: HWINEVENTHOOK, _: u32, _: HWND, _: i32, _: i32, _: u32, _: u32) {
     if let Some(on_change) = ON_FOREGROUND_CHANGE.get() {

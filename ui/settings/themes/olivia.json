@@ -1,0 +1,15 @@
+{
+  "id": "olivia",
+  "name": "Olivia",
+  "order": 1,
+  "kind": "keycaps",
+  "credit": "Colors of the GMK Olivia keycap set",
+  "colors": {
+    "background": "#1c1b1d",
+    "panel": "#262426",
+    "text": "#f2efed",
+    "dim": "#a59c98",
+    "accent": "#deaf9d",
+    "error": "#e36a6a"
+  }
+}

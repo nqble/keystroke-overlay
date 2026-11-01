@@ -373,6 +373,16 @@ pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
 pub fn keyboard_labels() -> std::collections::HashMap<&'static str, String> {
     crate::keyboard::macos_labels::keyboard_labels()
 }
+/// The typing keys by the virtual key the keyboard layout in use gives them ({65: "KeyQ", ...} on a French keyboard),
+/// for importing NohBoard keyboard files. Only Windows has virtual keys; the import is hidden on the other systems.
+#[cfg(windows)]
+pub fn typing_keys_by_virtual_key() -> Result<std::collections::HashMap<u32, &'static str>, String> {
+    Ok(crate::keyboard::windows_labels::typing_keys_by_virtual_key())
+}
+#[cfg(not(windows))]
+pub fn typing_keys_by_virtual_key() -> Result<std::collections::HashMap<u32, &'static str>, String> {
+    Err("not available on this system yet".into())
+}
 /// Call `on_change` each time the keyboard layout may have changed, so the key labels can follow live, on a thread
 /// where `keyboard_labels` may be called (the main thread on a Mac). Each system tells the app itself (no timer): a
 /// notification on a Mac, XKB events on Linux, a window coming to the front on Windows. Elsewhere nothing happens and

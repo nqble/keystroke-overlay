@@ -54,14 +54,16 @@ keystroke-overlay/
 │       ├── debug.rs        the in-memory event log (important events always, details in Debug mode), health snapshot, test switches (docs/DEBUGGING.md)
 │       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
 │       ├── hotkeys.rs      the optional global pause shortcut (registers only the one the user set)
+│       ├── input_kinds.rs  showing or hiding a whole input per layout (hiddenInputs): cleaning, and the tray's Show menu
 │       ├── key_labels.rs   key labels that follow the user's keyboard language and the system's own key names (style.keyLabels)
 │       ├── key_angles.rs   turned keys: cleaning a layout key's `r` and a profile's `rotations` (key rotation, being built)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
 │       └── commands/       what the settings window can call
 │           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart, input method, secure link, reset, first run, copy, quit
+│           ├── appearance.rs settings window themes: lists the theme files built into the app
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
-│           ├── layout_import.rs  a layout from a keyboard file the user picks (KLE): the file picker and add_layout (keys cleaned by sanitize.rs)
+│           ├── layout_import.rs  a layout from a keyboard file the user picks (KLE, NohBoard): the file picker, the Windows typing-key table and add_layout (keys cleaned by sanitize.rs)
 │           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
 │           ├── actions.rs    pause / layout / restart wrappers
 │           └── updates.rs    update check + install, release notes, "What's new"
@@ -70,7 +72,7 @@ keystroke-overlay/
     │   ├── layouts/*.json     one file per keyboard layout
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
-    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), obs-source.js (OBS scene rules, inside OBS only)
+    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), obs-source.js (OBS scene rules, inside OBS only)
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png
@@ -86,7 +88,7 @@ keystroke-overlay/
         ├── preview.js     saving a change, the live preview, the OBS address bar
         ├── profiles.js    per-layout key edits: hidden keys, labels, moved and resized keys; the snap helpers
         ├── popup.js       the shared popup: keyboard focus for every popup, and dialog()
-        ├── dialogs.js     New layout (Start from: Blank, Built-in, From a KLE file) and Reset all settings, built on popup.js
+        ├── dialogs.js     New layout (Start from: Blank, Built-in, From a KLE file, From a NohBoard file on Windows) and Reset all settings, built on popup.js
         ├── obs-scenes-popup.js  the Edit scenes popup (General → OBS scenes); its row rules in obs-scene-rules.js
         ├── first-run.js   the first run setup screen (new installs; General → First run setup opens it again)
         ├── other-layouts.js  New layout's Built-in choice: built-in layouts not on the Layout tab
@@ -95,17 +97,23 @@ keystroke-overlay/
         ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
         ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
         ├── kle-layout.js  KLE keys → a layout: places (turned keys keep their angle, r), each key's code from its legends, Unlinked<n> placeholders (tested)
-        ├── kle-import-popup.js  New layout's From a KLE file choice and the Import from KLE popup (picture, name, what was found)
+        ├── kle-import-popup.js  New layout's From a KLE / NohBoard file choices and the import review popup (picture, name, what was found)
+        ├── nohboard-layout.js  a NohBoard keyboard.json → a layout: pixels to keys, virtual keys to codes, mouse names (tested)
+        ├── json-lenient.js  JSON with a byte-order mark or trailing commas, as NohBoard's files have (tested)
         ├── menu.js        the small "⋯" and right-click menus; no browser right-click menu, no dragging except layout cards
         ├── blocks.js      the v2.0 building blocks as Preact components (blocks.css; choice-keys.js: their arrow keys)
         ├── notes.js       release notes: the small markdown reader, typing reveal, the notes popup
         ├── update-popup.js  the update button, its popup and the download progress
         ├── github-link.js the small GitHub button under the tabs (opens the project page through open_project_page)
         ├── icons.js       the small icons (pause, play, close, menu dots, zoom, arrows) drawn as centered shapes
+        ├── theme-colors.js  settings window themes: every color worked out from six base colors (default stays in settings.css)
+        ├── app-themes.js  settings window themes: loading the theme files, applying one (colors, logo); themes/*.json, one per theme
+        ├── devbuild-look.js  a devbuild's switch (General → Advanced) between its purple logo and the theme-colored one
         ├── release-notes.js  the release notes' five sections, shared with the release check (tested)
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)
         ├── pause-button.js  the round pause button on the live preview (same switch as the tray)
+        ├── eye-button.js, eye-button.css, input-choice.js  the eye button under it: show or hide the keyboard, mouse and controller (same choice as the tray's Show menu; tested)
         ├── scroll-fade.js   the soft fade at the edges of every scrolling area
         ├── header.js      the header's status, Copy OBS URL and Update ready, drawn with Preact (paintHeader)
         ├── windowbar.js   the window's own minimize / maximize / close buttons

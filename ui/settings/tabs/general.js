@@ -12,7 +12,9 @@ import { changed } from '../preview.js';
 import { inputActive, inputError, platform, setInputActive, setInputError, settings } from '../state.js';
 import { hasMinimizeSetting, inputMethods, systemWord } from '../system-words.js';
 import { resetDialog } from '../dialogs.js';
+import { devLookOn, isDevbuild, setDevLook } from '../devbuild-look.js';
 import { TEXT } from '../text.js';
+import { Appearance } from './general-appearance.js';
 import { Connection } from './general-connection.js';
 import { PauseShortcut } from './general-hotkey.js';
 import { ObsScenes } from './general-obs-scenes.js';
@@ -34,6 +36,8 @@ const WORDS = {
   openOnLaunch: 'Open this window on launch',
   advanced: 'Advanced',
   debugMode: 'Debug mode (for developers)',
+  devLook: 'Devbuild look: keep the purple logo',
+  devLookNote: 'Turn off to see the logo in the theme’s colors. The DEV badge stays.',
   restart: 'Restart server',
   restarted: 'Server restarted',
   dataFolder: 'Open data folder',
@@ -66,6 +70,7 @@ function General() {
       <${PauseShortcut} />
       <${Updates} />
     </div>
+    <${Appearance} />
     <${Advanced} />
   </div>`;
 }
@@ -151,17 +156,43 @@ function Startup() {
   <//>`;
 }
 
+/** Devbuilds only: whether the header keeps its purple logo, or shows the drawn one that follows the theme. */
+function DevLook() {
+  const [on, setOn] = useState(devLookOn());
+  const turn = (want) => {
+    setDevLook(want);
+    setOn(want);
+  };
+  return html`<${Switch} label=${WORDS.devLook} checked=${on} onChange=${turn} test="toggle-general-dev-look" />
+    <${Note} text=${WORDS.devLookNote} />`;
+}
+
 /** Collapsed until opened; its controls stay in the page while closed, so tests and the keyboard order don't change. */
+async function restartServer() {
+  try {
+    await invoke('restart_server');
+    toast(WORDS.restarted);
+  } catch (error) {
+    toast(String(error), true);
+  }
+}
+
+/** Advanced's row of buttons: restart the server, open the data folder, reset everything, quit. */
+function AdvancedButtons() {
+  return html`<div class="btns">
+    <button type="button" data-test="server-restart" onClick=${restartServer}>${WORDS.restart}</button>
+    <button type="button" data-test="general-open-folder" onClick=${() => call('open_folder', { kind: 'root' })}>
+      ${WORDS.dataFolder}
+    </button>
+    <button type="button" class="danger" data-test="general-reset" onClick=${resetDialog}>${WORDS.reset}</button>
+    <button type="button" class="danger" data-test="general-quit" onClick=${() => call('quit_app')}>
+      ${WORDS.quit}
+    </button>
+  </div>`;
+}
+
 function Advanced() {
   const [open, setOpen] = useState(false);
-  const restart = async () => {
-    try {
-      await invoke('restart_server');
-      toast(WORDS.restarted);
-    } catch (error) {
-      toast(String(error), true);
-    }
-  };
   return html`<section class="section-card" aria-labelledby="advancedTitle" data-test="general-advanced">
     <button
       type="button"
@@ -182,16 +213,8 @@ function Advanced() {
         onTurn=${() => changed(true, true)}
       />
       <${Note} text=${TEXT.debugModeHelp} />
-      <div class="btns">
-        <button type="button" data-test="server-restart" onClick=${restart}>${WORDS.restart}</button>
-        <button type="button" data-test="general-open-folder" onClick=${() => call('open_folder', { kind: 'root' })}>
-          ${WORDS.dataFolder}
-        </button>
-        <button type="button" class="danger" data-test="general-reset" onClick=${resetDialog}>${WORDS.reset}</button>
-        <button type="button" class="danger" data-test="general-quit" onClick=${() => call('quit_app')}>
-          ${WORDS.quit}
-        </button>
-      </div>
+      ${isDevbuild() ? html`<${DevLook} />` : null}
+      <${AdvancedButtons} />
     </div>
   </section>`;
 }

@@ -28,7 +28,8 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
              "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language and Win/Alt/Ctrl follow the system (⌘ ⌥ ⌃ on a Mac); "layout": the files' labels
   "hotkeys": { "enabled": false, "pause": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP"; registered only when on and set
   "obs": { "scenes": { "enabled": false, "rules": [] } },   // per OBS scene: { "scene": "Chat", "show": false, "layout": "" }; at most 20 rules, names up to 100 characters, each scene once (case ignored); layout "" = the chosen layout
-  "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 }
+  "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 },
+  "appearance": { "theme": "default", "custom": [] } // the settings window's theme: a built-in id or a custom one's; custom = up to 20 { id, name, colors }
 }
 ```
 
@@ -41,6 +42,7 @@ when chosen), and keeps each style's edits under `styles`:
 "<layoutId>": {
   "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" },        // shared by both styles
   "layoutStyle": "grid",                                           // omitted for the default "shape"
+  "hiddenInputs": ["keyboard"],                                    // whole inputs hidden on the overlay (the eye button); omitted when none
   "styles": {
     "shape": { "positions": { "KeyW": { "x": 1.25, "y": 0 } },     // where keys were dragged to, in key units
                "sizes":     { "Space": { "w": 4.5 }, "KeyW": { "h": 2 } },   // how wide and tall keys were made (w, h or both), in key sizes
@@ -93,10 +95,20 @@ keeps `r`, and the overlay and the Keys tab draw the key turned
 ([proposals/key-rotation.md](proposals/key-rotation.md)). `code` is a key name from the
 [protocol](PROTOCOL.md). The app keeps at most **20** layouts you made.
 
-A layout made **From a KLE file** (New layout) is an ordinary layout file. A key the import couldn't link to a key of the keyboard
+A layout made **From a KLE file** or **From a NohBoard file** (New layout) is an ordinary layout file. A key the import couldn't link to a key of the keyboard
 gets a placeholder `code`, `Unlinked` and a number (`Unlinked1`, `Unlinked2`, ..., unique in the layout): it is drawn
 like any key and never lights up, because no capture method produces such a name. The names are reserved
-([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change.
+([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change. A NohBoard keyboard's mouse
+buttons and wheel get the mouse names from that design (`MouseLeft`, `MouseRight`, `MouseMiddle`, `MouseBack`,
+`MouseForward`, `WheelUp`, `WheelDown`, `WheelLeft`, `WheelRight`): drawn like any key, and lit once mouse support exists.
+
+**NohBoard keyboard files** (`keyboards/<category>/<name>/keyboard.json`, read by `ui/settings/nohboard-layout.js`, never
+shipped): JSON as .NET writes it (a byte-order mark and trailing commas are accepted), with `Version` and `Elements`, a
+list. Each element has `__type` (`KeyboardKey`, `MouseKey`, `MouseScroll`, `MouseSpeedIndicator`), `Boundaries` (a
+polygon in pixels, a list of `{ X, Y }`), `KeyCodes` and `Text`. A keyboard key's codes are Windows virtual keys (1025 is
+the number pad's Enter); a mouse button's are 0 to 4 (left, right, middle, back, forward) and a wheel's 0 to 3 (up, down,
+right, left). One key is the most common key width plus the most common gap (usually 43 + 1 pixels); a polygon that
+isn't a rectangle keeps the part that runs its full height. The speed indicator and styles (`*.style`) are left out.
 
 **Exported layout file** (**Layout → Export to file…**, and what **Import from file…** reads):
 
@@ -121,6 +133,20 @@ settings, nothing else:
 ```
 
 Any subset of fields is allowed; missing ones keep their current value.
+
+## Settings window theme (`ui/settings/themes/<id>.json`, and Export…)
+One theme for the settings window (General → Appearance; docs/design/ui-design-v2.md, section 14). A built-in theme is
+one file in `ui/settings/themes/`; an exported theme is the same shape without `order`, `kind` and `credit`. The
+person's own themes are kept in the settings, under `appearance.custom`.
+
+```json
+{ "id": "ocean", "name": "Ocean", "order": 8,
+  "colors": { "background": "#0e1820", "panel": "#14222d", "text": "#e2edf3",
+              "dim": "#86a1b2", "accent": "#2fb6d9", "error": "#ff6b6b" } }
+```
+
+All six colors are required, as `#rrggbb`. `kind` (`"keycaps"` or `"palette"`) and `credit` mark a borrowed palette.
+Import… gives the theme a new id; a file missing any color is refused.
 
 ## Themes and animations (JavaScript modules)
 Small files that register themselves. They are loaded only by the overlay page. How to write one is in

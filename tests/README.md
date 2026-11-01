@@ -23,7 +23,7 @@ Linux ([LINUX-PORT.md](../docs/LINUX-PORT.md)).
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | keys-editor-snap | keys-editor-board | keys-editor-styles | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -37,8 +37,11 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
   keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.
 - `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
-- `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay).
-- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape), the Reset ▾ menu, the History / View / Tidy toolbar, that the preview and overlay size follow, and that junk positions are cleaned.
+- `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay); the eye button hides the whole keyboard and brings it back as it was.
+- `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape), the Reset ▾ menu, moving several keys, align and space evenly, Undo and Redo. The four `keys-editor*` suites share their test layout and helpers in `tests/e2e/lib/keys-editor-kit.mjs`.
+- `keys-editor-snap` — the Snap and Grid switches, the drag readout and status line, keyboard use and screen-reader labels, the keyboard shortcuts, and that saved sizes and the Even grid style reach the preview and overlay size.
+- `keys-editor-board` — the board: zoom, pan, view memory, board limits, the hidden preview, resize handles, smart guides, the held-key fade and the inspector.
+- `keys-editor-styles` — the view staying put, the layout styles (Keyboard shape | Even grid) and the Reset menu, the centered board, the Hidden keys switch, key height, that junk positions are cleaned, and deleting a layout.
 - `accessibility` — axe-core scans every tab, the Keys tab with a key selected and the new-layout popup. A control without a name a screen reader can say, or one the keyboard can't reach, fails the suite; everything else axe finds (contrast and more) is printed as advice. Accepted exceptions, with a reason, go in the suite's `ACCEPTED` list.
 - `key-rotation` — turning keys: the round handle with and without Snap, the Angle field, Undo and Put back, none in the Even grid, and the live preview drawing a turned key.
 - `ui-sweep` — walks every tab, layout, theme, animation and slider (at both ends) and fails on any JavaScript error.
@@ -107,11 +110,12 @@ Rules:
 
 | Hook | What it is |
 |---|---|
-| `app-header`, `brand-logo`, `brand-title`, `dev-badge` | The top bar, its logo, its title and (devbuilds only) the DEV badge, added by `tools/devbuild-title.mjs` |
+| `app-header`, `brand-logo`, `brand-logo-drawn`, `brand-title`, `dev-badge` | The top bar, its logo picture (shown in devbuilds), the drawn logo that follows the settings theme, its title and (devbuilds only) the DEV badge, added by `tools/devbuild-title.mjs` |
 | `keyboard-access-banner`, `keyboard-access-text`, `keyboard-access-button`, `keyboard-access-command` | macOS and Linux Wayland: the notice under the header that asks for keyboard access, asks for a restart, explains Secure Input, or gives the input-group command (Linux) |
 | `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS URL button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
+| `eye-button`, `eye-keyboard`, `eye-mouse`, `eye-controller` | The eye button under the pause button, and its Keyboard, Mouse and Controller toggles |
 | `preview-frame` | The live preview frame |
 | `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `general`, `debug`) | The tab bar and its buttons |
 | `github-link` | The GitHub button at the bottom of the tab bar |
@@ -129,9 +133,9 @@ Rules:
 | `layout-add` | The dashed "+ New layout" card |
 | `layout-cards`, `layout-count` | The Layout tab's card grid, and its "Your layouts: N / 20" counter |
 | `layout-menu` | A layout card's "⋯" button |
-| `new-layout-start`, `new-layout-blank`, `new-layout-built-in`, `new-layout-kle` | New layout popup: the Start from choice and its three buttons |
+| `new-layout-start`, `new-layout-blank`, `new-layout-built-in`, `new-layout-kle`, `new-layout-nohboard` | New layout popup: the Start from choice and its buttons (NohBoard on Windows only) |
 | `other-layouts`, `other-layout-add` | New layout popup, Built-in: the list of built-in layouts, one card's Add |
-| `dialog-from-kle` | New layout popup, From a KLE file: the **Choose file…** button (opens the file picker) |
+| `dialog-from-kle`, `dialog-from-nohboard` | New layout popup, From a KLE / NohBoard file: the **Choose file…** button (opens the file picker) |
 | `kle-site-link` | New layout popup, From a KLE file: the keyboard-layout-editor.com link (opens the site in the browser) |
 | `kle-import-name`, `kle-import-summary`, `kle-import-back`, `kle-import-create` | The Import from KLE popup: its Name box, the summary line, Back (to New layout) and Create layout |
 | `animation-cards`, `animation-card-<id>` | The Animation tab's card gallery, and one animation's card |
@@ -166,7 +170,8 @@ Rules:
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | General's switches (`Switch` in `blocks.js`, `role="switch"`, `aria-checked`) |
 | `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS URL: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number in **General → Updates** |
-| `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page) |
+| `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle`, `general-appearance`, `app-themes`, `app-theme-<id>`, `app-theme-add`, `app-theme-import`, `app-theme-menu` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page), the Appearance card, its gallery, each settings theme's card, + New theme, Import… and a custom theme's ⋯ menu |
+| `theme-edit-bar`, `theme-edit-name`, `theme-edit-<color>`, `theme-edit-readable`, `theme-edit-hard-to-read`, `theme-edit-export`, `theme-edit-cancel`, `theme-edit-save`, `dialog-delete-theme-confirm` | The docked theme edit bar: its name box, the six color pickers (`background`, `panel`, `text`, `dim`, `accent`, `error`), the readability note, its buttons; and the confirm button of Delete… |
 | `server-port`, `server-port-apply` | Connection: the port; `server-restart` is in Advanced |
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | Connection: the secure-link switch (`aria-checked`), its note, and its buttons |
 | `input-method-select`, `input-method-info`, `input-method-error` | Keyboard input: the segmented choice (a radiogroup; the chosen button has `aria-checked="true"`), its note, its error |

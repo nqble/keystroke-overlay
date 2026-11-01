@@ -23,3 +23,10 @@ async function paintMaxButton() {
 }
 
 appWin.onResized(paintMaxButton);
+
+// A popup's dimmed backdrop starts under the header, so the header stays usable (popups.css reads this).
+const header = document.querySelector('header');
+const keepHeaderHeight = () =>
+  document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
+new ResizeObserver(keepHeaderHeight).observe(header);
+keepHeaderHeight();

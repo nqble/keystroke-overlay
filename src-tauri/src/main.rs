@@ -11,6 +11,7 @@ mod debug;
 mod downgrade;
 mod grid;
 mod hotkeys;
+mod input_kinds;
 mod key_angles;
 mod key_labels;
 mod keyboard;
@@ -73,11 +74,13 @@ fn main() {
             commands::assets::open_folder,
             commands::assets::create_layout,
             commands::layout_import::pick_layout_source,
+            commands::layout_import::typing_virtual_keys,
             commands::layout_import::add_layout,
             commands::assets::export_layouts,
             commands::assets::import_layouts,
             commands::settings::reset_settings,
             commands::assets::delete_layout,
+            commands::assets::rename_layout,
             commands::assets::list_presets,
             commands::assets::save_preset,
             commands::assets::load_preset,
@@ -100,6 +103,9 @@ fn main() {
             commands::updates::open_release_page,
             commands::updates::open_project_page,
             commands::updates::open_kle_site,
+            commands::appearance::list_app_themes,
+            commands::appearance::export_app_theme,
+            commands::appearance::import_app_theme,
             commands::updates::ack_whats_new,
             commands::settings::ack_first_run,
             commands::updates::get_release_notes,

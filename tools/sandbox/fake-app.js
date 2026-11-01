@@ -53,6 +53,34 @@
   };
   const NO_UPDATE = { available: false, current: '1.4.0', channel: 'stable' };
 
+  // A NohBoard keyboard.json (written here, in NohBoard's shape) for New layout → From a NohBoard file: W A S D, Space,
+  // a key NohBoard can show but the app can't (F13), and two mouse buttons, drawn dashed until mouse support exists.
+  const nohBoardKey = (type, keyCode, text, left, top, width = 43) => ({
+    __type: type,
+    KeyCodes: [keyCode],
+    Text: text,
+    Boundaries: [
+      { X: left, Y: top },
+      { X: left + width, Y: top },
+      { X: left + width, Y: top + 43 },
+      { X: left, Y: top + 43 },
+    ],
+  });
+  const SANDBOX_NOHBOARD = {
+    Version: 2,
+    Width: 320,
+    Height: 140,
+    Elements: [
+      nohBoardKey('KeyboardKey', 87, 'W', 54, 10),
+      nohBoardKey('KeyboardKey', 65, 'A', 10, 54),
+      nohBoardKey('KeyboardKey', 83, 'S', 54, 54),
+      nohBoardKey('KeyboardKey', 68, 'D', 98, 54),
+      nohBoardKey('KeyboardKey', 124, 'F13', 142, 10),
+      nohBoardKey('KeyboardKey', 32, '', 10, 98, 131),
+      nohBoardKey('MouseKey', 0, 'LMB', 200, 10),
+      nohBoardKey('MouseKey', 1, 'RMB', 244, 10),
+    ],
+  };
   // A KLE file (keyboard-layout-editor.com, Download JSON) for New layout → From a KLE file: tests/ui/fixtures/kle/ansi-60.kle.json
   // with Fn in place of the right Win key, so the import shows one key it can't link.
   const SANDBOX_KLE = [
@@ -156,18 +184,30 @@
       ownLayouts.push({ ...structuredClone(full), id, name: name.trim() || 'My layout', user: true });
       return id;
     },
+    rename_layout: ({ id, name }) => {
+      const own = ownLayouts.find((layout) => layout.id === id);
+      if (!own) throw 'Only layouts you made can be renamed';
+      own.name = name.trim() || own.name;
+    },
     delete_layout: ({ id }) => {
       ownLayouts = ownLayouts.filter((layout) => layout.id !== id);
     },
-    // New layout → From a KLE file → Choose file…: the "picked file" is SANDBOX_KLE below (a 60% with an Fn key, which can't be
-    // linked); add_layout keeps the keys the window worked out, like create_layout
-    pick_layout_source: () => ({ fileName: 'sandbox-60.json', text: JSON.stringify(SANDBOX_KLE) }),
+    // New layout → From a KLE file → Choose file…: the "picked file" is SANDBOX_KLE above (a 60% with an Fn key, which can't
+    // be linked), or SANDBOX_NOHBOARD when the NohBoard choice is open; add_layout keeps the keys the window worked out
+    pick_layout_source: () =>
+      document.querySelector('[data-test="dialog-from-nohboard"]')
+        ? { fileName: 'keyboard.json', folderName: 'Sandbox WASD', text: JSON.stringify(SANDBOX_NOHBOARD) }
+        : { fileName: 'sandbox-60.json', folderName: 'Downloads', text: JSON.stringify(SANDBOX_KLE) },
+    typing_virtual_keys: () => ({ 65: 'KeyA', 68: 'KeyD', 83: 'KeyS', 87: 'KeyW' }),
     add_layout: ({ name, keys }) => {
       const id = `user-${ownLayouts.length + 1}-${Date.now()}`;
       ownLayouts.push({ id, name: name.trim() || 'My layout', keys: structuredClone(keys), user: true });
       return id;
     },
     list_fonts: () => [],
+    export_app_theme: () => true, // the sandbox can't show a save dialog: it pretends the file was saved
+    import_app_theme: () => null, // ...and that the person cancelled the file picker
+    list_app_themes: () => fetch('/__sandbox__/app-themes.json').then((response) => response.json()),
     // presets live in memory for the visit, so saving, loading and deleting can be tried
     list_presets: () => Object.keys(presets),
     save_preset: ({ name, data }) => {

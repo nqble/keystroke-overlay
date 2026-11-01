@@ -32,7 +32,8 @@ let editor = null;
 /** The one editor (made the first time it is asked for). */
 export const getEditor = () => (editor ??= createEditor());
 
-function createEditor() {
+/** The editor's shared state and elements, before any layout is shown (context.js describes each field). */
+function newContext() {
   /** @type {import('./context.js').EditorContext} */
   const ctx = {
     nodes: new Map(),
@@ -54,6 +55,12 @@ function createEditor() {
     arrangeBar: null,
     zoomLabel: null,
   };
+  return ctx;
+}
+
+function createEditor() {
+  const ctx = newContext();
+
   const zoomControls = buildZoomControls(ctx);
   const arrangeBar = buildArrangeBar(ctx);
   const box = el(
@@ -137,6 +144,56 @@ function chooseKey(ctx, code, additive) {
   setSelectedKeys(next);
 }
 
+/** Gives the board's size (in keys) and origin to the CSS and to the tests, and names the board for screen readers. */
+function sizeBoard(ctx) {
+  ctx.canvas.style.setProperty('--board-w', String(ctx.board.w));
+  ctx.canvas.style.setProperty('--board-h', String(ctx.board.h));
+  ctx.box.style.setProperty('--board-w', String(ctx.board.w));
+  ctx.box.style.setProperty('--board-h', String(ctx.board.h));
+  ctx.canvas.dataset.boardW = String(ctx.board.w);
+  ctx.canvas.dataset.boardH = String(ctx.board.h);
+  ctx.canvas.dataset.originX = String(ctx.frame.originX);
+  ctx.canvas.dataset.originY = String(ctx.frame.originY);
+  ctx.box.setAttribute('aria-label', `Keyboard layout ${ctx.layout.name}`);
+}
+
+/**
+ * A different layout, or layout style, makes its key elements again. Another layout also starts with its own first
+ * view; a layout-style switch (or its Undo) keeps the view where the person left it.
+ */
+function startOverIfNewLayout(ctx) {
+  const key = `${ctx.layout.id}:${ctx.profile.layoutStyle}`;
+  if (key === ctx.shownFor) return;
+  if (!ctx.shownFor.startsWith(`${ctx.layout.id}:`)) {
+    ctx.needsFirstView = true;
+    ctx.viewTouched = false;
+  }
+  ctx.shownFor = key;
+  ctx.nodes.clear();
+  ctx.handles = null;
+  ctx.canvas.replaceChildren();
+}
+
+/** Makes the keys that are new, paints every key, and removes the keys the layout no longer has. */
+function paintKeys(ctx, marks) {
+  const present = new Set();
+  for (const item of ctx.placed) {
+    present.add(item.key.code);
+    let node = ctx.nodes.get(item.key.code);
+    if (!node) {
+      node = makeKey(ctx, item);
+      ctx.nodes.set(item.key.code, node);
+      ctx.canvas.append(node);
+    }
+    paintKey(ctx, node, item, marks);
+  }
+  for (const [code, node] of ctx.nodes) {
+    if (present.has(code)) continue;
+    node.remove();
+    ctx.nodes.delete(code);
+  }
+}
+
 /**
  * Show a layout and its edits. Only the keys that changed are touched; the key elements are made again only when the
  * layout, or its layout style, is a different one.
@@ -155,47 +212,11 @@ function update(ctx, nextLayout, nextProfile) {
     y: round2(item.y + ctx.frame.originY),
   }));
   const placedBoxes = ctx.placed.map(turnedBox); // the overlap warning uses a turned key's real shape
-  ctx.canvas.style.setProperty('--board-w', String(ctx.board.w));
-  ctx.canvas.style.setProperty('--board-h', String(ctx.board.h));
-  ctx.box.style.setProperty('--board-w', String(ctx.board.w));
-  ctx.box.style.setProperty('--board-h', String(ctx.board.h));
-  ctx.canvas.dataset.boardW = String(ctx.board.w);
-  ctx.canvas.dataset.boardH = String(ctx.board.h);
-  ctx.canvas.dataset.originX = String(ctx.frame.originX);
-  ctx.canvas.dataset.originY = String(ctx.frame.originY);
-  ctx.box.setAttribute('aria-label', `Keyboard layout ${ctx.layout.name}`);
-
-  const key = `${ctx.layout.id}:${ctx.profile.layoutStyle}`;
-  if (key !== ctx.shownFor) {
-    // Another layout starts with its own first view. A layout-style switch (or its Undo) only redraws the keys: the
-    // view stays where the person left it.
-    if (!ctx.shownFor.startsWith(`${ctx.layout.id}:`)) {
-      ctx.needsFirstView = true;
-      ctx.viewTouched = false;
-    }
-    ctx.shownFor = key;
-    ctx.nodes.clear();
-    ctx.handles = null;
-    ctx.canvas.replaceChildren();
-  }
+  sizeBoard(ctx);
+  startOverIfNewLayout(ctx);
   const hidden = new Set(ctx.profile.disabledKeys);
   const clash = overlappingCodes(placedBoxes.filter((boxOf) => !hidden.has(boxOf.code)));
-  const present = new Set();
-  for (const item of ctx.placed) {
-    present.add(item.key.code);
-    let node = ctx.nodes.get(item.key.code);
-    if (!node) {
-      node = makeKey(ctx, item);
-      ctx.nodes.set(item.key.code, node);
-      ctx.canvas.append(node);
-    }
-    paintKey(ctx, node, item, { hidden, clash });
-  }
-  for (const [code, node] of ctx.nodes)
-    if (!present.has(code)) {
-      node.remove();
-      ctx.nodes.delete(code);
-    }
+  paintKeys(ctx, { hidden, clash });
   ctx.canvas.classList.toggle('grid-dots', gridShown());
   updateHandles(ctx, hidden);
   placeArrangeBar(ctx);

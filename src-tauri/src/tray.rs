@@ -1,4 +1,5 @@
-//! System-tray icon + menu, and the quick actions behind it (also callable from the settings window).
+//! System-tray icon + menu, and the quick actions behind it (also callable from the settings window). The Show menu's
+//! toggles are in input_kinds.rs.
 
 use crate::server::{self, Shared};
 use crate::settings;
@@ -249,7 +250,18 @@ struct TrayMenu {
     pause: CheckMenuItem<tauri::Wry>,
     layouts: Vec<(String, CheckMenuItem<tauri::Wry>)>,
     layout_menu: Submenu<tauri::Wry>,
+    shown: CheckItems,
 }
+
+/// Check items by name: the Layout and Show menus.
+type CheckItems = Vec<(String, CheckMenuItem<tauri::Wry>)>;
+
+/// The tray's words for the Show menu, by input name (input_kinds.rs). The same choice as the eye button.
+const SHOW_WORDS: [(&str, &str); 3] = [
+    ("keyboard", "Keyboard"),
+    ("mouse", "Mouse"),
+    ("controller", "Controller"),
+];
 
 /// The right-click menu: Open settings, Copy OBS URL, Pause, the Layout submenu (the current layout ticked), Restart
 /// server and Quit. Plain construction: no lock is held and no thread is started here.
@@ -275,11 +287,13 @@ fn build_menu(app: &tauri::App, shared: &Shared) -> tauri::Result<TrayMenu> {
         .map(|(_, i)| i as &dyn IsMenuItem<tauri::Wry>)
         .collect();
     let layout_menu = SubmenuBuilder::new(app, "Layout").items(&refs).build()?;
+    let (shown, show_menu) = build_show_menu(app, shared)?;
     let menu = MenuBuilder::new(app)
         .item(&MenuItemBuilder::with_id("open", "Open settings").build(app)?)
         .item(&MenuItemBuilder::with_id("copy", "Copy OBS URL").build(app)?)
         .separator()
         .item(&pause_item)
+        .item(&show_menu)
         .item(&layout_menu)
         .item(&MenuItemBuilder::with_id("restart", "Restart server").build(app)?)
         .separator()
@@ -290,7 +304,26 @@ fn build_menu(app: &tauri::App, shared: &Shared) -> tauri::Result<TrayMenu> {
         pause: pause_item,
         layouts: layout_items,
         layout_menu,
+        shown,
     })
+}
+
+/// The Show submenu: Keyboard, Mouse and Controller, ticked while shown on the selected layout, unavailable while that
+/// input is off. sync_tray keeps them current.
+fn build_show_menu(app: &tauri::App, shared: &Shared) -> tauri::Result<(CheckItems, Submenu<tauri::Wry>)> {
+    let current = shared.settings.read().unwrap().clone();
+    let mut items = Vec::new();
+    for (kind, word) in SHOW_WORDS {
+        let enabled = crate::input_kinds::input_enabled(&current, kind);
+        let item = CheckMenuItemBuilder::with_id(format!("show:{kind}"), word)
+            .enabled(enabled)
+            .checked(enabled && crate::input_kinds::input_shown(&current, kind))
+            .build(app)?;
+        items.push((kind.to_string(), item));
+    }
+    let refs: Vec<&dyn IsMenuItem<tauri::Wry>> = items.iter().map(|(_, i)| i as &dyn IsMenuItem<tauri::Wry>).collect();
+    let menu = SubmenuBuilder::new(app, "Show").items(&refs).build()?;
+    Ok((items, menu))
 }
 
 /// The tray icon, and a copy of it with the orange "update available" dot.
@@ -311,6 +344,7 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         pause: pause_item,
         layouts: layout_items,
         layout_menu,
+        shown,
     } = build_menu(app, &shared)?;
     let (icon, icon_badged) = build_icons(app);
     let update_item = MenuItemBuilder::with_id("update", "Update available").build(app)?;
@@ -340,7 +374,11 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
                 "update" => open_settings_tab(app, "general"),
                 "quit" => app.exit(0),
                 other => {
-                    if let Some(layout_id) = other.strip_prefix("layout:") {
+                    if let Some(kind) = other.strip_prefix("show:") {
+                        if crate::input_kinds::toggle_input_inner(app, kind).is_err() {
+                            sync_tray(app);
+                        }
+                    } else if let Some(layout_id) = other.strip_prefix("layout:") {
                         if set_layout_inner(app, layout_id).is_err() {
                             sync_tray(app);
                         }
@@ -363,6 +401,7 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         pause: pause_item,
         layouts: layout_items,
         layout_menu,
+        shown,
         menu,
         update_item,
         update_shown: false,

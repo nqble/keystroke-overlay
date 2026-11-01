@@ -1,0 +1,15 @@
+{
+  "id": "8008",
+  "name": "8008",
+  "order": 2,
+  "kind": "keycaps",
+  "credit": "Colors of the GMK 8008 keycap set",
+  "colors": {
+    "background": "#333a45",
+    "panel": "#3d4552",
+    "text": "#f8f9fa",
+    "dim": "#adb4c2",
+    "accent": "#f44c7f",
+    "error": "#ff6b6b"
+  }
+}

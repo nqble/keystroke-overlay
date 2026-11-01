@@ -1,6 +1,9 @@
 # Proposal: controller input with gilrs
 
-Status: **Proposed** (2026-10-19); not approved yet. Step 1, a spike behind an off-by-default cargo feature, is built on a
+Status: **Proposed** (2026-10-19); not approved yet. Decided 2026-10-31: common gamepads first (Xbox, PlayStation, Switch,
+third-party), drawn as a controller ([drawn-devices.md](drawn-devices.md), which also lists the idle improvements:
+listen only while a controller is connected, event-based where possible, pause while no overlay is shown), trigger
+thresholds tried by hand, ViGEmBus for the Windows e2e test. Step 1, a spike behind an off-by-default cargo feature, is built on a
 branch and measured on Windows and Linux without a controller (see "Step 1: the spike"). gilrs is not approved as a
 dependency yet.
 

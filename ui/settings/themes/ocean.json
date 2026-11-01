@@ -1,0 +1,13 @@
+{
+  "id": "ocean",
+  "name": "Ocean",
+  "order": 8,
+  "colors": {
+    "background": "#0e1820",
+    "panel": "#14222d",
+    "text": "#e2edf3",
+    "dim": "#86a1b2",
+    "accent": "#2fb6d9",
+    "error": "#ff6b6b"
+  }
+}

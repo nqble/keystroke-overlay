@@ -1,0 +1,15 @@
+{
+  "id": "nord",
+  "name": "Nord",
+  "order": 4,
+  "kind": "palette",
+  "credit": "Colors of the Nord palette by Arctic Ice Studio",
+  "colors": {
+    "background": "#242933",
+    "panel": "#2e3440",
+    "text": "#dfe4ed",
+    "dim": "#949eb0",
+    "accent": "#88c0d0",
+    "error": "#bf616a"
+  }
+}

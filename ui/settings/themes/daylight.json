@@ -1,0 +1,13 @@
+{
+  "id": "daylight",
+  "name": "Daylight",
+  "order": 12,
+  "colors": {
+    "background": "#eef3f6",
+    "panel": "#fbfdfe",
+    "text": "#16242e",
+    "dim": "#56707f",
+    "accent": "#00809a",
+    "error": "#c43a3a"
+  }
+}

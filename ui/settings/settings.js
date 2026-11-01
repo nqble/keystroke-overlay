@@ -7,6 +7,8 @@
 //  HOW TO ADD A SETTING: add a line to CONTROLS in controls.js; it is drawn automatically. Also add its default value
 //  in src-tauri/src/settings.rs and, if the overlay uses it, read it in ui/overlay/overlay.js.
 // =====================================================================================================================
+import { applySavedAppTheme } from './app-themes.js';
+import { applySavedDevLook } from './devbuild-look.js';
 import { $, call, invoke } from './helpers.js';
 import { openFirstRun } from './first-run.js';
 import { GitHubLink } from './github-link.js';
@@ -14,6 +16,7 @@ import { paintAccess, setKeyboardAccess } from './keyboard-access.js';
 import { paintHeader } from './header.js';
 import { html, render as draw } from './html.js';
 import { paintPause, showServerError, resync } from './messages.js';
+import { paintEyeButton, setUpEyeButton } from './eye-button.js';
 import { hideMenu } from './menu.js';
 import { refreshFades } from './scroll-fade.js';
 import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
@@ -87,6 +90,7 @@ export async function render(scroll = null) {
   pane.scrollTop = scroll;
   refreshFades();
   paintHeader(); // a tab may have changed the link (new port or key), which the header status shows
+  paintEyeButton(); // the selected layout or its hidden inputs may have changed
 }
 
 // When the window is resized: refit the preview, close any open menu, and redraw the Keys tab (its keyboard is sized to
@@ -110,6 +114,8 @@ addEventListener('resize', () => {
   // so it never delays the first screen.
   const [state, layoutList, fonts] = await Promise.all([call('get_state'), call('list_layouts'), call('list_fonts')]);
   setSettings(state.settings);
+  applySavedAppTheme(state.settings.appearance.theme); // before the first draw where it can: the theme files load in parallel
+  applySavedDevLook();
   setObsUrl(state.url);
   setAppVersion(state.version);
   setPaused(state.paused);
@@ -124,6 +130,7 @@ addEventListener('resize', () => {
   // e.g. the tray's "Update available" opens General
   if (state.gotoTab && findTab(state.gotoTab, !!state.settings.general?.debugMode)) setTab(state.gotoTab);
   paintPause();
+  setUpEyeButton();
   updateObs();
   // the overlay can't load, but the port can still be fixed
   if (state.serverError) {

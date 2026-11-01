@@ -36,9 +36,11 @@
   }
 }
 
+/* A popup's dimmed backdrop starts under the header (--header-height, set in windowbar.js), so the window can still be
+   dragged and its minimize, maximize and close buttons still work while a popup is open. */
 #modal {
   position: fixed;
-  inset: 0;
+  inset: var(--header-height, 0px) 0 0;
   background: var(--color-scrim);
   display: flex;
   align-items: center;
@@ -167,7 +169,7 @@
 #updModal,
 #dlg {
   position: fixed;
-  inset: 0;
+  inset: var(--header-height, 0px) 0 0;
   background: var(--color-scrim);
   display: flex;
   align-items: center;

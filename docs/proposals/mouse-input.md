@@ -1,7 +1,8 @@
 # Proposal: mouse buttons and wheel
 
-Status: **Open idea** (2026-10-20): wanted, not planned for a release yet (likely not v2.0). How mouse buttons and the
-wheel should look is still open. Nothing is built.
+Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
+looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
+below stands. Nothing is built.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings

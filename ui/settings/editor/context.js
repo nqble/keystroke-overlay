@@ -67,3 +67,24 @@ export function insideBox(ctx, pointerEvent) {
 
 /** A pointer position as a point on the board in pixels at 100% zoom. */
 export const boardPoint = (ctx, pointerEvent) => toBoard(insideBox(ctx, pointerEvent), ctx.view);
+
+/**
+ * Follows one press of the pointer on `target`: keeps the pointer while it moves (so it can leave the element), calls
+ * `move` for each move, and `done` once when the press ends (released or taken away by the system).
+ */
+export function followPointer(target, pointerEvent, move, done) {
+  try {
+    target.setPointerCapture(pointerEvent.pointerId);
+  } catch {
+    /* not a real pointer (tests): events still arrive on the element itself */
+  }
+  const end = () => {
+    target.removeEventListener('pointermove', move);
+    target.removeEventListener('pointerup', end);
+    target.removeEventListener('pointercancel', end);
+    done();
+  };
+  target.addEventListener('pointermove', move);
+  target.addEventListener('pointerup', end);
+  target.addEventListener('pointercancel', end);
+}
