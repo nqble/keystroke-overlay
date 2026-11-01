@@ -6,6 +6,7 @@ import { fitInBox, stagePad } from '/overlay/fit.js';
 import { angleOf, turnedBox } from '/overlay/turn.js';
 import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
+import { hiddenInputsOf, inputKind } from '/overlay/input-kinds.js';
 
 // What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
 // own font (San Francisco on a Mac), so the keys look right on any computer that shows the overlay (OBS may run on
@@ -145,6 +146,7 @@ function profileOf(nextSettings, layout) {
     positions: edits.positions ?? {},
     sizes: edits.sizes ?? {},
     rotations: edits.rotations ?? {},
+    hiddenInputs: [...hiddenInputsOf(savedProfile)], // a list, not a Set, so structureKey sees a change
   };
 }
 
@@ -214,10 +216,13 @@ function build(nextSettings, layout) {
   if (!layout) return;
   const prof = profileOf(nextSettings, layout);
   const off = new Set(prof.disabledKeys);
+  // a key is drawn unless it is hidden by itself or its whole input is hidden (the eye button, input-kinds.js)
+  const hiddenInputs = new Set(prof.hiddenInputs);
+  const drawn = (layoutKey) => !off.has(layoutKey.code) && !hiddenInputs.has(inputKind(layoutKey.code));
   // A key the user moved is drawn at its saved position; every other key stays where the layout file puts it. The
   // overlay's size below comes from the keys actually drawn (their positions and widths), so a compact layout is a
   // compact overlay in OBS.
-  const keys = layout.keys.filter((k) => !off.has(k.code)).map((layoutKey) => placedKey(layoutKey, layout, prof));
+  const keys = layout.keys.filter(drawn).map((layoutKey) => placedKey(layoutKey, layout, prof));
   if (!keys.length) {
     reportSize(0, 0);
     return;

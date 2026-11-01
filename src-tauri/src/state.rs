@@ -14,6 +14,8 @@ pub struct TrayItems {
     pub pause: CheckMenuItem<tauri::Wry>,
     pub layouts: Vec<(String, CheckMenuItem<tauri::Wry>)>,
     pub layout_menu: Submenu<tauri::Wry>,
+    /// Show keyboard / mouse / controller, by input name (input_kinds.rs).
+    pub shown: Vec<(String, CheckMenuItem<tauri::Wry>)>,
     /// The tray menu, the "Update available" entry that is added at its top while an update exists, and the two icons.
     pub menu: Menu<tauri::Wry>,
     pub update_item: MenuItem<tauri::Wry>,
@@ -66,18 +68,38 @@ pub fn sync_tray(app: &AppHandle) {
         .unwrap_or("")
         .to_string();
     let paused = st.shared.bus.paused.load(Ordering::Relaxed);
+    let inputs: Vec<(String, bool, bool)> = {
+        let current = st.shared.settings.read().unwrap();
+        crate::input_kinds::INPUT_KINDS
+            .iter()
+            .map(|kind| {
+                let enabled = crate::input_kinds::input_enabled(&current, kind);
+                (
+                    kind.to_string(),
+                    enabled,
+                    enabled && crate::input_kinds::input_shown(&current, kind),
+                )
+            })
+            .collect()
+    };
     // Copy the items out and release the lock first: setting a check mark hops to the main thread, which may be
     // waiting for this same lock (a tray click), and holding it here could freeze the app.
-    let (pause, layouts) = {
+    let (pause, layouts, shown) = {
         let guard = st.tray.lock().unwrap();
         match guard.as_ref() {
-            Some(t) => (t.pause.clone(), t.layouts.clone()),
+            Some(t) => (t.pause.clone(), t.layouts.clone(), t.shown.clone()),
             None => return,
         }
     };
     let _ = pause.set_checked(paused);
     for (id, item) in &layouts {
         let _ = item.set_checked(*id == cur);
+    }
+    for (kind, item) in &shown {
+        if let Some((_, enabled, checked)) = inputs.iter().find(|(name, _, _)| name == kind) {
+            let _ = item.set_enabled(*enabled);
+            let _ = item.set_checked(*checked);
+        }
     }
 }
 
