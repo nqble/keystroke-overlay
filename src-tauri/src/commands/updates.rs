@@ -254,8 +254,14 @@ pub fn ack_whats_new(st: State<AppState>) {
     let _ = settings::save(&st.shared.paths.settings(), &current_settings);
 }
 
+/// Where a release's "Which file do I download?" table starts (tools/download-table.mjs; keep the heading in step). It
+/// is for visitors of the release page, so What's new leaves it out.
+const DOWNLOAD_TABLE_HEADING: &str = "### Which file do I download?";
+
 fn release_notes_from(release: &Value, ver: &str) -> Value {
-    let body: String = release["body"].as_str().unwrap_or("").chars().take(20000).collect();
+    let full = release["body"].as_str().unwrap_or("");
+    let notes = full.split(DOWNLOAD_TABLE_HEADING).next().unwrap_or("").trim_end();
+    let body: String = notes.chars().take(20000).collect();
     json!({
         "version": ver,
         "title": release["name"].as_str().filter(|s| !s.is_empty()).map(String::from).unwrap_or_else(|| format!("v{ver}")),
@@ -359,6 +365,12 @@ mod tests {
         let empty = release_notes_from(&json!({ "name": "", "body": null }), "9.9.9");
         assert_eq!(empty["title"], "v9.9.9");
         assert_eq!(empty["body"], "");
+    }
+    #[test]
+    fn whats_new_leaves_out_the_download_table() {
+        let body = "- one\n- two\n\n### Which file do I download?\n\n| Your computer | Download | |";
+        let notes = release_notes_from(&json!({ "name": "v2.1.0", "body": body }), "2.1.0");
+        assert_eq!(notes["body"], "- one\n- two");
     }
     #[test]
     fn channel_urls() {

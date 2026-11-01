@@ -92,19 +92,25 @@ async function checkPortsFree() {
       throw new Error(`Port ${port} is busy. Close whatever uses it (a previous test run?) and try again.`);
 }
 
+// The version the fake update server offers (tests/e2e/lib/mock-updates.mjs, its default MOCK_VERSION).
+const MOCK_UPDATE_VERSION = '1.1.4';
+
 /** A throwaway signing key, a harmless fake installer signed with it, and the config that makes the test copy look old. */
 function prepareUpdateFixtures() {
   // ---- test signing key + a harmless fake installer, signed with it
   log('Preparing a throwaway signing key and fake installer');
   const key = join(WORK, 'test.key'),
-    setup = join(WORK, 'setup-1.1.4.exe');
+    setup = join(WORK, `setup-${MOCK_UPDATE_VERSION}.exe`);
   if (!existsSync(key))
     run('npx', ['tauri', 'signer', 'generate', '-w', `"${key}"`, '--ci', '-p', '""'], { stdio: 'ignore' });
-  if (!existsSync(setup + '.sig')) {
+  if (!existsSync(setup)) {
     copyFileSync(join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'whoami.exe'), setup);
     appendFileSync(setup, Buffer.alloc(3_000_000));
-    run('npx', ['tauri', 'signer', 'sign', '-f', `"${key}"`, '-p', '""', `"${setup}"`], { stdio: 'ignore' });
   }
+  // signed every run, with the version inside the signature as for real releases (the app has requireSignedVersion on;
+  // a signature kept from an older run has no version)
+  const signArgs = ['tauri', 'signer', 'sign', '-f', `"${key}"`, '-p', '""', '--app-version', MOCK_UPDATE_VERSION];
+  run('npx', [...signArgs, `"${setup}"`], { stdio: 'ignore' });
   writeFileSync(
     join(WORK, 'cfg.json'),
     JSON.stringify({
