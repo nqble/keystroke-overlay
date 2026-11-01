@@ -61,6 +61,7 @@ fn main() {
             commands::settings::set_port,
             commands::settings::set_autostart,
             hotkeys::set_pause_hotkey,
+            hotkeys::set_open_settings_hotkey,
             commands::settings::list_layouts,
             commands::settings::copy_text,
             commands::settings::quit_app,

@@ -1,6 +1,6 @@
 # Future inputs and features: the plan to follow
 
-Status: **design only, except the pause shortcut** (built in v2.0: `hotkeys.pause`, src-tauri/src/hotkeys.rs; next/previous layout and open settings are not built). **None of the rest is promised;** mouse buttons and controller
+Status: **design only, except the pause shortcut** (built: `hotkeys.pause` in v2.0 and `hotkeys.openSettings`, src-tauri/src/hotkeys.rs; next/previous layout is not built). **None of the rest is promised;** mouse buttons and controller
 input are the likeliest next ones (proposals in [../proposals/](../proposals/README.md)). This page fixes the decisions that are hard to change later,
 so whoever builds one of these features, a person or a Claude session, builds it the same way. Read it before starting
 any of them, and update it if a decision changes.
@@ -82,8 +82,8 @@ plain, additive changes:
 ```json
 "inputs":  { "mouse": { "enabled": false }, "gamepad": { "enabled": false } },
 "games":   { "enabled": false, "rules": [ { "program": "VALORANT.exe", "layout": "wasd", "preset": "" } ] },
-"hotkeys": { "enabled": false, "pause": "" },   // built (hotkeys.rs); add "nextLayout": "" when that is built, and make
-                                                //   set_pause_hotkey merge into this object instead of replacing it
+"hotkeys": { "enabled": false, "pause": "", "openSettings": "" },   // built (hotkeys.rs); add "nextLayout": "" when
+                                                //   that is built (each set_*_hotkey changes only its own field)
 "window":  { "enabled": false, "x": 0, "y": 0, "clickThrough": true, "alwaysOnTop": true }
 "obs":     { "scenes": { "enabled": false, "rules": [] } }   // built (obs_scenes.rs); a later
                                                 //   obs-websocket feature adds to "obs" instead of a new name

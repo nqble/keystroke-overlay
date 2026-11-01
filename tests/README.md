@@ -176,6 +176,7 @@ Rules:
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | Connection: the secure-link switch (`aria-checked`), its note, and its buttons |
 | `input-method-select`, `input-method-info`, `input-method-error` | Keyboard input: the segmented choice (a radiogroup; the chosen button has `aria-checked="true"`), its note, its error |
 | `general-hotkey`, `toggle-hotkeys-enabled`, `hotkey-pause-record`, `hotkey-pause-clear` | Pause shortcut: its section, the switch, the button that records a shortcut, and Clear |
+| `general-open-settings-hotkey`, `hotkey-open-settings-record`, `hotkey-open-settings-clear` | Open settings shortcut: its section, the button that records a shortcut, and Clear |
 | `general-obs-scenes`, `toggle-obs-scenes-enabled`, `obs-scenes-count`, `obs-scenes-edit`; in its popup `obs-scene-rule` + `data-index`, `obs-scene-name`, `obs-scene-layout`, `obs-scene-remove`, `obs-scene-problem`, `obs-scene-add`, `obs-scenes-save` | OBS scenes: its section, the switch, the count and **Edit scenes…**; in the popup one rule row with its name box, "In this scene" menu, remove button and problem line, **+ Add a scene** and **Save** |
 | `general-open-folder`, `general-reset`, `general-quit` | Advanced's buttons |
 | `update-channel`, `update-check`, `update-install`, `update-status`, `update-release-notes`, `general-update-progress`, `general-update-progress-text` | Updates (the channel is a segmented choice) |

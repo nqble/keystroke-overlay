@@ -61,8 +61,9 @@ pub fn defaults() -> Value {
             // "keyboard": labels follow the user's keyboard language (key_labels.rs); "layout": the layout files' own
             "keyLabels": "keyboard"
         },
-        // The global pause shortcut (hotkeys.rs), e.g. "Ctrl+Shift+KeyP". Off and empty by default.
-        "hotkeys": { "enabled": false, "pause": "" },
+        // The global shortcuts (hotkeys.rs), e.g. "Ctrl+Shift+KeyP": pause (with its switch) and open settings ("" is
+        // off). Off and empty by default.
+        "hotkeys": { "enabled": false, "pause": "", "openSettings": "" },
         // OBS scenes (obs_scenes.rs): hide the overlay or show another layout in the listed scenes, followed by the
         // overlay page inside OBS. rules = [{ "scene": "Chat", "show": false, "layout": "" }]; off by default.
         "obs": { "scenes": { "enabled": false, "rules": [] } },
