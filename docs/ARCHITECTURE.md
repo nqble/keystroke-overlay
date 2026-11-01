@@ -31,7 +31,7 @@ keystroke-overlay/
 │       │   ├── hook.rs       Standard method: Windows low-level keyboard hook (WH_KEYBOARD_LL)
 │       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
 │       │   ├── windows_labels.rs Windows: what each typing key prints on the layout in front, and its watcher
-│       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
+│       │   ├── tracker.rs    repeat filtering, which keyboard holds each key, and stuck-key protection (a short timer while a key is held), shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
 │       │   ├── x11.rs        Linux: X11 key capture with XInput2 raw events
 │       │   ├── linux_devices.rs Linux: Wayland key capture, reading the keyboard devices (input group)
@@ -147,7 +147,7 @@ key press → capture method on its own thread:
               Standard      WH_KEYBOARD_LL hook (tiny callback, never blocks input)
               Compatibility Raw Input (registers to receive a copy of keyboard input; nothing sits in the input path)
               (Windows; on Linux XInput2 or the keyboard devices, on a Mac a listen-only event tap: keyboard/)
-          → KeyTracker (drops OS repeats, releases keys that are really up) → channel → dispatcher thread (tracks held keys; drops everything while paused)
+          → KeyTracker (drops OS repeats, counts the keyboards holding each key, releases keys that are really up, also from a 250 ms timer while any key is held) → channel → dispatcher thread (tracks held keys; drops everything while paused)
           → tokio broadcast → each WebSocket client (/ws on 127.0.0.1)
           → overlay page (OBS) toggles a CSS class on the key; CSS transitions do the animation
 ```
