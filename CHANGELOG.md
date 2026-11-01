@@ -3,13 +3,16 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
-## v2.1.0 — turn your keys, theme the app
+## v2.1.0 — turn your keys, theme the app, import from NohBoard
 
 ### ✨ New
 - **Turn single keys.** Select a key in the Keys tab and drag the round handle at its top-right corner to turn it, or type an angle in the **Angle** field (15° steps with Snap on). Turned keys show turned in the live preview and in OBS, and a layout imported from KLE keeps its turned keys. Works in the keyboard's own shape; the Even grid keeps keys straight.
 - **Themes for the settings window.** **General → Appearance** has 18 looks for this window, from Default to light ones like Paper and a High contrast theme, plus keycap palettes such as Olivia and Laser. The header logo takes the theme's colors. Or make your own: **+ New theme** opens a bar along the bottom where you pick six colors and watch the whole window change; it warns if text gets hard to read. Share themes with **Export…** and **Import…**. The overlay in OBS keeps its own look.
 - **A GitHub button** at the bottom of the tab bar opens the project's page, for news, help and the source.
 - **A link to keyboard-layout-editor.com** in **+ New layout → From a KLE file**, so you can open the site straight from the app.
+- **Import a keyboard from NohBoard** (Windows). **+ New layout → From a NohBoard file** turns the `keyboard.json` of a keyboard you use in NohBoard into a layout with the same keys, places and sizes. Keys are linked by themselves, and the app asks Windows for your keyboard language, so an AZERTY or QWERTZ keyboard comes out right. Mouse buttons in the file are kept, drawn dashed, ready for when the app supports the mouse.
+- **Hide the whole keyboard in one click.** A new eye button under the live preview's pause button slides out **Keyboard · Mouse · Controller**; click one to show or hide it on the overlay. Keys you hid one by one stay as they were. The tray menu (the menu bar on a Mac) has the same choice under **Show**. Mouse and Controller wait for mouse and controller support.
+- **Rename your layouts** from a layout card's **⋯** menu.
 
 ### 🛠 Improved
 - **Icons sit in the middle of their buttons on every system,** drawn as shapes instead of font characters: the live preview's pause button (off center on Windows before), close buttons, the "⋯" menus, zoom, and the update arrow.
@@ -17,11 +20,15 @@ run of `tests/bench/run.mjs` on one PC; numbers from different entries come from
 - **Buttons show they're pressed** while you hold them down.
 - **Screen readers name the X and Y position fields** of a selected key ("Position X", "Position Y").
 - **The user guide explains how to show your mouse too,** next to the keyboard in OBS.
+- **Layout cards show your edits:** hidden keys are left out of the picture, and moved, resized and turned keys show where you put them.
+- **Every tab uses the whole window,** and cards fill the space in columns without gaps.
+- **The window can be moved and closed while a popup is open:** popups no longer cover the title bar.
 
 ### 🧰 Under the hood
 - **Settings version 5** (for turned keys). Going back to 2.0 keeps a copy of the newer settings first, as always.
 - **Two new automatic checks:** a JavaScript linter (ESLint) and accessibility scans (axe-core) of the real settings window in the Windows tests. The linter found and fixed a broken layout generator script.
 - **TypeScript 7** and the usual dependency updates.
+- **A big tidy-up:** long functions split into named steps across the settings window, the key editor and the overlay, with no change in behavior, and the linter now enforces the code-shape rules on every file.
 
 ## v2.0.1 — two fixes for 2.0
 
