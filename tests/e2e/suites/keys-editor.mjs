@@ -70,6 +70,30 @@ await sleep(500);
 const pw3 = shapeEdits(await profile(id)).positions?.KeyW;
 check('the X / Y fields set an exact position', !!pw3 && pw3.x === 4.5 && pw3.y === 0.25, JSON.stringify(pw3));
 
+// ---- a key's label: typing saves it at once; the key on the board shows it when typing settles (Enter or clicking away)
+await p.ev(
+  `const field = document.querySelector('${byTest('key-label')}'); field.value = 'Jump'; field.dispatchEvent(new Event('input', { bubbles: true }));`,
+);
+await sleep(500);
+check(
+  'typing a label saves it',
+  (await profile(id)).labels?.KeyW === 'Jump',
+  JSON.stringify((await profile(id)).labels),
+);
+await p.ev(`document.querySelector('${byTest('key-label')}').dispatchEvent(new Event('change', { bubbles: true }))`);
+await sleep(500);
+check(
+  'when typing settles the key on the board shows the new label',
+  await p.q(`document.querySelector('${keyCell('KeyW')}').textContent === 'Jump'`),
+);
+await p.ev(`document.querySelector('${byTest('key-label-reset')}').click()`);
+await sleep(500);
+check(
+  'Reset puts the layout label back on the key',
+  (await p.q(`document.querySelector('${keyCell('KeyW')}').textContent`)) === 'W' &&
+    (await profile(id)).labels?.KeyW === undefined,
+);
+
 // ---- overlap warning (use the key's real width and height)
 await p.ev(
   `const x = document.querySelector('${byTest('key-x')}'), y = document.querySelector('${byTest('key-y')}'); x.value = '${orig.KeyA.x}'; x.dispatchEvent(new Event('input', { bubbles: true })); y.value = '${orig.KeyA.y}'; y.dispatchEvent(new Event('input', { bubbles: true })); x.dispatchEvent(new Event('change', { bubbles: true }));`,
