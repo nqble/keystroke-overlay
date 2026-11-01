@@ -23,6 +23,8 @@ export const TEXT = {
   showHiddenHelp: 'Show hidden keys, dimmed.',
   animationTabNote: 'Press keys to try one.',
   keyPictureHelp: 'Drag on the background to select several keys. Tab and Enter work too.',
+  // a drawn device's block on the Keys tab's board (docs/proposals/drawn-devices.md)
+  deviceNames: { Mouse: 'Mouse', Controller: 'Controller' },
   secureLinkOff:
     '**Off (default):** any program on this PC can read your key presses through the OBS URL. ' +
     'Turn this on if you share the PC.',
