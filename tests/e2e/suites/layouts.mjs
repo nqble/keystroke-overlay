@@ -219,10 +219,34 @@ await p.ev(
   `${cardOf(mine.id)}.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 300, clientY: 400 }))`,
 );
 check(
-  'right-click on your own (last) layout offers Move left, Move right (off) and Delete…',
-  (await menuLabels()) === 'Move left,Move right (off),Delete…',
+  'right-click on your own (last) layout offers Rename…, Move left, Move right (off) and Delete…',
+  (await menuLabels()) === 'Rename…,Move left,Move right (off),Delete…',
   await menuLabels(),
 );
+// Rename… asks for a name with the current one in the box, keeps the layout's id, and Cancel changes nothing
+const renameVia = async (name) => {
+  await p.ev(
+    `[...document.querySelectorAll('${byTest('context-menu-item')}')].find((b) => b.textContent === 'Rename…').click()`,
+  );
+  await sleep(300);
+  const shown = await p.q(`document.querySelector('${byTest('dialog-rename-name')}').value`);
+  await p.ev(`document.querySelector('${byTest('dialog-rename-name')}').value = ${JSON.stringify(name)}`);
+  await p.ev(`document.querySelector('${byTest('dialog-rename')}').click()`);
+  await sleep(800);
+  return shown;
+};
+const shownName = await renameVia('Renamed Board');
+const renamed = (await api()).find((l) => l.id === mine.id);
+check(
+  'Rename… shows the current name, then the layout has the new name and the same id',
+  shownName === 'My Board' && renamed?.name === 'Renamed Board',
+  `${shownName} → ${renamed?.name}`,
+);
+check('…and its card shows the new name', await p.q(`${cardOf(mine.id)}.textContent.includes('Renamed Board')`));
+await rightClick(`[data-test="layout-card"][data-layout-id="${mine.id}"]`);
+await renameVia('My Board');
+check('renaming it back works too', (await api()).find((l) => l.id === mine.id)?.name === 'My Board');
+await rightClick(`[data-test="layout-card"][data-layout-id="${mine.id}"]`);
 await p.ev(
   `[...document.querySelectorAll('${byTest('context-menu-item')}')].find((b) => b.textContent === 'Delete…').click()`,
 );
@@ -294,7 +318,8 @@ await p.ev(
   `const box = ${boardCard}.getBoundingClientRect(); ${boardCard}.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + 20, clientY: box.top + 20 }))`,
 );
 await sleep(300);
-// the card is last, so its menu is Move left, Move right (off), Delete…: one step down skips the grayed-out item
+// the card is last, so its menu is Rename…, Move left, Move right (off), Delete…: two steps down skip the grayed-out item
+await pressKey('ArrowDown', 'ArrowDown', 40);
 await pressKey('ArrowDown', 'ArrowDown', 40);
 await pressKey('Enter', 'Enter', 13);
 await sleep(300);

@@ -79,6 +79,7 @@ fn main() {
             commands::assets::import_layouts,
             commands::settings::reset_settings,
             commands::assets::delete_layout,
+            commands::assets::rename_layout,
             commands::assets::list_presets,
             commands::assets::save_preset,
             commands::assets::load_preset,

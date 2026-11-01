@@ -184,6 +184,11 @@
       ownLayouts.push({ ...structuredClone(full), id, name: name.trim() || 'My layout', user: true });
       return id;
     },
+    rename_layout: ({ id, name }) => {
+      const own = ownLayouts.find((layout) => layout.id === id);
+      if (!own) throw 'Only layouts you made can be renamed';
+      own.name = name.trim() || own.name;
+    },
     delete_layout: ({ id }) => {
       ownLayouts = ownLayouts.filter((layout) => layout.id !== id);
     },

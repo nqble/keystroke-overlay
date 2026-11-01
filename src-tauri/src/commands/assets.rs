@@ -191,11 +191,9 @@ pub fn create_layout(app: AppHandle, st: State<AppState>, name: String) -> Resul
     Ok(id)
 }
 
-/// Deletes a layout the user made. Built-in layouts cannot be deleted.
-#[tauri::command]
-pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<(), String> {
-    let dir = st.shared.paths.user("layouts");
-    let file = std::fs::read_dir(&dir)
+/// The file of the layout the user made with this id (in layouts/), if there is one.
+fn user_layout_file(dir: &std::path::Path, id: &str) -> Option<std::path::PathBuf> {
+    std::fs::read_dir(dir)
         .into_iter()
         .flatten()
         .flatten()
@@ -204,9 +202,34 @@ pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<
             std::fs::read_to_string(layout_path)
                 .ok()
                 .and_then(|text| serde_json::from_str::<Value>(&text).ok())
-                .is_some_and(|v| v["id"] == id.as_str())
+                .is_some_and(|v| v["id"] == id)
         })
-        .ok_or("Built-in layouts can't be deleted")?;
+}
+
+/// Renames a layout the user made. The id stays, so its key edits and its place on the Layout tab stay too. Built-in
+/// layouts cannot be renamed.
+#[tauri::command]
+pub fn rename_layout(app: AppHandle, st: State<AppState>, id: String, name: String) -> Result<(), String> {
+    let name = layout_name(&name);
+    if name.is_empty() {
+        return Err("Enter a layout name".into());
+    }
+    let file = user_layout_file(&st.shared.paths.user("layouts"), &id).ok_or("Only layouts you made can be renamed")?;
+    let mut doc: Value =
+        serde_json::from_str(&std::fs::read_to_string(&file).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    doc["name"] = serde_json::json!(name);
+    std::fs::write(&file, serde_json::to_string_pretty(&doc).unwrap()).map_err(|e| e.to_string())?;
+    crate::tray::refresh_tray_layouts(&app);
+    let _ = st.shared.cfg_tx.send("assets"); // the overlay (OBS and the preview) must re-read its list of layouts
+    crate::state::announce(&app);
+    crate::debug::log(format!("layout renamed: {id}"));
+    Ok(())
+}
+
+/// Deletes a layout the user made. Built-in layouts cannot be deleted.
+#[tauri::command]
+pub fn delete_layout(app: AppHandle, st: State<AppState>, id: String) -> Result<(), String> {
+    let file = user_layout_file(&st.shared.paths.user("layouts"), &id).ok_or("Built-in layouts can't be deleted")?;
     std::fs::remove_file(file).map_err(|e| e.to_string())?;
     {
         let mut current_settings = st.shared.settings.write().unwrap();
@@ -387,6 +410,17 @@ mod layout_file_tests {
     }
     fn layout(id: &str, user: bool) -> Value {
         json!({ "id": id, "name": id, "user": user, "keys": [{ "code": "KeyA", "x": 0, "y": 0, "label": "A" }] })
+    }
+
+    #[test]
+    fn a_layout_the_user_made_is_found_by_its_id_whatever_its_file_is_called() {
+        let dir = tmp("find-by-id");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("some-file.json"), layout("mine", true).to_string()).unwrap();
+        std::fs::write(dir.join("other.json"), layout("other", true).to_string()).unwrap();
+        assert_eq!(user_layout_file(&dir, "mine"), Some(dir.join("some-file.json")));
+        assert_eq!(user_layout_file(&dir, "tkl"), None);
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
