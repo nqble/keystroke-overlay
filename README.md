@@ -41,28 +41,28 @@
 Full size, TKL, 60% to 96%, ISO, gameplay clusters and numpads, or a layout of your own. Drag the cards into the order
 you like; the tray menu follows it.
 
-<!-- MEDIA: Layout tab, cards being dragged and New layout's Built-in list (docs/media/layouts.webp) -->
+![The Layout tab: a layout card is dragged to the front and back, then New layout opens its Built-in list](docs/media/layouts.webp)
 
 ### Key editor
 
 Hide keys, give them your own labels (`⎵`, `Jump`), and drag them anywhere on a zoomable board. Align, space evenly,
 undo and redo. Edits are saved per layout.
 
-<!-- MEDIA: Keys tab, moving and relabeling keys (docs/media/keys.webp) -->
+![The Keys tab: a key is moved to an empty spot and relabeled, then both are put back](docs/media/keys.webp)
 
 ### Themes and style
 
 Start from a theme, then adjust colors, shape, text and size, or use your own fonts. Save a look as a preset and share
 it as a file.
 
-<!-- MEDIA: Style tab, clicking through themes while the preview changes (docs/media/style.webp) -->
+![The Style tab: clicking through the themes while the live preview changes](docs/media/style.webp)
 
 ### Animations
 
 Press down, bounce, glow, fade, scale. Hover a card to see it, then set its speed, strength and easing. Animations use
 only the graphics card's cheapest effects, so streams stay smooth.
 
-<!-- MEDIA: Animation tab, hovering the cards (docs/media/animation.webp) -->
+![The Animation tab: pointing at each animation card shows it on a key](docs/media/animation.webp)
 
 ## Get started
 
