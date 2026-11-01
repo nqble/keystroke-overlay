@@ -102,6 +102,12 @@ like any key and never lights up, because no capture method produces such a name
 buttons and wheel get the mouse names from that design (`MouseLeft`, `MouseRight`, `MouseMiddle`, `MouseBack`,
 `MouseForward`, `WheelUp`, `WheelDown`, `WheelLeft`, `WheelRight`): drawn like any key, and lit once mouse support exists.
 
+**A drawn device** is one entry in `keys` with a `device` field: `{ "code": "Mouse", "device": "mouse", "x": 16, "y": 1,
+"w": 2.5, "h": 4 }`. Its `code` is `Mouse` or `Controller`; `device` names the drawing, `ui/overlay/devices/<device>.svg`
+(lower-case letters, digits and `-`; a missing drawing falls back to the device's own). The overlay draws the picture at
+the block's place and size and lights its parts like keys; the even grid leaves it at its own place and size. On any
+other key `device` is dropped.
+
 **NohBoard keyboard files** (`keyboards/<category>/<name>/keyboard.json`, read by `ui/settings/nohboard-layout.js`, never
 shipped): JSON as .NET writes it (a byte-order mark and trailing commas are accepted), with `Version` and `Elements`, a
 list. Each element has `__type` (`KeyboardKey`, `MouseKey`, `MouseScroll`, `MouseSpeedIndicator`), `Boundaries` (a

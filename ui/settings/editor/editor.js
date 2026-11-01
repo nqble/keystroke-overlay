@@ -123,7 +123,9 @@ function paintKey(ctx, node, item, { hidden, clash }) {
   node.style.setProperty('--w', String(item.w));
   node.style.setProperty('--h', String(item.h));
   node.style.setProperty('--r', `${item.r ?? 0}deg`); // a turned key (tabs.css turns it around its center)
-  const label = ctx.profile.labels[key.code] ?? key.label;
+  // a drawn device (a mouse, a controller) is one block on the board, named for what it is
+  const deviceName = key.device ? TEXT.deviceNames[key.code] : undefined;
+  const label = ctx.profile.labels[key.code] ?? key.label ?? deviceName;
   if (node.textContent !== (label ?? '')) node.textContent = label ?? '';
   node.title = key.code;
   node.hidden = !showHiddenKeys() && hidden.has(key.code); // the Hidden keys switch is off

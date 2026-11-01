@@ -178,7 +178,26 @@ fn clean_layout_key(raw_key: &Value) -> Option<Value> {
     if let Some(angle) = crate::key_angles::clean_angle(&raw_key["r"]) {
         key["r"] = json!(angle);
     }
+    if let Some(drawing) = clean_device(code, &raw_key["device"]) {
+        key["device"] = json!(drawing);
+    }
     Some(key)
+}
+
+/// The block names a drawn device may have (docs/proposals/drawn-devices.md). No capture method produces them.
+const DEVICE_CODES: [&str; 2] = ["Mouse", "Controller"];
+
+/// A drawn device's drawing (`ui/overlay/devices/<drawing>.svg`), kept only on a Mouse or Controller block and only as a
+/// short lower-case name, so it can only ever name a file in that folder. The overlay draws the device's own drawing
+/// when the named one doesn't exist.
+fn clean_device(code: &str, raw: &Value) -> Option<String> {
+    let drawing = raw.as_str()?;
+    let plain = !drawing.is_empty()
+        && drawing.len() <= MAX_CODE_LENGTH
+        && drawing
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-');
+    (DEVICE_CODES.contains(&code) && plain).then(|| drawing.to_string())
 }
 
 /// The keys of a layout that comes from outside (an imported file, a KLE file): the first MAX_LAYOUT_KEYS entries of

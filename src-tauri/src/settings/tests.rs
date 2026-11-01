@@ -963,4 +963,22 @@ mod layout_key_tests {
             .collect();
         assert_eq!(clean_layout_keys(&json!(raw)).len(), MAX_LAYOUT_KEYS);
     }
+
+    #[test]
+    fn a_drawn_device_keeps_a_plain_drawing_name_only_on_its_own_block() {
+        let raw = json!([
+            { "code": "Mouse", "x": 16, "y": 1, "w": 2.5, "h": 4, "device": "mouse" },
+            { "code": "Controller", "x": 0, "y": 6, "device": "../../evil" },
+            { "code": "KeyA", "x": 0, "y": 0, "device": "mouse" },
+            { "code": "Unlinked1", "x": 1, "y": 0, "device": 5 }
+        ]);
+        let keys = clean_layout_keys(&raw);
+        assert_eq!(keys[0]["device"], json!("mouse"));
+        assert!(keys[1].get("device").is_none(), "only a plain lower-case name");
+        assert!(
+            keys[2].get("device").is_none() && keys[3].get("device").is_none(),
+            "only on Mouse or Controller"
+        );
+        assert_eq!(keys[0]["w"], json!(2.5));
+    }
 }

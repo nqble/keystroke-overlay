@@ -14,6 +14,7 @@ const SAME_ROW_TOLERANCE: f64 = 0.5;
 pub fn even_grid(keys: &[Value]) -> Value {
     let mut placed: Vec<(&str, f64, f64)> = keys
         .iter()
+        .filter(|key| key.get("device").is_none()) // a drawn device keeps its own place and size in the grid
         .filter_map(|key| Some((key["code"].as_str()?, key["x"].as_f64()?, key["y"].as_f64()?)))
         .collect();
     placed.sort_by(|a, b| a.2.total_cmp(&b.2).then(a.1.total_cmp(&b.1)));
@@ -95,5 +96,14 @@ mod tests {
             even_grid(&[json!({ "code": 5 }), json!("x"), json!({ "code": "A" })]),
             json!({})
         );
+    }
+
+    #[test]
+    fn a_drawn_device_is_left_out_of_the_grid() {
+        let mut mouse = key("Mouse", 5.0, 0.0);
+        mouse["device"] = json!("mouse");
+        let grid = even_grid(&[key("KeyA", 0.0, 0.0), mouse]);
+        assert!(grid.get("Mouse").is_none());
+        assert_eq!(grid["KeyA"], json!({ "x": 0, "y": 0 }));
     }
 }

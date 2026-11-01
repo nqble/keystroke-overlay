@@ -7,6 +7,7 @@ import { angleOf, turnedBox } from '/overlay/turn.js';
 import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
 import { hiddenInputsOf, inputKind } from '/overlay/input-kinds.js';
+import { drawDevice } from '/overlay/devices.js';
 
 // What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
 // own font (San Francisco on a Mac), so the keys look right on any computer that shows the overlay (OBS may run on
@@ -155,7 +156,7 @@ const MAX_KEY_WIDTH = 100;
 
 /** A key as it is drawn: the layout style's place and width, unless the user moved or resized it. */
 function placedKey(layoutKey, layout, prof) {
-  const inGrid = prof.layoutStyle === 'grid';
+  const inGrid = prof.layoutStyle === 'grid' && !layoutKey.device; // a drawn device keeps its own place and size
   const base = (inGrid && layout.grid?.[layoutKey.code]) || layoutKey;
   const moved = prof.positions[layoutKey.code];
   const baseWidth = inGrid ? 1 : (layoutKey.w ?? 1);
@@ -193,6 +194,10 @@ function keyElement(layoutKey, label, style, bounds) {
   el.dataset.code = layoutKey.code;
   el.style.cssText = `left:${layoutKey.x * pitch - bounds.minLeft}px;top:${layoutKey.y * pitch - bounds.minTop}px;width:${keyWidth}px;height:${keyHeight}px`;
   if (layoutKey.r) el.style.setProperty('--r', `${layoutKey.r}deg`); // overlay.css turns the face and glow
+  if (layoutKey.device) {
+    el.classList.add('device'); // a drawn mouse or controller: devices.js fills it with its picture
+    return el;
+  }
   // Shrink long labels to fit narrow keys.
   const fit = Math.min(1, (keyWidth - 10) / Math.max(1, [...label].length * fontSize * 0.62));
   const mk = (cls) => {
@@ -208,6 +213,21 @@ function keyElement(layoutKey, label, style, bounds) {
   glow.className = 'glow';
   el.append(glow, mk('idle'), mk('on'));
   return el;
+}
+
+/** A file's text from this app's server (with the secure link's key), or null when it isn't there. */
+const getText = async (url) => {
+  const response = await fetch(withKey(url));
+  return response.ok ? response.text() : null;
+};
+
+/** A drawn device's parts light up like keys; a key of the layout with the same code keeps that code. */
+function lightableParts(parts) {
+  for (const [code, part] of parts) {
+    if (keyEls.has(code)) continue;
+    keyEls.set(code, part);
+    if (held.has(code)) part.classList.add('down');
+  }
 }
 
 function build(nextSettings, layout) {
@@ -230,14 +250,17 @@ function build(nextSettings, layout) {
   const { keySize, gap } = nextSettings.style;
   const bounds = overlayBounds(keys, keySize + gap, gap);
   const frag = document.createDocumentFragment();
+  const devices = [];
   for (const layoutKey of keys) {
     const label = prof.labels[layoutKey.code] ?? layoutKey.label ?? '';
     const el = keyElement(layoutKey, label, nextSettings.style, bounds);
     if (held.has(layoutKey.code)) el.classList.add('down');
     frag.appendChild(el);
     keyEls.set(layoutKey.code, el);
+    if (layoutKey.device) devices.push([el, layoutKey]);
   }
   stage.appendChild(frag);
+  for (const [el, layoutKey] of devices) drawDevice(el, layoutKey, getText, lightableParts);
   stage.style.width = bounds.width + 'px';
   stage.style.height = bounds.height + 'px';
   reportSize(bounds.width, bounds.height);
@@ -392,7 +415,10 @@ if (PREVIEW) {
   // Click keys in the preview to test the look without typing.
   stage.addEventListener('pointerdown', (e) => {
     const target = /** @type {Element} */ (e.target);
-    const keyElement = /** @type {HTMLElement | null} */ (target.closest('.key'));
+    // a drawn device's part (devices.js) is tested on its own; the rest of a device does nothing
+    const part = target.closest('g.part');
+    if (part) return setKey(part.getAttribute('data-code'), true);
+    const keyElement = /** @type {HTMLElement | null} */ (target.closest('.key:not(.device)'));
     if (keyElement) setKey(keyElement.dataset.code, true);
   });
   addEventListener('pointerup', () => releaseAll());

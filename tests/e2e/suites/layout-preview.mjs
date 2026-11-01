@@ -96,4 +96,26 @@ check(
   shownAgain.ok && !(await p.invoke('get_state')).ok.settings.layout.profiles.tkl?.hiddenInputs,
   `${shownAgain.n} keys`,
 );
+
+// ---- a drawn mouse (docs/proposals/drawn-devices.md): a Mouse block with a device is drawn as a mouse with 7 parts
+const mouseLayout = (
+  await p.invoke('add_layout', {
+    name: 'Drawn mouse',
+    keys: [
+      { code: 'KeyW', label: 'W', x: 0, y: 0 },
+      { code: 'Mouse', device: 'mouse', x: 2, y: 0, w: 2, h: 3.2 },
+    ],
+  })
+).ok;
+const drawnParts = await waitFor(async () => {
+  const parts = await p
+    .evIn(
+      `localhost:${PORT}`,
+      `return [...document.querySelectorAll('g.part')].map(g => g.getAttribute('data-code')).join()`,
+    )
+    .catch(() => '');
+  return { ok: parts === 'MouseLeft,MouseRight,WheelUp,MouseMiddle,WheelDown,MouseForward,MouseBack', parts };
+});
+check('a Mouse block is drawn as a mouse with its buttons and wheel', drawnParts.ok, drawnParts.parts);
+await p.invoke('delete_layout', { id: mouseLayout });
 finish();

@@ -32,7 +32,12 @@
           "y": { "type": "number" },
           "w": { "type": "number", "exclusiveMinimum": 0, "default": 1 },
           "h": { "type": "number", "exclusiveMinimum": 0, "default": 1 },
-          "r": { "type": "number", "minimum": -180, "maximum": 180, "default": 0 }
+          "r": { "type": "number", "minimum": -180, "maximum": 180, "default": 0 },
+          "device": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,40}$",
+            "description": "Only on a Mouse or Controller block: the drawing to show, ui/overlay/devices/<device>.svg (docs/proposals/drawn-devices.md)."
+          }
         },
         "additionalProperties": false
       }
