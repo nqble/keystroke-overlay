@@ -245,6 +245,8 @@ After each public release (it takes about five minutes):
    developer**, and say it was detected incorrectly. In the notes, link the release page and say it is an open-source
    keystroke overlay for OBS whose keys never leave the PC. If nothing is flagged, there is nothing to do.
 3. If a user reports another antivirus (Avast, Norton, Kaspersky, …), use that vendor's false-positive form the same way.
+4. On the user's issue, say what was submitted, and again when the vendor has cleared it: the user guide tells people to
+   wait for that before restoring a quarantined copy.
 
 Signed releases (Code signing above) build reputation much faster, so these reports become rare.
 

@@ -11,7 +11,7 @@ and how you can check every claim yourself instead of trusting it.
 | | |
 |---|---|
 | Keystrokes are **never written to disk** | No file, log, history or cache ever contains what you typed. |
-| Keystrokes are **never sent over the internet** | The only place they go is a local web page on **your own PC**, which OBS reads. |
+| Keystrokes are **never sent over the internet** | The only place they go is a local web page on **your own PC**, which OBS reads (over a connection that never leaves your PC). |
 | **No telemetry, analytics, crash reports, accounts or ads** | The app has no code for any of them. |
 | The overlay server listens on **127.0.0.1 only** | It cannot be reached from another computer or from the network. |
 | The only internet contact is **GitHub, for updates and release notes** | Never keystrokes, never your settings, never anything that identifies you beyond the normal facts of an HTTPS request (see below). |
@@ -156,10 +156,15 @@ anywhere you paste it. Treat the link like a password, keep it off your stream, 
   Microsoft's diagnostic-data settings in Windows apply to it), WKWebView on a Mac, WebKitGTK on Linux. The settings window only ever loads this app's own local pages.
 - **OBS Studio** (or whatever browser source you use) renders the overlay. Its behavior is its own.
 - **The operating system** itself, and any other software on your computer.
+- **Custom animations and themes you add yourself** are small programs (JavaScript) that the overlay runs, so they
+  see what the overlay sees, your key presses included. The built-in ones are part of this project and checked like
+  the rest; only add others you wrote yourself or trust ([EXTENDING.md](docs/EXTENDING.md)).
 
 ## How to check it yourself
 
-You do not have to take our word for any of this.
+You do not have to take our word for any of this. The automatic check in every build (`tools/check-privacy.mjs`)
+guards against the obvious mistakes, such as network or logging code in the wrong file; it is a tripwire, not a proof,
+which is why these ways to check matter.
 
 1. **Read the code.** It is small. These searches in `src-tauri/src/` show everything:
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket|connect_async" src-tauri/src` → only `commands/updates.rs`

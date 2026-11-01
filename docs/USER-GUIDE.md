@@ -403,17 +403,21 @@ check for updates): download each new version of it. The plan and what has been 
 - **Your antivirus flags the app** (for example, Windows Security names it `Trojan:Win32/Bearfoos.A!ml` and removes it):
   a program that reads every key press and starts with Windows looks like a keylogger to antivirus tools, so a new,
   unsigned version is sometimes flagged by mistake. The `!ml` in a Windows Security name means its machine-learning model
-  guessed; it did not recognize known malware. What to do:
-  1. Check that your copy is official: it must come from this project's
+  guessed; it did not recognize known malware. Still, only the antivirus maker can say a detection is wrong. What to do:
+  1. [Open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus, the detection name and
+     the file you downloaded. Each flagged release is sent to the antivirus maker for a second look
+     (docs/RELEASING.md), and the issue says when it has been cleared; the warning then goes away with the antivirus's
+     normal updates.
+  2. Check that your copy is official: it must come from this project's
      [Releases](https://github.com/nqble/keystroke-overlay/releases) page. Each download there shows its SHA-256
-     fingerprint; compare it with `Get-FileHash <the file>` in PowerShell. They must match exactly.
-  2. If it matches, restore the app: **Windows Security → Virus & threat protection → Protection history**, open the
-     entry, then **Actions → Restore**.
-  3. [Open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus and the detection name, so
-     it can be reported. Each flagged release is reported to Microsoft as a false positive (docs/RELEASING.md); once
-     cleared, the warning goes away with Windows Security's normal updates.
+     fingerprint; compare it with `Get-FileHash <the file>` in PowerShell. A match proves the file is the one this
+     project published, not that the antivirus is wrong.
+  3. Restoring it (**Windows Security → Virus & threat protection → Protection history**, the entry, **Actions →
+     Restore**) is your decision. If you're unsure, wait for the issue to say the detection was cleared, or build the
+     app yourself from the source.
 
-  Don't turn your antivirus off for the app, and don't add an exclusion for a copy you didn't check.
+  Don't turn your antivirus off for the app, and don't add an exclusion for a copy you didn't check. A **SmartScreen**
+  warning ("Windows protected your PC") is not a detection: it only means the download isn't signed yet.
 - **Reporting a bug:** turn on **General → Advanced → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → Advanced → Reset all settings…** puts every option back to its default (your layouts, presets, fonts, port and secure link are kept).
 - **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size the app
