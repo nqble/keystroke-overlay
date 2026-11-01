@@ -1,7 +1,7 @@
 # Proposal: drawn devices (a mouse and a controller on the overlay)
 
-Status: **Proposed** (2026-10-31); the design choices below, and the answers to its questions, were made with the
-maintainer; the plan itself is waiting for approval. Nothing is built. The mouse comes first; the controller follows on the same groundwork.
+Status: **Being built** (approved 2026-10-31). Built: the eye button, `hiddenInputs` and the tray's Show menu (work order
+step 2; Mouse and Controller stay grayed out until their inputs exist). Next: the groundwork (step 1). The mouse comes first; the controller follows on the same groundwork.
 
 The overlay shows a keyboard as keys. A mouse or a game controller looks wrong as a row of square keys, so this plan
 draws them as the device itself: a picture of a mouse or a controller with each button, the wheel, the sticks and the

@@ -13,7 +13,7 @@ the top and a line in this list.
 | Proposal | What it is | Status |
 |---|---|---|
 | [key-rotation.md](key-rotation.md) | Turn single keys in the Keys tab and in layout files (KLE angles kept) | Being built: formats and settings v5 done; overlay and editor next |
-| [drawn-devices.md](drawn-devices.md) | A drawn mouse and controller on the overlay, Add ▾ in the Keys tab, the Inputs card and the eye button (show or hide each input) | Proposed; design agreed, plan waiting for approval |
+| [drawn-devices.md](drawn-devices.md) | A drawn mouse and controller on the overlay, Add ▾ in the Keys tab, the Inputs card and the eye button (show or hide each input) | Being built: the eye button and the tray's Show menu done; devices next |
 | [mouse-input.md](mouse-input.md) | Mouse buttons and wheel on the overlay (never the pointer's position) | Planned with drawn-devices.md (mouse first); how it looks is there |
 | [controllers-gilrs.md](controllers-gilrs.md) | Game controller input, with the gilrs library compared to our own code | Proposed; common gamepads first, idle improvements in drawn-devices.md |
 | [obs-source-events.md](obs-source-events.md) | OBS scene awareness through the Browser source's page API | Scene rules built in v2.0; pausing while hidden is open |

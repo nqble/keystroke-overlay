@@ -135,6 +135,12 @@ section 6. Paused, it turns amber and shows **▶ "Resume"**. It is the same set
 button, the header and the tray always agree. While paused, OBS still shows the keyboard but no key presses; only the
 button and the header say so (no banner).
 
+**The eye button** (built; plan: [proposals/drawn-devices.md](../proposals/drawn-devices.md)) sits right under the pause
+button, the same size and build, with a soft almond eye. Pointing at it (or clicking it, or reaching it with Tab) slides
+out **Keyboard · Mouse · Controller** to the left with the pause button's timing. A toggle is filled while its input
+shows, dim with a slash while hidden, and grayed out (not clickable, no explanation) while its input is off. The choice
+is saved per layout and is the same as the tray's **Show** menu.
+
 ## 10. Popups and messages
 
 Built. **One shared popup** (`popup.js`) for everything: the general dialog, What's new and the update popup.

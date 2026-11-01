@@ -223,6 +223,11 @@ pub fn clean_profiles(raw_profiles: &Value) -> Value {
             let mut cleaned = Map::new();
             cleaned.insert("disabledKeys".into(), clean_strings(profile.get("disabledKeys")));
             cleaned.insert("labels".into(), clean_labels(profile.get("labels")));
+            // the inputs hidden by the eye button; written only when one is
+            let hidden_inputs = crate::input_kinds::clean_hidden_inputs(profile.get("hiddenInputs"));
+            if !hidden_inputs.is_empty() {
+                cleaned.insert("hiddenInputs".into(), Value::Array(hidden_inputs));
+            }
             // "shape" is the default style and is not written; only a chosen "grid" is
             if profile.get("layoutStyle").and_then(Value::as_str) == Some("grid") {
                 cleaned.insert("layoutStyle".into(), json!("grid"));

@@ -54,6 +54,7 @@ keystroke-overlay/
 │       ├── debug.rs        the in-memory event log (important events always, details in Debug mode), health snapshot, test switches (docs/DEBUGGING.md)
 │       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
 │       ├── hotkeys.rs      the optional global pause shortcut (registers only the one the user set)
+│       ├── input_kinds.rs  showing or hiding a whole input per layout (hiddenInputs): cleaning, and the tray's Show menu
 │       ├── key_labels.rs   key labels that follow the user's keyboard language and the system's own key names (style.keyLabels)
 │       ├── key_angles.rs   turned keys: cleaning a layout key's `r` and a profile's `rotations` (key rotation, being built)
 │       ├── platform.rs     the few OS-specific calls (porting starts here)
@@ -71,7 +72,7 @@ keystroke-overlay/
     │   ├── layouts/*.json     one file per keyboard layout
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
-    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), obs-source.js (OBS scene rules, inside OBS only)
+    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), obs-source.js (OBS scene rules, inside OBS only)
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png
@@ -112,6 +113,7 @@ keystroke-overlay/
         ├── messages.js    messages from the app (tray, updates, progress), re-reading its state
         ├── obs-status.js  the header's "Live in OBS / Paused / Not connected" status (plain logic, tested)
         ├── pause-button.js  the round pause button on the live preview (same switch as the tray)
+        ├── eye-button.js, eye-button.css, input-choice.js  the eye button under it: show or hide the keyboard, mouse and controller (same choice as the tray's Show menu; tested)
         ├── scroll-fade.js   the soft fade at the edges of every scrolling area
         ├── header.js      the header's status, Copy OBS URL and Update ready, drawn with Preact (paintHeader)
         ├── windowbar.js   the window's own minimize / maximize / close buttons

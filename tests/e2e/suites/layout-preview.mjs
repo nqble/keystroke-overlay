@@ -64,4 +64,36 @@ const back = await waitFor(async () => {
   return { ok: n === 87, n };
 });
 check('deleting the layout puts the preview back on Tenkeyless (87 keys)', back.ok, `${back.n} keys`);
+
+// ---- the eye button under the pause button hides the whole keyboard, and brings it back as it was
+const eye = (hook) => `document.querySelector('[data-test="${hook}"]')`;
+await p.ev(`${eye('eye-button')}.click()`);
+await sleep(400);
+check(
+  'clicking the eye opens Keyboard · Mouse · Controller; Mouse and Controller are grayed out while their input is off',
+  await p.q(
+    `${eye('eye-button')}.getAttribute('aria-expanded') === 'true' && ${eye('eye-mouse')}.disabled && ${eye('eye-controller')}.disabled && !${eye('eye-keyboard')}.disabled`,
+  ),
+);
+await p.ev(`${eye('eye-keyboard')}.click()`);
+const hidden = await waitFor(async () => {
+  const n = await keysInPreview();
+  return { ok: n === 0, n };
+});
+const savedProfile = (await p.invoke('get_state')).ok.settings.layout.profiles.tkl ?? {};
+check(
+  'Keyboard off hides every key on the overlay, saved for this layout',
+  hidden.ok && JSON.stringify(savedProfile.hiddenInputs) === '["keyboard"]',
+  `${hidden.n} keys, ${JSON.stringify(savedProfile)}`,
+);
+await p.ev(`${eye('eye-keyboard')}.click()`);
+const shownAgain = await waitFor(async () => {
+  const n = await keysInPreview();
+  return { ok: n === 87, n };
+});
+check(
+  'Keyboard on brings all 87 keys back, and nothing is left saved',
+  shownAgain.ok && !(await p.invoke('get_state')).ok.settings.layout.profiles.tkl?.hiddenInputs,
+  `${shownAgain.n} keys`,
+);
 finish();

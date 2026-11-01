@@ -1,0 +1,141 @@
+/* ---- The eye button under the live preview's pause button (eye-button.js; docs/proposals/drawn-devices.md).
+   The same build and timing as the pause button (pause-button.css): two round caps and a straight middle, the left cap
+   slides while the middle stretches. Pointing opens it 150 ms after arriving and closes it 150 ms after leaving; the
+   keyboard and a click (.open) open it at once. A click on the eye while it is open closes it (.shut) even though the
+   pointer is still on it; .shut ends when the pointer leaves. Only transform and opacity animate (CLAUDE.md). */
+.eye-box {
+  --eye-size: 34px;
+  --eye-open: 98px; /* how far the pill grows: three 28 px toggles, their gaps and the room around them */
+  position: absolute;
+  top: calc(var(--space-12) + var(--eye-size) + var(--space-8));
+  right: var(--space-12);
+  width: var(--eye-size);
+  height: var(--eye-size);
+  z-index: 1;
+}
+.eye-cap,
+.eye-mid {
+  position: absolute;
+  top: 0;
+  height: var(--eye-size);
+  box-sizing: border-box;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-control-line);
+  transition: transform 260ms ease-in-out 150ms;
+}
+.eye-cap {
+  right: 0;
+  width: var(--eye-size);
+  border-radius: var(--radius-round);
+}
+.eye-mid {
+  z-index: 1;
+  right: calc(var(--eye-size) / 2);
+  width: var(--eye-open);
+  border-left: 0;
+  border-right: 0;
+  transform-origin: right center;
+  transform: scaleX(0);
+}
+.eye-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  width: var(--eye-size);
+  height: var(--eye-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.eye-options {
+  position: absolute;
+  top: 3px;
+  right: calc(var(--eye-size) + 2px);
+  z-index: 2;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transform: translateX(40px);
+  pointer-events: none;
+  transition:
+    opacity 120ms ease-out 150ms,
+    transform 260ms ease-in-out 150ms;
+}
+.eye-box:not(.shut):hover .eye-cap-left,
+.eye-box:not(.shut):focus-within .eye-cap-left,
+.eye-box.open .eye-cap-left {
+  transform: translateX(calc(-1 * var(--eye-open)));
+}
+.eye-box:not(.shut):hover .eye-mid,
+.eye-box:not(.shut):focus-within .eye-mid,
+.eye-box.open .eye-mid {
+  transform: scaleX(1);
+}
+.eye-box:not(.shut):hover .eye-options,
+.eye-box:not(.shut):focus-within .eye-options,
+.eye-box.open .eye-options {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.eye-box:focus-within .eye-cap,
+.eye-box:focus-within .eye-mid,
+.eye-box:focus-within .eye-options {
+  transition-delay: 0ms;
+}
+/* One toggle: filled while its input shows, dim with a slash while hidden, grayed out while its input is off. */
+.eye-option {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+}
+.eye-option.on {
+  background: var(--color-accent-strong);
+  color: var(--color-on-fill);
+}
+.eye-option.on:hover {
+  background: var(--color-accent-pressed);
+}
+.eye-option.off:hover {
+  color: var(--color-text);
+}
+.eye-option.off::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  transform: rotate(-45deg);
+}
+.eye-option:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.eye-btn:focus-visible,
+.eye-option:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eye-cap,
+  .eye-mid,
+  .eye-options {
+    transition: none;
+  }
+}

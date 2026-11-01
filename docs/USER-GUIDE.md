@@ -160,7 +160,7 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
 | **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **OBS scenes**, **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, **Appearance** (18 looks for this window, from Default to Paper and High contrast, or **+ New theme** to pick your own six colors in a bar along the bottom, which warns if text gets hard to read; **Export…** and **Import…** share a theme as a file; the overlay in OBS keeps its own look), and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
-A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation.
+A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation. Its round buttons in the top right are **Pause** and, under it, the **eye**: point at the eye (or click it) and **Keyboard**, **Mouse** and **Controller** slide out; click one to show or hide it on the overlay. Hiding the keyboard keeps the keys you hid one by one as they were. The choice is saved for each layout. Mouse and Controller are grayed out until the app reads them.
 
 **Debug mode (for developers).** **General → Advanced → Debug mode (for developers)** adds a **Debug** tab with a self-test, a live event log, a key monitor, a raw settings editor, test helpers and a one-click bug report. It is off by default; while on, nothing is sent anywhere, nothing is saved to disk (the self-test only creates and deletes one tiny test file to check the folder can be written), and the log never contains key presses. Details in [docs/DEBUGGING.md](DEBUGGING.md).
 
@@ -193,6 +193,7 @@ Under **General → Connection** (**Secure my OBS URL**) you can choose how lock
 Right-click the tray icon for quick actions without opening settings:
 
 - **Pause overlay** — instantly hides the overlay and stops sending keys (handy when typing a password on stream). Click again to resume. You can also set a key combination for it that works from any app, even in a game: **General → Pause shortcut** (off until you set one).
+- **Show** — **Keyboard**, **Mouse** and **Controller**: show or hide each on the overlay, for the current layout (the same as the eye button under the live preview's pause button). Mouse and Controller can be picked once the app reads them.
 - **Layout** — switch between layouts.
 - **Restart server** — restarts the overlay server if something gets stuck. OBS reconnects by itself.
 - **Update available** — only appears (at the very top, with a small orange dot on the tray icon) when a newer version exists. Click it to jump to **General → Updates**.

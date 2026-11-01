@@ -37,7 +37,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
   keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.
 - `focus` — keys still reach the overlay stream and light up the live preview while the settings window itself is in front and focused (the "keys vanish when I click the app" bug).
 - `layouts` — the dashed **+** card and popup, creating a layout from the full-size keyboard, the 20-layout limit, right-click delete, the custom context menu, and that only text boxes are selectable.
-- `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay).
+- `layout-preview` — creating, editing and deleting a custom layout updates the live preview straight away (regression test for a stale layout list in the overlay); the eye button hides the whole keyboard and brings it back as it was.
 - `keys-editor` — moving keys: dragging, arrow-key nudging, exact X / Y fields, the overlap outline, Close gaps (keeps the shape), the Reset ▾ menu, moving several keys, align and space evenly, Undo and Redo. The four `keys-editor*` suites share their test layout and helpers in `tests/e2e/lib/keys-editor-kit.mjs`.
 - `keys-editor-snap` — the Snap and Grid switches, the drag readout and status line, keyboard use and screen-reader labels, the keyboard shortcuts, and that saved sizes and the Even grid style reach the preview and overlay size.
 - `keys-editor-board` — the board: zoom, pan, view memory, board limits, the hidden preview, resize handles, smart guides, the held-key fade and the inspector.
@@ -115,6 +115,7 @@ Rules:
 | `obs-status`, `obs-copy` | The header's OBS status (click: General) and its Copy OBS URL button (always shown) |
 | `window-buttons`, `window-minimize`, `window-maximize`, `window-close` | The window's own buttons |
 | `server-banner`, `pause-overlay` | The server-problem banner, and the round pause button on the live preview |
+| `eye-button`, `eye-keyboard`, `eye-mouse`, `eye-controller` | The eye button under the pause button, and its Keyboard, Mouse and Controller toggles |
 | `preview-frame` | The live preview frame |
 | `tab-bar`, `tab` + `data-tab` (`layout`, `keys`, `style`, `animation`, `general`, `debug`) | The tab bar and its buttons |
 | `github-link` | The GitHub button at the bottom of the tab bar |
