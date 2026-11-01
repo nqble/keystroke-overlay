@@ -7,10 +7,6 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Windo
 /// to take back the memory the window used.
 const TRIM_MEMORY_AFTER_MS: u64 = 1500;
 
-/// macOS sends no "resized" event when the yellow button minimizes the window, but the window loses focus. A moment after
-/// that (once the minimize has really happened) it is checked once, and a minimized window is closed to the tray.
-const MINIMIZE_CHECK_DELAY_MS: u64 = 400;
-
 /// One renderer process for the settings page + its preview frame instead of two (about 55 MB less while the window is
 /// open, measured). Both pages are our own local content. The first flag keeps Tauri's default WebView2 flags.
 const OWN_BROWSER_ARGS: &str =
@@ -82,21 +78,12 @@ pub fn on_event(win: &tauri::Window, ev: &WindowEvent) {
             crate::platform::trim_memory();
         });
     }
-    match ev {
-        WindowEvent::Resized(_) => close_if_minimized(win),
-        WindowEvent::Focused(false) if crate::platform::minimize_needs_focus_check() => {
-            // See MINIMIZE_CHECK_DELAY_MS.
-            let win = win.clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(std::time::Duration::from_millis(MINIMIZE_CHECK_DELAY_MS));
-                close_if_minimized(&win);
-            });
-        }
-        _ => {}
+    if let WindowEvent::Resized(_) = ev {
+        close_if_minimized(win);
     }
 }
 
-/// "Minimize to tray": a minimized settings window is closed instead (always on a Mac, see platform::minimize_closes_window).
+/// "Minimize to tray": a minimized settings window is closed instead (never on a Mac, see platform::minimize_closes_window).
 fn close_if_minimized(win: &tauri::Window) {
     let st = win.state::<AppState>();
     let minimize_to_tray = st.shared.settings.read().unwrap()["general"]["minimizeToTray"]

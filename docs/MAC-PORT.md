@@ -80,14 +80,14 @@ then Restart now; `ui/settings/keyboard-access.js`) until capture really works. 
 ## The app on a Mac
 
 - **Menu-bar app:** no Dock icon (the *accessory* activation policy), except while the settings window is open.
-- **Closing and quitting:** ⌘Q quits; ⌘W, the red button and the yellow button close the settings window to the menu bar
-  (the app keeps running and the Dock icon goes away); the green button keeps its default. While the window is open the
+- **Closing and quitting:** ⌘Q quits; ⌘W and the red button close the settings window to the menu bar (the app keeps
+  running and the Dock icon goes away); the yellow button minimizes it into the Dock, like any Mac app (decided
+  2026-11-01; before, it closed the window too); the green button keeps its default. While the window is open the
   app has its own menu bar (`platform::install_app_menu`: the app menu with Hide, Hide Others and Quit (⌘Q); Edit, so
   copy and paste work in fields; Window with Close Window (⌘W)). Quit is the app's own item, because the default one
   asks the app to exit in a way it refuses, so that closing the last window leaves it in the menu bar
-  (`RunEvent::ExitRequested` in `main.rs`). macOS sends no event when a window is minimized, so `window.rs` checks 400 ms
-  after the window loses focus and closes a minimized one (`platform::minimize_closes_window`); the Minimize switch is
-  hidden on a Mac. Opening the app again from Finder, Launchpad or Spotlight brings the window back
+  (`RunEvent::ExitRequested` in `main.rs`). The Minimize to tray switch is hidden on a Mac
+  (`platform::minimize_closes_window`). Opening the app again from Finder, Launchpad or Spotlight brings the window back
   (`platform::on_run_event`); a second start reuses the running app.
 - **No ⌘, shortcut:** the app only has a menu bar while its window is open, so ⌘, could only bring forward a window
   that's already open, which looked broken. Settings open from the menu-bar icon or by opening the app again.
