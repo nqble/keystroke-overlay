@@ -213,8 +213,10 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 ### First run setup (Add to OBS)
 
 Built (`ui/settings/first-run.js`; First run setup board). **A screen over the Layout tab:** it covers
-the tab's content (the header, the tab list and the live preview stay, so the user sees what OBS will show) with three short steps: Copy OBS URL, add a Browser source in OBS, paste it and use the size shown (the chosen
-layout's real size).
+the tab's content (the header, the tab list and the live preview stay, so the user sees what OBS will show) with four short steps: Copy OBS URL, add a Browser source in OBS, paste it and use the size shown (the chosen
+layout's real size), and set up pause and try it (the round pause button; **Pause shortcut…** opens General's pause
+shortcut, and the setup is still there back on the Layout tab). When OBS connects, the "all set" line repeats the pause
+reminder (decided 2026-11-01, after the outside assessment).
 
 - **New installs only.** It shows when the app starts with no settings file yet (neither `settings.json` nor its
   `.bak`). After an update the file is already there, so it never shows on its own again. No new setting, no timer:

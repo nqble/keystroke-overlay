@@ -398,4 +398,22 @@ check(
   'the backend refuses a 21st layout too',
   /Max layouts/.test((await p.invoke('create_layout', { name: 'one too many' })).err || ''),
 );
+
+// ---- first run setup's pause step: Pause shortcut… opens General's pause shortcut, and the setup stays open
+await tab('general');
+await sleep(400);
+await p.ev(`document.querySelector('${byTest('general-first-run')}').click()`);
+await sleep(600);
+check('first run setup has the pause step', await p.q(`!!document.querySelector('${byTest('first-run-pause')}')`));
+await p.ev(`document.querySelector('${byTest('first-run-pause')}').click()`);
+await sleep(800);
+check(
+  "Pause shortcut… opens General's pause shortcut",
+  await p.q(`!!document.querySelector('${byTest('general-hotkey')}')`),
+);
+await tab('layout');
+await sleep(500);
+check('the setup is still there on the Layout tab', await p.q(`!!document.querySelector('${byTest('first-run')}')`));
+await p.ev(`document.querySelector('${byTest('first-run-close')}').click()`);
+await sleep(400);
 finish();
