@@ -22,7 +22,9 @@
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
-<!-- DEMO: a short gameplay video of the overlay in OBS goes here. -->
+<p align="center">
+  <img src="docs/media/demo.webp" alt="The overlay over a game in OBS: the keys light up as A, D and Ctrl are pressed in a shooter's practice range" width="720">
+</p>
 
 ## Why Keystroke Overlay
 
