@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 140">
+  <!-- The neutral gamepad (docs/proposals/drawn-devices.md): the standard layout every common gamepad shares, buttons
+       named by place as on an Xbox pad (docs/design/future-inputs.md §2). Clicking a stick lights the stick itself
+       (PadLS, PadRS); data-stick and data-trigger mark the parts that will move with the stick and fill with the
+       trigger once the controller is read. Colors come from the theme (ui/overlay/overlay.css). -->
+  <rect data-code="PadLT" data-trigger="PadLT" x="30" y="2" width="30" height="12" rx="5" />
+  <rect data-code="PadRT" data-trigger="PadRT" x="140" y="2" width="30" height="12" rx="5" />
+  <rect data-code="PadLB" x="24" y="17" width="42" height="9" rx="4.5" />
+  <rect data-code="PadRB" x="134" y="17" width="42" height="9" rx="4.5" />
+  <path class="device-body" d="M48 29H152C172 29 186 43 189 64L196 108C198 128 176 140 160 126L140 106H60L40 126C24 140 2 128 4 108L11 64C14 43 28 29 48 29Z" />
+  <circle data-code="PadLS" data-stick="PadStickL" cx="54" cy="62" r="14" />
+  <circle data-code="PadRS" data-stick="PadStickR" cx="128" cy="92" r="14" />
+  <rect data-code="PadUp" x="66" y="78" width="10" height="11" rx="2" />
+  <rect data-code="PadDown" x="66" y="99" width="10" height="11" rx="2" />
+  <rect data-code="PadLeft" x="55" y="89" width="11" height="10" rx="2" />
+  <rect data-code="PadRight" x="76" y="89" width="11" height="10" rx="2" />
+  <circle data-code="PadY" cx="148" cy="50" r="7" />
+  <circle data-code="PadX" cx="134" cy="64" r="7" />
+  <circle data-code="PadB" cx="162" cy="64" r="7" />
+  <circle data-code="PadA" cx="148" cy="78" r="7" />
+  <rect data-code="PadBack" x="82" y="56" width="11" height="7" rx="3.5" />
+  <rect data-code="PadStart" x="107" y="56" width="11" height="7" rx="3.5" />
+  <circle data-code="PadHome" cx="100" cy="42" r="7" />
+</svg>

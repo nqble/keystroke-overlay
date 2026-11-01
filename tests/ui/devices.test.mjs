@@ -33,6 +33,33 @@ test('the mouse has every button and both wheel directions', () => {
   }
 });
 
+test('the controller has the standard gamepad buttons, and its sticks and triggers are marked to move', () => {
+  const text = readFileSync(new URL('controller.svg', FOLDER), 'utf8');
+  const codes = codesIn(text);
+  const standard = [
+    'A',
+    'B',
+    'X',
+    'Y',
+    'LB',
+    'RB',
+    'LT',
+    'RT',
+    'Back',
+    'Start',
+    'LS',
+    'RS',
+    'Up',
+    'Down',
+    'Left',
+    'Right',
+    'Home',
+  ];
+  for (const name of standard) assert.ok(codes.includes(`Pad${name}`), `Pad${name}`);
+  for (const stick of ['PadStickL', 'PadStickR']) assert.match(text, new RegExp(`data-stick="${stick}"`));
+  for (const trigger of ['PadLT', 'PadRT']) assert.match(text, new RegExp(`data-trigger="${trigger}"`));
+});
+
 test('a block asks for its own drawing and falls back on its device', () => {
   assert.deepEqual(drawingPaths({ code: 'Mouse', device: 'mouse' }), [
     '/overlay/devices/mouse.svg',
