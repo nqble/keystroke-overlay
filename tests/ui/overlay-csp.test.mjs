@@ -15,7 +15,7 @@ const directives = Object.fromEntries(
     .map(([name, ...sources]) => [name, sources]),
 );
 // Sources that stay on this computer.
-const LOCAL = new Set(["'self'", "'none'", "'unsafe-inline'", 'data:', 'ws://127.0.0.1:*', 'ws://localhost:*']);
+const LOCAL = new Set(["'self'", "'none'", "'unsafe-inline'", 'data:']);
 
 test('the overlay page has a policy that starts from nothing allowed', () => {
   assert.ok(policy, 'a Content-Security-Policy meta tag');
