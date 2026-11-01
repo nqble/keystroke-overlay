@@ -60,6 +60,11 @@ windows = { version = "0.62", features = [
 ] }
 
 # Smaller debug builds (saves roughly 1.5 GB of disk). Set debug = 2 when you need to step through code in a debugger.
+# The mouse trial (docs/proposals/mouse-input.md, step 1): Windows Raw Input for mouse buttons and the wheel, started from the
+# Debug command debug_mouse_trial. Off by default, so a normal build has none of its code. Try it: cargo build --features mouse.
+[features]
+mouse = []
+
 [profile.dev]
 debug = 0
 

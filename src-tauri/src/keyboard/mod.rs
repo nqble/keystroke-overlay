@@ -310,6 +310,12 @@ impl Bus {
     }
 
     /// Was keyboard access already on when the app started? See `allowed_at_start`.
+    /// A sender into the same event stream as the keyboard (the mouse trial sends its button names through it).
+    #[cfg(all(feature = "mouse", windows))]
+    pub fn event_sender(&self) -> Sender<KeyEvent> {
+        self.ev_tx.clone()
+    }
+
     pub fn was_allowed_at_start(&self) -> bool {
         self.allowed_at_start
     }

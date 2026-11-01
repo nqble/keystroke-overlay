@@ -204,6 +204,22 @@ pub fn debug_tray_state(app: AppHandle) -> Value {
     crate::tray::indicator_state(&app)
 }
 
+/// The mouse trial (cargo feature `mouse`, Windows; docs/proposals/mouse-input.md, step 1): "start", "stop" or "stats" for the
+/// Raw Input capture of mouse buttons and the wheel. It answers whether it runs and how many records and events it has seen.
+/// A build without the feature says so. Never reads where the pointer is.
+#[tauri::command]
+pub fn debug_mouse_trial(st: State<AppState>, action: String) -> Result<Value, String> {
+    #[cfg(all(feature = "mouse", windows))]
+    {
+        crate::mouse::trial(&action, st.shared.bus.event_sender())
+    }
+    #[cfg(not(all(feature = "mouse", windows)))]
+    {
+        let _ = (st, action);
+        Err("This build has no mouse trial (cargo feature mouse, Windows only)".into())
+    }
+}
+
 /// Start or stop the key monitor: while on, every key event is also sent to the settings window as a "debug-key" event
 /// ({ k, down, ms }). It stops after 60 seconds, when asked, or when the window is gone. Nothing is stored.
 #[tauri::command]

@@ -16,6 +16,8 @@ mod key_angles;
 mod key_labels;
 mod keyboard;
 mod layout_order;
+#[cfg(feature = "mouse")]
+mod mouse;
 mod obs_scenes;
 mod platform;
 mod sanitize;
@@ -100,6 +102,7 @@ fn main() {
             debug::debug_simulate_update,
             debug::debug_tray_state,
             debug::debug_key_monitor,
+            debug::debug_mouse_trial,
             commands::updates::open_release_page,
             commands::updates::open_project_page,
             commands::updates::open_kle_site,
