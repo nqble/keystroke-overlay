@@ -121,30 +121,49 @@ pub fn code_name(evdev_code: u32) -> Option<&'static str> {
     })
 }
 
+/// Which keyboard an event came from: its place in the list of keyboards opened at start (linux_devices.rs).
+pub type DeviceId = usize;
+
 /// Turns raw presses and releases into clean state changes, like `KeyTracker` does on Windows: a press of a key that is
 /// already down (key repeat) and a release of a key that is not down (a release from before capture started) are dropped.
+/// Keys are tracked per keyboard, so a laptop's keyboard and an external one holding the same key make one press, and
+/// the key goes up only when the last of them lets go (outside code review, 2026-11-01).
 #[derive(Default)]
 pub struct KeyFilter {
-    /// The keys currently down. A Vec, not a set: it rarely holds more than a few keys.
-    held: Vec<&'static str>,
+    /// The keys currently down, each with the keyboard holding it. A Vec, not a set: it rarely holds more than a few.
+    held: Vec<(&'static str, DeviceId)>,
 }
 
 impl KeyFilter {
-    /// The event to send for a raw press (`down`) or release of the key with this evdev code, if any.
-    pub fn handle(&mut self, evdev_code: u32, down: bool) -> Option<KeyEvent> {
+    /// The event to send for a raw press (`down`) or release of the key with this evdev code on keyboard `device`, if any.
+    pub fn handle(&mut self, device: DeviceId, evdev_code: u32, down: bool) -> Option<KeyEvent> {
         let code = code_name(evdev_code)?;
-        let position = self.held.iter().position(|&held| held == code);
+        let position = self.held.iter().position(|&held| held == (code, device));
         match (down, position) {
             (true, Some(_)) | (false, None) => None,
             (true, None) => {
-                self.held.push(code);
-                Some(KeyEvent { down, code })
+                let first = !self.is_held(code);
+                self.held.push((code, device));
+                first.then_some(KeyEvent { down, code })
             }
             (false, Some(index)) => {
                 self.held.swap_remove(index);
-                Some(KeyEvent { down, code })
+                (!self.is_held(code)).then_some(KeyEvent { down, code })
             }
         }
+    }
+
+    /// Lets go of every key keyboard `device` holds (it was unplugged, or the system dropped some of its events and its
+    /// releases may be lost), returning a release for each key no other keyboard still holds.
+    pub fn forget_device(&mut self, device: DeviceId) -> Vec<KeyEvent> {
+        let (gone, kept): (Vec<_>, Vec<_>) = self.held.iter().partition(|&&(_, holder)| holder == device);
+        self.held = kept;
+        let released = gone.into_iter().filter(|&(code, _)| !self.is_held(code));
+        released.map(|(code, _)| KeyEvent { down: false, code }).collect()
+    }
+
+    fn is_held(&self, code: &str) -> bool {
+        self.held.iter().any(|&(held, _)| held == code)
     }
 }
 
@@ -156,7 +175,7 @@ mod tests {
         let mut filter = KeyFilter::default();
         events
             .iter()
-            .filter_map(|&(code, down)| filter.handle(code, down))
+            .filter_map(|&(code, down)| filter.handle(0, code, down))
             .map(|event| (event.down, event.code))
             .collect()
     }
@@ -217,5 +236,31 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn two_keyboards_holding_the_same_key_make_one_press_until_both_let_go() {
+        let mut filter = KeyFilter::default();
+        let laptop = 0;
+        let external = 1;
+        assert_eq!(filter.handle(laptop, 17, true).map(|e| e.down), Some(true));
+        assert!(filter.handle(external, 17, true).is_none(), "already shown as down");
+        assert!(
+            filter.handle(laptop, 17, false).is_none(),
+            "the external keyboard still holds W"
+        );
+        assert_eq!(filter.handle(external, 17, false).map(|e| e.down), Some(false));
+    }
+
+    #[test]
+    fn an_unplugged_keyboard_lets_go_of_its_keys_but_not_the_others() {
+        let mut filter = KeyFilter::default();
+        filter.handle(0, 17, true); // W on keyboard 0
+        filter.handle(0, 30, true); // A on keyboard 0
+        filter.handle(1, 30, true); // A on keyboard 1 too
+        let released: Vec<_> = filter.forget_device(0).into_iter().map(|e| (e.down, e.code)).collect();
+        assert_eq!(released, vec![(false, "KeyW")], "A is still held on keyboard 1");
+        assert_eq!(filter.handle(1, 30, false).map(|e| e.code), Some("KeyA"));
+        assert!(filter.forget_device(5).is_empty());
     }
 }
