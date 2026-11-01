@@ -89,8 +89,10 @@ then Restart now; `ui/settings/keyboard-access.js`) until capture really works. 
   (`RunEvent::ExitRequested` in `main.rs`). The Minimize to tray switch is hidden on a Mac
   (`platform::minimize_closes_window`). Opening the app again from Finder, Launchpad or Spotlight brings the window back
   (`platform::on_run_event`); a second start reuses the running app.
-- **No ⌘, shortcut:** the app only has a menu bar while its window is open, so ⌘, could only bring forward a window
-  that's already open, which looked broken. Settings open from the menu-bar icon or by opening the app again.
+- **Opening settings with keys:** a plain ⌘, can't work, because the app only has a menu bar while its window is open
+  (and a global ⌘, would take it from every other app). Instead, **General → Open settings shortcut** sets a global
+  shortcut of your own (for example ⌘⌥,), off until chosen (decided 2026-11-01). Settings also open from the menu-bar
+  icon or by opening the app again.
 - **Window frame:** the real red, yellow and green buttons and rounded corners, lined up with the header.
 - **Words:** the settings window uses Mac words (`ui/settings/system-words.js`): "Open at login", no Minimize switch, no
   Compatibility input method (only Windows has it), "⌘-click to add to the selection" and "delete" in the Keys tab, and the pause shortcut

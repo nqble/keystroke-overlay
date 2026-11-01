@@ -45,7 +45,8 @@
   },
   "hotkeys": {
     "enabled": false,
-    "pause": ""
+    "pause": "",
+    "openSettings": ""
   },
   "obs": {
     "scenes": {

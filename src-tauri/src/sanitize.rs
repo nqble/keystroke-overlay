@@ -326,6 +326,7 @@ const TEXT_RULES: &[(&str, TextRule)] = &[
     ("style.keyLabels", |text| text == "keyboard" || text == "layout"),
     ("general.linkKey", is_link_key),
     ("hotkeys.pause", crate::hotkeys::is_shortcut_text),
+    ("hotkeys.openSettings", crate::hotkeys::is_shortcut_text),
 ];
 
 fn rule_for<'a, T>(table: &'a [(&str, T)], path: &str) -> Option<&'a T> {

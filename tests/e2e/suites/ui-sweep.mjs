@@ -43,6 +43,7 @@ check(
       'Keyboard input',
       'Startup',
       'Pause shortcut',
+      'Open settings shortcut',
       'Updates',
       'Appearance',
       'Advanced',

@@ -229,7 +229,10 @@
     set_secure_link: ({ enabled }) =>
       `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/` + (enabled ? `?key=sandbox${Date.now()}` : ''),
     set_pause_hotkey: ({ enabled, shortcut }) => {
-      settings.hotkeys = { enabled, pause: shortcut };
+      settings.hotkeys = { ...settings.hotkeys, enabled, pause: shortcut };
+    },
+    set_open_settings_hotkey: ({ shortcut }) => {
+      settings.hotkeys = { ...settings.hotkeys, openSettings: shortcut };
     },
     toggle_pause: () => {
       paused = !paused;
