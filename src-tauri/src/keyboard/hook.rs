@@ -5,7 +5,7 @@
 //! swallowed. While an overlay is connected the same thread also runs the hook watch (see mod.rs): a 30 s timer that
 //! installs the hook again if Windows has silently removed it.
 
-use super::tracker::KeyTracker;
+use super::tracker::{KeyTracker, RECONCILE_MS};
 use super::{hook_looks_dropped, KeyEvent, WATCH_INTERVAL_MS};
 use std::cell::{Cell, RefCell};
 use std::sync::mpsc::{sync_channel, Sender};
@@ -26,6 +26,8 @@ thread_local! {
     static STATE: RefCell<Option<(KeyTracker, Sender<KeyEvent>)>> = const { RefCell::new(None) };
     // When the hook last heard a key: the tick count Windows stamps on each key (free to read).
     static LAST_KEY: Cell<u32> = const { Cell::new(0) };
+    // The reconcile timer's id while it runs (0 = not running): it runs only while a key is shown as down.
+    static RECONCILE_TIMER: Cell<usize> = const { Cell::new(0) };
 }
 
 pub struct Handle {
@@ -79,6 +81,7 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
                         timer = 0;
                     }
                     WM_TIMER if msg.wParam.0 == timer => hook = check_hook(hook),
+                    WM_TIMER if msg.wParam.0 == RECONCILE_TIMER.with(Cell::get) => reconcile_held_keys(),
                     _ => {
                         let _ = TranslateMessage(&msg);
                         DispatchMessageW(&msg);
@@ -88,6 +91,7 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
             if timer != 0 {
                 let _ = KillTimer(None, timer);
             }
+            stop_reconcile_timer();
             let _ = UnhookWindowsHookEx(hook);
         })
         .map_err(|e| e.to_string())?;
@@ -124,12 +128,42 @@ unsafe fn check_hook(hook: HHOOK) -> HHOOK {
         Ok(new_hook) => {
             LAST_KEY.with(|last| last.set(GetTickCount()));
             crate::debug::log("keyboard hook installed again (Windows had probably removed it)");
+            // releases were missed while the hook was gone: let go of what Windows says is up
+            reconcile_held_keys();
             new_hook
         }
         Err(e) => {
             crate::debug::log(format!("keyboard hook could not be installed again: {e}"));
             hook
         }
+    }
+}
+
+/// The reconcile timer's tick (on the hook thread, every RECONCILE_MS while a key is shown as down): release what Windows
+/// says is up, so a missed release (the PC locked, the hook removed) doesn't leave a key lit until the next key press.
+/// The timer stops itself once nothing is held.
+unsafe fn reconcile_held_keys() {
+    let any_held = STATE.with(|s| {
+        s.borrow_mut().as_mut().map(|(tracker, tx)| {
+            tracker.reconcile(tx);
+            tracker.any_held()
+        })
+    });
+    if any_held != Some(true) {
+        stop_reconcile_timer();
+    }
+}
+
+unsafe fn start_reconcile_timer() {
+    if RECONCILE_TIMER.with(Cell::get) == 0 {
+        RECONCILE_TIMER.with(|id| id.set(SetTimer(None, 0, RECONCILE_MS, None)));
+    }
+}
+
+unsafe fn stop_reconcile_timer() {
+    let id = RECONCILE_TIMER.with(|id| id.replace(0));
+    if id != 0 {
+        let _ = KillTimer(None, id);
     }
 }
 
@@ -141,11 +175,16 @@ unsafe extern "system" fn proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRE
         let up = matches!(wparam.0 as u32, WM_KEYUP | WM_SYSKEYUP);
         if down || up {
             let ext = key_data.flags.0 & 0x01 != 0;
-            STATE.with(|s| {
-                if let Some((tracker, tx)) = s.borrow_mut().as_mut() {
-                    tracker.handle(key_data.vkCode, key_data.scanCode, ext, down, tx);
-                }
+            // the hook can't tell keyboards apart: device 0 for everything
+            let any_held = STATE.with(|s| {
+                s.borrow_mut().as_mut().map(|(tracker, tx)| {
+                    tracker.handle(0, key_data.vkCode, key_data.scanCode, ext, down, tx);
+                    tracker.any_held()
+                })
             });
+            if any_held == Some(true) {
+                start_reconcile_timer();
+            }
         }
     }
     CallNextHookEx(None, code, wparam, lparam)
