@@ -158,7 +158,9 @@ anywhere you paste it. Treat the link like a password, keep it off your stream, 
 - **The operating system** itself, and any other software on your computer.
 - **Custom animations and themes you add yourself** are small programs (JavaScript) that the overlay runs, so they
   see what the overlay sees, your key presses included. The built-in ones are part of this project and checked like
-  the rest; only add others you wrote yourself or trust ([EXTENDING.md](docs/EXTENDING.md)).
+  the rest; only add others you wrote yourself or trust ([EXTENDING.md](docs/EXTENDING.md)). The overlay page's
+  security policy lets it load and contact only this app's own server on your computer, so even a bad one can't send
+  your keys anywhere else.
 
 ## How to check it yourself
 
