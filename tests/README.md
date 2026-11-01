@@ -140,7 +140,7 @@ Rules:
 | `kle-import-name`, `kle-import-summary`, `kle-import-back`, `kle-import-create` | The Import from KLE popup: its Name box, the summary line, Back (to New layout) and Create layout |
 | `animation-cards`, `animation-card-<id>` | The Animation tab's card gallery, and one animation's card |
 | `animation-fine-tune` | Its Fine-tune card (Speed, Strength, Easing) |
-| `first-run`, `first-run-close`, `first-run-copy`, `first-run-size`, `first-run-done`, `general-first-run` | First run setup: the screen, its ✕, Copy, the size, the "all set" line, and General's button |
+| `first-run`, `first-run-close`, `first-run-copy`, `first-run-size`, `first-run-pause`, `first-run-done`, `general-first-run` | First run setup: the screen, its ✕, Copy, the size, Pause shortcut…, the "all set" line, and General's button |
 | `dialog-delete` | The Delete button of the "Delete …?" popup |
 | `layout-import`, `layout-export`, `style-import`, `style-export` | The Import / Export buttons of the Layout and Style tabs |
 | `keymap`, `keymap-canvas` | The editor box, and the board inside it (`data-board-w` and `data-board-h` say its size in keys; `--zoom`, `--pan-x` and `--pan-y` are its view) |

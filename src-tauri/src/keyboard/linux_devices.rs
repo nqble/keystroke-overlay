@@ -16,7 +16,7 @@
 //! Privacy: events are only turned into key names and sent down the same channel as every other method. Nothing about
 //! them is written anywhere (PRIVACY.md).
 
-use super::linux_keys::KeyFilter;
+use super::linux_keys::{DeviceId, KeyFilter};
 use super::KeyEvent;
 use evdev::raw_stream::RawDevice;
 use evdev::{EventType, KeyCode};
@@ -160,27 +160,36 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
 }
 
 /// The capture loop: wait until a keyboard has events or the wake pipe is closed, then pass on the key changes.
-fn capture(mut keyboards: Vec<RawDevice>, wake: &PipeReader, tx: &Sender<KeyEvent>) {
+fn capture(opened: Vec<RawDevice>, wake: &PipeReader, tx: &Sender<KeyEvent>) {
     let mut filter = KeyFilter::default();
+    // each keyboard keeps the id it had at start, so the filter can tell which one holds a key
+    let mut keyboards: Vec<(DeviceId, RawDevice)> = opened.into_iter().enumerate().collect();
     loop {
-        let ready = wait_for_events(&keyboards, wake);
-        let Some(ready) = ready else {
+        let devices: Vec<&RawDevice> = keyboards.iter().map(|(_, keyboard)| keyboard).collect();
+        let Some(ready) = wait_for_events(&devices, wake) else {
             return; // asked to stop, or poll itself failed
         };
-        // Read the ready keyboards; a keyboard that fails to read (unplugged) is dropped.
+        // Read the ready keyboards; a keyboard that fails to read (unplugged) is dropped, and lets go of its keys.
         let mut still_there = Vec::with_capacity(keyboards.len());
-        for (mut keyboard, has_events) in keyboards.into_iter().zip(ready) {
-            if has_events && !read_keys(&mut keyboard, &mut filter, tx) {
+        for ((device, mut keyboard), has_events) in keyboards.into_iter().zip(ready) {
+            if has_events && !read_keys(device, &mut keyboard, &mut filter, tx) {
+                send_all(filter.forget_device(device), tx);
                 continue;
             }
-            still_there.push(keyboard);
+            still_there.push((device, keyboard));
         }
         keyboards = still_there;
     }
 }
 
+fn send_all(events: Vec<KeyEvent>, tx: &Sender<KeyEvent>) {
+    for event in events {
+        let _ = tx.send(event);
+    }
+}
+
 /// Blocks until something is ready. Returns which keyboards have events, or None when the wake pipe was closed.
-fn wait_for_events(keyboards: &[RawDevice], wake: &PipeReader) -> Option<Vec<bool>> {
+fn wait_for_events(keyboards: &[&RawDevice], wake: &PipeReader) -> Option<Vec<bool>> {
     let mut fds: Vec<PollFd> = keyboards
         .iter()
         .map(|keyboard| keyboard.as_raw_fd())
@@ -208,20 +217,32 @@ fn wait_for_events(keyboards: &[RawDevice], wake: &PipeReader) -> Option<Vec<boo
     Some(keyboard_fds.iter().map(|fd| fd.revents != 0).collect())
 }
 
+/// The kernel's sign that it dropped some of a keyboard's events because they came too fast (`SYN_DROPPED`, linux/input.h).
+const SYN_DROPPED: u16 = 3;
+
 /// Reads the waiting events of one keyboard. False when the keyboard can no longer be read.
-fn read_keys(keyboard: &mut RawDevice, filter: &mut KeyFilter, tx: &Sender<KeyEvent>) -> bool {
+fn read_keys(device: DeviceId, keyboard: &mut RawDevice, filter: &mut KeyFilter, tx: &Sender<KeyEvent>) -> bool {
     let Ok(events) = keyboard.fetch_events() else {
         return false;
     };
     for event in events {
+        if events_were_dropped(event.event_type(), event.code()) {
+            // a release may have been among them: let go of this keyboard's keys rather than leave one stuck down
+            send_all(filter.forget_device(device), tx);
+            continue;
+        }
         let Some((code, down)) = key_change(event.event_type(), event.code(), event.value()) else {
             continue;
         };
-        if let Some(key_event) = filter.handle(code, down) {
+        if let Some(key_event) = filter.handle(device, code, down) {
             let _ = tx.send(key_event);
         }
     }
     true
+}
+
+fn events_were_dropped(event_type: EventType, code: u16) -> bool {
+    event_type == EventType::SYNCHRONIZATION && code == SYN_DROPPED
 }
 
 #[cfg(test)]
@@ -256,7 +277,7 @@ mod tests {
             let Some((code, down)) = key_change(event_type, code, value) else {
                 continue;
             };
-            if let Some(event) = filter.handle(code, down) {
+            if let Some(event) = filter.handle(0, code, down) {
                 seen.push((event.down, event.code));
             }
         }
@@ -359,5 +380,18 @@ mod tests {
         let join = std::thread::spawn(move || capture(Vec::new(), &wake_reader, &tx));
         drop(wake);
         join.join().unwrap();
+    }
+
+    #[test]
+    fn dropped_events_are_recognized() {
+        assert!(events_were_dropped(EventType::SYNCHRONIZATION, SYN_DROPPED));
+        assert!(
+            !events_were_dropped(EventType::SYNCHRONIZATION, 0),
+            "an ordinary report"
+        );
+        assert!(
+            !events_were_dropped(EventType::KEY, SYN_DROPPED),
+            "key code 3 is the 2 key"
+        );
     }
 }

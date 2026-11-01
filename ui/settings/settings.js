@@ -136,7 +136,7 @@ addEventListener('resize', () => {
   if (state.serverError) {
     showServerError(state.serverError);
     setTab('general');
-  } else if (state.firstRun) openFirstRun(); // a brand-new install: the three steps to add it to OBS
+  } else if (state.firstRun) openFirstRun(); // a brand-new install: the steps to add it to OBS and set up pause
   setBooted(true);
   await render();
   window.__uiReady = performance.timeOrigin + performance.now(); // read by the performance tests

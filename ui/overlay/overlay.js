@@ -8,6 +8,7 @@ import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
 import { hiddenInputsOf, inputKind } from '/overlay/input-kinds.js';
 import { drawDevice } from '/overlay/devices.js';
+import { isSettingsWindow } from '/overlay/preview-origin.js';
 
 // What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
 // own font (San Francisco on a Mac), so the keys look right on any computer that shows the overlay (OBS may run on
@@ -389,7 +390,7 @@ function connect() {
 // ------------------------------------------------------------ settings-window preview bridge
 if (PREVIEW) {
   addEventListener('message', async (messageEvent) => {
-    if (messageEvent.source !== parent) return;
+    if (messageEvent.source !== parent || !isSettingsWindow(messageEvent.origin)) return;
     const message = messageEvent.data || {};
     if (message.type === 'cfg') apply(message.settings);
     else if (message.type === 'refresh') await refresh();
@@ -408,7 +409,7 @@ if (PREVIEW) {
           easings: [...easings.values()].map((x) => ({ id: x.id, name: x.name })),
           layouts: layouts.map((l) => ({ id: l.id, name: l.name })),
         },
-        '*',
+        messageEvent.origin, // only the settings window that asked can read the answer
       );
     }
   });

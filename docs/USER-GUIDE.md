@@ -342,8 +342,8 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
 
 - **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
   Launchpad. While the settings window is open, the app also shows in the Dock.
-- **Closing and quitting.** ⌘W, the red button and the yellow button all close the window to the menu bar; the app keeps
-  running. ⌘Q quits it.
+- **Closing and quitting.** ⌘W and the red button close the window to the menu bar; the app keeps running. The yellow
+  button minimizes it into the Dock. ⌘Q quits it.
 - **Open at login.** When the app starts by itself at login, it stays in the menu bar and doesn't open the settings window, even with **Open this window on launch** on. Click the menu-bar icon and choose **Open settings** when you want it.
 - **Opening the download the first time.** The download is signed ad hoc, not notarized, so macOS blocks its first launch. Open it once, then go to System Settings → Privacy & Security and click **Open Anyway** next to Keystroke Overlay. An app you built yourself isn't blocked.
 - **First launch: allow keyboard access.** macOS won't give an app your key presses until you say yes. In the settings

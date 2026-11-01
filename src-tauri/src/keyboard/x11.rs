@@ -127,13 +127,14 @@ fn capture(connection: &RustConnection, stopping: &AtomicBool, tx: &Sender<KeyEv
         if stopping.load(Ordering::Relaxed) {
             return;
         }
-        let (keycode, down) = match event {
-            Event::XinputRawKeyPress(press) => (press.detail, true),
-            Event::XinputRawKeyRelease(release) => (release.detail, false),
+        // sourceid is the physical keyboard, so two keyboards holding one key make one press (linux_keys.rs)
+        let (keycode, down, keyboard) = match event {
+            Event::XinputRawKeyPress(press) => (press.detail, true, press.sourceid),
+            Event::XinputRawKeyRelease(release) => (release.detail, false, release.sourceid),
             _ => continue,
         };
         let evdev_code = keycode.saturating_sub(X11_KEYCODE_OFFSET);
-        if let Some(key_event) = filter.handle(evdev_code, down) {
+        if let Some(key_event) = filter.handle(usize::from(keyboard), evdev_code, down) {
             let _ = tx.send(key_event);
         }
     }

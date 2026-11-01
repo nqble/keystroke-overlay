@@ -70,7 +70,7 @@ only the graphics card's cheapest effects, so streams stay smooth.
    Windows, the Apple Silicon app on a Mac, the `.deb` or AppImage on Linux. Releases are not code-signed yet, so on Windows
    click **More info → Run anyway** if SmartScreen warns, and on a Mac allow the first launch in **System Settings → Privacy &
    Security → Open Anyway** ([details](docs/USER-GUIDE.md#on-a-mac)).
-2. **Copy the OBS URL.** The app opens on three short setup steps the first time.
+2. **Copy the OBS URL.** The app opens on four short setup steps the first time: three for OBS, one to set up and try Pause.
 3. **In OBS:** Sources → **+** → **Browser**, paste the link and set the size the app shows. Done.
 
 **Is it safe?** It's open source, and official downloads come only from the Releases page. It reads your keyboard to
