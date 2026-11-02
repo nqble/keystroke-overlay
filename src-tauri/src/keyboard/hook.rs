@@ -167,6 +167,17 @@ unsafe fn stop_reconcile_timer() {
     }
 }
 
+const VK_RSHIFT: u32 = 0xA1;
+const LLKHF_EXTENDED: u32 = 0x01;
+
+/// Does the hook's flag say this key is an extended one (the E0 prefix)? Windows also sets it for the real Right Shift
+/// (scan code 0x36), which is not an E0 key on the hardware: the tracker would take it for one of the fake shifts
+/// Windows sends around extended keys (extended 0x2A or 0x36) and drop it, so Right Shift never lit up on Standard.
+/// Raw Input reports the Right Shift without the flag, so Compatibility never had the problem.
+fn is_extended(virtual_key: u32, flags: u32) -> bool {
+    flags & LLKHF_EXTENDED != 0 && virtual_key != VK_RSHIFT
+}
+
 unsafe extern "system" fn proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     if code == HC_ACTION as i32 {
         let key_data = &*(lparam.0 as *const KBDLLHOOKSTRUCT);
@@ -174,7 +185,7 @@ unsafe extern "system" fn proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRE
         let down = matches!(wparam.0 as u32, WM_KEYDOWN | WM_SYSKEYDOWN);
         let up = matches!(wparam.0 as u32, WM_KEYUP | WM_SYSKEYUP);
         if down || up {
-            let ext = key_data.flags.0 & 0x01 != 0;
+            let ext = is_extended(key_data.vkCode, key_data.flags.0);
             // the hook can't tell keyboards apart: device 0 for everything
             let any_held = STATE.with(|s| {
                 s.borrow_mut().as_mut().map(|(tracker, tx)| {
@@ -188,4 +199,23 @@ unsafe extern "system" fn proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRE
         }
     }
     CallNextHookEx(None, code, wparam, lparam)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_right_shift_is_not_an_extended_key_even_though_the_hook_flags_it() {
+        assert!(!is_extended(VK_RSHIFT, LLKHF_EXTENDED));
+        assert!(!is_extended(VK_RSHIFT, 0));
+    }
+
+    #[test]
+    fn other_keys_keep_the_flag_the_hook_gave_them() {
+        assert!(is_extended(0x27, LLKHF_EXTENDED)); // Right arrow
+        assert!(!is_extended(0x27, 0));
+        assert!(!is_extended(0x57, 0)); // W
+        assert!(is_extended(0xA3, LLKHF_EXTENDED | 0x10)); // Right Ctrl, with another flag set
+    }
 }

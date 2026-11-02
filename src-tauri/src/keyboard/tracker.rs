@@ -266,6 +266,16 @@ mod tests {
         assert!(run(&[(0, (0xA0, 0x2A, true), true), (0, (0xA0, 0x2A, true), false)]).is_empty());
     }
     #[test]
+    fn the_real_right_shift_is_a_key_but_the_fake_one_with_the_e0_prefix_is_not() {
+        let real = (0xA1, 0x36, false);
+        let fake = (0xA1, 0x36, true);
+        assert_eq!(
+            run(&[(0, real, true), (0, real, false)]),
+            vec![(true, "ShiftRight"), (false, "ShiftRight")]
+        );
+        assert!(run(&[(0, fake, true), (0, fake, false)]).is_empty());
+    }
+    #[test]
     fn printscreen_release_only_shows_as_a_tap() {
         assert_eq!(
             run(&[(0, (0x2C, 0x37, true), false)]),
