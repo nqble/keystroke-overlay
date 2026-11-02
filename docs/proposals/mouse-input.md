@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers) and 2 (the name tables and the wheel logic) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic) and 3 (the setting) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -366,6 +366,10 @@ Built as in the plan, as plain logic with no system calls, compiled and tested o
 - `mouse/names.rs`: one small table per system: Windows Raw Input flags (from step 1), X11 button numbers 1 to 9, Linux evdev button codes (`BTN_SIDE` and `BTN_BACK` both back, `BTN_EXTRA` and `BTN_FORWARD` both forward) with `REL_WHEEL` and `REL_HWHEEL` for the wheel (the high-resolution codes skipped), and macOS button numbers 0 to 4. Unknown codes are ignored, and nothing names a movement code.
 - `mouse/wheel.rs`: `Notches` adds wheel turns per axis into whole notches (120 on Windows, one line on macOS; 30 + 30 + 60 is one notch, 60 up then 60 down is nothing, a fast turn can be several) and `Throttle` lets one press per wheel direction through every `MIN_TAP_MS` (a burst of 50 notches in 98 ms is one press; a notch every 10 ms for a second is ten). It keeps no clock: the caller passes the time. `MIN_TAP_MS` is 100, to match `ui/overlay/taps.js` when that exists (step 6).
 - `mod mouse` is compiled in every build now (the spike in `rawinput.rs` still needs the cargo feature on Windows); the two modules carry `allow(dead_code)` until step 4 uses them.
+
+## Step 3 result: the setting (2026-11-02)
+
+`settings.rs` `defaults()` has `"inputs": { "mouse": { "enabled": false } }`, in the file format list of `docs/FILE-FORMATS.md` and in the UI sandbox's copy of the defaults (a test keeps them equal). No migration and no version bump: a file saved before has no `inputs` and gets the default. There is no line in `sanitize.rs`: the sanitizer follows the default's type, so the switch is a boolean and anything else (text, a number, null, a list, an object) goes back to off, and a broken `inputs` section goes back to the default; only the keys the defaults know survive, so `gamepad` has to get its own default before it can be saved. Four unit tests (in `settings/tests.rs`): off by default, an older file gets it, `true` stays and a wrong type goes back to off, and a broken section goes back to the default. Nothing reads the setting yet (step 4 starts the capture from it) and the overlay never does.
 
 ## Effort
 

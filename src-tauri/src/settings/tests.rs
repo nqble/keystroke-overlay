@@ -65,6 +65,43 @@ mod load_and_save_tests {
         assert_eq!(migrate(defaults()), defaults());
     }
     #[test]
+    fn the_mouse_input_is_off_by_default() {
+        assert_eq!(defaults()["inputs"], json!({ "mouse": { "enabled": false } }));
+    }
+    #[test]
+    fn settings_saved_before_the_inputs_existed_get_the_default() {
+        let migrated = migrate(json!({ "version": 2, "layout": { "id": "wasd", "profiles": {} } }));
+        assert_eq!(migrated["inputs"], json!({ "mouse": { "enabled": false } }));
+    }
+    #[test]
+    fn the_mouse_switch_keeps_true_and_a_wrong_type_goes_back_to_off() {
+        let on = migrate(json!({ "version": 2, "inputs": { "mouse": { "enabled": true } } }));
+        assert_eq!(on["inputs"]["mouse"]["enabled"], json!(true));
+        for hostile in [
+            json!("yes"),
+            json!(1),
+            json!(null),
+            json!([true]),
+            json!({ "on": true }),
+        ] {
+            let migrated = migrate(json!({ "version": 2, "inputs": { "mouse": { "enabled": hostile } } }));
+            assert_eq!(migrated["inputs"]["mouse"]["enabled"], json!(false));
+        }
+    }
+    #[test]
+    fn a_broken_inputs_section_goes_back_to_the_default() {
+        for hostile in [
+            json!(true),
+            json!("mouse"),
+            json!(null),
+            json!([]),
+            json!({ "mouse": "on" }),
+        ] {
+            let migrated = migrate(json!({ "version": 2, "inputs": hostile }));
+            assert_eq!(migrated["inputs"], json!({ "mouse": { "enabled": false } }));
+        }
+    }
+    #[test]
     fn keys_editor_choices_default_to_quarter_snap_and_no_grid() {
         assert_eq!(
             defaults()["layout"]["editor"],
