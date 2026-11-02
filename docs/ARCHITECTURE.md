@@ -40,6 +40,10 @@ keystroke-overlay/
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
 │       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
+│       ├── mouse/          mouse buttons and wheel (plan: docs/proposals/mouse-input.md); so far plain logic only, not used by the app yet
+│       │   ├── names.rs      every system's button and wheel codes -> our names (Windows, X11, evdev, macOS; tested everywhere)
+│       │   ├── wheel.rs      wheel turns -> whole notches, and one press per direction per MIN_TAP_MS (tested everywhere)
+│       │   └── rawinput.rs   Windows Raw Input spike behind the cargo feature mouse (the Debug command debug_mouse_trial)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
 │       ├── obs_scenes.rs   cleans the OBS scene rules (obs.scenes); the overlay follows them inside OBS (ui/overlay/obs-source.js)

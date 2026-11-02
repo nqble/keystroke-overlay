@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Step 1 (the Windows spike, with its numbers) is built behind the cargo feature `mouse`; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers) and 2 (the name tables and the wheel logic) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -358,6 +358,14 @@ Built as in the plan: `mouse/rawinput.rs` (Raw Input on a message-only window, `
 - **Buttons and wheel:** 50 clicks (a press and a release each, cycling all five buttons) and 50 notches (up and down in turn) gave exactly the 150 events sent.
 - **On and off:** 20 cycles left the thread count at 14 and the handle count at 370, the same as before. Nothing leaks.
 - **Not yet checked:** the overlay showing the clicks (the names go into the keyboard stream; the Windows e2e suite of step 8 checks it), a left-handed button swap (the plan says physical buttons), and the cost with a real 8,000 Hz mouse.
+
+## Step 2 result: names and wheel (2026-11-02)
+
+Built as in the plan, as plain logic with no system calls, compiled and tested on every system (22 tests, run by a normal `cargo test`), and not used by the app yet:
+
+- `mouse/names.rs`: one small table per system: Windows Raw Input flags (from step 1), X11 button numbers 1 to 9, Linux evdev button codes (`BTN_SIDE` and `BTN_BACK` both back, `BTN_EXTRA` and `BTN_FORWARD` both forward) with `REL_WHEEL` and `REL_HWHEEL` for the wheel (the high-resolution codes skipped), and macOS button numbers 0 to 4. Unknown codes are ignored, and nothing names a movement code.
+- `mouse/wheel.rs`: `Notches` adds wheel turns per axis into whole notches (120 on Windows, one line on macOS; 30 + 30 + 60 is one notch, 60 up then 60 down is nothing, a fast turn can be several) and `Throttle` lets one press per wheel direction through every `MIN_TAP_MS` (a burst of 50 notches in 98 ms is one press; a notch every 10 ms for a second is ten). It keeps no clock: the caller passes the time. `MIN_TAP_MS` is 100, to match `ui/overlay/taps.js` when that exists (step 6).
+- `mod mouse` is compiled in every build now (the spike in `rawinput.rs` still needs the cargo feature on Windows); the two modules carry `allow(dead_code)` until step 4 uses them.
 
 ## Effort
 
