@@ -54,6 +54,11 @@
       "rules": []
     }
   },
+  "inputs": {
+    "mouse": {
+      "enabled": false
+    }
+  },
   "animation": {
     "type": "none",
     "speed": 120,

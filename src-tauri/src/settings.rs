@@ -67,6 +67,10 @@ pub fn defaults() -> Value {
         // OBS scenes (obs_scenes.rs): hide the overlay or show another layout in the listed scenes, followed by the
         // overlay page inside OBS. rules = [{ "scene": "Chat", "show": false, "layout": "" }]; off by default.
         "obs": { "scenes": { "enabled": false, "rules": [] } },
+        // Inputs besides the keyboard (docs/design/future-inputs.md section 5, docs/proposals/mouse-input.md): the mouse's
+        // buttons and wheel (never where the pointer is), off by default. While off nothing is captured and no thread
+        // runs. The overlay doesn't read it; a later step of the mouse plan starts the capture from it.
+        "inputs": { "mouse": { "enabled": false } },
         "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 },
         // The settings window's theme (commands/appearance.rs, ui/settings/app-themes.js): a file name in
         // ui/settings/themes/ without ".json", or the id of one of the person's own themes in `custom`
