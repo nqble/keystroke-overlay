@@ -1,7 +1,8 @@
-//! Windows Raw Input mouse flags → our names (docs/proposals/mouse-input.md, "Windows: Raw Input").
+//! Every system's mouse button and wheel codes → our names (docs/proposals/mouse-input.md, "How it works"): Windows
+//! Raw Input flags, X11 button numbers, Linux evdev codes and macOS button numbers, one small table each.
 //!
-//! Plain logic with no system calls, so it is tested anywhere. It reads only the button and wheel flags of a Raw Input
-//! record, never the movement fields: where the pointer is or how it moves is never looked at (the privacy rule of
+//! Plain logic with no system calls, so it is built and tested on every system. It names only buttons and wheel turns,
+//! never the movement of the pointer: where it is or how it moves is never looked at (the privacy rule of
 //! docs/design/future-inputs.md section 7).
 
 const LEFT_DOWN: u16 = 0x0001;
@@ -62,6 +63,72 @@ pub fn has_buttons_or_wheel(flags: u16) -> bool {
     flags & (WHEEL | HWHEEL | ANY_BUTTON) != 0
 }
 
+/// Linux X11: the physical button number of an XInput2 raw button event. 1, 2 and 3 are left, middle and right; 4 to 7 are
+/// the wheel (one press per notch, also for smooth-scrolling mice, where X sends them as emulated buttons); 8 and 9 are
+/// back and forward. Anything else (a mouse with more buttons) is not named.
+pub fn x11_button(button: u8) -> Option<&'static str> {
+    Some(match button {
+        1 => "MouseLeft",
+        2 => "MouseMiddle",
+        3 => "MouseRight",
+        4 => "WheelUp",
+        5 => "WheelDown",
+        6 => "WheelLeft",
+        7 => "WheelRight",
+        8 => "MouseBack",
+        9 => "MouseForward",
+        _ => return None,
+    })
+}
+
+const BTN_LEFT: u16 = 0x110;
+const BTN_RIGHT: u16 = 0x111;
+const BTN_MIDDLE: u16 = 0x112;
+const BTN_SIDE: u16 = 0x113;
+const BTN_EXTRA: u16 = 0x114;
+const BTN_FORWARD: u16 = 0x115;
+const BTN_BACK: u16 = 0x116;
+const REL_HWHEEL: u16 = 0x06;
+const REL_WHEEL: u16 = 0x08;
+
+/// Linux evdev (Wayland): the key code of a mouse button. Back and side, forward and extra are the same two buttons
+/// under the names different drivers use.
+pub fn evdev_button(code: u16) -> Option<&'static str> {
+    Some(match code {
+        BTN_LEFT => "MouseLeft",
+        BTN_RIGHT => "MouseRight",
+        BTN_MIDDLE => "MouseMiddle",
+        BTN_SIDE | BTN_BACK => "MouseBack",
+        BTN_EXTRA | BTN_FORWARD => "MouseForward",
+        _ => return None,
+    })
+}
+
+/// Linux evdev: a wheel event. `REL_WHEEL` is one notch (positive = up) and `REL_HWHEEL` one notch sideways (positive =
+/// right). The high-resolution codes are not named: the kernel also sends `REL_WHEEL` for each full notch.
+pub fn evdev_wheel(code: u16, value: i32) -> Option<&'static str> {
+    if value == 0 {
+        return None;
+    }
+    match code {
+        REL_WHEEL => Some(if value > 0 { "WheelUp" } else { "WheelDown" }),
+        REL_HWHEEL => Some(if value > 0 { "WheelRight" } else { "WheelLeft" }),
+        _ => None,
+    }
+}
+
+/// macOS: the button number of a mouse event (`kCGMouseEventButtonNumber`): 0 left, 1 right, 2 middle, 3 back, 4 forward.
+pub fn macos_button(number: i64) -> Option<&'static str> {
+    Some(match number {
+        0 => "MouseLeft",
+        1 => "MouseRight",
+        2 => "MouseMiddle",
+        3 => "MouseBack",
+        4 => "MouseForward",
+        _ => return None,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -109,5 +176,73 @@ mod tests {
     fn no_turn_or_no_wheel_flag_is_no_wheel() {
         assert_eq!(wheel_name(WHEEL, 0), None);
         assert_eq!(wheel_name(LEFT_DOWN, 120), None);
+    }
+
+    #[test]
+    fn x11_buttons_one_to_nine_have_a_name_and_nothing_else_does() {
+        let names: Vec<_> = (1..=9).map(x11_button).collect();
+        assert_eq!(
+            names,
+            [
+                Some("MouseLeft"),
+                Some("MouseMiddle"),
+                Some("MouseRight"),
+                Some("WheelUp"),
+                Some("WheelDown"),
+                Some("WheelLeft"),
+                Some("WheelRight"),
+                Some("MouseBack"),
+                Some("MouseForward"),
+            ]
+        );
+        assert_eq!(x11_button(0), None);
+        assert_eq!(x11_button(10), None);
+        assert_eq!(x11_button(255), None);
+    }
+
+    #[test]
+    fn evdev_buttons_use_both_names_for_the_side_buttons() {
+        assert_eq!(evdev_button(BTN_LEFT), Some("MouseLeft"));
+        assert_eq!(evdev_button(BTN_RIGHT), Some("MouseRight"));
+        assert_eq!(evdev_button(BTN_MIDDLE), Some("MouseMiddle"));
+        assert_eq!(evdev_button(BTN_SIDE), Some("MouseBack"));
+        assert_eq!(evdev_button(BTN_BACK), Some("MouseBack"));
+        assert_eq!(evdev_button(BTN_EXTRA), Some("MouseForward"));
+        assert_eq!(evdev_button(BTN_FORWARD), Some("MouseForward"));
+    }
+
+    #[test]
+    fn evdev_codes_that_are_not_mouse_buttons_are_ignored() {
+        assert_eq!(evdev_button(0x1e), None); // KEY_A
+        assert_eq!(evdev_button(0x117), None); // BTN_TASK
+        assert_eq!(evdev_button(0x14a), None); // BTN_TOUCH: a touchpad tap, not a button
+    }
+
+    #[test]
+    fn evdev_wheel_turns_follow_the_sign_and_the_high_resolution_codes_are_skipped() {
+        assert_eq!(evdev_wheel(REL_WHEEL, 1), Some("WheelUp"));
+        assert_eq!(evdev_wheel(REL_WHEEL, -1), Some("WheelDown"));
+        assert_eq!(evdev_wheel(REL_HWHEEL, 1), Some("WheelRight"));
+        assert_eq!(evdev_wheel(REL_HWHEEL, -1), Some("WheelLeft"));
+        assert_eq!(evdev_wheel(REL_WHEEL, 0), None);
+        assert_eq!(evdev_wheel(0x0b, 120), None); // REL_WHEEL_HI_RES
+        assert_eq!(evdev_wheel(0x0c, 120), None); // REL_HWHEEL_HI_RES
+    }
+
+    #[test]
+    fn macos_button_numbers_zero_to_four_have_a_name_and_nothing_else_does() {
+        let names: Vec<_> = (0..=4).map(macos_button).collect();
+        assert_eq!(
+            names,
+            [
+                Some("MouseLeft"),
+                Some("MouseRight"),
+                Some("MouseMiddle"),
+                Some("MouseBack"),
+                Some("MouseForward")
+            ]
+        );
+        assert_eq!(macos_button(-1), None);
+        assert_eq!(macos_button(5), None);
     }
 }

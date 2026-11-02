@@ -16,7 +16,6 @@ mod key_angles;
 mod key_labels;
 mod keyboard;
 mod layout_order;
-#[cfg(feature = "mouse")]
 mod mouse;
 mod obs_scenes;
 mod platform;
