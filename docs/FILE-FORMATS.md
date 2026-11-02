@@ -28,6 +28,7 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
              "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language and Win/Alt/Ctrl follow the system (⌘ ⌥ ⌃ on a Mac); "layout": the files' labels
   "hotkeys": { "enabled": false, "pause": "", "openSettings": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP", registered only when on and set; the open settings shortcut, registered when set
   "obs": { "scenes": { "enabled": false, "rules": [] } },   // per OBS scene: { "scene": "Chat", "show": false, "layout": "" }; at most 20 rules, names up to 100 characters, each scene once (case ignored); layout "" = the chosen layout
+  "inputs": { "mouse": { "enabled": false } },   // inputs besides the keyboard: the mouse's buttons and wheel (never the pointer's position), off by default; not used by the app yet (docs/proposals/mouse-input.md)
   "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 },
   "appearance": { "theme": "default", "custom": [] } // the settings window's theme: a built-in id or a custom one's; custom = up to 20 { id, name, colors }
 }
