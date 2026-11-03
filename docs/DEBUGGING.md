@@ -89,11 +89,11 @@ the steps.
 - `npm run test:e2e -- --suite <name>` runs one end-to-end suite instead of everything (see `tests/README.md`).
 - `npm run check:privacy` fails if network code, logging or file writes appear where the privacy promises forbid them.
 
-## The mouse trial (Windows, cargo feature `mouse`)
+## The mouse capture (Windows)
 
-Step 1 of [proposals/mouse-input.md](proposals/mouse-input.md): mouse buttons and the wheel through Raw Input, built only when asked for, so a normal build has none of it. `npm run tauri build -- --features mouse` (or `cargo build --features mouse`) builds it; the Debug command `debug_mouse_trial` with `"start"`, `"stop"` or `"stats"` runs it and answers whether it runs and how many Raw Input records and button or wheel events it has seen. Started, it sends `MouseLeft`, `MouseRight`, `MouseMiddle`, `MouseBack`, `MouseForward` and the four `Wheel…` names into the same stream as the keyboard, so a layout with a drawn mouse shows clicks in the live preview. It never reads where the pointer is.
+Mouse buttons and the wheel, through Raw Input ([proposals/mouse-input.md](proposals/mouse-input.md)); off by default (`inputs.mouse.enabled`). While it is off nothing is captured and no thread runs. Until the settings window has its switch (a later step of the plan), turn it on from the debugging connection: `window.__TAURI__.core.invoke("set_mouse_input", { enabled: true })` (the same command the switch will call; it saves the setting only when the capture started, and the answer says why when it could not). It sends `MouseLeft`, `MouseRight`, `MouseMiddle`, `MouseBack`, `MouseForward` and `WheelUp`, `WheelDown`, `WheelLeft`, `WheelRight` into the same stream as the keyboard, so a layout with those keys shows them; a wheel notch is a short press, at most one per direction every 100 ms. It never reads where the pointer is. `get_state` says whether it runs (`mouseRunning`).
 
-`node tests/bench/mouse-trial.mjs [--seconds 30]` measures it in a throwaway test copy (the same identity and ports as the end-to-end tests, so it takes the same lock and needs the PC to itself): capture off and idle, on and idle, on while fake moves arrive at 1,000 a second, on while clicks and wheel notches arrive, and the thread and handle counts over 20 on/off cycles. It opens a small window under the pointer and sends the fake input there only. The numbers are in the proposal.
+`node tests/bench/mouse-trial.mjs [--seconds 30]` measures it in a throwaway test copy (the same identity and ports as the end-to-end tests, so it takes the same lock and needs the PC to itself): capture off and idle, on and idle, on while fake moves arrive at 1,000 a second, on while clicks and wheel notches arrive (counted on the overlay stream), and the thread and handle counts over 20 on/off cycles. It opens a small window under the pointer and sends the fake input there only. The numbers are in the proposal.
 
 ## Without the app: the UI sandbox
 

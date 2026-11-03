@@ -71,7 +71,7 @@ if ($mode -eq 'move') {
   for ($i = 0; $i -lt $a; $i++) {
     $turn = if (($i % 2) -eq 0) { 120 } else { -120 }
     [FakeMouse]::Send(0, 0, [BitConverter]::ToUInt32([BitConverter]::GetBytes([int]$turn), 0), $WHEEL)
-    Start-Sleep -Milliseconds 20
+    Start-Sleep -Milliseconds 130
     $sent++
     [System.Windows.Forms.Application]::DoEvents()
   }

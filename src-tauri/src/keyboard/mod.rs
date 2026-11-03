@@ -287,6 +287,8 @@ pub struct Bus {
     capture: Mutex<Capture>,
     /// How many overlay pages are connected (the hook watch runs while this is above 0).
     watchers: AtomicUsize,
+    /// The mouse capture while it is on (mouse/mod.rs): independent of the keyboard method, sending into the same stream.
+    mouse: Mutex<Option<crate::mouse::Handle>>,
 }
 
 impl Bus {
@@ -294,7 +296,7 @@ impl Bus {
     /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
     /// Pause is pressed can never slip through or leave a stuck key behind.
     fn forward(&self, event: KeyEvent) {
-        if !is_modifier_code(event.code) {
+        if !is_modifier_code(event.code) && !crate::mouse::is_mouse_name(event.code) {
             self.keys_seen.store(true, Ordering::Relaxed);
         }
         let mut held = self.held.lock().unwrap();
@@ -310,12 +312,6 @@ impl Bus {
     }
 
     /// Was keyboard access already on when the app started? See `allowed_at_start`.
-    /// A sender into the same event stream as the keyboard (the mouse trial sends its button names through it).
-    #[cfg(all(feature = "mouse", windows))]
-    pub fn event_sender(&self) -> Sender<KeyEvent> {
-        self.ev_tx.clone()
-    }
-
     pub fn was_allowed_at_start(&self) -> bool {
         self.allowed_at_start
     }
@@ -363,6 +359,44 @@ impl Bus {
         let source = Source::start(method, self.ev_tx.clone())?;
         source.set_watch(self.watchers.load(Ordering::Relaxed) > 0);
         Ok(source)
+    }
+
+    /// Turn the mouse capture on or off (mouse/mod.rs), independent of the keyboard method. On starts it with the same
+    /// event stream as the keyboard, so the dispatcher, the held keys and Pause work unchanged; if it can't start the
+    /// error is returned and nothing runs. Off stops it and lets go of any mouse button still shown as held.
+    pub fn set_mouse(&self, on: bool) -> Result<(), String> {
+        let mut mouse = self.mouse.lock().unwrap();
+        if on {
+            if mouse.is_none() {
+                *mouse = Some(crate::mouse::start(self.ev_tx.clone())?);
+            }
+            return Ok(());
+        }
+        if let Some(handle) = mouse.take() {
+            handle.stop();
+        }
+        self.release_held_mouse();
+        Ok(())
+    }
+
+    /// Is the mouse capture running?
+    pub fn mouse_running(&self) -> bool {
+        self.mouse.lock().unwrap().is_some()
+    }
+
+    /// Releases every mouse name still shown as held (a button down when the capture stopped would never get its release).
+    fn release_held_mouse(&self) {
+        let held: Vec<&'static str> = self
+            .held
+            .lock()
+            .unwrap()
+            .iter()
+            .copied()
+            .filter(|code| crate::mouse::is_mouse_name(code))
+            .collect();
+        for code in held {
+            let _ = self.ev_tx.send(KeyEvent { down: false, code });
+        }
     }
 
     /// Switch capture method while running. If the new method can't start, the old one is restored and an error
@@ -420,6 +454,7 @@ pub fn start(method: Method) -> Arc<Bus> {
         ev_tx,
         capture: Mutex::new(Capture { method, source, error }),
         watchers: AtomicUsize::new(0),
+        mouse: Mutex::new(None),
     });
 
     let dispatch_bus = bus.clone();
@@ -439,8 +474,13 @@ mod tests {
     use super::*;
 
     fn test_bus() -> Bus {
-        let (ev_tx, _) = channel::<KeyEvent>();
-        Bus {
+        test_bus_with_stream().0
+    }
+
+    /// A test Bus and the receiving end of the stream its capture methods send into.
+    fn test_bus_with_stream() -> (Bus, std::sync::mpsc::Receiver<KeyEvent>) {
+        let (ev_tx, stream) = channel::<KeyEvent>();
+        let bus = Bus {
             tx: broadcast::channel(256).0,
             held: Mutex::new(HashSet::new()),
             paused: AtomicBool::new(false),
@@ -453,7 +493,9 @@ mod tests {
                 error: None,
             }),
             watchers: AtomicUsize::new(0),
-        }
+            mouse: Mutex::new(None),
+        };
+        (bus, stream)
     }
 
     #[test]
@@ -533,6 +575,61 @@ mod tests {
         });
         assert!(overlay.try_recv().is_err());
         assert!(bus.held.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn nothing_from_the_mouse_gets_through_while_paused() {
+        let bus = test_bus();
+        let mut overlay = bus.tx.subscribe();
+        bus.set_paused(true);
+        for code in ["MouseLeft", "WheelUp"] {
+            bus.forward(KeyEvent { down: true, code });
+        }
+        assert!(overlay.try_recv().is_err());
+        assert!(bus.held.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn the_mouse_does_not_count_as_proof_that_the_keyboard_works() {
+        let bus = test_bus();
+        bus.forward(KeyEvent {
+            down: true,
+            code: "MouseLeft",
+        });
+        bus.forward(KeyEvent {
+            down: true,
+            code: "WheelDown",
+        });
+        assert!(!bus.has_seen_keys());
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyW",
+        });
+        assert!(bus.has_seen_keys());
+    }
+
+    #[test]
+    fn turning_the_mouse_off_lets_go_of_the_buttons_still_held_and_leaves_the_keys_alone() {
+        let (bus, stream) = test_bus_with_stream();
+        for code in ["MouseLeft", "MouseBack", "KeyW"] {
+            bus.forward(KeyEvent { down: true, code });
+        }
+        assert!(bus.set_mouse(false).is_ok());
+        let mut released: Vec<&str> = stream
+            .try_iter()
+            .filter(|event| !event.down)
+            .map(|event| event.code)
+            .collect();
+        released.sort_unstable();
+        assert_eq!(released, ["MouseBack", "MouseLeft"]);
+    }
+
+    #[test]
+    fn the_mouse_is_off_until_it_is_turned_on() {
+        let bus = test_bus();
+        assert!(!bus.mouse_running());
+        assert!(bus.set_mouse(false).is_ok()); // already off: nothing happens
+        assert!(!bus.mouse_running());
     }
 
     /// The outside review's race: a key event in flight while Pause is pressed used to be able to land in `held` after
