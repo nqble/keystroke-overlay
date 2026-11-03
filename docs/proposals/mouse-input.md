@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting) and 4 (the Windows capture, started from the setting) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting) and 6 (the overlay's taps and the layout) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -379,6 +379,12 @@ The spike became the Windows method, so the cargo feature `mouse` and the Debug 
 - `keyboard::Bus` has an independent mouse slot: `set_mouse(on)` starts or stops it (the keyboard method is untouched) and, off, releases any `Mouse…` name still held; `mouse_running()` says whether it runs (`get_state` has `mouseRunning`). A mouse name never counts as proof that the keyboard works (`has_seen_keys`), and Pause drops mouse events like keys (tests for both).
 - The command `set_mouse_input(enabled)` is in `commands/settings.rs` next to `set_input_method`, not in `mouse/mod.rs` as the plan said: it saves `inputs.mouse.enabled` only after the capture started (so the setting stays off when it could not), refreshes the tray's Show menu and tells the settings window, and keeping the file write out of `mouse/` leaves step 5's rule (no file writes in `mouse/`, like `keyboard/`) simple. `main.rs` starts the capture at launch when the setting is on.
 - `tests/bench/mouse-trial.mjs` uses the command and counts the mouse names on the overlay stream. There is still no switch in the settings window (step 7), so a person turns it on from the debugging connection (docs/DEBUGGING.md).
+
+## Step 6 result: taps and the layout (2026-11-02)
+
+- **`ui/overlay/taps.js`** (with `tests/ui/overlay-taps.test.mjs`, 11 tests): a key that goes down and up in the same moment, which is every wheel notch and PrintScreen on Windows (Windows reports only its release, so the tracker sends it as an instant tap), added and removed its `down` look within one frame and so showed nothing. A tap now shows for at least `MIN_TAP_MS` (100, the same number as `mouse/wheel.rs`; a test compares them) after its press. Every other key is released at once, as before, and a timer is started only when an early release arrives, so an idle overlay runs nothing. `overlay.js` routes every press and release through it; pause and a lost connection still darken everything at once. On the real overlay (the test copy's live preview, key presses injected): PrintScreen stays lit 101 ms (before: under a frame), a W pressed and released in the same moment 114 ms, a W held half a second is released at once.
+- **The layout** is the one the drawn-devices plan decided, not this plan's loose-key `mouse.json`: **WASD + mouse** (`ui/overlay/layouts/wasd-mouse.json`, from `tools/gen-layouts.mjs`): the WASD keys and a drawn mouse (`"device": "mouse"`) as tall as they are. It waits under Other layouts (it is not in `DEFAULT_ORDER`). The built-in layout count is thirteen, and the layout test no longer expects a device block to be a name from the keyboard tables.
+- The drawn mouse lights up only while the mouse input is on, and the settings window has no switch for it yet (step 7).
 
 ## Effort
 
