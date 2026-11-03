@@ -1,9 +1,10 @@
 // Enforces the promises in PRIVACY.md. Fails (exit 1) if the code ever:
 //   * uses the network anywhere except src-tauri/src/commands/updates.rs
 //   * listens on anything but 127.0.0.1, or listens outside server.rs
-//   * writes files from the keyboard hook or the overlay server
+//   * writes files from the keyboard hook, the mouse capture or the overlay server
+//   * asks where the mouse pointer is or how it moves (the mouse input reads buttons and the wheel only)
 //   * does more than listen on macOS: a key-event tap that is not listen-only, or injected key events
-//   * does more than read the keyboards on Linux: grabbing one, virtual devices, sent events, or evdev outside linux_devices.rs
+//   * does more than read the keyboards on Linux: grabbing one, virtual devices, sent events, or evdev outside the linux_devices.rs files
 //   * logs/prints anything (a log line is how keystrokes usually leak)
 //   * makes the UI call an external address, or open a WebSocket to anything but its own server
 //   * registers global shortcuts anywhere but hotkeys.rs (which registers only the one the user chose)
@@ -16,7 +17,9 @@ import {
   LINUX_DEVICES,
   LOG,
   MAC_ACTIVE,
+  MOUSE_MOVEMENT_CODES,
   NET,
+  POINTER_POSITION,
   UI_SOCKET,
   WRITE,
   joinSplitPaths,
@@ -54,7 +57,8 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
     else if (/bind\(/.test(l) && !/127\.0\.0\.1/.test(l)) bad(file, n, 'server must bind 127.0.0.1 only');
   });
   scan(file, text, WRITE, (n) => {
-    if (/\/keyboard\/|\/server\.rs$/.test(file)) bad(file, n, 'keyboard/server code must never write files');
+    if (/\/keyboard\/|\/mouse\/|\/server\.rs$/.test(file))
+      bad(file, n, 'keyboard/mouse/server code must never write files');
   });
   scan(file, text, /global_shortcut|GlobalShortcutExt/, (n) => {
     const allowed = ['src-tauri/src/hotkeys.rs']; // it also loads the plugin, only once a shortcut is set
@@ -66,9 +70,20 @@ for (const f of walk('src-tauri/src', ['.rs'])) {
   scan(file, text, LINUX_ACTIVE, (n) =>
     bad(file, n, 'Linux key capture must only read the keyboards: no grab, virtual device or sent events'),
   );
+  scan(file, text, POINTER_POSITION, (n) =>
+    bad(
+      file,
+      n,
+      "the pointer's position or movement must never be asked for: the mouse input reads buttons and the wheel only",
+    ),
+  );
+  scan(file, text, MOUSE_MOVEMENT_CODES, (n, l) => {
+    if (/\/mouse\//.test(file) && !/EVIOCSMASK/.test(l))
+      bad(file, n, 'a movement code in mouse/ outside the line that masks it out (EVIOCSMASK)');
+  });
   scan(file, text, LINUX_DEVICES, (n) => {
-    if (file !== 'src-tauri/src/keyboard/linux_devices.rs')
-      bad(file, n, 'keyboard devices read outside keyboard/linux_devices.rs');
+    const allowed = ['src-tauri/src/keyboard/linux_devices.rs', 'src-tauri/src/mouse/linux_devices.rs'];
+    if (!allowed.includes(file)) bad(file, n, 'input devices read outside the linux_devices.rs files');
   });
   scan(file, text, LOG, (n) => bad(file, n, 'logging/printing is not allowed (keystrokes could leak)'));
 }
@@ -143,5 +158,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/server code, macOS capture listen-only, Linux capture read-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/mouse/server code, no pointer position or movement, macOS capture listen-only, Linux capture read-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
 );
