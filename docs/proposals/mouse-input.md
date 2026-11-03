@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic) and 3 (the setting) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting) and 4 (the Windows capture, started from the setting) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -370,6 +370,15 @@ Built as in the plan, as plain logic with no system calls, compiled and tested o
 ## Step 3 result: the setting (2026-11-02)
 
 `settings.rs` `defaults()` has `"inputs": { "mouse": { "enabled": false } }`, in the file format list of `docs/FILE-FORMATS.md` and in the UI sandbox's copy of the defaults (a test keeps them equal). No migration and no version bump: a file saved before has no `inputs` and gets the default. There is no line in `sanitize.rs`: the sanitizer follows the default's type, so the switch is a boolean and anything else (text, a number, null, a list, an object) goes back to off, and a broken `inputs` section goes back to the default; only the keys the defaults know survive, so `gamepad` has to get its own default before it can be saved. Four unit tests (in `settings/tests.rs`): off by default, an older file gets it, `true` stays and a wrong type goes back to off, and a broken section goes back to the default. Nothing reads the setting yet (step 4 starts the capture from it) and the overlay never does.
+
+## Step 4 result: the Windows capture is real (2026-11-02)
+
+The spike became the Windows method, so the cargo feature `mouse` and the Debug command `debug_mouse_trial` are gone:
+
+- `mouse::start(tx)` picks the method for this system (`rawinput.rs` on Windows; a system without one answers "Mouse buttons aren't available on this system yet.") and sends the names into the keyboard's own event stream. The wheel uses step 2's `Notches` and `Throttle`: turns add up into whole notches, and each notch is a short press, at most one per direction every `MIN_TAP_MS`.
+- `keyboard::Bus` has an independent mouse slot: `set_mouse(on)` starts or stops it (the keyboard method is untouched) and, off, releases any `Mouse…` name still held; `mouse_running()` says whether it runs (`get_state` has `mouseRunning`). A mouse name never counts as proof that the keyboard works (`has_seen_keys`), and Pause drops mouse events like keys (tests for both).
+- The command `set_mouse_input(enabled)` is in `commands/settings.rs` next to `set_input_method`, not in `mouse/mod.rs` as the plan said: it saves `inputs.mouse.enabled` only after the capture started (so the setting stays off when it could not), refreshes the tray's Show menu and tells the settings window, and keeping the file write out of `mouse/` leaves step 5's rule (no file writes in `mouse/`, like `keyboard/`) simple. `main.rs` starts the capture at launch when the setting is on.
+- `tests/bench/mouse-trial.mjs` uses the command and counts the mouse names on the overlay stream. There is still no switch in the settings window (step 7), so a person turns it on from the debugging connection (docs/DEBUGGING.md).
 
 ## Effort
 
