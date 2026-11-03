@@ -8,6 +8,7 @@ import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
 import { hiddenInputsOf, inputKind } from '/overlay/input-kinds.js';
 import { drawDevice } from '/overlay/devices.js';
+import { createTaps } from '/overlay/taps.js';
 import { isSettingsWindow } from '/overlay/preview-origin.js';
 
 // What the overlay falls back to when the chosen font is not installed: the default font on Windows, then the system's
@@ -63,6 +64,8 @@ let currentScene = null,
   sceneHidden = false;
 const keyEls = new Map(); // code -> element
 const held = new Set(); // codes currently down (kept across rebuilds)
+// A key that goes down and up in the same moment (a wheel notch, PrintScreen) still shows for MIN_TAP_MS (taps.js).
+const taps = createTaps((code, down) => keyEls.get(code)?.classList.toggle('down', down));
 
 // ------------------------------------------------------------ module loading
 async function loadModules() {
@@ -330,8 +333,13 @@ function showStage() {
 }
 function setKey(code, down) {
   if (paused && down) return;
-  down ? held.add(code) : held.delete(code);
-  keyEls.get(code)?.classList.toggle('down', down);
+  if (down) {
+    held.add(code);
+    taps.press(code);
+  } else {
+    held.delete(code);
+    taps.release(code); // a tap shows for MIN_TAP_MS; any other key is released at once
+  }
 }
 function snapshot(list) {
   const want = new Set(list);
@@ -339,7 +347,10 @@ function snapshot(list) {
   for (const code of want) setKey(code, true);
 }
 function releaseAll() {
-  for (const code of [...held]) setKey(code, false);
+  // everything goes dark at once (pause, a lost connection): no tap is kept waiting
+  held.clear();
+  taps.clear();
+  for (const el of keyEls.values()) el.classList.remove('down');
 }
 
 // ------------------------------------------------------------ data + socket

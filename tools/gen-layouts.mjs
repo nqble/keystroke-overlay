@@ -146,6 +146,8 @@ const wasd = [
   K('ControlLeft', 'Ctrl', -1.5, 2, 1.5),
   K('Space', '', 0, 2, 4),
 ].map((k) => ({ ...k, x: k.x + 1.5 }));
+// The drawn mouse (ui/overlay/devices/mouse.svg, a 100 x 160 picture) to the right of the WASD block, as tall as it.
+const mouseBlock = { code: 'Mouse', label: '', device: 'mouse', x: 6.25, y: 0, w: 1.875, h: 3 };
 
 // ---- the compact layouts (the Layout tab's "Other layouts"): the main block without the F row, moved to the top
 const moveBy = (keys, dx, dy) => keys.map((k) => ({ ...k, x: k.x + dx, y: k.y + dy }));
@@ -264,6 +266,7 @@ const out = {
   full: { name: 'Full size (104)', keys: [...mainBlock(), ...numpad()] },
   tkl: { name: 'Tenkeyless (TKL)', keys: mainBlock() },
   wasd: { name: 'WASD gameplay', keys: wasd },
+  'wasd-mouse': { name: 'WASD + mouse', keys: [...wasd, mouseBlock] },
   gameplay: { name: 'Gameplay (left hand)', keys: gameplay },
   96: { id: 'compact-96', name: '96%', keys: ninetySix() },
   75: { id: 'compact-75', name: '75%', keys: seventyFive() },

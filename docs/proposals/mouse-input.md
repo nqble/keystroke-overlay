@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting) 4 (the Windows capture, started from the setting) and 5 (the privacy rules) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -389,6 +389,12 @@ In `tools/privacy-patterns.mjs` and `tools/check-privacy.mjs`, each pattern with
 - The file-write rule covers `mouse/` like `keyboard/`, and the input-device library (`evdev::`) is allowed in `mouse/linux_devices.rs` (which does not exist yet) as well as the keyboard's. `LINUX_ACTIVE` and `MAC_ACTIVE` already apply to every file.
 - The header comment of `check-privacy.mjs` and its "passed" line say "no pointer position or movement". A planted file in `mouse/` with a file write, `GetCursorPos`, `REL_X` and an event's `.location()` made the check fail four times, and none of the app's code trips it today.
 - `PRIVACY.md` has a paragraph on the mouse (what the app sees, what it never does, how each system is read), "mouse" in the diagram of where keystrokes go, and a `grep` for the pointer in "How to check it yourself".
+
+## Step 6 result: taps and the layout (2026-11-02)
+
+- **`ui/overlay/taps.js`** (with `tests/ui/overlay-taps.test.mjs`, 11 tests): a key that goes down and up in the same moment, which is every wheel notch and PrintScreen on Windows (Windows reports only its release, so the tracker sends it as an instant tap), added and removed its `down` look within one frame and so showed nothing. A tap now shows for at least `MIN_TAP_MS` (100, the same number as `mouse/wheel.rs`; a test compares them) after its press. Every other key is released at once, as before, and a timer is started only when an early release arrives, so an idle overlay runs nothing. `overlay.js` routes every press and release through it; pause and a lost connection still darken everything at once. On the real overlay (the test copy's live preview, key presses injected): PrintScreen stays lit 101 ms (before: under a frame), a W pressed and released in the same moment 114 ms, a W held half a second is released at once.
+- **The layout** is the one the drawn-devices plan decided, not this plan's loose-key `mouse.json`: **WASD + mouse** (`ui/overlay/layouts/wasd-mouse.json`, from `tools/gen-layouts.mjs`): the WASD keys and a drawn mouse (`"device": "mouse"`) as tall as they are. It waits under Other layouts (it is not in `DEFAULT_ORDER`). The built-in layout count is thirteen, and the layout test no longer expects a device block to be a name from the keyboard tables.
+- The drawn mouse lights up only while the mouse input is on, and the settings window has no switch for it yet (step 7).
 
 ## Effort
 
