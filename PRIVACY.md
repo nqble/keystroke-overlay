@@ -43,13 +43,23 @@ scene is on air, inside OBS, to follow the rules you wrote (hide the keys, or sh
 in that page: it is never saved, logged or sent anywhere, not even to the app. Only the rules you write are saved, with
 your other settings.
 
+The app can also show your **mouse** (off by default; Windows first, macOS and Linux follow). With it on, the app also
+sees **which mouse button is pressed or released and which way the wheel turns**, in any program, and nothing else about
+the mouse: **never where the pointer is, never how it moves, never which window or program you click.** That matters
+more than for keys: where you click can show what is on your screen. So the app is built not to ask: on Windows it
+reads the mouse through Raw Input and looks only at the button and wheel flags of each record, never at its movement
+fields (a record with neither is dropped at once), and it never asks for the cursor position; macOS and Linux will read
+buttons and the wheel only, with the system told not to hand the app movement at all. Which buttons are held right now
+stays in memory, like keys, and Pause drops them too. While the mouse is off, nothing runs and nothing is registered.
+The check in `tools/check-privacy.mjs` fails the build if the code ever asks for the pointer's position or movement.
+
 Use **Pause overlay** (tray menu) whenever you are about to type something private on stream. While paused, the app
 forwards nothing at all.
 
 ## Where keystrokes go
 
 ```
-keyboard  ->  hook / Raw Input (Windows), XInput2 or the keyboard devices (Linux), event tap (macOS)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
+keyboard (and mouse buttons and wheel, if you turn that on)  ->  hook / Raw Input (Windows), XInput2 or the input devices (Linux), event tap (macOS)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
 ```
 
 Every step happens on your PC, in memory. When the key is released the event is gone. There is no step that writes
@@ -173,8 +183,9 @@ which is why these ways to check matter.
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
    - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), the crash note and the downgrade copy (`crash.rs`, `downgrade.rs`), and the Debug self-test's tiny
      `.write-test` file (two bytes), created and deleted at once (the unit tests in `settings/tests.rs` also match:
-     they write to scratch folders), never the keyboard or server code
+     they write to scratch folders), never the keyboard, mouse or server code
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
+   - the pointer: `grep -rnE "GetCursorPos|MSLLHOOKSTRUCT|WH_MOUSE_LL|lLastX|lLastY|CGEventGetLocation|XI_RawMotion|root_x|event_x" src-tauri/src` → nothing (the mouse input reads buttons and the wheel only, `src-tauri/src/mouse/`)
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` on Windows (the process id is in
    Task Manager), `lsof -iTCP -a -p <pid>` on a Mac or `ss -tlnp` on Linux shows one listening socket on `127.0.0.1` and
    nothing else. The only outward connections are the update check and download

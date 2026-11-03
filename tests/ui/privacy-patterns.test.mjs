@@ -6,7 +6,9 @@ import {
   LINUX_DEVICES,
   LOG,
   MAC_ACTIVE,
+  MOUSE_MOVEMENT_CODES,
   NET,
+  POINTER_POSITION,
   UI_SOCKET,
   WRITE,
   joinSplitPaths,
@@ -130,4 +132,57 @@ test('the read-only Linux capture the app really uses is allowed', () => {
     assert.doesNotMatch(line, LINUX_ACTIVE, line);
   }
   assert.match('use evdev::raw_stream::RawDevice;', LINUX_DEVICES);
+});
+
+test("asking where the pointer is or how it moves is caught, in every system's words", () => {
+  for (const line of [
+    'GetCursorPos(&mut point)?;',
+    'let place = GetPhysicalCursorPos(&mut point);',
+    'SetWindowsHookExW(WH_MOUSE_LL, Some(proc), None, 0)',
+    'let data = &*(lparam.0 as *const MSLLHOOKSTRUCT);',
+    'let dx = raw.data.mouse.lLastX;',
+    'let dy = raw.data.mouse.lLastY;',
+    'let at = event.location();',
+    'let at = cg_event.location();',
+    'let at = mouse_event . location ();',
+    'let place = CGEventGetLocation(event);',
+    'CGEventMaskBit(CGEventType::MouseMoved)',
+    'CGEventMaskBit(CGEventType::LeftMouseDragged) | CGEventMaskBit(CGEventType::ScrollWheel)',
+    'let kind = CGEventType::OtherMouseDragged;',
+    'mask |= xinput::XIEventMask::RAW_MOTION;',
+    'select_events(root, XI_RawMotion)',
+    'let x = event.root_x;',
+    'let y = event.root_y;',
+    'let x = event.event_x;',
+    'let y = event.event_y;',
+  ]) {
+    assert.match(line, POINTER_POSITION, line);
+  }
+});
+
+test('the mouse code the app really uses is allowed', () => {
+  for (const line of [
+    'let buttons = raw_input.data.mouse.Anonymous.Anonymous;',
+    'handle_buttons(buttons.usButtonFlags, buttons.usButtonData);',
+    '(BTN_LEFT, "MouseLeft"),',
+    'RIDEV_INPUTSINK',
+    'let mask = CGEventMaskBit(CGEventType::LeftMouseDown) | CGEventMaskBit(CGEventType::ScrollWheel);',
+    'XI_RawButtonPress',
+    'let location = info.location().map_or("an unknown place", |l| l.file());', // a panic report's source line
+    'let location = settings_location();',
+    'fn first_location() {}',
+    'MouseLeft MouseRight MouseMiddle MouseBack MouseForward',
+    'REL_WHEEL REL_HWHEEL',
+  ]) {
+    assert.doesNotMatch(line, POINTER_POSITION, line);
+  }
+});
+
+test('the movement codes are caught but not the wheel codes next to them', () => {
+  for (const line of ['REL_X', 'REL_Y', 'ABS_X', 'ABS_Y', 'let moved = code == REL_X || code == REL_Y;']) {
+    assert.match(line, MOUSE_MOVEMENT_CODES, line);
+  }
+  for (const line of ['REL_WHEEL', 'REL_HWHEEL', 'REL_WHEEL_HI_RES', 'REL_XYZ', 'ABS_XTRA', 'BTN_LEFT']) {
+    assert.doesNotMatch(line, MOUSE_MOVEMENT_CODES, line);
+  }
 });
