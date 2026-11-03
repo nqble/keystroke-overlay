@@ -23,8 +23,8 @@ const overlap = (a, b) =>
   a.y < b.y + (b.h ?? 1) - 1e-9 &&
   b.y < a.y + (a.h ?? 1) - 1e-9;
 
-test('there are the twelve built-in layouts', () => {
-  assert.equal(files.length, 12);
+test('there are the thirteen built-in layouts', () => {
+  assert.equal(files.length, 13);
 });
 
 for (const { file, layout } of layouts) {
@@ -45,6 +45,8 @@ for (const { file, layout } of layouts) {
         assert.ok(!overlap(layout.keys[i], layout.keys[j]), `${layout.keys[i].code} overlaps ${layout.keys[j].code}`);
   });
   test(`${file}: every key is one the app can see`, () => {
-    for (const key of layout.keys) assert.ok(knownKeys.has(key.code), `${key.code} has no name in keymap.rs`);
+    // a drawn device (the mouse) is a block of parts, checked by devices.test.mjs, not a key of the keyboard tables
+    for (const key of layout.keys.filter((entry) => !entry.device))
+      assert.ok(knownKeys.has(key.code), `${key.code} has no name in keymap.rs`);
   });
 }
