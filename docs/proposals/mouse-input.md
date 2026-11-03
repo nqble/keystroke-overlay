@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting) and 6 (the overlay's taps and the layout) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting) 5 (the privacy rules) and 6 (the overlay's taps and the layout) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -379,6 +379,16 @@ The spike became the Windows method, so the cargo feature `mouse` and the Debug 
 - `keyboard::Bus` has an independent mouse slot: `set_mouse(on)` starts or stops it (the keyboard method is untouched) and, off, releases any `Mouse…` name still held; `mouse_running()` says whether it runs (`get_state` has `mouseRunning`). A mouse name never counts as proof that the keyboard works (`has_seen_keys`), and Pause drops mouse events like keys (tests for both).
 - The command `set_mouse_input(enabled)` is in `commands/settings.rs` next to `set_input_method`, not in `mouse/mod.rs` as the plan said: it saves `inputs.mouse.enabled` only after the capture started (so the setting stays off when it could not), refreshes the tray's Show menu and tells the settings window, and keeping the file write out of `mouse/` leaves step 5's rule (no file writes in `mouse/`, like `keyboard/`) simple. `main.rs` starts the capture at launch when the setting is on.
 - `tests/bench/mouse-trial.mjs` uses the command and counts the mouse names on the overlay stream. There is still no switch in the settings window (step 7), so a person turns it on from the debugging connection (docs/DEBUGGING.md).
+
+## Step 5 result: the privacy rules (2026-11-02)
+
+In `tools/privacy-patterns.mjs` and `tools/check-privacy.mjs`, each pattern with tests in `tests/ui/privacy-patterns.test.mjs`:
+
+- `POINTER_POSITION`, failing anywhere in the app's Rust code: `GetCursorPos`, `GetPhysicalCursorPos`, `MSLLHOOKSTRUCT`, `WH_MOUSE_LL`, `lLastX`, `lLastY`, `CGEventGetLocation`, `XI_RawMotion`, `RAW_MOTION`, `root_x`, `root_y`, `event_x`, `event_y`, `CGEventMaskBit(…Moved`, any `…MouseMoved` or `…MouseDragged`, and `.location(` on something named like an event. The last one is narrower than the plan's wording on purpose: a panic report has a `.location()` too (`crash.rs`, the source line of a crash), and a pattern that also matched that could only be silenced by an exception.
+- `MOUSE_MOVEMENT_CODES` (`REL_X`, `REL_Y`, `ABS_X`, `ABS_Y`): in `src-tauri/src/mouse/` only on the line that masks them out (`EVIOCSMASK`, step 9); other code may use them (a controller's sticks).
+- The file-write rule covers `mouse/` like `keyboard/`, and the input-device library (`evdev::`) is allowed in `mouse/linux_devices.rs` (which does not exist yet) as well as the keyboard's. `LINUX_ACTIVE` and `MAC_ACTIVE` already apply to every file.
+- The header comment of `check-privacy.mjs` and its "passed" line say "no pointer position or movement". A planted file in `mouse/` with a file write, `GetCursorPos`, `REL_X` and an event's `.location()` made the check fail four times, and none of the app's code trips it today.
+- `PRIVACY.md` has a paragraph on the mouse (what the app sees, what it never does, how each system is read), "mouse" in the diagram of where keystrokes go, and a `grep` for the pointer in "How to check it yourself".
 
 ## Step 6 result: taps and the layout (2026-11-02)
 
