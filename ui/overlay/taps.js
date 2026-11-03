@@ -24,9 +24,7 @@ export function releaseDelay(pressedAt, now, minimum = MIN_TAP_MS) {
  * `clock` is for tests: { now, later, cancel }.
  */
 export function createTaps(show, clock = {}) {
-  const now = clock.now ?? (() => performance.now());
-  const later = clock.later ?? setTimeout;
-  const cancel = clock.cancel ?? clearTimeout;
+  const { now = () => performance.now(), later = setTimeout, cancel = clearTimeout } = clock;
   const pressedAt = new Map(); // code -> when it went down
   const waiting = new Map(); // code -> the timer that will show its release
 
@@ -34,6 +32,12 @@ export function createTaps(show, clock = {}) {
     if (!waiting.has(code)) return;
     cancel(waiting.get(code));
     waiting.delete(code);
+  }
+
+  function finish(code) {
+    waiting.delete(code);
+    pressedAt.delete(code);
+    show(code, false);
   }
 
   return {
@@ -46,17 +50,10 @@ export function createTaps(show, clock = {}) {
       const wait = releaseDelay(pressedAt.get(code), now());
       if (wait <= 0) {
         stopWaiting(code);
-        pressedAt.delete(code);
-        show(code, false);
+        finish(code);
       } else if (!waiting.has(code)) {
-        waiting.set(
-          code,
-          later(() => {
-            waiting.delete(code);
-            pressedAt.delete(code);
-            show(code, false);
-          }, wait),
-        );
+        const timer = later(() => finish(code), wait);
+        waiting.set(code, timer);
       }
     },
     /** Forget everything waiting. The caller paints every key released. */
@@ -64,8 +61,8 @@ export function createTaps(show, clock = {}) {
       for (const code of [...waiting.keys()]) stopWaiting(code);
       pressedAt.clear();
     },
-    /** How many releases are waiting (for tests). */
     get waitingCount() {
+      // how many releases are waiting (for tests)
       return waiting.size;
     },
   };
