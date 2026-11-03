@@ -1,56 +1,79 @@
-//! Mouse buttons and wheel (docs/proposals/mouse-input.md). So far two small pieces of plain logic, built and tested on
-//! every system but not used by the app yet (the work order's step 2): `names` (every system's button and wheel codes
-//! to our names) and `wheel` (turns into whole notches, and at most one press per direction per `MIN_TAP_MS`).
+//! Mouse buttons and wheel (docs/proposals/mouse-input.md): which buttons are held and which way the wheel turned, never
+//! where the pointer is or how it moves (docs/design/future-inputs.md, section 7). Off by default (`inputs.mouse.enabled`);
+//! while off nothing is captured and no thread runs.
 //!
-//! Step 1 is a spike on Windows behind the cargo feature `mouse`, which is off by default, so a normal build has none of
-//! its code. It is started and stopped by the Debug command `debug_mouse_trial` and counts what it sees, to measure the
-//! cost (idle, a moving mouse, clicks, and the thread count over on/off cycles). The pointer's position and movement are
-//! never read (docs/design/future-inputs.md, section 7).
+//! - `names`: every system's button and wheel codes -> our names. Plain logic, tested everywhere.
+//! - `wheel`: wheel turns -> whole notches, and at most one press per direction per `MIN_TAP_MS`. Plain logic.
+//! - `rawinput`: the Windows method (Raw Input on a message-only window, nothing in the input path).
+//!
+//! `start` picks the method for this system and sends the names into the same event stream as the keyboard (the `Sender`
+//! the keyboard's capture methods use), so the dispatcher, the held keys and Pause work the same. The Bus starts and
+//! stops it (`keyboard::Bus::set_mouse`) and the command `set_mouse_input` (commands/settings.rs) turns it on and off.
 
-#[allow(dead_code)] // the capture methods use it from step 4 on
+#[allow(dead_code)] // the Linux and macOS methods use the rest of it (steps 9 and 10 of the plan)
 mod names;
-#[cfg(all(feature = "mouse", windows))]
+#[cfg(windows)]
 mod rawinput;
-#[allow(dead_code)] // the capture methods use it from step 4 on
+#[allow(dead_code)] // the Linux and macOS methods use the rest of it (steps 9 and 10 of the plan)
 mod wheel;
 
-#[cfg(all(feature = "mouse", windows))]
-use std::sync::atomic::{AtomicU64, Ordering};
-#[cfg(all(feature = "mouse", windows))]
-use std::sync::Mutex;
+use crate::keyboard::KeyEvent;
+use std::sync::mpsc::Sender;
 
-/// Mouse records Windows delivered (moves included) and the button or wheel events among them, since the last start.
-#[cfg(all(feature = "mouse", windows))]
-static RECORDS: AtomicU64 = AtomicU64::new(0);
-#[cfg(all(feature = "mouse", windows))]
-static EVENTS: AtomicU64 = AtomicU64::new(0);
-#[cfg(all(feature = "mouse", windows))]
-static RUNNING: Mutex<Option<rawinput::Handle>> = Mutex::new(None);
+/// A running capture. `stop` ends its thread and lets go of everything it registered.
+#[cfg(windows)]
+pub use rawinput::Handle;
+#[cfg(not(windows))]
+pub struct Handle;
+#[cfg(not(windows))]
+impl Handle {
+    pub fn stop(self) {}
+}
 
-/// The Debug command: "start", "stop" or "stats". Every answer says whether the capture is running and the counts.
-#[cfg(all(feature = "mouse", windows))]
-pub fn trial(
-    action: &str,
-    tx: std::sync::mpsc::Sender<crate::keyboard::KeyEvent>,
-) -> Result<serde_json::Value, String> {
-    let mut running = RUNNING.lock().unwrap();
-    match action {
-        "start" if running.is_none() => {
-            RECORDS.store(0, Ordering::Relaxed);
-            EVENTS.store(0, Ordering::Relaxed);
-            *running = Some(rawinput::start(tx)?);
+/// Starts the mouse capture for this system, sending button and wheel names into `tx`. A system without a method yet
+/// says so, so the settings window can show it and the setting stays off.
+#[cfg(windows)]
+pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
+    rawinput::start(tx)
+}
+#[cfg(not(windows))]
+pub fn start(_tx: Sender<KeyEvent>) -> Result<Handle, String> {
+    Err("Mouse buttons aren't available on this system yet.".into())
+}
+
+/// Is this name one of the mouse's (a button or a wheel direction)? The Bus tells them from keys by it.
+pub fn is_mouse_name(code: &str) -> bool {
+    code.starts_with("Mouse") || code.starts_with("Wheel")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mouse_names_are_told_from_keys() {
+        for name in [
+            "MouseLeft",
+            "MouseRight",
+            "MouseMiddle",
+            "MouseBack",
+            "MouseForward",
+            "WheelUp",
+            "WheelDown",
+            "WheelLeft",
+            "WheelRight",
+        ] {
+            assert!(is_mouse_name(name), "{name}");
         }
-        "stop" => {
-            if let Some(handle) = running.take() {
-                handle.stop();
-            }
+        for name in ["KeyW", "Space", "MetaLeft", "NumpadEnter", "ArrowLeft", "F5"] {
+            assert!(!is_mouse_name(name), "{name}");
         }
-        "start" | "stats" => {}
-        other => return Err(format!("unknown action: {other}")),
     }
-    Ok(serde_json::json!({
-        "running": running.is_some(),
-        "records": RECORDS.load(Ordering::Relaxed),
-        "events": EVENTS.load(Ordering::Relaxed),
-    }))
+
+    #[cfg(not(windows))]
+    #[test]
+    fn a_system_without_a_method_says_so() {
+        let (tx, _rx) = std::sync::mpsc::channel();
+        assert!(start(tx).is_err());
+    }
 }

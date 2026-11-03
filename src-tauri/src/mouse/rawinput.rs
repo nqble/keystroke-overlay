@@ -1,5 +1,4 @@
-//! Windows: mouse buttons and wheel through Raw Input (docs/proposals/mouse-input.md, step 1: a spike behind the cargo
-//! feature `mouse`).
+//! Windows: mouse buttons and wheel through Raw Input (docs/proposals/mouse-input.md, "Windows: Raw Input").
 //!
 //! The same way as `keyboard/rawinput.rs`: one thread with an invisible message-only window that asks Windows for a
 //! copy of mouse input (`RIDEV_INPUTSINK`, so clicks count while a game has focus). Nothing sits in the input path, and
@@ -7,14 +6,14 @@
 //! turn are read: a plain move is dropped after one flag test, and the movement fields are never named here.
 
 use super::names;
-use super::{EVENTS, RECORDS};
+use super::wheel::{Notches, Throttle, WINDOWS_NOTCH};
 use crate::keyboard::KeyEvent;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::mem::size_of;
-use std::sync::atomic::Ordering;
 use std::sync::mpsc::{sync_channel, Sender};
 use std::thread::JoinHandle;
+use std::time::Instant;
 use windows::core::w;
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
@@ -25,9 +24,20 @@ use windows::Win32::UI::Input::{
 };
 use windows::Win32::UI::WindowsAndMessaging::*;
 
+/// Everything the window procedure needs, kept on the capture thread (it has no arguments to carry state in): where the
+/// names go, which buttons are down right now, the wheel turns added up so far, and when each wheel direction last
+/// pressed.
+struct State {
+    tx: Sender<KeyEvent>,
+    held: HashSet<&'static str>,
+    notches: Notches,
+    throttle: Throttle,
+    started: Instant,
+}
+
 thread_local! {
-    // Only touched from the raw-input thread: where the names go, and which buttons are down right now.
-    static STATE: RefCell<Option<(Sender<KeyEvent>, HashSet<&'static str>)>> = const { RefCell::new(None) };
+    // Only touched from the raw-input thread.
+    static STATE: RefCell<Option<State>> = const { RefCell::new(None) };
 }
 
 pub struct Handle {
@@ -50,7 +60,15 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
     let join = std::thread::Builder::new()
         .name("mouse-rawinput".into())
         .spawn(move || unsafe {
-            STATE.with(|state| *state.borrow_mut() = Some((tx, HashSet::new())));
+            STATE.with(|state| {
+                *state.borrow_mut() = Some(State {
+                    tx,
+                    held: HashSet::new(),
+                    notches: Notches::default(),
+                    throttle: Throttle::default(),
+                    started: Instant::now(),
+                });
+            });
             let hinst = GetModuleHandleW(None).ok().map(|module| module.into());
             let class = w!("KeystrokeOverlayMouseInput");
             let class_info = WNDCLASSW {
@@ -101,9 +119,9 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
             // Stopped: let go of any button still shown as down, then remove the registration and the window, so a later
             // start (or the keyboard's own Raw Input) begins from a clean slate.
             STATE.with(|state| {
-                if let Some((tx, held)) = state.borrow_mut().take() {
-                    for code in held {
-                        let _ = tx.send(KeyEvent { down: false, code });
+                if let Some(state) = state.borrow_mut().take() {
+                    for code in state.held {
+                        let _ = state.tx.send(KeyEvent { down: false, code });
                     }
                 }
             });
@@ -142,7 +160,6 @@ unsafe extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam:
         if got != u32::MAX {
             let raw_input = &*(buf.as_ptr() as *const RAWINPUT);
             if raw_input.header.dwType == RIM_TYPEMOUSE.0 {
-                RECORDS.fetch_add(1, Ordering::Relaxed);
                 // only the button flags and the wheel turn; nothing else of the record is read
                 let buttons = raw_input.data.mouse.Anonymous.Anonymous;
                 handle_buttons(buttons.usButtonFlags, buttons.usButtonData);
@@ -160,21 +177,28 @@ fn handle_buttons(flags: u16, data: u16) {
     }
     STATE.with(|state| {
         let mut state = state.borrow_mut();
-        let Some((tx, held)) = state.as_mut() else { return };
+        let Some(state) = state.as_mut() else { return };
         for (code, down) in names::button_events(flags) {
             if down {
-                held.insert(code);
+                state.held.insert(code);
             } else {
-                held.remove(code);
+                state.held.remove(code);
             }
-            EVENTS.fetch_add(1, Ordering::Relaxed);
-            let _ = tx.send(KeyEvent { down, code });
+            let _ = state.tx.send(KeyEvent { down, code });
         }
-        if let Some(code) = names::wheel_name(flags, data) {
-            // one notch is one short press: the overlay shows it for a moment, and nothing stays held
-            EVENTS.fetch_add(1, Ordering::Relaxed);
-            let _ = tx.send(KeyEvent { down: true, code });
-            let _ = tx.send(KeyEvent { down: false, code });
+        // The wheel: turns add up into whole notches (a high-resolution wheel sends fractions), and each notch is one
+        // short press, at most one per direction every MIN_TAP_MS, so a free-spinning wheel can't flood the overlay.
+        // Nothing stays held.
+        if let Some((axis, turn)) = names::wheel_turn(flags, data) {
+            if let Some((code, count)) = state.notches.add(axis, turn, WINDOWS_NOTCH) {
+                let now_ms = state.started.elapsed().as_millis() as u64;
+                for _ in 0..count {
+                    if state.throttle.allow(code, now_ms) {
+                        let _ = state.tx.send(KeyEvent { down: true, code });
+                        let _ = state.tx.send(KeyEvent { down: false, code });
+                    }
+                }
+            }
         }
     });
 }

@@ -5,6 +5,8 @@
 //! never the movement of the pointer: where it is or how it moves is never looked at (the privacy rule of
 //! docs/design/future-inputs.md section 7).
 
+use super::wheel::Axis;
+
 const LEFT_DOWN: u16 = 0x0001;
 const LEFT_UP: u16 = 0x0002;
 const RIGHT_DOWN: u16 = 0x0004;
@@ -54,6 +56,22 @@ pub fn wheel_name(flags: u16, data: u16) -> Option<&'static str> {
     }
     if flags & HWHEEL != 0 {
         return Some(if turn > 0 { "WheelRight" } else { "WheelLeft" });
+    }
+    None
+}
+
+/// The wheel turn in one record: which axis and the signed turn (positive = up or right), for the notch counting in
+/// `wheel.rs`. `None` when the record has no wheel flag or no turn.
+pub fn wheel_turn(flags: u16, data: u16) -> Option<(Axis, i32)> {
+    let turn = data as i16 as i32;
+    if turn == 0 {
+        return None;
+    }
+    if flags & WHEEL != 0 {
+        return Some((Axis::Vertical, turn));
+    }
+    if flags & HWHEEL != 0 {
+        return Some((Axis::Horizontal, turn));
     }
     None
 }
@@ -170,6 +188,15 @@ mod tests {
         assert_eq!(wheel_name(WHEEL, (-120i16) as u16), Some("WheelDown"));
         assert_eq!(wheel_name(HWHEEL, 120), Some("WheelRight"));
         assert_eq!(wheel_name(HWHEEL, (-120i16) as u16), Some("WheelLeft"));
+    }
+
+    #[test]
+    fn the_wheel_turn_has_its_axis_and_sign() {
+        assert_eq!(wheel_turn(WHEEL, 120), Some((Axis::Vertical, 120)));
+        assert_eq!(wheel_turn(WHEEL, (-30i16) as u16), Some((Axis::Vertical, -30)));
+        assert_eq!(wheel_turn(HWHEEL, 60), Some((Axis::Horizontal, 60)));
+        assert_eq!(wheel_turn(WHEEL, 0), None);
+        assert_eq!(wheel_turn(LEFT_DOWN, 120), None);
     }
 
     #[test]

@@ -1,6 +1,6 @@
-// The mouse trial's measurements (docs/proposals/mouse-input.md, work order step 1; how to read them: docs/DEBUGGING.md).
+// The mouse capture's measurements (docs/proposals/mouse-input.md, work order steps 1 and 4; how to read them: docs/DEBUGGING.md).
 //   node tests/bench/mouse-trial.mjs [--seconds 30] [--rebuild]
-// Builds an isolated test copy WITH the cargo feature `mouse` (the same throwaway identity and ports as the end-to-end
+// Builds an isolated test copy (the same throwaway identity and ports as the end-to-end
 // tests; never the real app), starts it, and measures the app process while the Raw Input mouse capture is off, on and
 // idle, on while fake mouse moves arrive at 1,000 a second, on while clicks and wheel notches arrive, and across 20
 // on/off cycles. It needs the PC to itself: it moves the pointer one pixel back and forth, inside a small window it opens.
@@ -42,10 +42,10 @@ mkdirSync(WORK, { recursive: true });
 const config = join(WORK, 'cfg.json');
 writeFileSync(config, JSON.stringify({ identifier: APP.identifiers.test }));
 
-// ---------------------------------------------------------------- build the copy with the mouse feature
+// ---------------------------------------------------------------- build the test copy
 if (args.includes('--rebuild') || !existsSync(EXE)) {
-  console.log('Building the test copy with the mouse feature (a few minutes the first time)');
-  const build = spawnSync('npx', ['tauri', 'build', '--no-bundle', '--features', 'mouse', '--config', `"${config}"`], {
+  console.log('Building the test copy (a few minutes the first time)');
+  const build = spawnSync('npx', ['tauri', 'build', '--no-bundle', '--config', `"${config}"`], {
     shell: true,
     stdio: 'inherit',
     cwd: ROOT,
@@ -87,10 +87,22 @@ for (let i = 0; i < 80; i++) {
 }
 const page = await connect();
 await sleep(5000); // let start-up settle
+// The mouse names the overlay stream carries (the same stream the overlay page reads), counted since the last start.
+const seen = { events: 0 };
+const stream = new WebSocket('ws://localhost:7879/ws');
+stream.onmessage = (message) => {
+  const event = JSON.parse(message.data);
+  if ((event.t === 'd' || event.t === 'u') && /^(Mouse|Wheel)/.test(event.k)) seen.events++;
+};
+await new Promise((open) => (stream.onopen = open));
 const trial = async (action) => {
-  const answer = await page.invoke('debug_mouse_trial', { action });
-  if (answer.err) throw new Error(answer.err);
-  return answer.ok;
+  if (action === 'start') seen.events = 0;
+  if (action !== 'stats') {
+    const answer = await page.invoke('set_mouse_input', { enabled: action === 'start' });
+    if (answer.err) throw new Error(answer.err);
+  }
+  await sleep(300); // let the last events arrive
+  return { events: seen.events };
 };
 
 // ---------------------------------------------------------------- measuring
@@ -127,7 +139,7 @@ rows.push(
   await measure(`3. capture on, mouse moving at ${MOVES_PER_SECOND} a second`, async () => {
     movesSent.value = await inject('move', SECONDS, MOVES_PER_SECOND);
     const stats = await trial('stats');
-    return { movesSent: movesSent.value, recordsSeen: stats.records, eventsSeen: stats.events };
+    return { movesSent: movesSent.value, eventsSeen: stats.events }; // none: a move has no button or wheel flag
   }),
 );
 
@@ -138,8 +150,9 @@ rows.push(
     const clicksSent = await inject('click', CLICKS);
     const notchesSent = await inject('wheel', NOTCHES);
     const stats = await trial('stats');
-    // a click is a press and a release (two events); a notch is one event
-    return { sent: clicksSent + notchesSent, eventsSeen: stats.events, expectedEvents: clicksSent + notchesSent };
+    // a click is a press and a release (inject.ps1 counts both); a notch is a press and a release too, and they come
+    // far enough apart that none is held back (one press per direction per 100 ms)
+    return { sent: clicksSent + notchesSent, eventsSeen: stats.events, expectedEvents: clicksSent + notchesSent * 2 };
   }),
 );
 await trial('stop');
@@ -160,6 +173,7 @@ console.log(JSON.stringify(cycles));
 
 writeFileSync(join(WORK, 'results.json'), JSON.stringify({ rows, cycles }, null, 2));
 console.log(`\nResults saved in ${join(WORK, 'results.json')}`);
+stream.close();
 page.close();
 kill();
 lock.release?.();
