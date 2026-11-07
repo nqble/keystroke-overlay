@@ -160,6 +160,23 @@ test("asking where the pointer is or how it moves is caught, in every system's w
   }
 });
 
+test('the other ways to read the pointer are caught too', () => {
+  for (const line of [
+    'let pos = GetMessagePos();',
+    'GetCursorInfo(&mut info)?;',
+    'WM_MOUSEMOVE => track(lparam),',
+    'let x = GET_X_LPARAM(lparam);',
+    'XQueryPointer(display, root, &mut a, &mut b, &mut x, &mut y, &mut wx, &mut wy, &mut mask);',
+    'MotionNotify => {}',
+    'XI_Motion',
+    'let p = NSEvent::mouseLocation();',
+    'let p = event.locationInWindow();',
+    'let dx = event.get_double_value_field(kCGMouseEventDeltaX);',
+  ]) {
+    assert.match(line, POINTER_POSITION, line);
+  }
+});
+
 test('the mouse code the app really uses is allowed', () => {
   for (const line of [
     'let buttons = raw_input.data.mouse.Anonymous.Anonymous;',
