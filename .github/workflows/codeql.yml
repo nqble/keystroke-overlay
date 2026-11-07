@@ -2,7 +2,7 @@ name: CodeQL
 
 # GitHub's code scanner: reads our own JavaScript and Rust looking for known bug and vulnerability patterns.
 # Manual only (nothing runs by itself): GitHub -> Actions -> "CodeQL" -> Run workflow. Takes roughly 5-10 minutes.
-# Results appear under the repository's Security tab -> Code scanning.
+# Results appear under the repository's Security tab -> Code scanning. tests/ is skipped: see .github/codeql/codeql-config.yml.
 
 on:
   workflow_dispatch:
@@ -28,6 +28,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: none
+          config-file: ./.github/codeql/codeql-config.yml
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           category: /language:${{ matrix.language }}
