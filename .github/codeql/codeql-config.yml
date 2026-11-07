@@ -1,0 +1,5 @@
+# CodeQL settings (used by .github/workflows/codeql.yml). Only the code that ships is scanned: tests/ drives the app
+# from the test PC (it runs JavaScript in the settings window over DevTools on purpose, with input the tests write
+# themselves), so the scanner's code-injection rules flag it by design. Decided with the maintainer, 2026-11-07.
+paths-ignore:
+  - tests
