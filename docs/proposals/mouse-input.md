@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch), 8 (the Windows test and the numbers) and 9 (Linux) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch), 8 (the Windows test and the numbers) 9 (Linux) and 10 (macOS) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -409,6 +409,13 @@ In `tools/privacy-patterns.mjs` and `tools/check-privacy.mjs`, each pattern with
 - **`mouse::start`** picks Wayland (devices) or X11 the way the keyboard does. An error (no permission, no mouse, no X display) reaches the Mouse card as before.
 - **CI** (`linux-tests.yml`, `tests/linux/overlay-check.mjs`): the x11 job writes `inputs.mouse.enabled` into the installed app's settings, clicks buttons 1 2 3 4 5 8 9 and checks the names in order, then moves the pointer and expects nothing; the wayland job runs the four device tests as the test user (without and with the input group).
 - **Checked here** on Windows: `cargo test` and `clippy` (nothing of this is built on Windows) and `check:privacy`. The Linux code was compiled with `cargo check --tests` and `clippy -D warnings` for `x86_64-unknown-linux-gnu` in a scratch crate; running it is up to CI, which is the only Linux this project has.
+
+## Step 10 result: macOS (2026-11-07)
+
+- **`mouse/macos.rs`**: a second listen-only `CGEventTap` on its own thread and run loop, like the keyboard's. The mask holds the six button events and `ScrollWheel`; no `MouseMoved` and no dragged events, and no location is read. Left and right come from their event types, other buttons from the button number through `names::macos_button`. A button stays in a held set (released when the capture stops or the tap is switched off by macOS); a wheel notch is `d` then `u`, through `Notches` and `Throttle`. Events marked continuous (trackpad, Magic Mouse) are ignored. The `dead_code` allows on `names` and `wheel` stay, now saying each system uses only its own table.
+- **Natural scrolling** reverses the reported wheel direction, so the system setting (`com.apple.swipescrolldirection`) is read per notch and undone: `WheelUp` is the wheel turned away from you with it on or off (checked both ways). The sideways tilt uses the same flip and was not tried.
+- **Input Monitoring is needed.** Without it macOS creates the tap and sends it nothing, with no error. `start` therefore checks the permission first and returns the keyboard's message, so no new permission or notice is added.
+- **Tests**: button naming (left and right need no number, other buttons by number, movement and keys are not buttons), the natural-scrolling flip, and starting and stopping the capture. Checked by hand on an M1 with a wheel mouse; the five-button, trackpad and Activity Monitor items of the checklist are listed in the pull request.
 
 ## Effort
 

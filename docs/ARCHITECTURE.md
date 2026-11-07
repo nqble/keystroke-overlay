@@ -41,12 +41,13 @@ keystroke-overlay/
 │       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
 │       ├── linux_poll.rs   Linux: what both device readers (keyboard and mouse) share: the device folder, opening read-only, poll() with a wake pipe
-│       ├── mouse/          mouse buttons and wheel (plan: docs/proposals/mouse-input.md); off by default (inputs.mouse.enabled); the Windows and Linux methods work, macOS comes later
+│       ├── mouse/          mouse buttons and wheel (plan: docs/proposals/mouse-input.md); off by default (inputs.mouse.enabled); the Windows, Linux and macOS methods work
 │       │   ├── names.rs      every system's button and wheel codes -> our names (Windows, X11, evdev, macOS; tested everywhere)
 │       │   ├── wheel.rs      wheel turns -> whole notches, and one press per direction per MIN_TAP_MS (tested everywhere)
 │       │   ├── rawinput.rs   the Windows method: Raw Input (started by Bus::set_mouse, the command set_mouse_input)
 │       │   ├── x11.rs        the Linux X11 method: XInput2 raw button events (shares the keyboard's X connection code)
-│       │   └── linux_devices.rs the Linux Wayland method: the mice in /dev/input, read-only, movement masked out (EVIOCSMASK)
+│       │   ├── linux_devices.rs the Linux Wayland method: the mice in /dev/input, read-only, movement masked out (EVIOCSMASK)
+│       │   └── macos.rs      the macOS method: a second listen-only event tap, buttons and wheel only (needs Input Monitoring, like the keyboard)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
 │       ├── obs_scenes.rs   cleans the OBS scene rules (obs.scenes); the overlay follows them inside OBS (ui/overlay/obs-source.js)

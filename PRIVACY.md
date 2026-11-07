@@ -43,7 +43,7 @@ scene is on air, inside OBS, to follow the rules you wrote (hide the keys, or sh
 in that page: it is never saved, logged or sent anywhere, not even to the app. Only the rules you write are saved, with
 your other settings.
 
-The app can also show your **mouse** (off by default; Windows first, macOS and Linux follow). With it on, the app also
+The app can also show your **mouse** (off by default). With it on, the app also
 sees **which mouse button is pressed or released and which way the wheel turns**, in any program, and nothing else about
 the mouse: **never where the pointer is, never how it moves, never which window or program you click.** That matters
 more than for keys: where you click can show what is on your screen. So the app is built not to ask: on Windows it
@@ -51,7 +51,7 @@ reads the mouse through Raw Input and looks only at the button and wheel flags o
 fields (a record with neither is dropped at once), and it never asks for the cursor position. On Linux it listens for
 button events only (X11: it never selects motion events) or, on Wayland, reads the mice in `/dev/input` read-only with the
 kernel told to queue only buttons and the wheel for the app, so movement never reaches it and the thread does not wake when
-the mouse moves; macOS will read buttons and the wheel only too. Which buttons are held right now
+the mouse moves; on macOS its event tap is asked only for button presses and releases and wheel events (never mouse-moved or dragged ones, so the app does not even wake while the pointer moves), and it needs the same Input Monitoring permission as the keys. Which buttons are held right now
 stays in memory, like keys, and Pause drops them too. While the mouse is off, nothing runs and nothing is registered.
 The check in `tools/check-privacy.mjs` fails the build if the code ever asks for the pointer's position or movement.
 
