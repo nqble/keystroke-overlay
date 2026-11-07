@@ -83,6 +83,17 @@ const SCREENS = [
   ['style-tab', () => openTab('style')],
   ['animation-tab', () => openTab('animation')],
   ['general-tab', () => openTab('general')],
+  // General is taller than the window, so the Mouse card (below the fold) gets its own picture, scrolled to it
+  [
+    'general-mouse-card',
+    async () => {
+      await openTab('general');
+      await p.ev(
+        `const card = document.querySelector('${byTest('general-mouse')}'); let box = card.parentElement; while (box.scrollHeight <= box.clientHeight + 2) box = box.parentElement; box.scrollTop += card.getBoundingClientRect().top - box.getBoundingClientRect().top - 30`,
+      );
+      await sleep(300);
+    },
+  ],
   [
     'popup-new-layout',
     async () => {
