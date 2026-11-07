@@ -31,6 +31,8 @@
 - 🪶 **Light.** About 3 MB of memory on Windows and ~0% CPU when idle. The installer is about 2.3 MB.
 - 🎮 **Works in games.** It sees your keys while a game has focus, and has a Compatibility mode for games that block
   the usual method. [Games tested so far](docs/GAMES.md).
+- 🖱️ **Shows your mouse too.** Turn on **Show my mouse** and the overlay lights up your clicks and wheel (off by default;
+  never where the pointer is or how it moves). Try the **WASD + mouse** layout.
 - 🎨 **Yours to design.** Pick a keyboard or build your own, then choose a theme, fine-tune every color and add an
   animation.
 - 🔒 **Private by design.** Keystrokes stay on your PC: never saved, never sent over the internet. A check in every

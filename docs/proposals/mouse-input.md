@@ -1,8 +1,8 @@
 # Proposal: mouse buttons and wheel
 
-Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
+Status: **Built** (steps 1 to 11 done on Windows, Linux and macOS; off by default) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch), 8 (the Windows test and the numbers) 9 (Linux) and 10 (macOS) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch), 8 (the Windows test and the numbers) 9 (Linux), 10 (macOS) and 11 (the docs) are built. What it decided is in [decisions/0016](../decisions/0016-mouse-capture-uses-raw-input-and-never-the-pointer.md); this file stays as the plan and the measurements until the maintainer deletes it.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
