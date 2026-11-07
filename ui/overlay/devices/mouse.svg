@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160">
+  <!-- The neutral mouse (docs/proposals/drawn-devices.md). Every part that lights up has a data-code from
+       docs/design/future-inputs.md §2; colors come from the theme (ui/overlay/overlay.css, .device-body and .part). -->
+  <rect class="device-body" x="2" y="2" width="96" height="156" rx="46" />
+  <path data-code="MouseLeft" d="M48.5 4.5C26 5.5 7 21 4.5 48V63H48.5Z" />
+  <path data-code="MouseRight" d="M51.5 4.5C74 5.5 93 21 95.5 48V63H51.5Z" />
+  <path data-code="WheelUp" d="M50 11 56 18H44Z" />
+  <rect data-code="MouseMiddle" x="43" y="21" width="14" height="26" rx="7" />
+  <path data-code="WheelDown" d="M50 57 44 50H56Z" />
+  <rect data-code="MouseForward" x="5" y="72" width="8" height="18" rx="4" />
+  <rect data-code="MouseBack" x="5" y="94" width="8" height="18" rx="4" />
+</svg>

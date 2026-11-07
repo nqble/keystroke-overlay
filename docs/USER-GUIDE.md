@@ -154,11 +154,11 @@ work**: the app refuses requests addressed to any name but `localhost`. That is 
 
 | Tab | What it does |
 |---|---|
-| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20), starting **Blank**, from a **Built-in** layout, **From a KLE file** (a keyboard you drew on keyboard-layout-editor.com) or, on Windows, **From a NohBoard file**. Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu (or right-click) renames, moves, hides or deletes it (**Rename…** is for layouts you made). A card's picture shows the layout as you edited it, hidden keys left out. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) wait under **Built-in** in the New layout popup. **Import… / Export…** share your layouts as a file. |
-| **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height), and drag the round handle at its top-right corner to **turn it** (or type its angle; 15° steps with Snap, in the keyboard's own shape only). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** fills the holes hidden keys leave in a row: the keys to their right slide over. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
+| **Layout** | Pick a keyboard, or **make your own** with **+ New layout** (up to 20), starting **Blank**, from a **Built-in** layout, **From a KLE file** (a keyboard you drew on keyboard-layout-editor.com) or, on Windows, **From a NohBoard file**. Drag the cards (or Alt+← / Alt+→) to reorder them; each card's **⋯** menu (or right-click) renames, moves, hides or deletes it (**Rename…** is for layouts you made). A card's picture shows the layout as you edited it, hidden keys left out. More keyboards (60%, 65%, 75%, 96%, ISO, Arrows, Numpad) and **WASD + mouse** (the WASD keys with a drawn mouse that lights up when the mouse input is on) wait under **Built-in** in the New layout popup. **Import… / Export…** share your layouts as a file. |
+| **Keys** | Show or hide individual keys, give any key a custom label (e.g. Space → `⎵` or `Jump`; it is saved as you type and shows on the key when you press Enter or click away), and **drag keys to move them** anywhere. Select several keys by dragging a box around them (or Ctrl-click; ⌘-click on a Mac), then move them together, nudge them with the arrow keys, **align** them or **space them evenly**; **Undo** and **Redo** step back through your changes. Drag the thin handles on any side of a selected key to make it **wider, narrower, taller or shorter** (or type its width and height), and drag the round handle at its top-right corner to **turn it** (or type its angle; 15° steps with Snap, in the keyboard's own shape only). **Snap** makes keys jump a quarter key, **Grid** shows faint dots, and **Hidden keys** shows or hides the keys you hid (dimmed); all three are remembered. X / Y fields give exact spots for a single key. **Layout style** switches between the keyboard's own shape and an **Even grid** (each keeps its own positions). **Close gaps** fills the holes hidden keys leave in a row: the keys to their right slide over. Edits are saved automatically **per layout**; the **Reset ▾** menu puts labels, or the whole layout, back the way the layout file has them (you can undo it). |
 | **Style** | Pick a **theme**, or save your own look as a **preset**; then fine-tune colors, shape, text and size. **Text** is also where you add your own TTF / OTF / WOFF fonts, and where **Key labels** chooses between the letters your keyboard prints (**My keyboard**) and the layout file's own. |
 | **Animation** | A card per animation (hover one to see it), then speed, strength and easing. |
-| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **OBS scenes**, **Keyboard input**, **Startup**, **Pause shortcut**, **Updates**, **Appearance** (18 looks for this window, from Default to Paper and High contrast, or **+ New theme** to pick your own six colors in a bar along the bottom, which warns if text gets hard to read; **Export…** and **Import…** share a theme as a file; the overlay in OBS keeps its own look), and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
+| **General** | **Connection** (OBS URL, port, **secure link**, **First run setup**), **OBS scenes**, **Keyboard input**, **Mouse** (the **Show my mouse** switch), **Startup**, **Pause shortcut**, **Open settings shortcut** (opens this window from any app; off until you choose keys, for example Ctrl+Alt+, or ⌘⌥, on a Mac), **Updates**, **Appearance** (18 looks for this window, from Default to Paper and High contrast, or **+ New theme** to pick your own six colors in a bar along the bottom, which warns if text gets hard to read; **Export…** and **Import…** share a theme as a file; the overlay in OBS keeps its own look), and under **Advanced**: Debug mode, Restart server, Open data folder, **Reset all settings…** and Quit app. |
 
 A live preview at the top of the window updates as you change things. You can click keys in the preview to test an animation. Its round buttons in the top right are **Pause** and, under it, the **eye**: point at the eye (or click it) and **Keyboard**, **Mouse** and **Controller** slide out; click one to show or hide it on the overlay. Hiding the keyboard keeps the keys you hid one by one as they were. The choice is saved for each layout. Mouse and Controller are grayed out until the app reads them.
 
@@ -342,8 +342,8 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
 
 - **Where it lives.** In the menu bar. Click its icon and choose **Open settings**, or open the app again from Finder or
   Launchpad. While the settings window is open, the app also shows in the Dock.
-- **Closing and quitting.** ⌘W, the red button and the yellow button all close the window to the menu bar; the app keeps
-  running. ⌘Q quits it.
+- **Closing and quitting.** ⌘W and the red button close the window to the menu bar; the app keeps running. The yellow
+  button minimizes it into the Dock. ⌘Q quits it.
 - **Open at login.** When the app starts by itself at login, it stays in the menu bar and doesn't open the settings window, even with **Open this window on launch** on. Click the menu-bar icon and choose **Open settings** when you want it.
 - **Opening the download the first time.** The download is signed ad hoc, not notarized, so macOS blocks its first launch. Open it once, then go to System Settings → Privacy & Security and click **Open Anyway** next to Keystroke Overlay. An app you built yourself isn't blocked.
 - **First launch: allow keyboard access.** macOS won't give an app your key presses until you say yes. In the settings
@@ -403,17 +403,21 @@ check for updates): download each new version of it. The plan and what has been 
 - **Your antivirus flags the app** (for example, Windows Security names it `Trojan:Win32/Bearfoos.A!ml` and removes it):
   a program that reads every key press and starts with Windows looks like a keylogger to antivirus tools, so a new,
   unsigned version is sometimes flagged by mistake. The `!ml` in a Windows Security name means its machine-learning model
-  guessed; it did not recognize known malware. What to do:
-  1. Check that your copy is official: it must come from this project's
+  guessed; it did not recognize known malware. Still, only the antivirus maker can say a detection is wrong. What to do:
+  1. [Open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus, the detection name and
+     the file you downloaded. Each flagged release is sent to the antivirus maker for a second look
+     (docs/RELEASING.md), and the issue says when it has been cleared; the warning then goes away with the antivirus's
+     normal updates.
+  2. Check that your copy is official: it must come from this project's
      [Releases](https://github.com/nqble/keystroke-overlay/releases) page. Each download there shows its SHA-256
-     fingerprint; compare it with `Get-FileHash <the file>` in PowerShell. They must match exactly.
-  2. If it matches, restore the app: **Windows Security → Virus & threat protection → Protection history**, open the
-     entry, then **Actions → Restore**.
-  3. [Open an issue](https://github.com/nqble/keystroke-overlay/issues) naming the antivirus and the detection name, so
-     it can be reported. Each flagged release is reported to Microsoft as a false positive (docs/RELEASING.md); once
-     cleared, the warning goes away with Windows Security's normal updates.
+     fingerprint; compare it with `Get-FileHash <the file>` in PowerShell. A match proves the file is the one this
+     project published, not that the antivirus is wrong.
+  3. Restoring it (**Windows Security → Virus & threat protection → Protection history**, the entry, **Actions →
+     Restore**) is your decision. If you're unsure, wait for the issue to say the detection was cleared, or build the
+     app yourself from the source.
 
-  Don't turn your antivirus off for the app, and don't add an exclusion for a copy you didn't check.
+  Don't turn your antivirus off for the app, and don't add an exclusion for a copy you didn't check. A **SmartScreen**
+  warning ("Windows protected your PC") is not a detection: it only means the download isn't signed yet.
 - **Reporting a bug:** turn on **General → Advanced → Debug mode**, open the new **Debug** tab and press **Copy bug report**, then paste it into your GitHub issue. It has no key presses and no personal paths.
 - **Something is badly misconfigured:** **General → Advanced → Reset all settings…** puts every option back to its default (your layouts, presets, fonts, port and secure link are kept).
 - **Overlay looks small or has empty space around it in OBS:** set the source's width and height to the size the app

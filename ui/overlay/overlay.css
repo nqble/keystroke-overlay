@@ -101,3 +101,35 @@ body.preview {
 body.preview .key {
   cursor: pointer;
 }
+
+/* ---- Drawn devices (devices.js; docs/proposals/drawn-devices.md): the picture takes the key colors of the theme, and a
+   pressed part fades to the pressed colors. Only opacity animates (CLAUDE.md). */
+.key.device svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(var(--r, 0deg));
+}
+.device-body,
+.part-idle,
+.part-on {
+  stroke-width: var(--bw, 2px);
+  vector-effect: non-scaling-stroke;
+}
+.device-body,
+.part-idle {
+  fill: var(--fill);
+  stroke: var(--bc);
+}
+.part-on {
+  fill: var(--fill-on);
+  stroke: var(--bc-on);
+  opacity: 0;
+  transition: opacity var(--ms-up, 120ms) var(--ease-up, ease-out);
+}
+.part.down .part-on {
+  opacity: 1;
+  transition-duration: var(--ms-down, 70ms);
+  transition-timing-function: var(--ease-down, ease-out);
+}

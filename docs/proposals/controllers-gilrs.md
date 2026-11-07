@@ -129,8 +129,8 @@ A new input kind gets its own sibling folder of `keyboard/` (future-inputs.md §
 | `gamepad/analog.rs` | Rounding, the per-control rate limit and the trigger's on/off threshold. Plain logic with a fake clock, tested everywhere |
 
 gilrs hides the system calls, so these files need no `#[cfg(windows)]` code of their own; the per-system choice is the
-cargo features in `Cargo.toml`. CLAUDE.md §4 still says "OS-specific code goes in `platform.rs` or `keyboard/`, nowhere else":
-it needs one line naming the input folders `gamepad/` and `mouse/` (open question 5).
+cargo features in `Cargo.toml`. CLAUDE.md §4 names `gamepad/` and `mouse/` as homes for system code (decided
+2026-11-01).
 
 ### Start and stop
 
@@ -462,7 +462,7 @@ work.
 2. If upstream fixes are slow: a pinned, reviewed fork, or our own code?
 3. Is one wake a second while the setting is on acceptable as a temporary exception, or must the wait be fully event-driven?
 4. Windows: Xbox-type controllers only (XInput) for the first version?
-5. CLAUDE.md §4: may it name `gamepad/` and `mouse/` as homes for system code, as future-inputs.md §1.4 already allows?
+5. ~~CLAUDE.md §4: may it name `gamepad/` and `mouse/` as homes for system code?~~ Yes (maintainer, 2026-11-01).
 6. Windows e2e: install the ViGEmBus driver on the CI runner to press virtual controller buttons, or keep it manual?
 7. Trigger release at 0.4 (press at 0.5): fine to record in future-inputs.md?
 8. Should `PadLS` / `PadRS` light the stick itself instead of being separate keys on the Controller layout?

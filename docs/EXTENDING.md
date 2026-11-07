@@ -12,6 +12,10 @@ app, put it in `ui/overlay/layouts/`: it appears in the New layout popup's "Othe
 new installs, add its id to `DEFAULT_ORDER` in `src-tauri/src/layout_order.rs`.
 
 ## 2. A theme
+Themes and animations are JavaScript that the overlay runs, so a theme or animation can see every key the overlay
+sees. The built-in ones are reviewed with the rest of the code; if you add one someone else wrote, read it first, as
+you would any program ([PRIVACY.md](../PRIVACY.md)).
+
 A theme is a named bundle of style values and an animation. Create `ui/overlay/themes/my-theme.js`:
 
 ```js
@@ -52,7 +56,15 @@ registerAnimation({
 
 Animate only `transform` and `opacity`, so the work stays on the graphics card and the overlay stays light.
 
-## 4. A setting
+## 4. A device drawing
+A drawn mouse or controller ([proposals/drawn-devices.md](proposals/drawn-devices.md)) is one SVG file in
+`ui/overlay/devices/`, nothing else to register: `mouse.svg` is the neutral mouse; a drawing of one brand is, for
+example, `controller-xbox.svg`, used by a layout entry with `"device": "controller-xbox"`. Draw it with a `viewBox`, give
+the outline `class="device-body"`, and give each part that lights up a `data-code` with its input name (`MouseLeft`,
+`WheelUp`, `PadA`: [design/future-inputs.md](design/future-inputs.md) §2). Use no colors, scripts, pictures or links:
+the theme colors it, and `tests/ui/devices.test.mjs` checks the rest.
+
+## 5. A setting
 1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus one line in a table in `src-tauri/src/sanitize.rs` if it needs a range or a rule: `RANGES`, `NUMBER_CHOICES`, `TEXT_RULES`, `LIST_RULES`, or `FREE_FORM` for free-form data).
 2. Add a descriptor for its control to `CONTROLS` in `ui/settings/controls.js`.
 3. Use it in the overlay (`ui/overlay/overlay.js`).

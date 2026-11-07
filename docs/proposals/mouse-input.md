@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Nothing is built.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch), 8 (the Windows test and the numbers) and 9 (Linux) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -342,13 +342,81 @@ Each step one small commit, checks between steps, stop and report on any failure
 10. macOS: `mouse/macos.rs`, the Mac checklist.
 11. Docs and this plan's status.
 
+## Step 1 result: the Windows numbers (2026-11-01)
+
+Built as in the plan: `mouse/rawinput.rs` (Raw Input on a message-only window, `RIDEV_INPUTSINK`) and `mouse/names.rs` (flags to names, 5 unit tests), behind the cargo feature `mouse` (off by default), started and stopped by the Debug command `debug_mouse_trial`. Only the button flags and the wheel turn of each record are read. Measured with `tests/bench/mouse-trial.mjs` (30 s per row, a release build with the feature, the app process only; fake input from `SendInput`, so it is a good model of a real mouse, not an 8,000 Hz one):
+
+| State | CPU (one core) | Threads (start to end) | Handles | Memory |
+|---|---|---|---|---|
+| Capture off, idle | 0% | 20 to 17 (start-up settling) | 373 | 30.4 MB |
+| On, mouse not used | 0% | 18 to 17 | 375 | 30.4 MB |
+| On, the mouse moving at 1,000 a second | 0.1% | 17 to 17 | 375 | 30.5 MB |
+| On, 50 clicks and 50 wheel notches | 0% | 17 to 17 | 375 | 30.5 MB |
+| Off again, idle | 0% | 16 to 15 | 372 | 30.4 MB |
+
+- **Moving:** 30,000 fake moves were sent, 29,999 Raw Input records arrived, and none was passed on (no button or wheel flag): about 0.1% of one core, so **batching with `GetRawInputBuffer` is not needed** at 1,000 Hz. An 8,000 Hz mouse is eight times that and is not measured.
+- **Buttons and wheel:** 50 clicks (a press and a release each, cycling all five buttons) and 50 notches (up and down in turn) gave exactly the 150 events sent.
+- **On and off:** 20 cycles left the thread count at 14 and the handle count at 370, the same as before. Nothing leaks.
+- **Not yet checked:** the overlay showing the clicks (the names go into the keyboard stream; the Windows e2e suite of step 8 checks it), a left-handed button swap (the plan says physical buttons), and the cost with a real 8,000 Hz mouse.
+
+## Step 2 result: names and wheel (2026-11-02)
+
+Built as in the plan, as plain logic with no system calls, compiled and tested on every system (22 tests, run by a normal `cargo test`), and not used by the app yet:
+
+- `mouse/names.rs`: one small table per system: Windows Raw Input flags (from step 1), X11 button numbers 1 to 9, Linux evdev button codes (`BTN_SIDE` and `BTN_BACK` both back, `BTN_EXTRA` and `BTN_FORWARD` both forward) with `REL_WHEEL` and `REL_HWHEEL` for the wheel (the high-resolution codes skipped), and macOS button numbers 0 to 4. Unknown codes are ignored, and nothing names a movement code.
+- `mouse/wheel.rs`: `Notches` adds wheel turns per axis into whole notches (120 on Windows, one line on macOS; 30 + 30 + 60 is one notch, 60 up then 60 down is nothing, a fast turn can be several) and `Throttle` lets one press per wheel direction through every `MIN_TAP_MS` (a burst of 50 notches in 98 ms is one press; a notch every 10 ms for a second is ten). It keeps no clock: the caller passes the time. `MIN_TAP_MS` is 100, to match `ui/overlay/taps.js` when that exists (step 6).
+- `mod mouse` is compiled in every build now (the spike in `rawinput.rs` still needs the cargo feature on Windows); the two modules carry `allow(dead_code)` until step 4 uses them.
+
+## Step 3 result: the setting (2026-11-02)
+
+`settings.rs` `defaults()` has `"inputs": { "mouse": { "enabled": false } }`, in the file format list of `docs/FILE-FORMATS.md` and in the UI sandbox's copy of the defaults (a test keeps them equal). No migration and no version bump: a file saved before has no `inputs` and gets the default. There is no line in `sanitize.rs`: the sanitizer follows the default's type, so the switch is a boolean and anything else (text, a number, null, a list, an object) goes back to off, and a broken `inputs` section goes back to the default; only the keys the defaults know survive, so `gamepad` has to get its own default before it can be saved. Four unit tests (in `settings/tests.rs`): off by default, an older file gets it, `true` stays and a wrong type goes back to off, and a broken section goes back to the default. Nothing reads the setting yet (step 4 starts the capture from it) and the overlay never does.
+
+## Step 4 result: the Windows capture is real (2026-11-02)
+
+The spike became the Windows method, so the cargo feature `mouse` and the Debug command `debug_mouse_trial` are gone:
+
+- `mouse::start(tx)` picks the method for this system (`rawinput.rs` on Windows; a system without one answers "Mouse buttons aren't available on this system yet.") and sends the names into the keyboard's own event stream. The wheel uses step 2's `Notches` and `Throttle`: turns add up into whole notches, and each notch is a short press, at most one per direction every `MIN_TAP_MS`.
+- `keyboard::Bus` has an independent mouse slot: `set_mouse(on)` starts or stops it (the keyboard method is untouched) and, off, releases any `Mouse…` name still held; `mouse_running()` says whether it runs (`get_state` has `mouseRunning`). A mouse name never counts as proof that the keyboard works (`has_seen_keys`), and Pause drops mouse events like keys (tests for both).
+- The command `set_mouse_input(enabled)` is in `commands/settings.rs` next to `set_input_method`, not in `mouse/mod.rs` as the plan said: it saves `inputs.mouse.enabled` only after the capture started (so the setting stays off when it could not), refreshes the tray's Show menu and tells the settings window, and keeping the file write out of `mouse/` leaves step 5's rule (no file writes in `mouse/`, like `keyboard/`) simple. `main.rs` starts the capture at launch when the setting is on.
+- `tests/bench/mouse-trial.mjs` uses the command and counts the mouse names on the overlay stream. There is still no switch in the settings window (step 7), so a person turns it on from the debugging connection (docs/DEBUGGING.md).
+
+## Step 5 result: the privacy rules (2026-11-02)
+
+In `tools/privacy-patterns.mjs` and `tools/check-privacy.mjs`, each pattern with tests in `tests/ui/privacy-patterns.test.mjs`:
+
+- `POINTER_POSITION`, failing anywhere in the app's Rust code: `GetCursorPos`, `GetPhysicalCursorPos`, `MSLLHOOKSTRUCT`, `WH_MOUSE_LL`, `lLastX`, `lLastY`, `CGEventGetLocation`, `XI_RawMotion`, `RAW_MOTION`, `root_x`, `root_y`, `event_x`, `event_y`, `CGEventMaskBit(…Moved`, any `…MouseMoved` or `…MouseDragged`, and `.location(` on something named like an event. The last one is narrower than the plan's wording on purpose: a panic report has a `.location()` too (`crash.rs`, the source line of a crash), and a pattern that also matched that could only be silenced by an exception.
+- `MOUSE_MOVEMENT_CODES` (`REL_X`, `REL_Y`, `ABS_X`, `ABS_Y`): in `src-tauri/src/mouse/` only on the line that masks them out (`EVIOCSMASK`, step 9); other code may use them (a controller's sticks).
+- The file-write rule covers `mouse/` like `keyboard/`, and the input-device library (`evdev::`) is allowed in `mouse/linux_devices.rs` (which does not exist yet) as well as the keyboard's. `LINUX_ACTIVE` and `MAC_ACTIVE` already apply to every file.
+- The header comment of `check-privacy.mjs` and its "passed" line say "no pointer position or movement". A planted file in `mouse/` with a file write, `GetCursorPos`, `REL_X` and an event's `.location()` made the check fail four times, and none of the app's code trips it today.
+- `PRIVACY.md` has a paragraph on the mouse (what the app sees, what it never does, how each system is read), "mouse" in the diagram of where keystrokes go, and a `grep` for the pointer in "How to check it yourself".
+
+## Step 6 result: taps and the layout (2026-11-02)
+
+- **`ui/overlay/taps.js`** (with `tests/ui/overlay-taps.test.mjs`, 11 tests): a key that goes down and up in the same moment, which is every wheel notch and PrintScreen on Windows (Windows reports only its release, so the tracker sends it as an instant tap), added and removed its `down` look within one frame and so showed nothing. A tap now shows for at least `MIN_TAP_MS` (100, the same number as `mouse/wheel.rs`; a test compares them) after its press. Every other key is released at once, as before, and a timer is started only when an early release arrives, so an idle overlay runs nothing. `overlay.js` routes every press and release through it; pause and a lost connection still darken everything at once. On the real overlay (the test copy's live preview, key presses injected): PrintScreen stays lit 101 ms (before: under a frame), a W pressed and released in the same moment 114 ms, a W held half a second is released at once.
+- **The layout** is the one the drawn-devices plan decided, not this plan's loose-key `mouse.json`: **WASD + mouse** (`ui/overlay/layouts/wasd-mouse.json`, from `tools/gen-layouts.mjs`): the WASD keys and a drawn mouse (`"device": "mouse"`) as tall as they are. It waits under Other layouts (it is not in `DEFAULT_ORDER`). The built-in layout count is thirteen, and the layout test no longer expects a device block to be a name from the keyboard tables.
+- The drawn mouse lights up only while the mouse input is on, and the settings window has no switch for it yet (step 7).
+
+## Step 8 result: the Windows suite and the numbers (2026-11-07)
+
+- **`npm run test:e2e -- --suite inputs`** (`tests/e2e/suites/inputs.mjs`, 17 checks): the Mouse card and its switch (off at first, nothing runs, no setting saved), turning it on from the card (the capture runs, the setting is saved), all five buttons as presses and releases in order, a wheel notch as one tap each way, 2 seconds of one-pixel moves sending nothing, Pause dropping clicks and resume bringing them back, turning it off (no events, setting saved off, thread count back to what it was) and ten on/off cycles leaving no thread behind. It reuses `tests/bench/mouse-inject.ps1`: the input goes into a small window of its own under the pointer, so no click reaches another app.
+- **The numbers** (`node tests/bench/mouse-trial.mjs`, the finished app, 30 s each): capture off, idle 0 %; on, mouse not used 0 %; on, moving at 1,000 a second (30,000 moves) 0.8 % of one core and no event seen; on, 50 clicks and 50 wheel notches 200 events seen of 200 expected, 0 %; off again 0 %; 20 on/off cycles 14 threads before and after, 371 handles before and after. Memory stays near 52 MB. Moving costs more than step 1's spike measured (0.1 %), still under one percent, so no batching of moves is needed.
+
+## Step 9 result: Linux (2026-11-07)
+
+- **The shared helper move** (its own commit): the `poll()` binding, the wake-pipe wait, the device folder and the read-only open went from `keyboard/linux_devices.rs` into `src-tauri/src/linux_poll.rs`, which both readers use. It has no evdev in it, so the privacy check's rule (evdev only in the two `linux_devices.rs` files) stays as it was. The keyboard's behavior and tests are unchanged. The X11 connection code (`connect`, the handle with its wake window) is shared the same way: `keyboard/x11.rs` exposes it to `mouse/x11.rs`.
+- **`mouse/x11.rs`**: raw button press and release on the root window; no raw motion selected. Buttons 1 to 3, 8 and 9 are held names; 4 to 7 are one short press per notch through the same `Throttle` as Windows.
+- **`mouse/linux_devices.rs`**: mice (a left button, not `BTN_TOUCH`) opened read-only, `EVIOCSMASK` set to all key codes, the two wheel codes and no absolute axis (each mask a whole number of 8-byte words: the kernel answers EINVAL to any other size, which CI showed on the first try), one `poll()` thread; unplugging a mouse or a `SYN_DROPPED` releases its buttons. 7 unit tests (the masks, the ioctl number, a recorded stream without movement, the permission error, prompt stop) and 4 ignored device tests on a uinput virtual mouse (every button and wheel direction; `movement_never_wakes_the_capture` counts `poll()` wakes in test builds across 1,000 moves; the missing-permission error).
+- **`mouse::start`** picks Wayland (devices) or X11 the way the keyboard does. An error (no permission, no mouse, no X display) reaches the Mouse card as before.
+- **CI** (`linux-tests.yml`, `tests/linux/overlay-check.mjs`): the x11 job writes `inputs.mouse.enabled` into the installed app's settings, clicks buttons 1 2 3 4 5 8 9 and checks the names in order, then moves the pointer and expects nothing; the wayland job runs the four device tests as the test user (without and with the input group).
+- **Checked here** on Windows: `cargo test` and `clippy` (nothing of this is built on Windows) and `check:privacy`. The Linux code was compiled with `cargo check --tests` and `clippy -D warnings` for `x86_64-unknown-linux-gnu` in a scratch crate; running it is up to CI, which is the only Linux this project has.
+
 ## Effort
 
 About **6 to 8 working sessions** (a rough estimate): Windows with tests 2, overlay and UI 1–2, Linux (both methods and CI) 2, macOS 1, docs 1.
 
 ## Open questions
 
-1. CLAUDE.md §4: may `mouse/` (and `gamepad/`) hold system code, as future-inputs.md §1.4 allows?
+1. ~~CLAUDE.md §4: may `mouse/` (and `gamepad/`) hold system code?~~ Yes (maintainer, 2026-11-01; CLAUDE.md §4 says so).
 2. May the Linux device helpers move out of `keyboard/linux_devices.rs` into a shared file, so mice and keyboards use one copy?
 3. Raw Input only on Windows (no mouse hook, no choice for the user), as this plan proposes?
 4. Physical buttons (a left-handed setup shows the physical left button as `MouseLeft`), or the system's swapped meaning?

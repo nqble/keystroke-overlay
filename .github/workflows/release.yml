@@ -74,17 +74,25 @@ jobs:
       - name: Work out the version and make sure it is safe to release
         id: v
         shell: bash
+        # What a person typed or tagged reaches the script only as variables, never pasted into its code, so a value like
+        # $(…) stays text (GitHub's advice on script injection).
+        env:
+          TYPED_VERSION: ${{ inputs.version }}
+          TAG_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          PROMOTE: ${{ inputs.promote_to_stable }}
         run: |
           VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]] || [ "${{ inputs.promote_to_stable }}" = "true" ]; then echo "stable=true" >> "$GITHUB_OUTPUT"; else echo "stable=false" >> "$GITHUB_OUTPUT"; fi
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.version }}" != "$VERSION" ]; then
-            echo "::error::You typed '${{ inputs.version }}' but the app's version is '$VERSION'. Nothing was released."; exit 1; fi
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" != "v$VERSION" ]; then
-            echo "::error::Tag '${{ github.ref_name }}' does not match the app version v$VERSION. Nothing was released."; exit 1; fi
+          if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]] || [ "$PROMOTE" = "true" ]; then echo "stable=true" >> "$GITHUB_OUTPUT"; else echo "stable=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$TYPED_VERSION" != "$VERSION" ]; then
+            echo "::error::You typed '$TYPED_VERSION' but the app's version is '$VERSION'. Nothing was released."; exit 1; fi
+          if [ "$EVENT_NAME" = "push" ] && [ "$TAG_NAME" != "v$VERSION" ]; then
+            echo "::error::Tag '$TAG_NAME' does not match the app version v$VERSION. Nothing was released."; exit 1; fi
           if gh release view "v$VERSION" > /dev/null 2>&1; then
             echo "::error::Release v$VERSION already exists. Nothing was released."; exit 1; fi
           node tools/changelog-section.mjs "$VERSION" > notes.md   # fails if CHANGELOG.md has no entry for this version
+          node tools/download-table.mjs "$VERSION" >> notes.md       # "Which file do I download?", just above the files
 
       - name: Tests and privacy check
         run: npm test
@@ -251,7 +259,9 @@ jobs:
           set -euo pipefail
           APPIMAGE=$(cd linux-out && ls Keystroke-Overlay_*_linux-x86_64.AppImage)
           V=${APPIMAGE#Keystroke-Overlay_}; V=${V%_linux-x86_64.AppImage}
-          npx --no-install tauri signer sign "linux-out/$APPIMAGE" # writes linux-out/<file>.sig
+          # --app-version puts the version inside the signature, so an old signed AppImage can't be passed off as a new
+          # version (the app has requireSignedVersion on; the Windows installer is signed the same way in tools/release.mjs)
+          npx --no-install tauri signer sign --app-version "$V" "linux-out/$APPIMAGE" # writes linux-out/<file>.sig
           SIGNATURE=$(cat "linux-out/$APPIMAGE.sig")
           [ -n "$SIGNATURE" ] || { echo "::error::No signature was written. The Linux entry was not added."; exit 1; }
           URL="https://github.com/${{ github.repository }}/releases/download/v$V/$APPIMAGE"

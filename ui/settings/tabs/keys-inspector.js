@@ -114,7 +114,11 @@ function keyTitle(layoutKey) {
 }
 
 /** The inspector for one key: show or hide it, give it a label, set its width, height, angle and exact place. */
-/** The key's own label, and Reset to go back to the layout's. */
+/**
+ * The key's own label, and Reset to go back to the layout's. Typing saves it and the overlay follows at once; the key
+ * on this keyboard is drawn again when typing settles (Enter or clicking away), like the number fields, so the field
+ * isn't redrawn under the cursor.
+ */
 function LabelRow({ layoutKey, profile }) {
   const code = layoutKey.code;
   const fieldId = useId('key-label');
@@ -136,6 +140,7 @@ function LabelRow({ layoutKey, profile }) {
       value=${profile.labels[code] ?? layoutKey.label ?? ''}
       data-test="key-label"
       onInput=${setLabel}
+      onChange=${() => render()}
     />
     <button type="button" data-test="key-label-reset" onClick=${resetLabel}>Reset</button>
   <//>`;

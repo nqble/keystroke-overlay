@@ -31,7 +31,7 @@ keystroke-overlay/
 │       │   ├── hook.rs       Standard method: Windows low-level keyboard hook (WH_KEYBOARD_LL)
 │       │   ├── rawinput.rs   Compatibility method: Windows Raw Input (hidden message-only window)
 │       │   ├── windows_labels.rs Windows: what each typing key prints on the layout in front, and its watcher
-│       │   ├── tracker.rs    repeat filtering + stuck-key protection, shared by both methods
+│       │   ├── tracker.rs    repeat filtering, which keyboard holds each key, and stuck-key protection (a short timer while a key is held), shared by both methods
 │       │   ├── keymap.rs     key-naming table (virtual key + scancode -> DOM "code"), shared
 │       │   ├── x11.rs        Linux: X11 key capture with XInput2 raw events
 │       │   ├── linux_devices.rs Linux: Wayland key capture, reading the keyboard devices (input group)
@@ -40,6 +40,13 @@ keystroke-overlay/
 │       │   ├── macos.rs      macOS: key capture with a listen-only event tap (needs Input Monitoring)
 │       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
+│       ├── linux_poll.rs   Linux: what both device readers (keyboard and mouse) share: the device folder, opening read-only, poll() with a wake pipe
+│       ├── mouse/          mouse buttons and wheel (plan: docs/proposals/mouse-input.md); off by default (inputs.mouse.enabled); the Windows and Linux methods work, macOS comes later
+│       │   ├── names.rs      every system's button and wheel codes -> our names (Windows, X11, evdev, macOS; tested everywhere)
+│       │   ├── wheel.rs      wheel turns -> whole notches, and one press per direction per MIN_TAP_MS (tested everywhere)
+│       │   ├── rawinput.rs   the Windows method: Raw Input (started by Bus::set_mouse, the command set_mouse_input)
+│       │   ├── x11.rs        the Linux X11 method: XInput2 raw button events (shares the keyboard's X connection code)
+│       │   └── linux_devices.rs the Linux Wayland method: the mice in /dev/input, read-only, movement masked out (EVIOCSMASK)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
 │       ├── obs_scenes.rs   cleans the OBS scene rules (obs.scenes); the overlay follows them inside OBS (ui/overlay/obs-source.js)
@@ -72,7 +79,7 @@ keystroke-overlay/
     │   ├── layouts/*.json     one file per keyboard layout
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
-    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), obs-source.js (OBS scene rules, inside OBS only)
+    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), devices.js and devices/*.svg (drawn mice and controllers), taps.js (a tap, such as a wheel notch or PrintScreen, shows for at least 100 ms), obs-source.js (OBS scene rules, inside OBS only)
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png
@@ -147,7 +154,7 @@ key press → capture method on its own thread:
               Standard      WH_KEYBOARD_LL hook (tiny callback, never blocks input)
               Compatibility Raw Input (registers to receive a copy of keyboard input; nothing sits in the input path)
               (Windows; on Linux XInput2 or the keyboard devices, on a Mac a listen-only event tap: keyboard/)
-          → KeyTracker (drops OS repeats, releases keys that are really up) → channel → dispatcher thread (tracks held keys; drops everything while paused)
+          → KeyTracker (drops OS repeats, counts the keyboards holding each key, releases keys that are really up, also from a 250 ms timer while any key is held) → channel → dispatcher thread (tracks held keys; drops everything while paused)
           → tokio broadcast → each WebSocket client (/ws on 127.0.0.1)
           → overlay page (OBS) toggles a CSS class on the key; CSS transitions do the animation
 ```
@@ -208,7 +215,7 @@ rule (`x.Y.0` = Stable, `x.y.Z` = Latest) and the one-click GitHub release workf
 ## Guard rails
 
 `npm run check:privacy` (also in CI) fails the build if network code appears outside `commands/updates.rs`, a server binds
-anything but `127.0.0.1`, the keyboard/server code writes files, anything logs or prints, or the UI calls an external address.
+anything but `127.0.0.1`, the keyboard, mouse or server code writes files, anything asks for the mouse pointer's position or movement, anything logs or prints, or the UI calls an external address.
 Its patterns live in `tools/privacy-patterns.mjs` with their own tests; it is a line-by-line tripwire, not a proof.
 `npm test` runs it together with the every-system check (tools/check-systems.mjs), the Rust unit tests and the JS unit tests in `tests/ui/` (settings migration/validation, key naming and tracking, Raw Input decoding,
 update URLs, release notes). `npm run test:e2e` builds a throwaway copy of the app and drives it for real (settings window, injected

@@ -115,7 +115,10 @@ try {
     sh('npx', ['tauri', 'signer', 'generate', '-w', `"${key}"`, '--ci', '-p', '""'], { stdio: 'ignore' });
   const setupNow = build(VERSION, key);
   const setupNew = build(NEW_VERSION, key);
-  sh('npx', ['tauri', 'signer', 'sign', '-f', `"${key}"`, '-p', '""', `"${setupNew}"`], { stdio: 'ignore' });
+  // the version goes inside the signature, as for real releases: the app requires it (requireSignedVersion)
+  sh('npx', ['tauri', 'signer', 'sign', '-f', `"${key}"`, '-p', '""', '--app-version', NEW_VERSION, `"${setupNew}"`], {
+    stdio: 'ignore',
+  });
   // the fake server serves setup-<MOCK_VERSION>.exe and setup-<MOCK_VERSION>.exe.sig from the work folder
 
   killTest();
@@ -173,7 +176,7 @@ try {
     );
   console.log(`  before: ${snapshot()}`);
   const idBefore = ps(`(Get-Process ${APP.testApps.installExe} -ErrorAction SilentlyContinue).Id`);
-  p.invoke('install_update').catch(() => {}); // never answers: the app is replaced while it runs
+  p.invoke('install_update', { version: NEW_VERSION }).catch(() => {}); // never answers: the app is replaced while it runs
   await sleep(1500); // let the message leave before the connection is closed
   p.close();
   console.log('  waiting for the update to install and the app to come back (up to 75 s)...');

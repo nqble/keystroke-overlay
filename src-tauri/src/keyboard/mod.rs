@@ -39,7 +39,7 @@ mod tracker;
 #[cfg(windows)]
 pub mod windows_labels;
 #[cfg(target_os = "linux")]
-mod x11;
+pub(crate) mod x11;
 #[cfg(target_os = "linux")]
 pub mod x11_labels;
 
@@ -100,7 +100,7 @@ const MACOS_STANDARD_ONLY: &str = "only the Standard method is available on macO
 
 /// True on a Linux Wayland desktop, where the Standard method reads the keyboard devices instead of using X11.
 #[cfg(target_os = "linux")]
-fn wayland() -> bool {
+pub(crate) fn wayland() -> bool {
     linux_devices::wayland_session()
 }
 #[cfg(not(target_os = "linux"))]
@@ -287,6 +287,8 @@ pub struct Bus {
     capture: Mutex<Capture>,
     /// How many overlay pages are connected (the hook watch runs while this is above 0).
     watchers: AtomicUsize,
+    /// The mouse capture while it is on (mouse/mod.rs): independent of the keyboard method, sending into the same stream.
+    mouse: Mutex<Option<crate::mouse::Handle>>,
 }
 
 impl Bus {
@@ -294,7 +296,7 @@ impl Bus {
     /// send all happen under the `held` lock, and `set_paused` takes the same lock, so an event that arrives just as
     /// Pause is pressed can never slip through or leave a stuck key behind.
     fn forward(&self, event: KeyEvent) {
-        if !is_modifier_code(event.code) {
+        if !is_modifier_code(event.code) && !crate::mouse::is_mouse_name(event.code) {
             self.keys_seen.store(true, Ordering::Relaxed);
         }
         let mut held = self.held.lock().unwrap();
@@ -351,6 +353,52 @@ impl Bus {
         self.capture.lock().unwrap().error.clone()
     }
 
+    /// Starts a capture method, watched (the hook's health check) if an overlay is connected now. Both a new method and
+    /// a restored old one start here, so neither can miss the watch.
+    fn start_watched(&self, method: Method) -> Result<Source, String> {
+        let source = Source::start(method, self.ev_tx.clone())?;
+        source.set_watch(self.watchers.load(Ordering::Relaxed) > 0);
+        Ok(source)
+    }
+
+    /// Turn the mouse capture on or off (mouse/mod.rs), independent of the keyboard method. On starts it with the same
+    /// event stream as the keyboard, so the dispatcher, the held keys and Pause work unchanged; if it can't start the
+    /// error is returned and nothing runs. Off stops it and lets go of any mouse button still shown as held.
+    pub fn set_mouse(&self, on: bool) -> Result<(), String> {
+        let mut mouse = self.mouse.lock().unwrap();
+        if on {
+            if mouse.is_none() {
+                *mouse = Some(crate::mouse::start(self.ev_tx.clone())?);
+            }
+            return Ok(());
+        }
+        if let Some(handle) = mouse.take() {
+            handle.stop();
+        }
+        self.release_held_mouse();
+        Ok(())
+    }
+
+    /// Is the mouse capture running?
+    pub fn mouse_running(&self) -> bool {
+        self.mouse.lock().unwrap().is_some()
+    }
+
+    /// Releases every mouse name still shown as held (a button down when the capture stopped would never get its release).
+    fn release_held_mouse(&self) {
+        let held: Vec<&'static str> = self
+            .held
+            .lock()
+            .unwrap()
+            .iter()
+            .copied()
+            .filter(|code| crate::mouse::is_mouse_name(code))
+            .collect();
+        for code in held {
+            let _ = self.ev_tx.send(KeyEvent { down: false, code });
+        }
+    }
+
     /// Switch capture method while running. If the new method can't start, the old one is restored and an error
     /// returned.
     pub fn set_method(&self, new: Method) -> Result<(), String> {
@@ -367,9 +415,8 @@ impl Bus {
         for code in held {
             let _ = self.ev_tx.send(KeyEvent { down: false, code });
         }
-        match Source::start(new, self.ev_tx.clone()) {
+        match self.start_watched(new) {
             Ok(source) => {
-                source.set_watch(self.watchers.load(Ordering::Relaxed) > 0); // a new hook keeps watching
                 capture.method = new;
                 capture.source = Some(source);
                 capture.error = None;
@@ -377,7 +424,7 @@ impl Bus {
             }
             Err(e) => {
                 let msg = format!("{} couldn't start: {e}", new.label());
-                capture.source = Source::start(old_method, self.ev_tx.clone()).ok(); // keep the overlay working
+                capture.source = self.start_watched(old_method).ok(); // keep the overlay working
                 capture.method = old_method;
                 capture.error = if capture.source.is_none() {
                     Some(msg.clone())
@@ -407,6 +454,7 @@ pub fn start(method: Method) -> Arc<Bus> {
         ev_tx,
         capture: Mutex::new(Capture { method, source, error }),
         watchers: AtomicUsize::new(0),
+        mouse: Mutex::new(None),
     });
 
     let dispatch_bus = bus.clone();
@@ -426,8 +474,13 @@ mod tests {
     use super::*;
 
     fn test_bus() -> Bus {
-        let (ev_tx, _) = channel::<KeyEvent>();
-        Bus {
+        test_bus_with_stream().0
+    }
+
+    /// A test Bus and the receiving end of the stream its capture methods send into.
+    fn test_bus_with_stream() -> (Bus, std::sync::mpsc::Receiver<KeyEvent>) {
+        let (ev_tx, stream) = channel::<KeyEvent>();
+        let bus = Bus {
             tx: broadcast::channel(256).0,
             held: Mutex::new(HashSet::new()),
             paused: AtomicBool::new(false),
@@ -440,7 +493,9 @@ mod tests {
                 error: None,
             }),
             watchers: AtomicUsize::new(0),
-        }
+            mouse: Mutex::new(None),
+        };
+        (bus, stream)
     }
 
     #[test]
@@ -520,6 +575,61 @@ mod tests {
         });
         assert!(overlay.try_recv().is_err());
         assert!(bus.held.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn nothing_from_the_mouse_gets_through_while_paused() {
+        let bus = test_bus();
+        let mut overlay = bus.tx.subscribe();
+        bus.set_paused(true);
+        for code in ["MouseLeft", "WheelUp"] {
+            bus.forward(KeyEvent { down: true, code });
+        }
+        assert!(overlay.try_recv().is_err());
+        assert!(bus.held.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn the_mouse_does_not_count_as_proof_that_the_keyboard_works() {
+        let bus = test_bus();
+        bus.forward(KeyEvent {
+            down: true,
+            code: "MouseLeft",
+        });
+        bus.forward(KeyEvent {
+            down: true,
+            code: "WheelDown",
+        });
+        assert!(!bus.has_seen_keys());
+        bus.forward(KeyEvent {
+            down: true,
+            code: "KeyW",
+        });
+        assert!(bus.has_seen_keys());
+    }
+
+    #[test]
+    fn turning_the_mouse_off_lets_go_of_the_buttons_still_held_and_leaves_the_keys_alone() {
+        let (bus, stream) = test_bus_with_stream();
+        for code in ["MouseLeft", "MouseBack", "KeyW"] {
+            bus.forward(KeyEvent { down: true, code });
+        }
+        assert!(bus.set_mouse(false).is_ok());
+        let mut released: Vec<&str> = stream
+            .try_iter()
+            .filter(|event| !event.down)
+            .map(|event| event.code)
+            .collect();
+        released.sort_unstable();
+        assert_eq!(released, ["MouseBack", "MouseLeft"]);
+    }
+
+    #[test]
+    fn the_mouse_is_off_until_it_is_turned_on() {
+        let bus = test_bus();
+        assert!(!bus.mouse_running());
+        assert!(bus.set_mouse(false).is_ok()); // already off: nothing happens
+        assert!(!bus.mouse_running());
     }
 
     /// The outside review's race: a key event in flight while Pause is pressed used to be able to land in `held` after

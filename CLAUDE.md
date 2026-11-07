@@ -1,9 +1,10 @@
 # Keystroke Overlay: how we build it
 
-Read this before changing anything. It is the standing brief for every session and contributor, human or Claude.
-When this file and your habits disagree, this file wins. When this file is unclear, ask before guessing.
-Where a rule says to ask the maintainer, outside contributors ask by opening an issue (for anything big, first) or a pull
-request; the maintainer reviews and merges.
+Read this before changing anything. It is the standing brief for every Claude Code session working on this project,
+the maintainer's or a contributor's. **People contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) is your guide; it has
+the same code rules, and you don't need this file. When this file and your habits disagree, this file wins. When this
+file is unclear, ask before guessing. Where a rule says to ask the maintainer, a session working for an outside
+contributor asks through that contributor's issue or pull request; the maintainer reviews and merges.
 
 **Where to look:** `docs/ARCHITECTURE.md` (map), `docs/design/key-editor.md` (Keys tab), `docs/design/ui-design-v2.md` (UI Design, Version 2), `docs/design/future-inputs.md`
 (mouse, controller, hotkeys, game detection), `docs/ACCESSIBILITY.md`, `docs/CROSS-PLATFORM.md` and `docs/LINUX-PORT.md`,
@@ -62,6 +63,9 @@ When two principles conflict, the higher one wins.
 - **No magic numbers.** Name them as constants (`const MAX_LAYOUTS = 20`), and say where else they must match.
 - **No dead code, no commented-out code, no duplicate helpers.** Search for an existing helper before writing a new one.
 - **User-facing text** goes in the file's `TEXT` block, not inline in the logic. Write it in plain, friendly English.
+- **Leave it cleaner.** When you change a file, fix the small things you pass in it (a one-letter name, an unnamed number, text
+  outside `TEXT`, a function a little over the limit). Don't start a separate cleanup; keep it to the file you are in, and keep the
+  keyboard hook, the tray and the Raw Input code to comments, names and constants unless the change is about them.
 
 ## 3. Comments
 
@@ -90,7 +94,7 @@ When two principles conflict, the higher one wins.
 - **Settings:** a default in `settings.rs`, a line in `CONTROLS`, used in `overlay.js`. Renaming or restructuring needs a
   migration and a unit test. New features are **off by default**. A downgrade must never lose a user's settings: keep a
   copy of a file written by a newer version before rewriting it.
-- **OS-specific code** goes in `platform.rs` or `keyboard/`, nowhere else, with a "not available on this system yet"
+- **OS-specific code** goes in `platform.rs`, `keyboard/`, `mouse/` or `gamepad/` (input capture), nowhere else, with a "not available on this system yet"
   fallback for other systems (CI builds Windows, Linux and macOS; see `docs/CROSS-PLATFORM.md`).
 - **Every system.** The app ships for Windows and macOS (Linux builds too), so every new text, shortcut, font or feature
   says how it behaves on each system. Words that differ per system (Windows, Ctrl, tray, ⌘, menu bar…) come from

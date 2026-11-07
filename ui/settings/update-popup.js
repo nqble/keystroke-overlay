@@ -27,8 +27,12 @@ export function showUpdateResult(result) {
   if (isNew && tab === 'general') render();
 }
 
+// The update the open dialog shows: "Update now" installs this one, even if a newer check result arrives meanwhile.
+let shownUpdate = null;
+
 export function openUpdateDialog() {
   const update = lastUpdate;
+  shownUpdate = update;
   if (!update?.available) return;
   $('#uTitle').textContent = `Update available — v${update.version}`;
   $('#uBody').replaceChildren(
@@ -60,7 +64,7 @@ function closeUpdatePopup() {
 $('#uLater').onclick = closeUpdatePopup;
 
 $('#uGo').onclick = async () => {
-  const update = lastUpdate;
+  const update = shownUpdate;
   if (!update?.available) return;
   if (update.manual) {
     // cannot be installed from inside the app
@@ -79,7 +83,7 @@ $('#uGo').onclick = async () => {
   paintProgress();
   try {
     // downloads, verifies the signature, installs, restarts
-    await invoke('install_update');
+    await invoke('install_update', { version: update.version });
   } catch (error) {
     updateBusy = false;
     setUpdateProgress(null);

@@ -23,7 +23,7 @@ Linux ([LINUX-PORT.md](../docs/LINUX-PORT.md)).
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | keys-editor-snap | keys-editor-board | keys-editor-styles | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | inputs | secure-link | focus | layouts | layout-preview | keys-editor | keys-editor-snap | keys-editor-board | keys-editor-styles | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -32,6 +32,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `input-methods` — Standard (hook) and Compatibility (Raw Input) deliver identical key sequences (repeats dropped,
   extended keys, overlapping keys, PrintScreen), switching live never doubles/loses events or leaks threads, a key held
   during a switch is released, an 8000-event flood is delivered, idle CPU is ~0, and the General-tab help text is right.
+- `inputs` — the mouse input (Windows): off by default; the Mouse card's switch starts and stops it and saves the setting; clicks of all five buttons and the wheel arrive as presses and releases (`tests/bench/mouse-inject.ps1` sends them with `SendInput` into a small window of its own under the pointer, never into another app); moving the mouse sends nothing; Pause drops them; off sends nothing and leaves no thread behind (also after ten on/off cycles).
 - `secure-link` — the optional secure link: off by default; when on, data endpoints and the key-press stream are refused
   without the private key (wrong/missing key → 401, right key → allowed), the key never reaches the overlay, the live preview
   keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.
@@ -140,7 +141,7 @@ Rules:
 | `kle-import-name`, `kle-import-summary`, `kle-import-back`, `kle-import-create` | The Import from KLE popup: its Name box, the summary line, Back (to New layout) and Create layout |
 | `animation-cards`, `animation-card-<id>` | The Animation tab's card gallery, and one animation's card |
 | `animation-fine-tune` | Its Fine-tune card (Speed, Strength, Easing) |
-| `first-run`, `first-run-close`, `first-run-copy`, `first-run-size`, `first-run-done`, `general-first-run` | First run setup: the screen, its ✕, Copy, the size, the "all set" line, and General's button |
+| `first-run`, `first-run-close`, `first-run-copy`, `first-run-size`, `first-run-pause`, `first-run-done`, `general-first-run` | First run setup: the screen, its ✕, Copy, the size, Pause shortcut…, the "all set" line, and General's button |
 | `dialog-delete` | The Delete button of the "Delete …?" popup |
 | `layout-import`, `layout-export`, `style-import`, `style-export` | The Import / Export buttons of the Layout and Style tabs |
 | `keymap`, `keymap-canvas` | The editor box, and the board inside it (`data-board-w` and `data-board-h` say its size in keys; `--zoom`, `--pan-x` and `--pan-y` are its view) |
@@ -170,12 +171,14 @@ Rules:
 | `toggle-<path>` (for example `toggle-general-debug-mode`) | General's switches (`Switch` in `blocks.js`, `role="switch"`, `aria-checked`) |
 | `obs-url`, `general-obs-copy`, `general-size-note` | General's OBS URL: the link box (the only one; a password field while the secure link is on), Copy, the size in OBS |
 | `app-version` | The version number in **General → Updates** |
-| `general-connection`, `general-input`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle`, `general-appearance`, `app-themes`, `app-theme-<id>`, `app-theme-add`, `app-theme-import`, `app-theme-menu` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page), the Appearance card, its gallery, each settings theme's card, + New theme, Import… and a custom theme's ⋯ menu |
+| `general-connection`, `general-input`, `general-mouse`, `general-startup`, `general-updates`, `general-advanced`, `general-advanced-toggle`, `general-appearance`, `app-themes`, `app-theme-<id>`, `app-theme-add`, `app-theme-import`, `app-theme-menu` | General's cards, and the button that opens Advanced (collapsed at first; its controls stay in the page), the Appearance card, its gallery, each settings theme's card, + New theme, Import… and a custom theme's ⋯ menu |
 | `theme-edit-bar`, `theme-edit-name`, `theme-edit-<color>`, `theme-edit-readable`, `theme-edit-hard-to-read`, `theme-edit-export`, `theme-edit-cancel`, `theme-edit-save`, `dialog-delete-theme-confirm` | The docked theme edit bar: its name box, the six color pickers (`background`, `panel`, `text`, `dim`, `accent`, `error`), the readability note, its buttons; and the confirm button of Delete… |
 | `server-port`, `server-port-apply` | Connection: the port; `server-restart` is in Advanced |
 | `secure-link-toggle`, `secure-link-note`, `secure-link-copy`, `secure-link-new-key` | Connection: the secure-link switch (`aria-checked`), its note, and its buttons |
 | `input-method-select`, `input-method-info`, `input-method-error` | Keyboard input: the segmented choice (a radiogroup; the chosen button has `aria-checked="true"`), its note, its error |
+| `mouse-switch`, `mouse-error` | Mouse card: the Show my mouse switch (`aria-checked`) and the error line when the capture can't start |
 | `general-hotkey`, `toggle-hotkeys-enabled`, `hotkey-pause-record`, `hotkey-pause-clear` | Pause shortcut: its section, the switch, the button that records a shortcut, and Clear |
+| `general-open-settings-hotkey`, `hotkey-open-settings-record`, `hotkey-open-settings-clear` | Open settings shortcut: its section, the button that records a shortcut, and Clear |
 | `general-obs-scenes`, `toggle-obs-scenes-enabled`, `obs-scenes-count`, `obs-scenes-edit`; in its popup `obs-scene-rule` + `data-index`, `obs-scene-name`, `obs-scene-layout`, `obs-scene-remove`, `obs-scene-problem`, `obs-scene-add`, `obs-scenes-save` | OBS scenes: its section, the switch, the count and **Edit scenes…**; in the popup one rule row with its name box, "In this scene" menu, remove button and problem line, **+ Add a scene** and **Save** |
 | `general-open-folder`, `general-reset`, `general-quit` | Advanced's buttons |
 | `update-channel`, `update-check`, `update-install`, `update-status`, `update-release-notes`, `general-update-progress`, `general-update-progress-text` | Updates (the channel is a segmented choice) |

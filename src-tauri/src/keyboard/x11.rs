@@ -30,6 +30,7 @@ const ALL_MASTER_DEVICES: u16 = 1;
 const XINPUT_MAJOR: u16 = 2;
 const XINPUT_MINOR: u16 = 1;
 
+/// A running X11 capture, for keys here and for mouse buttons (`mouse/x11.rs`, which shares this and `connect`).
 pub struct Handle {
     connection: Arc<RustConnection>,
     wake_window: Window,
@@ -38,6 +39,20 @@ pub struct Handle {
 }
 
 impl Handle {
+    pub(crate) fn new(
+        connection: Arc<RustConnection>,
+        wake_window: Window,
+        stopping: Arc<AtomicBool>,
+        join: JoinHandle<()>,
+    ) -> Self {
+        Self {
+            connection,
+            wake_window,
+            stopping,
+            join,
+        }
+    }
+
     pub fn stop(self) {
         self.stopping.store(true, Ordering::Relaxed);
         // Wake the capture thread, which is waiting for the next X event.
@@ -50,9 +65,9 @@ impl Handle {
     }
 }
 
-/// Connect to the X server named by `DISPLAY` and ask for raw key events from every keyboard. Returns the window the
-/// capture thread can be woken through.
-fn connect() -> Result<(RustConnection, Window), String> {
+/// Connect to the X server named by `DISPLAY` and ask for the raw events in `events` (keys, or the mouse's buttons) from
+/// every master device. Returns the window the capture thread can be woken through.
+pub(crate) fn connect(events: XIEventMask) -> Result<(RustConnection, Window), String> {
     let (connection, screen_index) =
         RustConnection::connect(None).map_err(|e| format!("can't connect to the X11 display: {e}"))?;
     let version_request = connection
@@ -67,7 +82,7 @@ fn connect() -> Result<(RustConnection, Window), String> {
     let root = connection.setup().roots[screen_index].root;
     let mask = xinput::EventMask {
         deviceid: ALL_MASTER_DEVICES,
-        mask: vec![XIEventMask::RAW_KEY_PRESS | XIEventMask::RAW_KEY_RELEASE],
+        mask: vec![events],
     };
     connection
         .xinput_xi_select_events(root, &[mask])
@@ -95,7 +110,7 @@ fn connect() -> Result<(RustConnection, Window), String> {
 }
 
 pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
-    let (connection, wake_window) = connect()?;
+    let (connection, wake_window) = connect(XIEventMask::RAW_KEY_PRESS | XIEventMask::RAW_KEY_RELEASE)?;
     let connection = Arc::new(connection);
     let stopping = Arc::new(AtomicBool::new(false));
     let (ready_tx, ready_rx) = sync_channel::<()>(1);
@@ -127,13 +142,14 @@ fn capture(connection: &RustConnection, stopping: &AtomicBool, tx: &Sender<KeyEv
         if stopping.load(Ordering::Relaxed) {
             return;
         }
-        let (keycode, down) = match event {
-            Event::XinputRawKeyPress(press) => (press.detail, true),
-            Event::XinputRawKeyRelease(release) => (release.detail, false),
+        // sourceid is the physical keyboard, so two keyboards holding one key make one press (linux_keys.rs)
+        let (keycode, down, keyboard) = match event {
+            Event::XinputRawKeyPress(press) => (press.detail, true, press.sourceid),
+            Event::XinputRawKeyRelease(release) => (release.detail, false, release.sourceid),
             _ => continue,
         };
         let evdev_code = keycode.saturating_sub(X11_KEYCODE_OFFSET);
-        if let Some(key_event) = filter.handle(evdev_code, down) {
+        if let Some(key_event) = filter.handle(usize::from(keyboard), evdev_code, down) {
             let _ = tx.send(key_event);
         }
     }

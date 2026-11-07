@@ -16,7 +16,7 @@ export const NET =
  */
 export const UI_SOCKET = /\bwss?:\/\/(?!\$\{location\.host\})/;
 
-/** Anything that writes a file. Never allowed in keyboard/ or server.rs. */
+/** Anything that writes a file. Never allowed in keyboard/, mouse/ or server.rs. */
 export const WRITE =
   /\b(fs::write|fs::copy|fs::rename|fs::create_dir(?:_all)?|File::create|File::options|OpenOptions|tokio::fs|write_all)\b/;
 
@@ -35,8 +35,30 @@ export const MAC_ACTIVE =
  */
 export const LINUX_ACTIVE = /\.grab\s*\(|RawDevice::open|Device::open|\bVirtualDevice\w*|\buinput\b|\.send_events\s*\(/;
 
-/** The keyboard-device library. Allowed only in src-tauri/src/keyboard/linux_devices.rs, which opens devices read-only. */
+/**
+ * The input-device library. Allowed only in src-tauri/src/keyboard/linux_devices.rs and
+ * src-tauri/src/mouse/linux_devices.rs, which open devices read-only.
+ */
 export const LINUX_DEVICES = /\bevdev::/;
+
+/**
+ * Where the mouse pointer is or how it moves, in any system's words: asking Windows for the cursor position, the low-level
+ * mouse hook (whose record carries the position), the position of the last message (`GetMessagePos`) or a mouse
+ * message's coordinates (`WM_MOUSEMOVE`, `GET_X_LPARAM`), the movement fields of a Raw Input record, macOS's event and pointer locations, movement
+ * deltas, and its moved and dragged events (a tap given those wakes the app for every movement), X11's motion events, pointer queries and the
+ * pointer's root and event coordinates. (`.location(` is matched only on something named like an event: a panic report
+ * has a `.location()` too, the source line of a crash.) The app reads mouse buttons and the wheel only (docs/design/future-inputs.md,
+ * section 7), so none of this is allowed anywhere in the app's Rust code.
+ */
+export const POINTER_POSITION =
+  /\b(GetCursorPos|GetPhysicalCursorPos|MSLLHOOKSTRUCT|WH_MOUSE_LL|lLastX|lLastY|CGEventGetLocation|XI_RawMotion|RAW_MOTION|root_x|root_y|event_x|event_y|GetMessagePos|GetCursorInfo|WM_MOUSEMOVE|WM_NCMOUSEMOVE|GET_X_LPARAM|GET_Y_LPARAM|XQueryPointer|MotionNotify|XI_Motion|mouseLocation|locationInWindow)\b|MouseEventDelta|\b(?:\w*[Ee]vent\w*|evt|ev|e)\s*\.\s*location\s*\(|CGEventMaskBit\s*\([^)]*Moved|\w*Mouse(?:Moved|Dragged)\w*/;
+
+/**
+ * Linux movement codes (the pointer's relative and absolute axes). In src-tauri/src/mouse/ they may appear only on the
+ * line that masks them out of what the kernel hands the app (`EVIOCSMASK`). Other code may use them: a controller's
+ * sticks use the absolute axes.
+ */
+export const MOUSE_MOVEMENT_CODES = /\b(REL_X|REL_Y|ABS_X|ABS_Y)\b/;
 
 /** Logging and printing: a log line is how keystrokes usually leak. Never allowed. */
 export const LOG = /\b(println!|eprintln!|print!|eprint!|dbg!|log::|tracing::|env_logger)/;

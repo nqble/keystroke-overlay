@@ -224,12 +224,20 @@
       window.__sandbox.copied = text;
     },
     // A new port or key gives a new link, like the app does; the header then asks to copy it again.
+    // the real command saves the setting only after the capture started; only Windows has one so far
+    set_mouse_input: ({ enabled }) => {
+      if (enabled && systemName !== 'windows') throw new Error("Mouse buttons aren't available on this system yet.");
+      settings.inputs.mouse.enabled = enabled;
+    },
     set_port: ({ port }) => `http://127.0.0.1:${port}/`,
     regenerate_link_key: () => `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/?key=sandbox${Date.now()}`,
     set_secure_link: ({ enabled }) =>
       `http://127.0.0.1:${window.__SANDBOX_OVERLAY_PORT__}/` + (enabled ? `?key=sandbox${Date.now()}` : ''),
     set_pause_hotkey: ({ enabled, shortcut }) => {
-      settings.hotkeys = { enabled, pause: shortcut };
+      settings.hotkeys = { ...settings.hotkeys, enabled, pause: shortcut };
+    },
+    set_open_settings_hotkey: ({ shortcut }) => {
+      settings.hotkeys = { ...settings.hotkeys, openSettings: shortcut };
     },
     toggle_pause: () => {
       paused = !paused;

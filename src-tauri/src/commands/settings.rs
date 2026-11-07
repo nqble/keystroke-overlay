@@ -17,6 +17,8 @@ pub fn get_state(st: State<AppState>) -> Value {
         "serverError": *st.server_error.lock().unwrap(),
         "version": env!("CARGO_PKG_VERSION"),
         "paused": st.shared.bus.paused.load(Ordering::Relaxed),
+        // Is the mouse capture running? It can be off while the setting is on, when it could not start.
+        "mouseRunning": st.shared.bus.mouse_running(),
         "overlays": *st.shared.overlays.borrow(),
         "whatsNew": st.whats_new.load(Ordering::Relaxed),
         "firstRun": st.first_run.load(Ordering::Relaxed),
@@ -145,6 +147,26 @@ pub fn set_input_method(st: State<AppState>, method: String) -> Result<(), Strin
     let mut current_settings = st.shared.settings.write().unwrap();
     current_settings["general"]["inputMethod"] = json!(input_method.id());
     let _ = settings::save(&st.shared.paths.settings(), &current_settings);
+    Ok(())
+}
+
+/// Turn the mouse's buttons and wheel on or off (mouse/mod.rs, docs/proposals/mouse-input.md). Takes effect at once; if the
+/// capture can't start (a system without a method yet) nothing runs, the setting stays off and the error is returned.
+/// Saved only on success. The tray's Show menu and the settings window follow it.
+#[tauri::command]
+pub fn set_mouse_input(app: AppHandle, st: State<AppState>, enabled: bool) -> Result<(), String> {
+    st.shared.bus.set_mouse(enabled).map_err(|e| {
+        crate::debug::log(format!("mouse input could not start: {e}"));
+        e
+    })?;
+    crate::debug::log(format!("mouse input {}", if enabled { "on" } else { "off" }));
+    {
+        let mut current_settings = st.shared.settings.write().unwrap();
+        current_settings["inputs"]["mouse"]["enabled"] = json!(enabled);
+        let _ = settings::save(&st.shared.paths.settings(), &current_settings);
+    }
+    crate::state::announce(&app);
+    crate::state::sync_tray(&app);
     Ok(())
 }
 

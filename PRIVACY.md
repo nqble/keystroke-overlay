@@ -11,7 +11,7 @@ and how you can check every claim yourself instead of trusting it.
 | | |
 |---|---|
 | Keystrokes are **never written to disk** | No file, log, history or cache ever contains what you typed. |
-| Keystrokes are **never sent over the internet** | The only place they go is a local web page on **your own PC**, which OBS reads. |
+| Keystrokes are **never sent over the internet** | The only place they go is a local web page on **your own PC**, which OBS reads (over a connection that never leaves your PC). |
 | **No telemetry, analytics, crash reports, accounts or ads** | The app has no code for any of them. |
 | The overlay server listens on **127.0.0.1 only** | It cannot be reached from another computer or from the network. |
 | The only internet contact is **GitHub, for updates and release notes** | Never keystrokes, never your settings, never anything that identifies you beyond the normal facts of an HTTPS request (see below). |
@@ -43,13 +43,25 @@ scene is on air, inside OBS, to follow the rules you wrote (hide the keys, or sh
 in that page: it is never saved, logged or sent anywhere, not even to the app. Only the rules you write are saved, with
 your other settings.
 
+The app can also show your **mouse** (off by default; Windows first, macOS and Linux follow). With it on, the app also
+sees **which mouse button is pressed or released and which way the wheel turns**, in any program, and nothing else about
+the mouse: **never where the pointer is, never how it moves, never which window or program you click.** That matters
+more than for keys: where you click can show what is on your screen. So the app is built not to ask: on Windows it
+reads the mouse through Raw Input and looks only at the button and wheel flags of each record, never at its movement
+fields (a record with neither is dropped at once), and it never asks for the cursor position. On Linux it listens for
+button events only (X11: it never selects motion events) or, on Wayland, reads the mice in `/dev/input` read-only with the
+kernel told to queue only buttons and the wheel for the app, so movement never reaches it and the thread does not wake when
+the mouse moves; macOS will read buttons and the wheel only too. Which buttons are held right now
+stays in memory, like keys, and Pause drops them too. While the mouse is off, nothing runs and nothing is registered.
+The check in `tools/check-privacy.mjs` fails the build if the code ever asks for the pointer's position or movement.
+
 Use **Pause overlay** (tray menu) whenever you are about to type something private on stream. While paused, the app
 forwards nothing at all.
 
 ## Where keystrokes go
 
 ```
-keyboard  ->  hook / Raw Input (Windows), XInput2 or the keyboard devices (Linux), event tap (macOS)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
+keyboard (and mouse buttons and wheel, if you turn that on)  ->  hook / Raw Input (Windows), XInput2 or the input devices (Linux), event tap (macOS)  ->  memory  ->  local web server (127.0.0.1)  ->  the overlay page in OBS
 ```
 
 Every step happens on your PC, in memory. When the key is released the event is gone. There is no step that writes
@@ -156,18 +168,26 @@ anywhere you paste it. Treat the link like a password, keep it off your stream, 
   Microsoft's diagnostic-data settings in Windows apply to it), WKWebView on a Mac, WebKitGTK on Linux. The settings window only ever loads this app's own local pages.
 - **OBS Studio** (or whatever browser source you use) renders the overlay. Its behavior is its own.
 - **The operating system** itself, and any other software on your computer.
+- **Custom animations and themes you add yourself** are small programs (JavaScript) that the overlay runs, so they
+  see what the overlay sees, your key presses included. The built-in ones are part of this project and checked like
+  the rest; only add others you wrote yourself or trust ([EXTENDING.md](docs/EXTENDING.md)). The overlay page's
+  security policy lets it load and contact only this app's own server on your computer, so even a bad one can't send
+  your keys anywhere else.
 
 ## How to check it yourself
 
-You do not have to take our word for any of this.
+You do not have to take our word for any of this. The automatic check in every build (`tools/check-privacy.mjs`)
+guards against the obvious mistakes, such as network or logging code in the wrong file; it is a tripwire, not a proof,
+which is why these ways to check matter.
 
 1. **Read the code.** It is small. These searches in `src-tauri/src/` show everything:
    - network access: `grep -rnE "reqwest|updater_builder|TcpStream|UdpSocket|connect_async" src-tauri/src` → only `commands/updates.rs`
    - servers: `grep -rnE "bind\(|TcpListener" src-tauri/src` → only `server.rs`, bound to `127.0.0.1`
    - disk writes: `grep -rnE "fs::write|fs::copy|File::create|OpenOptions" src-tauri/src` → only settings, presets, fonts, layouts, files you export (to a place you pick), the crash note and the downgrade copy (`crash.rs`, `downgrade.rs`), and the Debug self-test's tiny
      `.write-test` file (two bytes), created and deleted at once (the unit tests in `settings/tests.rs` also match:
-     they write to scratch folders), never the keyboard or server code
+     they write to scratch folders), never the keyboard, mouse or server code
    - logging: `grep -rnE "println!|eprintln!|dbg!|log::" src-tauri/src` → nothing
+   - the pointer: `grep -rnE "GetCursorPos|MSLLHOOKSTRUCT|WH_MOUSE_LL|lLastX|lLastY|CGEventGetLocation|XI_RawMotion|root_x|event_x" src-tauri/src` → nothing (the mouse input reads buttons and the wheel only, `src-tauri/src/mouse/`)
 2. **Watch its sockets.** With the app running, `netstat -ano | findstr <its process id>` on Windows (the process id is in
    Task Manager), `lsof -iTCP -a -p <pid>` on a Mac or `ss -tlnp` on Linux shows one listening socket on `127.0.0.1` and
    nothing else. The only outward connections are the update check and download

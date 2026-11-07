@@ -472,7 +472,7 @@
   display: contents;
 }
 
-/* ---- First run setup (first-run.js): a card over the Layout tab's content, three numbered steps */
+/* ---- First run setup (first-run.js): a card over the Layout tab's content, four numbered steps */
 .first-run {
   position: relative;
   display: flex;

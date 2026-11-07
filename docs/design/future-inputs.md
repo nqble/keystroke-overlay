@@ -1,6 +1,6 @@
 # Future inputs and features: the plan to follow
 
-Status: **design only, except the pause shortcut** (built in v2.0: `hotkeys.pause`, src-tauri/src/hotkeys.rs; next/previous layout and open settings are not built). **None of the rest is promised;** mouse buttons and controller
+Status: **design only, except the pause shortcut** (built: `hotkeys.pause` in v2.0 and `hotkeys.openSettings`, src-tauri/src/hotkeys.rs; next/previous layout is not built). **None of the rest is promised;** mouse buttons and controller
 input are the likeliest next ones (proposals in [../proposals/](../proposals/README.md)). This page fixes the decisions that are hard to change later,
 so whoever builds one of these features, a person or a Claude session, builds it the same way. Read it before starting
 any of them, and update it if a decision changes.
@@ -31,6 +31,7 @@ their prefix, and never collide with keyboard names (DOM `KeyboardEvent.code`).
 | Mouse wheel | `WheelUp`, `WheelDown`, `WheelLeft`, `WheelRight`: each notch is sent as a short press (down, then up) |
 | Controller buttons | The web's standard gamepad layout: `PadA`, `PadB`, `PadX`, `PadY`, `PadLB`, `PadRB`, `PadLT`, `PadRT`, `PadBack`, `PadStart`, `PadLS`, `PadRS`, `PadUp`, `PadDown`, `PadLeft`, `PadRight`, `PadHome` (A/B/X/Y by position, as on an Xbox pad, whatever the controller's own labels say) |
 | Controller analog | Sticks `PadStickL`, `PadStickR` (x and y), triggers `PadLT`, `PadRT` (0 to 1): see §3 |
+| Drawn devices (reserved) | `Mouse`, `Controller`: a layout entry drawn as the device itself, its parts named as above ([proposals/drawn-devices.md](../proposals/drawn-devices.md)); no capture source may produce them |
 | Placeholders (reserved) | `Unlinked1`, `Unlinked2`, …: a layout key that is drawn but linked to nothing (Import from KLE); no capture source may produce a name starting with `Unlinked` |
 
 Several controllers: the first one connected uses the names above. A second one adds a number (`Pad2A`, …). Only
@@ -81,8 +82,8 @@ plain, additive changes:
 ```json
 "inputs":  { "mouse": { "enabled": false }, "gamepad": { "enabled": false } },
 "games":   { "enabled": false, "rules": [ { "program": "VALORANT.exe", "layout": "wasd", "preset": "" } ] },
-"hotkeys": { "enabled": false, "pause": "" },   // built (hotkeys.rs); add "nextLayout": "" when that is built, and make
-                                                //   set_pause_hotkey merge into this object instead of replacing it
+"hotkeys": { "enabled": false, "pause": "", "openSettings": "" },   // built (hotkeys.rs); add "nextLayout": "" when
+                                                //   that is built (each set_*_hotkey changes only its own field)
 "window":  { "enabled": false, "x": 0, "y": 0, "clickThrough": true, "alwaysOnTop": true }
 "obs":     { "scenes": { "enabled": false, "rules": [] } }   // built (obs_scenes.rs); a later
                                                 //   obs-websocket feature adds to "obs" instead of a new name

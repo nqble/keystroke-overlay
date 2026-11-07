@@ -15,6 +15,7 @@ code from Linux today, see [CROSS-PLATFORM.md](CROSS-PLATFORM.md).
 | Settings, presets, migrations | works (data folder: `~/.local/share/com.keyoverlay.app`) |
 | Tray icon | works where the desktop shows tray icons (GNOME needs the "AppIndicator" extension) |
 | **Keyboard capture, X11** | **works**: the Standard method (`keyboard/x11.rs`) |
+| Mouse buttons and wheel (off by default) | built: X11 reads XInput2 raw button events (`mouse/x11.rs`), Wayland reads the mice in `/dev/input` (`mouse/linux_devices.rs`, same `input` group); movement is never received (see below); tested in CI against Xvfb and a virtual mouse |
 | Keyboard capture, Wayland | built on v2.0: the Standard method reads the keyboard devices (`keyboard/linux_devices.rs`), which needs the `input` group; the settings window explains it |
 | Key labels that follow the keyboard layout, live | works on X11 (`keyboard/x11_labels.rs`, XKB): tested against Xvfb by changing the key map (also in CI); switching between two layout groups not yet seen, because Xvfb does not switch groups for typed keys. On Wayland the labels come from XWayland when it runs, otherwise the layout's own labels |
 | Linux words in the settings window ("Start at login", Super) and Debug-tab memory | works (`ui/settings/system-words.js`, `platform::process_stats`) |
@@ -57,6 +58,22 @@ devices directly, which `keyboard/linux_devices.rs` does with the `evdev` crate:
 - `npm run check:privacy` fails on a grab, a virtual device, sent input events, evdev's own `open`, or evdev used outside
   `linux_devices.rs`.
 - Not done yet: keyboards plugged in after capture started are only found after switching the method or restarting.
+
+### The mouse (buttons and wheel; off by default)
+
+The same two methods, for the mouse buttons and the wheel only ([proposals/mouse-input.md](proposals/mouse-input.md)):
+
+- **X11** (`mouse/x11.rs`): a second connection that selects XInput2 raw button press and release events, sharing the keyboard's
+  connection code and its stop-by-wake-window (`keyboard/x11.rs`). Raw motion is never selected, so movement is not received at all.
+  Button numbers 1 to 3 are left, middle and right, 4 to 7 the wheel (one press per notch), 8 and 9 back and forward.
+- **Wayland** (`mouse/linux_devices.rs`): the devices with a left button (touchpads skipped), opened read-only and never grabbed,
+  one `poll()` thread with the wake pipe. The kernel's per-reader event mask (`EVIOCSMASK`, Linux 4.4 and newer) is set to the
+  buttons and the two wheel codes, so the pointer's axes are not queued for the app and `poll()` does not wake when the mouse moves.
+  If a kernel refuses the mask, movement is read and dropped unread and the Debug event log says so once.
+- What both readers share (the device folder, opening read-only, `poll()` and the wake pipe) is in `linux_poll.rs`.
+- CI: the x11 job turns the input on in the installed app and clicks buttons 1 2 3 4 5 8 9 with `xdotool`, then moves the pointer and
+  expects nothing; the wayland job runs the device tests on a uinput virtual mouse (every button and wheel direction, no wake while
+  it moves 1,000 times, and the missing-permission error).
 
 ### Linux packaging and release
 

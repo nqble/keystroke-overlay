@@ -22,7 +22,9 @@
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
-<!-- DEMO: a short gameplay video of the overlay in OBS goes here. -->
+<p align="center">
+  <img src="docs/media/demo.webp" alt="The overlay over a game in OBS: the keys light up as A, D and Ctrl are pressed in a shooter's practice range" width="720">
+</p>
 
 ## Why Keystroke Overlay
 
@@ -31,8 +33,8 @@
   the usual method. [Games tested so far](docs/GAMES.md).
 - 🎨 **Yours to design.** Pick a keyboard or build your own, then choose a theme, fine-tune every color and add an
   animation.
-- 🔒 **Private by design.** Keystrokes never leave your PC: never saved, never sent. An automatic check in every
-  build enforces it.
+- 🔒 **Private by design.** Keystrokes stay on your PC: never saved, never sent over the internet. A check in every
+  build guards against code that would.
 
 ## Features
 
@@ -41,28 +43,28 @@
 Full size, TKL, 60% to 96%, ISO, gameplay clusters and numpads, or a layout of your own. Drag the cards into the order
 you like; the tray menu follows it.
 
-<!-- MEDIA: Layout tab, cards being dragged and New layout's Built-in list (docs/media/layouts.webp) -->
+![The Layout tab: a layout card is dragged to the front and back, then New layout opens its Built-in list](docs/media/layouts.webp)
 
 ### Key editor
 
 Hide keys, give them your own labels (`⎵`, `Jump`), and drag them anywhere on a zoomable board. Align, space evenly,
 undo and redo. Edits are saved per layout.
 
-<!-- MEDIA: Keys tab, moving and relabeling keys (docs/media/keys.webp) -->
+![The Keys tab: a key is moved to an empty spot and relabeled, then both are put back](docs/media/keys.webp)
 
 ### Themes and style
 
 Start from a theme, then adjust colors, shape, text and size, or use your own fonts. Save a look as a preset and share
 it as a file.
 
-<!-- MEDIA: Style tab, clicking through themes while the preview changes (docs/media/style.webp) -->
+![The Style tab: clicking through the themes while the live preview changes](docs/media/style.webp)
 
 ### Animations
 
 Press down, bounce, glow, fade, scale. Hover a card to see it, then set its speed, strength and easing. Animations use
 only the graphics card's cheapest effects, so streams stay smooth.
 
-<!-- MEDIA: Animation tab, hovering the cards (docs/media/animation.webp) -->
+![The Animation tab: pointing at each animation card shows it on a key](docs/media/animation.webp)
 
 ## Get started
 
@@ -70,13 +72,15 @@ only the graphics card's cheapest effects, so streams stay smooth.
    Windows, the Apple Silicon app on a Mac, the `.deb` or AppImage on Linux. Releases are not code-signed yet, so on Windows
    click **More info → Run anyway** if SmartScreen warns, and on a Mac allow the first launch in **System Settings → Privacy &
    Security → Open Anyway** ([details](docs/USER-GUIDE.md#on-a-mac)).
-2. **Copy the OBS URL.** The app opens on three short setup steps the first time.
+2. **Copy the OBS URL.** The app opens on four short setup steps the first time: three for OBS, one to set up and try Pause.
 3. **In OBS:** Sources → **+** → **Browser**, paste the link and set the size the app shows. Done.
 
-**Is it safe?** Antivirus tools are wary of any program that reads the keyboard, and now and then one flags a new
-version by mistake. Keystroke Overlay is open source, official releases come only from the Releases page, and an
-automatic check on every change makes sure keystrokes are never saved or sent. If your antivirus warns about an official
-release, please [open an issue](https://github.com/nqble/keystroke-overlay/issues).
+**Is it safe?** It's open source, and official downloads come only from the Releases page. It reads your keyboard to
+show it, keeps only the keys held right now in memory, and sends them only to a page on your own PC that OBS reads
+([how it works](PRIVACY.md)). Two kinds of warning can appear: Windows **SmartScreen** ("Windows protected your PC")
+only means the download isn't signed yet, and **More info → Run anyway** is fine for a copy from Releases. An
+**antivirus detection** is different: don't override it; [open an issue](https://github.com/nqble/keystroke-overlay/issues)
+with the detection's name ([what to do](docs/USER-GUIDE.md#troubleshooting)).
 
 More in the [user guide](docs/USER-GUIDE.md): the best OBS settings, two-PC setups, input methods, the secure link and
 troubleshooting.
@@ -89,7 +93,8 @@ This app has to read your keyboard to work, so here is exactly what happens:
 your keyboard → your system → Keystroke Overlay (in memory) → a page on YOUR PC (127.0.0.1) → OBS
 ```
 
-- Keys are **never written to disk, logged or sent** over the network.
+- Keys are **never written to disk or logged, and never sent over the internet**: they go only to a page on your own
+  PC, which OBS reads.
 - The only internet contact is **GitHub, for updates and release notes**, and the automatic check can be turned off.
 - No account, no analytics, no telemetry. Use **Pause overlay** before typing anything private on stream.
 

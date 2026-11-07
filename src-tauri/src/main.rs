@@ -16,6 +16,9 @@ mod key_angles;
 mod key_labels;
 mod keyboard;
 mod layout_order;
+#[cfg(target_os = "linux")]
+mod linux_poll;
+mod mouse;
 mod obs_scenes;
 mod platform;
 mod sanitize;
@@ -59,6 +62,7 @@ fn main() {
             commands::settings::set_port,
             commands::settings::set_autostart,
             hotkeys::set_pause_hotkey,
+            hotkeys::set_open_settings_hotkey,
             commands::settings::list_layouts,
             commands::settings::copy_text,
             commands::settings::quit_app,
@@ -66,6 +70,7 @@ fn main() {
             commands::keyboard_access::request_keyboard_access,
             commands::keyboard_access::restart_app,
             commands::settings::set_input_method,
+            commands::settings::set_mouse_input,
             commands::settings::set_secure_link,
             commands::settings::regenerate_link_key,
             commands::assets::list_fonts,
@@ -215,7 +220,7 @@ fn start_event_log(cfg: &mut serde_json::Value, paths: &Paths, current: &str) {
     crash::install(&paths.root);
 }
 
-/// Starts keyboard capture and builds the state the server and the windows share.
+/// Starts keyboard capture (and the mouse's, when it is on) and builds the state the server and the windows share.
 fn make_shared(cfg: serde_json::Value, paths: Paths, method: keyboard::Method) -> Arc<Shared> {
     let (cfg_tx, _) = broadcast::channel(8);
     let shared = Arc::new(Shared {
@@ -228,6 +233,13 @@ fn make_shared(cfg: serde_json::Value, paths: Paths, method: keyboard::Method) -
     match shared.bus.error() {
         Some(e) => debug::log(format!("keyboard input ({}) could not start: {e}", method.id())),
         None => debug::log(format!("keyboard input: {}", method.id())),
+    }
+    // The mouse's buttons and wheel, only when the person turned them on (off by default; nothing runs while off).
+    if shared.settings.read().unwrap()["inputs"]["mouse"]["enabled"] == true {
+        match shared.bus.set_mouse(true) {
+            Ok(()) => debug::log("mouse input on"),
+            Err(e) => debug::log(format!("mouse input could not start: {e}")),
+        }
     }
     shared
 }

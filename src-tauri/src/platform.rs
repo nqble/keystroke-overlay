@@ -159,16 +159,11 @@ pub fn app_menu_action(id: &str) -> Option<AppMenuAction> {
     }
 }
 
-/// Does minimizing the settings window close it to the tray? On a Mac always: the yellow button does what Command+W and
-/// the red button do, so the window is never minimized into the Dock. Elsewhere it follows the "Minimize to tray" setting.
+/// Does minimizing the settings window close it to the tray? Never on a Mac: the yellow button minimizes into the Dock,
+/// as Mac users expect (decided 2026-11-01), and the Dock icon stays while the window is open. Elsewhere it follows the
+/// "Minimize to tray" setting.
 pub fn minimize_closes_window(minimize_to_tray_setting: bool) -> bool {
-    cfg!(target_os = "macos") || minimize_to_tray_setting
-}
-
-/// Does minimizing the settings window send no "resized" event, so that losing focus is the sign to check for it? True on a
-/// Mac (the yellow button); elsewhere the resize event already tells.
-pub fn minimize_needs_focus_check() -> bool {
-    cfg!(target_os = "macos")
+    !cfg!(target_os = "macos") && minimize_to_tray_setting
 }
 
 /// macOS: the app's own menu bar while the settings window is open (the Dock icon is showing). Quit (Command+Q) really
@@ -500,9 +495,9 @@ mod tests {
     }
 
     #[test]
-    fn minimizing_closes_the_window_on_a_mac_whatever_the_setting_says() {
-        assert!(minimize_closes_window(true));
-        assert_eq!(minimize_closes_window(false), cfg!(target_os = "macos"));
+    fn minimizing_follows_the_setting_except_on_a_mac_where_it_minimizes() {
+        assert_eq!(minimize_closes_window(true), !cfg!(target_os = "macos"));
+        assert!(!minimize_closes_window(false));
     }
 
     #[test]

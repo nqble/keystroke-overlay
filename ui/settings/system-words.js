@@ -77,8 +77,9 @@ export function inputMethods(platform) {
 }
 
 /**
- * Is there a "Minimize to tray" switch on this system? Not on a Mac: the yellow button, Command+W and the red button all
- * close the window to the menu bar, so there is nothing to choose (src-tauri/src/platform.rs, minimize_closes_window).
+ * Is there a "Minimize to tray" switch on this system? Not on a Mac: the yellow button minimizes into the Dock, as on
+ * every Mac app, and Command+W and the red button close the window to the menu bar (src-tauri/src/platform.rs,
+ * minimize_closes_window).
  */
 export function hasMinimizeSetting(platform) {
   return platform !== 'macos';

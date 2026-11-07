@@ -2,8 +2,15 @@
 
 Thanks for helping! This is a small, fast, privacy-first app, and the bar for changes is "keep it that way".
 
-Code conventions (for people and AI sessions alike) are in [CLAUDE.md](CLAUDE.md). Plans for things not built yet, which anyone can
-pick up, are in [docs/proposals/](docs/proposals/README.md).
+**This page is all you need as a person contributing.** Use any editor, tools or AI assistant you like; you own what
+you submit and should be able to explain it. [CLAUDE.md](CLAUDE.md) is the brief for Claude Code sessions (the
+maintainer's, or yours if you use one): its code rules are the ones on this page, and the rest is about how those
+sessions work, so you don't need it.
+
+You don't need permission to open an issue or a pull request. For something big (a new feature, a new dependency,
+moving code between files), open an issue first so we can agree on the plan before you spend time on it. Plans for
+things not built yet are in [docs/proposals/](docs/proposals/README.md); ask on an issue whether one is free before
+starting it.
 
 ## The three rules
 
@@ -70,13 +77,32 @@ hook, local server, tray, settings storage), `ui/overlay/` is the page OBS loads
   http://127.0.0.1:7882/ with a stand-in for the app. Pick a state and tab in the address, e.g.
   `?state=paused-no-obs&tab=general` (the list is at the top of `tools/sandbox/fake-app.js`). Handy for screenshots and for
   Claude sessions on Linux or macOS; check anything Windows draws (tray, WebView2) on Windows.
-- **A bug fix** — please add a test when it is practical.
+- **A bug fix** — add a test that fails without the fix. If you can't (it needs hardware, a game, another system), say
+  so in the PR and we'll help.
+
+## Code shape
+
+`npm run format` formats everything. The linter enforces a few house rules: functions of about 40 lines at most, no
+`if`s nested more than two deep, files of about 400 lines at most; split code into named steps to meet them. Prefer
+plain, obvious code with descriptive names, a short header at the top of each file, and comments that say why. If a rule
+gets in the way of a good change, say so in the PR.
 
 ## Pull requests
 
 - Keep each PR focused; describe what changed and why.
-- `npm test` must pass. For UI changes, include a screenshot.
+- Run the checks for your kind of change (CI runs all of them on every PR, so it will tell you anyway):
+
+  | Your change | Run |
+  |---|---|
+  | Docs only | `npm run check:docs`, `npm run check:format` |
+  | A layout, theme or animation | `npm test`, `npm run check:format`; look at it with `npm run preview` |
+  | The settings window or the overlay | `npm test`, `npm run check:format`, `npm run check:lint`, `npm run check:types`; a before and after screenshot in the PR |
+  | Rust | `npm test`, `npm run check:format`, `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets` with no warnings |
+
+  The end-to-end tests and the screenshot tests run on Windows; if you're not on Windows, the maintainer runs them.
 - Don't add dependencies lightly: every crate is code that runs next to a keyboard hook. Mention why a new one is needed.
+- Changes to the keyboard capture (`src-tauri/src/keyboard/`), the local server (`server.rs`), the privacy check or the
+  release workflow get a closer review: they guard the privacy promise and every user's updates.
 
 ## Code of conduct
 

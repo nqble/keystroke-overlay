@@ -26,8 +26,9 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
              "textColor": "#e6e9f0ff", "textColorPressed": "#ffffffff", "glowColor": "#4f8cffff", "glowSize": 18,
              "keySize": 52, "gap": 6, "scale": 1.0, "opacity": 1.0,
              "keyLabels": "keyboard" },   // "keyboard": letters follow the user's keyboard language and Win/Alt/Ctrl follow the system (⌘ ⌥ ⌃ on a Mac); "layout": the files' labels
-  "hotkeys": { "enabled": false, "pause": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP"; registered only when on and set
+  "hotkeys": { "enabled": false, "pause": "", "openSettings": "" },   // the pause shortcut, e.g. "Ctrl+Shift+KeyP", registered only when on and set; the open settings shortcut, registered when set
   "obs": { "scenes": { "enabled": false, "rules": [] } },   // per OBS scene: { "scene": "Chat", "show": false, "layout": "" }; at most 20 rules, names up to 100 characters, each scene once (case ignored); layout "" = the chosen layout
+  "inputs": { "mouse": { "enabled": false } },   // inputs besides the keyboard: the mouse's buttons and wheel (never the pointer's position), off by default; not used by the app yet (docs/proposals/mouse-input.md)
   "animation": { "type": "none", "speed": 120, "easing": "default", "intensity": 1.0 },
   "appearance": { "theme": "default", "custom": [] } // the settings window's theme: a built-in id or a custom one's; custom = up to 20 { id, name, colors }
 }
@@ -59,7 +60,7 @@ written (so older settings files stay small). Files saved by version 2 kept `pos
 them into `styles.shape.positions`. The Keys tab limits keys more tightly than these hard caps (they stay inside its board).
 `rotations` (settings version 5) keep angles from −180 to 180, rounded to 1 decimal, and only the `shape` style has
 them. A key is listed only when its angle differs from the layout file's own (`r`), so 0 appears only for a key the
-layout file turns and the user straightened. Key rotation is being built ([proposals/key-rotation.md](proposals/key-rotation.md)): the overlay draws turned
+layout file turns and the user straightened. Key rotation is built ([proposals/key-rotation.md](proposals/key-rotation.md)): the overlay draws turned
 keys, and the Keys tab turns one with its round handle or its **Angle** field.
 
 **`layout.editor` (since v1.3.0; `showHidden` since v1.4.0).** The Keys tab remembers three choices between sessions: `snap`, how far a
@@ -101,6 +102,12 @@ like any key and never lights up, because no capture method produces such a name
 ([design/future-inputs.md](design/future-inputs.md)); the format itself doesn't change. A NohBoard keyboard's mouse
 buttons and wheel get the mouse names from that design (`MouseLeft`, `MouseRight`, `MouseMiddle`, `MouseBack`,
 `MouseForward`, `WheelUp`, `WheelDown`, `WheelLeft`, `WheelRight`): drawn like any key, and lit once mouse support exists.
+
+**A drawn device** is one entry in `keys` with a `device` field: `{ "code": "Mouse", "device": "mouse", "x": 16, "y": 1,
+"w": 2.5, "h": 4 }`. Its `code` is `Mouse` or `Controller`; `device` names the drawing, `ui/overlay/devices/<device>.svg`
+(lower-case letters, digits and `-`; a missing drawing falls back to the device's own). The overlay draws the picture at
+the block's place and size and lights its parts like keys; the even grid leaves it at its own place and size. On any
+other key `device` is dropped.
 
 **NohBoard keyboard files** (`keyboards/<category>/<name>/keyboard.json`, read by `ui/settings/nohboard-layout.js`, never
 shipped): JSON as .NET writes it (a byte-order mark and trailing commas are accepted), with `Version` and `Elements`, a

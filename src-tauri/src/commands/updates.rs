@@ -41,6 +41,7 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
     app.updater_builder()
         .endpoints(vec![url])
         .map_err(|e| e.to_string())?
+        .timeout(Duration::from_secs(CHECK_TIMEOUT_SECS))
         .build()
         .map_err(|e| e.to_string())
 }
@@ -85,8 +86,7 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
     let upd = updater_for(app, &channel)?;
     let result = match upd.check().await {
         Ok(Some(update)) => {
-            // The manifest may carry "manual": true (+ "manual_url") for updates the in-app installer can't apply.
-            let manual = update.raw_json.get("manual").and_then(|v| v.as_bool()).unwrap_or(false);
+            let manual = is_manual(&update.raw_json);
             let latest_page = format!("{}/latest", releases_url());
             let url = update
                 .raw_json
@@ -115,8 +115,12 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
     Ok(result)
 }
 
-/// How long a request to GitHub may take before the app gives up (release notes, update checks go through the updater).
+/// How long the release notes request to GitHub may take before the app gives up.
 const REQUEST_TIMEOUT_SECS: u64 = 8;
+/// The longest an update check may take before it gives up (a stalled connection would otherwise leave "Checking…"
+/// up forever). The download gets longer: the Linux AppImage is about 80 MB on a slow connection.
+const CHECK_TIMEOUT_SECS: u64 = 30;
+const DOWNLOAD_TIMEOUT_SECS: u64 = 15 * 60;
 
 /// How long after the app starts the first automatic check runs (PRIVACY.md says 45 seconds).
 const FIRST_CHECK_AFTER_SECS: u64 = 45;
@@ -179,7 +183,7 @@ pub async fn auto_check_update(app: AppHandle) -> Result<Value, String> {
     }
     let channel = channel_of(&app);
     if let Some((checked_at, cached_channel, cached_result)) = st.update_cache.lock().unwrap().as_ref() {
-        if *cached_channel == channel && checked_at.elapsed() < std::time::Duration::from_secs(CHECK_EVERY_SECS) {
+        if *cached_channel == channel && checked_at.elapsed() < Duration::from_secs(CHECK_EVERY_SECS) {
             return Ok(cached_result.clone());
         }
     }
@@ -212,18 +216,40 @@ pub fn open_release_page(url: String) -> Result<(), String> {
     platform::open_url(&url).map_err(|e| e.to_string())
 }
 
-/// Downloads, verifies the signature, installs, then restarts into the new version.
-/// Only ever called from the user clicking "Update now".
+/// The manifest may carry "manual": true (+ "manual_url") for updates the in-app installer can't apply.
+fn is_manual(raw_manifest: &Value) -> bool {
+    raw_manifest.get("manual").and_then(Value::as_bool).unwrap_or(false)
+}
+
+/// Why the update found now can't be installed for the one the person approved, or None when it can: it must be the
+/// same version they saw in the dialog (a release published meanwhile, or a channel switch, gives another one), and
+/// one the in-app installer can apply.
+fn approval_problem(approved_version: &str, found_version: &str, manual: bool) -> Option<String> {
+    if found_version != approved_version {
+        return Some(format!(
+            "A different update is available now (v{found_version}). Check for updates again to see what it brings."
+        ));
+    }
+    manual.then(|| "This update has to be installed from GitHub.".to_string())
+}
+
+/// Downloads, verifies the signature, installs, then restarts into the new version: the version the person approved
+/// in the update dialog (`version`), nothing else. Only ever called from the user clicking "Update now".
 #[tauri::command]
-pub async fn install_update(app: AppHandle) -> Result<(), String> {
+pub async fn install_update(app: AppHandle, version: String) -> Result<(), String> {
     if crate::debug::fake_update().is_some() {
         return Err("This is a fake update from the Debug tab: there is nothing to install.".into());
     }
     let channel = channel_of(&app);
     let upd = updater_for(&app, &channel)?;
-    let Some(update) = upd.check().await.map_err(|e| e.to_string())? else {
+    let Some(mut update) = upd.check().await.map_err(|e| e.to_string())? else {
         return Err("Already up to date".into());
     };
+    if let Some(problem) = approval_problem(&version, &update.version, is_manual(&update.raw_json)) {
+        return Err(problem);
+    }
+    // the check's time limit doesn't carry over to the download (tauri-plugin-updater starts it empty), so set it here
+    update.timeout = Some(Duration::from_secs(DOWNLOAD_TIMEOUT_SECS));
     crate::debug::log(format!("installing update v{}", update.version));
     let (progress_app, installing_app) = (app.clone(), app.clone());
     let mut done: u64 = 0;
@@ -254,8 +280,14 @@ pub fn ack_whats_new(st: State<AppState>) {
     let _ = settings::save(&st.shared.paths.settings(), &current_settings);
 }
 
+/// Where a release's "Which file do I download?" table starts (tools/download-table.mjs; keep the heading in step). It
+/// is for visitors of the release page, so What's new leaves it out.
+const DOWNLOAD_TABLE_HEADING: &str = "### Which file do I download?";
+
 fn release_notes_from(release: &Value, ver: &str) -> Value {
-    let body: String = release["body"].as_str().unwrap_or("").chars().take(20000).collect();
+    let full = release["body"].as_str().unwrap_or("");
+    let notes = full.split(DOWNLOAD_TABLE_HEADING).next().unwrap_or("").trim_end();
+    let body: String = notes.chars().take(20000).collect();
     json!({
         "version": ver,
         "title": release["name"].as_str().filter(|s| !s.is_empty()).map(String::from).unwrap_or_else(|| format!("v{ver}")),
@@ -274,7 +306,7 @@ pub async fn get_release_notes(version: Option<String>) -> Result<Value, String>
     }
     let client = reqwest::Client::builder()
         .user_agent(concat!("KeystrokeOverlay/", env!("CARGO_PKG_VERSION")))
-        .timeout(std::time::Duration::from_secs(REQUEST_TIMEOUT_SECS))
+        .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
         .build()
         .map_err(|e| e.to_string())?;
     let resp = client
@@ -359,6 +391,21 @@ mod tests {
         let empty = release_notes_from(&json!({ "name": "", "body": null }), "9.9.9");
         assert_eq!(empty["title"], "v9.9.9");
         assert_eq!(empty["body"], "");
+    }
+    #[test]
+    fn only_the_approved_version_is_installed() {
+        assert_eq!(approval_problem("2.1.0", "2.1.0", false), None);
+        assert!(approval_problem("2.1.0", "2.1.1", false).unwrap().contains("v2.1.1"));
+        assert!(approval_problem("2.1.0", "2.1.0", true).unwrap().contains("GitHub"));
+        assert!(
+            is_manual(&json!({ "manual": true })) && !is_manual(&json!({ "manual": "yes" })) && !is_manual(&json!({}))
+        );
+    }
+    #[test]
+    fn whats_new_leaves_out_the_download_table() {
+        let body = "- one\n- two\n\n### Which file do I download?\n\n| Your computer | Download | |";
+        let notes = release_notes_from(&json!({ "name": "v2.1.0", "body": body }), "2.1.0");
+        assert_eq!(notes["body"], "- one\n- two");
     }
     #[test]
     fn channel_urls() {
