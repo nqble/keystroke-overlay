@@ -48,8 +48,10 @@ sees **which mouse button is pressed or released and which way the wheel turns**
 the mouse: **never where the pointer is, never how it moves, never which window or program you click.** That matters
 more than for keys: where you click can show what is on your screen. So the app is built not to ask: on Windows it
 reads the mouse through Raw Input and looks only at the button and wheel flags of each record, never at its movement
-fields (a record with neither is dropped at once), and it never asks for the cursor position; macOS and Linux will read
-buttons and the wheel only, with the system told not to hand the app movement at all. Which buttons are held right now
+fields (a record with neither is dropped at once), and it never asks for the cursor position. On Linux it listens for
+button events only (X11: it never selects motion events) or, on Wayland, reads the mice in `/dev/input` read-only with the
+kernel told to queue only buttons and the wheel for the app, so movement never reaches it and the thread does not wake when
+the mouse moves; macOS will read buttons and the wheel only too. Which buttons are held right now
 stays in memory, like keys, and Pause drops them too. While the mouse is off, nothing runs and nothing is registered.
 The check in `tools/check-privacy.mjs` fails the build if the code ever asks for the pointer's position or movement.
 
