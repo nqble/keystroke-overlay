@@ -1,7 +1,7 @@
 # Future inputs and features: the plan to follow
 
-Status: **design only, except the pause shortcut** (built: `hotkeys.pause` in v2.0 and `hotkeys.openSettings`, src-tauri/src/hotkeys.rs; next/previous layout is not built). **None of the rest is promised;** mouse buttons and controller
-input are the likeliest next ones (proposals in [../proposals/](../proposals/README.md)). This page fixes the decisions that are hard to change later,
+Status: **design only, except the pause shortcut** (built: `hotkeys.pause` in v2.0 and `hotkeys.openSettings`, src-tauri/src/hotkeys.rs; next/previous layout is not built). **Mouse buttons and the wheel are built** (off by default; [decisions/0016](../decisions/0016-mouse-capture-uses-raw-input-and-never-the-pointer.md)). **None of the rest is promised;** the controller
+is the likeliest next one (proposals in [../proposals/](../proposals/README.md)). This page fixes the decisions that are hard to change later,
 so whoever builds one of these features, a person or a Claude session, builds it the same way. Read it before starting
 any of them, and update it if a decision changes.
 

@@ -60,11 +60,17 @@ tested by this project; if one doesn't work, [open an issue](https://github.com/
 
 ### Showing your mouse too
 
-Keystroke Overlay shows the keyboard only. To show your mouse as well, add a mouse overlay from another program as a
-second source in OBS, next to this one: for example the **input-overlay** OBS plugin, or **Zergatul.Obs.InputOverlay**.
-The two don't talk to each other; each draws its own part in its own look, and you place them side by side in OBS.
+Keystroke Overlay can show your mouse's **buttons and wheel**: open **Settings → General → Mouse** and turn on **Show my
+mouse**, then pick the **WASD + mouse** layout (under **Built-in** in the New layout popup); keys named `MouseLeft`,
+`WheelUp` and so on in your own layouts light up too. It is off by default, reads only which button is down and which way the wheel turned, and **never where the pointer is or how it
+moves** ([Privacy](#privacy)). A trackpad's two-finger scroll is not shown, only a real wheel. On a Mac it needs the same
+Input Monitoring permission as the keyboard; on Linux Wayland, the `input` group.
 
-Two things to know:
+You can still add a mouse overlay from another program as a second source in OBS, next to this one: for example the
+**input-overlay** OBS plugin, or **Zergatul.Obs.InputOverlay**. The two don't talk to each other; each draws its own part
+in its own look, and you place them side by side in OBS.
+
+Two things to know about other programs:
 
 - **They read your input on their own terms.** Keystroke Overlay's privacy promises ([Privacy](#privacy)) cover this app
   only; check what another program does with your mouse and keys before you install it.

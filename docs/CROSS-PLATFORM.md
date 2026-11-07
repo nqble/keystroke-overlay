@@ -16,6 +16,7 @@ built on v2.0 (it needs the `input` group; [LINUX-PORT.md](LINUX-PORT.md), [MAC-
 | Privacy and formatting checks | yes | yes |
 | Running the app: tray, settings window, local server, overlay in OBS | yes | yes |
 | Keyboard capture | yes | Linux X11: yes (from v1.4). macOS: yes (v2.0; needs Input Monitoring). Linux Wayland: yes (v2.0; needs the `input` group) |
+| Mouse buttons and wheel (off by default) | yes (Raw Input) | Linux X11: yes (XInput2). Linux Wayland: yes (needs the `input` group). macOS: yes (needs Input Monitoring; trackpad scrolling is ignored) |
 | End-to-end tests (`npm run test:e2e`), install test, benchmark | yes | no (they drive Windows with PowerShell) |
 | Building the installer, releasing (`npm run build`, `npm run release`, `npm run devbuild`) | yes | no (the Linux and Mac downloads are built on GitHub) |
 
