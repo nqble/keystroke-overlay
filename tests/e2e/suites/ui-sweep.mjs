@@ -41,6 +41,7 @@ check(
       'Connection',
       'OBS scenes',
       'Keyboard input',
+      'Mouse',
       'Startup',
       'Pause shortcut',
       'Open settings shortcut',
