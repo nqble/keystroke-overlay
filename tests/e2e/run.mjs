@@ -1,6 +1,6 @@
 // End-to-end test runner.
 //   npm run test:e2e                      build a throwaway test copy, run every suite, delete everything afterwards
-//   npm run test:e2e -- --suite smoke     only one suite  (smoke | input-methods)
+//   npm run test:e2e -- --suite smoke     only one suite  (smoke | input-methods | inputs)
 //   npm run test:e2e -- --keep            keep the build for fast re-runs (uses ~4 GB of disk until you delete it)
 //
 // SAFETY: the test copy has its own app identity (com.keyoverlay.test), its own data folder, port 7879 and a different
@@ -34,6 +34,7 @@ if (args.includes('--update')) process.env.VISUAL_UPDATE = '1';
 // smoke LAST: it ends by installing an update, which exits the app
 const SUITES = [
   'input-methods',
+  'inputs',
   'secure-link',
   'focus',
   'layouts',

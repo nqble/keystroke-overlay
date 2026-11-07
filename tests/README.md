@@ -23,7 +23,7 @@ Linux ([LINUX-PORT.md](../docs/LINUX-PORT.md)).
 
 ```bash
 npm run test:e2e                         # everything, then clean up
-npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | secure-link | focus | layouts | layout-preview | keys-editor | keys-editor-snap | keys-editor-board | keys-editor-styles | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
+npm run test:e2e -- --suite smoke        # one suite: smoke | input-methods | inputs | secure-link | focus | layouts | layout-preview | keys-editor | keys-editor-snap | keys-editor-board | keys-editor-styles | key-rotation | accessibility | ui-sweep | csp | soak | whats-new | debug (and the optional visual, tab-speed and overlay-speed)
 npm run test:e2e -- --keep               # keep the build for fast re-runs (uses ~4 GB until you delete it)
 ```
 
@@ -32,6 +32,7 @@ npm run test:e2e -- --keep               # keep the build for fast re-runs (uses
 - `input-methods` — Standard (hook) and Compatibility (Raw Input) deliver identical key sequences (repeats dropped,
   extended keys, overlapping keys, PrintScreen), switching live never doubles/loses events or leaks threads, a key held
   during a switch is released, an 8000-event flood is delivered, idle CPU is ~0, and the General-tab help text is right.
+- `inputs` — the mouse input (Windows): off by default; the Mouse card's switch starts and stops it and saves the setting; clicks of all five buttons and the wheel arrive as presses and releases (`tests/bench/mouse-inject.ps1` sends them with `SendInput` into a small window of its own under the pointer, never into another app); moving the mouse sends nothing; Pause drops them; off sends nothing and leaves no thread behind (also after ten on/off cycles).
 - `secure-link` — the optional secure link: off by default; when on, data endpoints and the key-press stream are refused
   without the private key (wrong/missing key → 401, right key → allowed), the key never reaches the overlay, the live preview
   keeps working, an old link shows a clear message, "Make a new key" cuts off old links, and the settings window can't weaken it.

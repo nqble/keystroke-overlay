@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch) and 8 (the Windows test and the numbers) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -395,6 +395,11 @@ In `tools/privacy-patterns.mjs` and `tools/check-privacy.mjs`, each pattern with
 - **`ui/overlay/taps.js`** (with `tests/ui/overlay-taps.test.mjs`, 11 tests): a key that goes down and up in the same moment, which is every wheel notch and PrintScreen on Windows (Windows reports only its release, so the tracker sends it as an instant tap), added and removed its `down` look within one frame and so showed nothing. A tap now shows for at least `MIN_TAP_MS` (100, the same number as `mouse/wheel.rs`; a test compares them) after its press. Every other key is released at once, as before, and a timer is started only when an early release arrives, so an idle overlay runs nothing. `overlay.js` routes every press and release through it; pause and a lost connection still darken everything at once. On the real overlay (the test copy's live preview, key presses injected): PrintScreen stays lit 101 ms (before: under a frame), a W pressed and released in the same moment 114 ms, a W held half a second is released at once.
 - **The layout** is the one the drawn-devices plan decided, not this plan's loose-key `mouse.json`: **WASD + mouse** (`ui/overlay/layouts/wasd-mouse.json`, from `tools/gen-layouts.mjs`): the WASD keys and a drawn mouse (`"device": "mouse"`) as tall as they are. It waits under Other layouts (it is not in `DEFAULT_ORDER`). The built-in layout count is thirteen, and the layout test no longer expects a device block to be a name from the keyboard tables.
 - The drawn mouse lights up only while the mouse input is on, and the settings window has no switch for it yet (step 7).
+
+## Step 8 result: the Windows suite and the numbers (2026-11-07)
+
+- **`npm run test:e2e -- --suite inputs`** (`tests/e2e/suites/inputs.mjs`, 17 checks): the Mouse card and its switch (off at first, nothing runs, no setting saved), turning it on from the card (the capture runs, the setting is saved), all five buttons as presses and releases in order, a wheel notch as one tap each way, 2 seconds of one-pixel moves sending nothing, Pause dropping clicks and resume bringing them back, turning it off (no events, setting saved off, thread count back to what it was) and ten on/off cycles leaving no thread behind. It reuses `tests/bench/mouse-inject.ps1`: the input goes into a small window of its own under the pointer, so no click reaches another app.
+- **The numbers** (`node tests/bench/mouse-trial.mjs`, the finished app, 30 s each): capture off, idle 0 %; on, mouse not used 0 %; on, moving at 1,000 a second (30,000 moves) 0.8 % of one core and no event seen; on, 50 clicks and 50 wheel notches 200 events seen of 200 expected, 0 %; off again 0 %; 20 on/off cycles 14 threads before and after, 371 handles before and after. Memory stays near 52 MB. Moving costs more than step 1's spike measured (0.1 %), still under one percent, so no batching of moves is needed.
 
 ## Effort
 
