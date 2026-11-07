@@ -83,22 +83,27 @@ fn no_axes_mask() -> Vec<u8> {
     vec![0u8; 8]
 }
 
-fn set_mask(fd: RawFd, event_type: u32, codes: &[u8]) -> bool {
+fn set_mask(fd: RawFd, event_type: u32, codes: &[u8]) -> std::io::Result<()> {
     let mask = InputMask {
         event_type,
         codes_size: codes.len() as u32,
         codes_ptr: codes.as_ptr() as u64,
     };
     // SAFETY: `mask` and the bytes it points to live for the whole call; the ioctl only reads them.
-    unsafe { ioctl(fd, EVIOCSMASK, &mask as *const InputMask) == 0 }
+    let result = unsafe { ioctl(fd, EVIOCSMASK, &mask as *const InputMask) };
+    if result == 0 {
+        Ok(())
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
 }
 
-/// Tells the kernel this reader wants button presses and the wheel, nothing else. False when the kernel refused.
-fn mask_out_movement(device: &RawDevice) -> bool {
+/// Tells the kernel this reader wants button presses and the wheel, nothing else. The error is the kernel's refusal.
+fn mask_out_movement(device: &RawDevice) -> std::io::Result<()> {
     let fd = device.as_raw_fd();
-    set_mask(fd, EV_KEY, &all_keys_mask())
-        && set_mask(fd, EV_REL, &wheel_mask())
-        && set_mask(fd, EV_ABS, &no_axes_mask())
+    set_mask(fd, EV_KEY, &all_keys_mask())?;
+    set_mask(fd, EV_REL, &wheel_mask())?;
+    set_mask(fd, EV_ABS, &no_axes_mask())
 }
 
 // ---- finding the mice
@@ -168,8 +173,14 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
         return Err(nothing_opened(found.denied).to_string());
     }
     // Movement is masked out of what the kernel queues for us. A refusal is not fatal: movement is read and dropped.
-    if found.mice.iter().any(|mouse| !mask_out_movement(&mouse.device)) {
-        crate::debug::log("mouse: this kernel refused the event mask, movement events are read and dropped unread");
+    if let Some(error) = found
+        .mice
+        .iter()
+        .find_map(|mouse| mask_out_movement(&mouse.device).err())
+    {
+        crate::debug::log(format!(
+            "mouse: this kernel refused the event mask ({error}), movement events are read and dropped unread"
+        ));
     }
     let (wake_reader, wake) = std::io::pipe().map_err(|e| e.to_string())?;
     let join = std::thread::Builder::new()
@@ -436,6 +447,22 @@ mod tests {
             }
         }
         handle.stop();
+    }
+
+    /// Asks the kernel directly, so a failure of the next test says whether the mask or something else is to blame.
+    #[test]
+    #[ignore = "needs /dev/uinput (the Linux tests workflow)"]
+    fn the_kernel_accepts_the_mask() {
+        let _device = virtual_mouse();
+        let found = find_mice();
+        assert!(
+            !found.mice.is_empty(),
+            "the virtual mouse should be found (denied: {})",
+            found.denied
+        );
+        for mouse in &found.mice {
+            mask_out_movement(&mouse.device).expect("the kernel should accept the event mask");
+        }
     }
 
     /// The point of the mask: moving the mouse 1,000 times neither sends anything nor wakes the capture.

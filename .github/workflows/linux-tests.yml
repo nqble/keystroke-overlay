@@ -118,6 +118,7 @@ jobs:
       - name: With the input group, every mouse button and the wheel are captured, and movement never wakes the capture
         run: |
           sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::captures_a_virtual_mouse
+          sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::the_kernel_accepts_the_mask
           sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::movement_never_wakes_the_capture
       - name: Start headless Weston and the installed app
         run: |
