@@ -3,15 +3,17 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
-## v2.1.0 — turn your keys, theme the app, import from NohBoard
+## v2.1.0 — show your mouse, turn your keys, theme the app
 
 ### ✨ New
+- **Show your mouse.** Turn on **General → Mouse → Show my mouse** and your mouse buttons and scroll wheel light up on the overlay, on Windows, Mac and Linux. The new **WASD + mouse** layout (under **Built-in** in the New layout popup) shows the WASD keys next to a drawn mouse, and any layout can have one. The app reads only clicks and the wheel, never where the pointer is or how it moves. Off until you turn it on.
+- **An Open settings shortcut** that opens this window from any app (**General → Open settings shortcut**). Off until you choose keys.
 - **Turn single keys.** Select a key in the Keys tab and drag the round handle at its top-right corner to turn it, or type an angle in the **Angle** field (15° steps with Snap on). Turned keys show turned in the live preview and in OBS, and a layout imported from KLE keeps its turned keys. Works in the keyboard's own shape; the Even grid keeps keys straight.
 - **Themes for the settings window.** **General → Appearance** has 18 looks for this window, from Default to light ones like Paper and a High contrast theme, plus keycap palettes such as Olivia and Laser. The header logo takes the theme's colors. Or make your own: **+ New theme** opens a bar along the bottom where you pick six colors and watch the whole window change; it warns if text gets hard to read. Share themes with **Export…** and **Import…**. The overlay in OBS keeps its own look.
 - **A GitHub button** at the bottom of the tab bar opens the project's page, for news, help and the source.
 - **A link to keyboard-layout-editor.com** in **+ New layout → From a KLE file**, so you can open the site straight from the app.
-- **Import a keyboard from NohBoard** (Windows). **+ New layout → From a NohBoard file** turns the `keyboard.json` of a keyboard you use in NohBoard into a layout with the same keys, places and sizes. Keys are linked by themselves, and the app asks Windows for your keyboard language, so an AZERTY or QWERTZ keyboard comes out right. Mouse buttons in the file are kept, drawn dashed, ready for when the app supports the mouse.
-- **Hide the whole keyboard in one click.** A new eye button under the live preview's pause button slides out **Keyboard · Mouse · Controller**; click one to show or hide it on the overlay. Keys you hid one by one stay as they were. The tray menu (the menu bar on a Mac) has the same choice under **Show**. Mouse and Controller wait for mouse and controller support.
+- **Import a keyboard from NohBoard** (Windows). **+ New layout → From a NohBoard file** turns the `keyboard.json` of a keyboard you use in NohBoard into a layout with the same keys, places and sizes. Keys are linked by themselves, and the app asks Windows for your keyboard language, so an AZERTY or QWERTZ keyboard comes out right. Mouse buttons and the scroll wheel in the file are kept and light up once you turn on Show my mouse.
+- **Hide the whole keyboard in one click.** A new eye button under the live preview's pause button slides out **Keyboard · Mouse · Controller**; click one to show or hide it on the overlay. Keys you hid one by one stay as they were. The tray menu (the menu bar on a Mac) has the same choice under **Show**. Controller waits for controller support.
 - **Rename your layouts** from a layout card's **⋯** menu.
 
 ### 🛠 Improved
@@ -23,10 +25,20 @@ run of `tests/bench/run.mjs` on one PC; numbers from different entries come from
 - **Layout cards show your edits:** hidden keys are left out of the picture, and moved, resized and turned keys show where you put them.
 - **Every tab uses the whole window,** and cards fill the space in columns without gaps.
 - **The window can be moved and closed while a popup is open:** popups no longer cover the title bar.
+- **On a Mac, the yellow button** minimizes the window into the Dock.
+- **First run setup** ends by offering to set up the pause shortcut.
+- **Updates are safer:** the app installs only the version you approved, and update checks give up instead of hanging on a slow network.
+
+### 🐛 Fixed
+- **Right Shift lights up** with Standard input on Windows.
+- **A key held on two keyboards at once** lets go properly, and a key released while the PC was locked no longer stays lit.
+- **On Linux, unplugging a keyboard** lets go of the keys it was holding.
+- **A label you type on a key** shows on the board as soon as you stop typing.
 
 ### 🧰 Under the hood
 - **Settings version 5** (for turned keys). Going back to 2.0 keeps a copy of the newer settings first, as always.
 - **Two new automatic checks:** a JavaScript linter (ESLint) and accessibility scans (axe-core) of the real settings window in the Windows tests. The linter found and fixed a broken layout generator script.
+- **The overlay page has a content-security policy,** and only the settings window can use the live preview's bridge.
 - **TypeScript 7** and the usual dependency updates.
 - **A big tidy-up:** long functions split into named steps across the settings window, the key editor and the overlay, with no change in behavior, and the linter now enforces the code-shape rules on every file.
 
