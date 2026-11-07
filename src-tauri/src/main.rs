@@ -16,6 +16,8 @@ mod key_angles;
 mod key_labels;
 mod keyboard;
 mod layout_order;
+#[cfg(target_os = "linux")]
+mod linux_poll;
 mod mouse;
 mod obs_scenes;
 mod platform;
