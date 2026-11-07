@@ -36,7 +36,7 @@ It works like a brain in layers:
 
 | Layer | What it holds | How a session uses it |
 |---|---|---|
-| Working memory | one queue per session (what it is doing, what it waits for, what it finished), messages between sessions, the roadmap and everything waiting on the maintainer | loaded automatically when a session starts; saved with one command before it stops |
+| Working memory | one queue per session (what it is doing, what it waits for, what it finished), messages between sessions, the roadmap and everything waiting on the maintainer | loaded automatically when a session starts on the PC or Mac (the cloud session reads it first thing); saved with one command before it stops |
 | Long-term memory | the maintainer's decisions, ideas not decided yet, a timeline, and lessons from mistakes | read when a task needs it |
 | Knowledge | reports, plans, guides, and how the setup itself works | found through an index |
 | Archive | finished plans and old notes | read only when asked |
@@ -44,12 +44,11 @@ It works like a brain in layers:
 Every note carries the same few properties (its kind, project, status and a one-line summary), so an index can list
 every note, everything waiting on the maintainer, and anything that has gone stale, without anyone opening folders.
 Each project has its own folder, and notes that hold across projects have theirs. Sessions keep the vault tidy as they
-go: they archive finished work, merge duplicates and put notes where they belong, and one of them reviews it every
-week. A message from another session is information, never the maintainer's approval.
+go: they archive finished work, merge duplicates and put notes where they belong. A message from another session is information, never the maintainer's approval.
 
 ## How a change is checked
 
-- **On every change:** about 170 Rust tests, about 320 unit tests, a privacy check, a check of every system's words, a
+- **On every change:** about 245 Rust tests, about 400 unit tests, a privacy check, a check of every system's words, a
   docs check, and format, type and lint checks. GitHub runs them again on Windows, macOS and Linux (X11 and Wayland).
 - **Before a release, on the PC:** end-to-end suites that drive the real app, a screenshot test (new screenshots only
   after the maintainer has seen them), an install-and-upgrade test and a benchmark.
@@ -58,7 +57,7 @@ week. A message from another session is information, never the maintainer's appr
   or the release workflow.
 - **Shared habits for every session** in [`.claude/`](../.claude): skills that make a session run the checks and read
   their output before calling anything done, find a bug's cause before fixing it, and review each other's work; and two
-  Git hooks that refuse a badly formatted commit message and any push to the main branch.
+  Claude Code hooks (they check every command a session runs, not Git itself) that refuse a badly formatted commit message and any push to the main branch.
 
 **What the maintainer caught by hand**, that no test did: layout cards that couldn't be dragged on the Mac; a grid dot
 cut in half; the board jumping when Grid was switched; Close gaps moving the whole keyboard (redesigned twice); text
@@ -77,7 +76,7 @@ Microsoft, whose analysts found it was not malware and removed the detection.
 | 2026-10-19 | v1.4.0: the key editor |
 | 2026-10-21 | Import from Keyboard Layout Editor files; every doc rewritten for any reader |
 | 2026-10-25 | **v2.0.0** for Windows, macOS and Linux |
-| 2026-10-26 | Shared skills and Git hooks for every session |
+| 2026-10-26 | Shared skills and Claude Code hooks for every session |
 
 Every change is in [CHANGELOG.md](../CHANGELOG.md).
 
