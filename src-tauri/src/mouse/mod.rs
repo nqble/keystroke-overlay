@@ -6,6 +6,7 @@
 //! - `wheel`: wheel turns -> whole notches, and at most one press per direction per `MIN_TAP_MS`. Plain logic.
 //! - `rawinput`: the Windows method (Raw Input on a message-only window, nothing in the input path).
 //! - `x11` and `linux_devices`: the Linux methods (XInput2 raw buttons on X11; the mice in /dev/input on Wayland).
+//! - `macos`: the macOS method (a listen-only event tap for button and wheel events only).
 //!
 //! `start` picks the method for this system and sends the names into the same event stream as the keyboard (the `Sender`
 //! the keyboard's capture methods use), so the dispatcher, the held keys and Pause work the same. The Bus starts and
@@ -13,11 +14,13 @@
 
 #[cfg(target_os = "linux")]
 mod linux_devices;
-#[allow(dead_code)] // the macOS method uses the rest of it (step 10 of the plan)
+#[cfg(target_os = "macos")]
+mod macos;
+#[allow(dead_code)] // each system uses only its own table; all of them are tested on every system
 mod names;
 #[cfg(windows)]
 mod rawinput;
-#[allow(dead_code)] // the macOS method uses the rest of it (step 10 of the plan)
+#[allow(dead_code)] // each system uses only its own table; all of them are tested on every system
 mod wheel;
 #[cfg(target_os = "linux")]
 mod x11;
@@ -43,9 +46,11 @@ impl Handle {
         }
     }
 }
-#[cfg(not(any(windows, target_os = "linux")))]
+#[cfg(target_os = "macos")]
+pub use macos::Handle;
+#[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
 pub struct Handle;
-#[cfg(not(any(windows, target_os = "linux")))]
+#[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
 impl Handle {
     pub fn stop(self) {}
 }
@@ -64,7 +69,11 @@ pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
         x11::start(tx).map(Handle::X11)
     }
 }
-#[cfg(not(any(windows, target_os = "linux")))]
+#[cfg(target_os = "macos")]
+pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
+    macos::start(tx)
+}
+#[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
 pub fn start(_tx: Sender<KeyEvent>) -> Result<Handle, String> {
     Err("Mouse buttons aren't available on this system yet.".into())
 }
@@ -98,7 +107,7 @@ mod tests {
         }
     }
 
-    #[cfg(not(any(windows, target_os = "linux")))]
+    #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
     #[test]
     fn a_system_without_a_method_says_so() {
         let (tx, _rx) = std::sync::mpsc::channel();

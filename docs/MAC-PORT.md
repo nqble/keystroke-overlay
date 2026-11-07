@@ -157,8 +157,23 @@ On an M1 MacBook Air with macOS 26, with the built app:
   So about 0% CPU at idle holds on a Mac, and closing the window ends its web view processes (about 80 MB less). The app
   process itself holds much more memory than on Windows (Tauri, the WebKit framework and the key tap).
 
+## Mouse buttons and the wheel (step 10 of docs/proposals/mouse-input.md)
+
+Checked on the M1 (macOS 26) with a wired mouse, from a development copy:
+
+- Left, right and wheel events reach the overlay as presses and releases. A second listen-only tap carries only button and
+  wheel events, so moving the pointer never wakes the app.
+- **It needs Input Monitoring, the same permission as the keys.** With it missing, macOS still creates the mouse tap but
+  delivers nothing to it (a probe in a program without the permission counted 0 mouse events and 0 key events while the
+  mouse was clicked, scrolled and keys were typed). So `mouse::macos::start` asks `keyboard::access()` first and reports the
+  same "isn't letting the app read" message on the Mouse card.
+- **Natural scrolling flips the wheel's reported direction** (on: turning the wheel away from you reports a downward
+  scroll). The app reads the system setting for each wheel notch and flips it back, so `WheelUp` is the wheel turned away
+  from you in both settings (checked on and off).
+
 ## Not checked yet
 
+- A mouse with back and forward buttons and a wheel that tilts sideways (only left, right and the wheel were tried).
 - The Secure Input hint on screen (its logic is tested in code).
 - Safari's Develop menu for the settings window (development builds only).
 - Memory over hours.
