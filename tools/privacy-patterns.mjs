@@ -43,14 +43,15 @@ export const LINUX_DEVICES = /\bevdev::/;
 
 /**
  * Where the mouse pointer is or how it moves, in any system's words: asking Windows for the cursor position, the low-level
- * mouse hook (whose record carries the position), the movement fields of a Raw Input record, macOS's event location and
- * its moved and dragged events (a tap given those wakes the app for every movement), X11's raw motion events and the
+ * mouse hook (whose record carries the position), the position of the last message (`GetMessagePos`) or a mouse
+ * message's coordinates (`WM_MOUSEMOVE`, `GET_X_LPARAM`), the movement fields of a Raw Input record, macOS's event and pointer locations, movement
+ * deltas, and its moved and dragged events (a tap given those wakes the app for every movement), X11's motion events, pointer queries and the
  * pointer's root and event coordinates. (`.location(` is matched only on something named like an event: a panic report
  * has a `.location()` too, the source line of a crash.) The app reads mouse buttons and the wheel only (docs/design/future-inputs.md,
  * section 7), so none of this is allowed anywhere in the app's Rust code.
  */
 export const POINTER_POSITION =
-  /\b(GetCursorPos|GetPhysicalCursorPos|MSLLHOOKSTRUCT|WH_MOUSE_LL|lLastX|lLastY|CGEventGetLocation|XI_RawMotion|RAW_MOTION|root_x|root_y|event_x|event_y)\b|\b(?:\w*[Ee]vent\w*|evt|ev|e)\s*\.\s*location\s*\(|CGEventMaskBit\s*\([^)]*Moved|\w*Mouse(?:Moved|Dragged)\w*/;
+  /\b(GetCursorPos|GetPhysicalCursorPos|MSLLHOOKSTRUCT|WH_MOUSE_LL|lLastX|lLastY|CGEventGetLocation|XI_RawMotion|RAW_MOTION|root_x|root_y|event_x|event_y|GetMessagePos|GetCursorInfo|WM_MOUSEMOVE|WM_NCMOUSEMOVE|GET_X_LPARAM|GET_Y_LPARAM|XQueryPointer|MotionNotify|XI_Motion|mouseLocation|locationInWindow)\b|MouseEventDelta|\b(?:\w*[Ee]vent\w*|evt|ev|e)\s*\.\s*location\s*\(|CGEventMaskBit\s*\([^)]*Moved|\w*Mouse(?:Moved|Dragged)\w*/;
 
 /**
  * Linux movement codes (the pointer's relative and absolute axes). In src-tauri/src/mouse/ they may appear only on the
