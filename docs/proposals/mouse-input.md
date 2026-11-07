@@ -2,7 +2,7 @@
 
 Status: **Planned** (2026-10-31) as the first input of [drawn-devices.md](drawn-devices.md), which decides how the mouse
 looks (a drawn mouse, not keys) and replaces this plan's "Overlay" and "Settings window UI" sections. The capture plan
-below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch) and 8 (the Windows test and the numbers) are built; the rest is not.
+below stands. Steps 1 (the Windows spike, with its numbers), 2 (the name tables and the wheel logic), 3 (the setting), 4 (the Windows capture, started from the setting), 5 (the privacy rules) and 6 (the overlay's taps and the layout), 7 (the settings switch), 8 (the Windows test and the numbers) and 9 (Linux) are built; the rest is not.
 
 This plan says how mouse buttons and wheel notches would reach the overlay, through our own capture code on each system and
 no new dependency. It follows [design/future-inputs.md](../design/future-inputs.md) for the names, the protocol, the settings
@@ -400,6 +400,15 @@ In `tools/privacy-patterns.mjs` and `tools/check-privacy.mjs`, each pattern with
 
 - **`npm run test:e2e -- --suite inputs`** (`tests/e2e/suites/inputs.mjs`, 17 checks): the Mouse card and its switch (off at first, nothing runs, no setting saved), turning it on from the card (the capture runs, the setting is saved), all five buttons as presses and releases in order, a wheel notch as one tap each way, 2 seconds of one-pixel moves sending nothing, Pause dropping clicks and resume bringing them back, turning it off (no events, setting saved off, thread count back to what it was) and ten on/off cycles leaving no thread behind. It reuses `tests/bench/mouse-inject.ps1`: the input goes into a small window of its own under the pointer, so no click reaches another app.
 - **The numbers** (`node tests/bench/mouse-trial.mjs`, the finished app, 30 s each): capture off, idle 0 %; on, mouse not used 0 %; on, moving at 1,000 a second (30,000 moves) 0.8 % of one core and no event seen; on, 50 clicks and 50 wheel notches 200 events seen of 200 expected, 0 %; off again 0 %; 20 on/off cycles 14 threads before and after, 371 handles before and after. Memory stays near 52 MB. Moving costs more than step 1's spike measured (0.1 %), still under one percent, so no batching of moves is needed.
+
+## Step 9 result: Linux (2026-11-07)
+
+- **The shared helper move** (its own commit): the `poll()` binding, the wake-pipe wait, the device folder and the read-only open went from `keyboard/linux_devices.rs` into `src-tauri/src/linux_poll.rs`, which both readers use. It has no evdev in it, so the privacy check's rule (evdev only in the two `linux_devices.rs` files) stays as it was. The keyboard's behavior and tests are unchanged. The X11 connection code (`connect`, the handle with its wake window) is shared the same way: `keyboard/x11.rs` exposes it to `mouse/x11.rs`.
+- **`mouse/x11.rs`**: raw button press and release on the root window; no raw motion selected. Buttons 1 to 3, 8 and 9 are held names; 4 to 7 are one short press per notch through the same `Throttle` as Windows.
+- **`mouse/linux_devices.rs`**: mice (a left button, not `BTN_TOUCH`) opened read-only, `EVIOCSMASK` set to all key codes, the two wheel codes and no absolute axis (each mask a whole number of 8-byte words: the kernel answers EINVAL to any other size, which CI showed on the first try), one `poll()` thread; unplugging a mouse or a `SYN_DROPPED` releases its buttons. 7 unit tests (the masks, the ioctl number, a recorded stream without movement, the permission error, prompt stop) and 4 ignored device tests on a uinput virtual mouse (every button and wheel direction; `movement_never_wakes_the_capture` counts `poll()` wakes in test builds across 1,000 moves; the missing-permission error).
+- **`mouse::start`** picks Wayland (devices) or X11 the way the keyboard does. An error (no permission, no mouse, no X display) reaches the Mouse card as before.
+- **CI** (`linux-tests.yml`, `tests/linux/overlay-check.mjs`): the x11 job writes `inputs.mouse.enabled` into the installed app's settings, clicks buttons 1 2 3 4 5 8 9 and checks the names in order, then moves the pointer and expects nothing; the wayland job runs the four device tests as the test user (without and with the input group).
+- **Checked here** on Windows: `cargo test` and `clippy` (nothing of this is built on Windows) and `check:privacy`. The Linux code was compiled with `cargo check --tests` and `clippy -D warnings` for `x86_64-unknown-linux-gnu` in a scratch crate; running it is up to CI, which is the only Linux this project has.
 
 ## Effort
 

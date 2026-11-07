@@ -4,9 +4,11 @@ name: Linux tests
 # run are installed and started on virtual desktops, and keys are typed on a virtual keyboard (docs/LINUX-PORT.md,
 # "Automated Linux tests"). Called by ci.yml after its linux-app job.
 #
-#   x11      Xvfb and xdotool: keys reach the overlay's key stream, and the key labels follow the keyboard layout.
+#   x11      Xvfb and xdotool: keys reach the overlay's key stream, and the key labels follow the keyboard layout; with the
+#            mouse input on, clicks and the wheel arrive, and moving the pointer sends nothing.
 #   wayland  headless Weston and a uinput virtual keyboard: without the input group the app says so; with it, every
-#            press and release is captured and reaches the overlay's key stream.
+#            press and release is captured and reaches the overlay's key stream. The same for a virtual mouse: buttons
+#            and wheel are captured, and moving it 1,000 times never wakes the capture.
 #
 # Both install the .deb and start the AppImage once. What this can't cover: a real GNOME or KDE tray, games, and OBS on
 # Linux. It uses no secrets; the test user and the open /dev/uinput exist only on the throwaway runner.
@@ -39,11 +41,19 @@ jobs:
       - name: Start a virtual X11 desktop and the installed app
         run: |
           mkdir -p "$RUNNER_TEMP/home" "$RUNNER_TEMP/home2"
+          # the mouse input is off by default: this settings file turns it on for the installed app
+          mkdir -p "$RUNNER_TEMP/home/.local/share/com.keyoverlay.app"
+          echo '{"version":2,"inputs":{"mouse":{"enabled":true}}}' > "$RUNNER_TEMP/home/.local/share/com.keyoverlay.app/settings.json"
           Xvfb :99 -screen 0 1280x800x24 &
           sleep 2
           DISPLAY=:99 HOME="$RUNNER_TEMP/home" keyoverlay &
       - name: Keys reach the overlay
         run: DISPLAY=:99 node tests/linux/overlay-check.mjs keys -- xdotool key w a s d
+      - name: Mouse buttons and the wheel reach the overlay
+        run: |
+          DISPLAY=:99 node tests/linux/overlay-check.mjs mouse -- sh -c 'for button in 1 2 3 4 5 8 9; do xdotool click $button; sleep 0.2; done'
+      - name: Moving the pointer sends nothing
+        run: DISPLAY=:99 node tests/linux/overlay-check.mjs still -- xdotool mousemove 10 10 mousemove 600 400 mousemove 20 30 mousemove 700 500
       - name: Key labels follow the keyboard layout (US, then French)
         run: DISPLAY=:99 node tests/linux/overlay-check.mjs labels -- setxkbmap fr
       # Switching between two layout groups (us,fr) with Alt+Shift: Xvfb did not switch groups for typed keys when this
@@ -76,7 +86,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ./downloads/Keystroke-Overlay_*_linux-amd64.deb weston \
             libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev
-      - name: Build the device tests (keyboard/linux_devices.rs)
+      - name: Build the device tests (keyboard/linux_devices.rs and mouse/linux_devices.rs)
         run: |
           npm ci
           # Cargo names the test program it built: "Executable unittests src/main.rs (src-tauri/target/debug/deps/keyoverlay-<hash>)".
@@ -96,10 +106,20 @@ jobs:
           sleep 2
           sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::without_the_input_group_the_error_says_so
           sudo pkill -f type_for_the_app_test || true
+          # the same for the mice: a virtual mouse must exist for "no permission" to be the answer
+          KO_TYPE_WHEN=/tmp/never sudo -E -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::keep_a_virtual_mouse_for_the_app_test &
+          sleep 2
+          sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::without_the_input_group_the_error_says_so
+          sudo pkill -f keep_a_virtual_mouse_for_the_app_test || true
       - name: With the input group, every key is captured
         run: |
           sudo usermod -aG input "$TEST_USER"
           sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact keyboard::linux_devices::tests::captures_a_virtual_keyboard
+      - name: With the input group, every mouse button and the wheel are captured, and movement never wakes the capture
+        run: |
+          sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::captures_a_virtual_mouse
+          sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::the_kernel_accepts_the_mask
+          sudo -u "$TEST_USER" /tmp/device-tests --ignored --exact mouse::linux_devices::tests::movement_never_wakes_the_capture
       - name: Start headless Weston and the installed app
         run: |
           RUNTIME=/tmp/runtime-$TEST_USER

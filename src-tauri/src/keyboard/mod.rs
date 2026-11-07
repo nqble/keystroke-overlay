@@ -39,7 +39,7 @@ mod tracker;
 #[cfg(windows)]
 pub mod windows_labels;
 #[cfg(target_os = "linux")]
-mod x11;
+pub(crate) mod x11;
 #[cfg(target_os = "linux")]
 pub mod x11_labels;
 
@@ -100,7 +100,7 @@ const MACOS_STANDARD_ONLY: &str = "only the Standard method is available on macO
 
 /// True on a Linux Wayland desktop, where the Standard method reads the keyboard devices instead of using X11.
 #[cfg(target_os = "linux")]
-fn wayland() -> bool {
+pub(crate) fn wayland() -> bool {
     linux_devices::wayland_session()
 }
 #[cfg(not(target_os = "linux"))]

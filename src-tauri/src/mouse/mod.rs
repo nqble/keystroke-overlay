@@ -5,17 +5,22 @@
 //! - `names`: every system's button and wheel codes -> our names. Plain logic, tested everywhere.
 //! - `wheel`: wheel turns -> whole notches, and at most one press per direction per `MIN_TAP_MS`. Plain logic.
 //! - `rawinput`: the Windows method (Raw Input on a message-only window, nothing in the input path).
+//! - `x11` and `linux_devices`: the Linux methods (XInput2 raw buttons on X11; the mice in /dev/input on Wayland).
 //!
 //! `start` picks the method for this system and sends the names into the same event stream as the keyboard (the `Sender`
 //! the keyboard's capture methods use), so the dispatcher, the held keys and Pause work the same. The Bus starts and
 //! stops it (`keyboard::Bus::set_mouse`) and the command `set_mouse_input` (commands/settings.rs) turns it on and off.
 
-#[allow(dead_code)] // the Linux and macOS methods use the rest of it (steps 9 and 10 of the plan)
+#[cfg(target_os = "linux")]
+mod linux_devices;
+#[allow(dead_code)] // the macOS method uses the rest of it (step 10 of the plan)
 mod names;
 #[cfg(windows)]
 mod rawinput;
-#[allow(dead_code)] // the Linux and macOS methods use the rest of it (steps 9 and 10 of the plan)
+#[allow(dead_code)] // the macOS method uses the rest of it (step 10 of the plan)
 mod wheel;
+#[cfg(target_os = "linux")]
+mod x11;
 
 use crate::keyboard::KeyEvent;
 use std::sync::mpsc::Sender;
@@ -23,9 +28,24 @@ use std::sync::mpsc::Sender;
 /// A running capture. `stop` ends its thread and lets go of everything it registered.
 #[cfg(windows)]
 pub use rawinput::Handle;
-#[cfg(not(windows))]
+/// X11 reads raw button events, Wayland the mice themselves.
+#[cfg(target_os = "linux")]
+pub enum Handle {
+    X11(crate::keyboard::x11::Handle),
+    Devices(linux_devices::Handle),
+}
+#[cfg(target_os = "linux")]
+impl Handle {
+    pub fn stop(self) {
+        match self {
+            Self::X11(handle) => handle.stop(),
+            Self::Devices(handle) => handle.stop(),
+        }
+    }
+}
+#[cfg(not(any(windows, target_os = "linux")))]
 pub struct Handle;
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "linux")))]
 impl Handle {
     pub fn stop(self) {}
 }
@@ -36,7 +56,15 @@ impl Handle {
 pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
     rawinput::start(tx)
 }
-#[cfg(not(windows))]
+#[cfg(target_os = "linux")]
+pub fn start(tx: Sender<KeyEvent>) -> Result<Handle, String> {
+    if crate::keyboard::wayland() {
+        linux_devices::start(tx).map(Handle::Devices)
+    } else {
+        x11::start(tx).map(Handle::X11)
+    }
+}
+#[cfg(not(any(windows, target_os = "linux")))]
 pub fn start(_tx: Sender<KeyEvent>) -> Result<Handle, String> {
     Err("Mouse buttons aren't available on this system yet.".into())
 }
@@ -70,7 +98,7 @@ mod tests {
         }
     }
 
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux")))]
     #[test]
     fn a_system_without_a_method_says_so() {
         let (tx, _rx) = std::sync::mpsc::channel();
