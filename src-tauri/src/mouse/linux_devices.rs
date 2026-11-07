@@ -59,9 +59,10 @@ extern "C" {
     fn ioctl(fd: RawFd, request: std::os::raw::c_ulong, ...) -> i32;
 }
 
-/// A bit mask of `bits` bits with the given codes set (little-endian bytes, as the kernel reads them).
+/// A bit mask of `bits` bits with the given codes set (little-endian bytes, as the kernel reads them). The kernel wants
+/// the size in whole machine words (8 bytes) and refuses anything else with EINVAL, so it is rounded up with zeros.
 fn mask_with(bits: usize, codes: &[u16]) -> Vec<u8> {
-    let mut mask = vec![0u8; bits.div_ceil(8)];
+    let mut mask = vec![0u8; bits.div_ceil(64) * 8];
     for &code in codes {
         mask[usize::from(code) / 8] |= 1 << (code % 8);
     }
@@ -293,9 +294,12 @@ mod tests {
     fn the_masks_name_buttons_and_the_wheel_only() {
         assert_eq!(
             wheel_mask(),
-            vec![0x40, 0x01],
+            vec![0x40, 0x01, 0, 0, 0, 0, 0, 0],
             "REL_HWHEEL (6) and REL_WHEEL (8), no other axis"
         );
+        for mask in [all_keys_mask(), wheel_mask(), no_axes_mask()] {
+            assert_eq!(mask.len() % 8, 0, "the kernel refuses a mask that is not whole words");
+        }
         assert!(all_keys_mask().iter().all(|byte| *byte == 0xff));
         assert_eq!(all_keys_mask().len() * 8, KEY_BITS);
         assert!(no_axes_mask().iter().all(|byte| *byte == 0));
