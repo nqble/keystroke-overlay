@@ -29,7 +29,7 @@ Sessions don't remember past conversations, so everything they need is written d
 - **The repository**, for everyone: the code, how it works ([ARCHITECTURE.md](ARCHITECTURE.md)), the choices made
   ([decisions/](decisions/)), approved designs ([design/](design/)) and plans ([proposals/](proposals/README.md)), plus
   [CLAUDE.md](../CLAUDE.md), the brief every session reads first.
-- **A private Obsidian vault**, the long-term memory of the whole development setup: plain notes in a private Git
+- **A private [Obsidian](https://obsidian.md) vault**, the long-term memory of the whole development setup: plain notes in a private Git
   repository, synced between the computers.
 
 It works like a brain in layers:
