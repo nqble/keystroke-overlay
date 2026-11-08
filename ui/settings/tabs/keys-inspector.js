@@ -34,6 +34,9 @@ import {
 import { render } from '../settings.js';
 import { selectedKey, selectedKeys, setSelectedKey } from '../state.js';
 import { TEXT } from '../text.js';
+import { words } from '../words.js';
+
+const WORDS = words('keysInspector');
 
 const LABEL_MAX_LENGTH = 12;
 
@@ -101,19 +104,16 @@ function ShowBox({ checked, indeterminate = false, onChange }) {
       data-test="key-show"
       onChange=${(changeEvent) => onChange(changeEvent.currentTarget.checked)}
     />
-    ${' Show'}
+    ${' ' + WORDS.show}
   </label>`;
 }
 
-const CANT_LIGHT_UP = "can't light up";
-
 /** "Key: KeyA"; a key imported from KLE that the app couldn't link shows its label instead of its placeholder code. */
 function keyTitle(layoutKey) {
-  if (!layoutKey.code.startsWith(PLACEHOLDER_PREFIX)) return `Key: ${layoutKey.code}`;
-  return `${layoutKey.label || 'Blank key'} · ${CANT_LIGHT_UP}`;
+  if (!layoutKey.code.startsWith(PLACEHOLDER_PREFIX)) return WORDS.keyTitle(layoutKey.code);
+  return `${layoutKey.label || WORDS.blankKey} · ${WORDS.cantLightUp}`;
 }
 
-/** The inspector for one key: show or hide it, give it a label, set its width, height, angle and exact place. */
 /**
  * The key's own label, and Reset to go back to the layout's. Typing saves it and the overlay follows at once; the key
  * on this keyboard is drawn again when typing settles (Enter or clicking away), like the number fields, so the field
@@ -131,18 +131,18 @@ function LabelRow({ layoutKey, profile }) {
     tidyProf();
     changed(true);
   };
-  return html`<${Row} label="Label" fieldId=${fieldId}>
+  return html`<${Row} label=${WORDS.label} fieldId=${fieldId}>
     <input
       id=${fieldId}
       type="text"
-      placeholder="Label"
+      placeholder=${WORDS.label}
       maxlength=${LABEL_MAX_LENGTH}
       value=${profile.labels[code] ?? layoutKey.label ?? ''}
       data-test="key-label"
       onInput=${setLabel}
       onChange=${() => render()}
     />
-    <button type="button" data-test="key-label-reset" onClick=${resetLabel}>Reset</button>
+    <button type="button" data-test="key-label-reset" onClick=${resetLabel}>${WORDS.reset}</button>
   <//>`;
 }
 
@@ -150,7 +150,7 @@ function LabelRow({ layoutKey, profile }) {
 function SizeRows({ layoutKey, profile }) {
   const widthId = useId('key-width');
   const heightId = useId('key-height');
-  return html`<${Row} label="Width in keys" fieldId=${widthId}>
+  return html`<${Row} label=${WORDS.width} fieldId=${widthId}>
       <${NumberField}
         id=${widthId}
         value=${keyWidth(layoutKey, profile)}
@@ -160,7 +160,7 @@ function SizeRows({ layoutKey, profile }) {
         onValue=${(width) => setKeyWidth(layoutKey, width)}
       />
     <//>
-    <${Row} label="Height in keys" fieldId=${heightId}>
+    <${Row} label=${WORDS.height} fieldId=${heightId}>
       <${NumberField}
         id=${heightId}
         value=${keyHeight(layoutKey, profile)}
@@ -175,7 +175,7 @@ function SizeRows({ layoutKey, profile }) {
 /** The key's angle (the keyboard's own shape only; the Even grid keeps keys straight). */
 function AngleRow({ layoutKey, profile }) {
   const fieldId = useId('key-angle');
-  return html`<${Row} label="Angle in degrees" fieldId=${fieldId}>
+  return html`<${Row} label=${WORDS.angle} fieldId=${fieldId}>
     <${NumberField}
       id=${fieldId}
       value=${keyAngle(layoutKey, profile)}
@@ -193,8 +193,8 @@ function PositionRow({ layoutKey, profile }) {
   const fieldId = useId('key-x');
   const at = keyPos(layoutKey, profile);
   const moveTo = (x, y) => setKeyPos(layoutKey, x, y);
-  return html`<${Row} label="Position" fieldId=${fieldId}>
-    <span>X</span>
+  return html`<${Row} label=${WORDS.position} fieldId=${fieldId}>
+    <span>${WORDS.x}</span>
     <${NumberField}
       id=${fieldId}
       value=${at.x}
@@ -204,7 +204,7 @@ function PositionRow({ layoutKey, profile }) {
       name=${TEXT.positionX}
       onValue=${(x) => moveTo(x, keyPos(layoutKey, profile).y)}
     />
-    <span>Y</span>
+    <span>${WORDS.y}</span>
     <${NumberField}
       value=${at.y}
       min=${MIN_POSITION}
@@ -216,6 +216,7 @@ function PositionRow({ layoutKey, profile }) {
   <//>`;
 }
 
+/** The inspector for one key: show or hide it, give it a label, set its width, height, angle and exact place. */
 function KeyInspector({ layoutKey, profile, overlaps }) {
   const code = layoutKey.code;
   const putBack = () => {
@@ -235,7 +236,7 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
     <${PositionRow} ...${rowProps} />
     ${overlaps ? html`<p class="danger-note">${TEXT.overlapNote}</p>` : null}
     <button type="button" data-test="key-position-reset" disabled=${!edited} onClick=${putBack}>
-      Put back where it was
+      ${WORDS.putBack}
     </button>
   </div>`;
 }
@@ -256,7 +257,7 @@ function GroupInspector({ profile }) {
   };
   return html`<div class="editor" data-test="key-editor">
     <div class="inspector-title">
-      <b data-test="key-editor-title">${codes.length} keys selected</b>
+      <b data-test="key-editor-title">${WORDS.selected(codes.length)}</b>
       <${ShowBox}
         checked=${hiddenCount === 0}
         indeterminate=${hiddenCount > 0 && hiddenCount < codes.length}
@@ -268,13 +269,13 @@ function GroupInspector({ profile }) {
       <button
         type="button"
         data-test="key-group-put-back"
-        title="Put back where the layout has them"
+        title=${WORDS.putTheseBackTip}
         disabled=${!anyEdited}
         onClick=${putBack}
       >
-        Put these back
+        ${WORDS.putTheseBack}
       </button>
-      <button type="button" data-test="key-clear-selection" onClick=${clear}>Clear selection</button>
+      <button type="button" data-test="key-clear-selection" onClick=${clear}>${WORDS.clearSelection}</button>
     </div>
   </div>`;
 }
@@ -299,5 +300,5 @@ export function Inspector({ layout, profile, overlapping }) {
       overlaps=${overlapping.has(selected.code)}
     />`;
   else if (selectedKeys.size > 1) content = html`<${GroupInspector} profile=${profile} />`;
-  return html`<aside class="inspector" aria-label="Selected keys">${content}</aside>`;
+  return html`<aside class="inspector" aria-label=${WORDS.panel}>${content}</aside>`;
 }

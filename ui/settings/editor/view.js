@@ -6,6 +6,7 @@ import { button, el } from '../helpers.js';
 import { iconElement } from '../icons.js';
 import { showHiddenKeys } from '../profiles.js';
 import { boundsOf } from '../tabs/keys-arrange.js';
+import { words } from '../words.js';
 import { BUTTON_ZOOM, ZOOM_MAX, centredView, clampView, coverZoom, zoomAt } from '../tabs/keys-view.js';
 import { placeArrangeBar } from './arrange-bar.js';
 import { attachViewGestures } from './view-gestures.js';
@@ -21,6 +22,8 @@ import {
   insideBox,
 } from './context.js';
 
+const WORDS = words('editor');
+
 /** Build the zoom buttons (and the percent label) and put the label in the context. */
 export function buildZoomControls(ctx) {
   const zoomLabel = button(
@@ -32,7 +35,7 @@ export function buildZoomControls(ctx) {
     'zoom-percent',
     'editor-zoom-reset',
   );
-  zoomLabel.title = 'Reset zoom';
+  zoomLabel.title = WORDS.resetZoom;
   const zoomBy = (factor) => () => {
     ctx.viewTouched = true;
     setView(
@@ -42,10 +45,10 @@ export function buildZoomControls(ctx) {
   };
   const zoomOut = button('−', zoomBy(1 / BUTTON_ZOOM), 'zoom-step', 'editor-zoom-out');
   zoomOut.replaceChildren(iconElement('minus'));
-  zoomOut.title = 'Zoom out';
+  zoomOut.title = WORDS.zoomOut;
   const zoomIn = button('+', zoomBy(BUTTON_ZOOM), 'zoom-step', 'editor-zoom-in');
   zoomIn.replaceChildren(iconElement('plus'));
-  zoomIn.title = 'Zoom in';
+  zoomIn.title = WORDS.zoomIn;
   const zoomControls = el('div', { className: 'zoom-controls' }, zoomOut, zoomLabel, zoomIn);
   ctx.zoomLabel = zoomLabel;
   return zoomControls;
