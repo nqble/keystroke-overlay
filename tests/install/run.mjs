@@ -37,6 +37,14 @@ const VERSION = JSON.parse(readFileSync(join(ROOT, 'src-tauri/tauri.conf.json'),
 // INSTALL_OLD=v1.2.0:9016efe:1.2.0  (name:commit:version)
 const [oName, oRef, oVer] = (process.env.INSTALL_OLD ?? 'v1.1.2:45456a9:1.1.2').split(':');
 const OLD = { name: oName, ref: oRef, version: oVer };
+// What the old release's first launch must show: its own settings version, read from its source, and its number of
+// settings tabs by default (Debug shows only in Debug mode). Add a line here when testing from a newer old release.
+const OLD_TAB_COUNTS = { 'v1.1.2': 6, 'v2.0.1': 5 };
+const oldSettingsVersion = () => {
+  const source = spawnSync('git', ['show', `${OLD.ref}:src-tauri/src/settings.rs`], { cwd: ROOT, encoding: 'utf8' });
+  const match = /pub const CURRENT_VERSION: u64 = (\d+);/.exec(source.stdout ?? '');
+  return match ? Number(match[1]) : null;
+};
 const sh = (cmd, a, o = {}) => spawnSync(cmd, a, { shell: true, stdio: 'inherit', ...o });
 const uninstallEntries = () =>
   spawnSync(
@@ -141,14 +149,16 @@ try {
   launch();
   let p = await connect();
   await sleep(2500);
+  const tabCount = OLD_TAB_COUNTS[OLD.name];
   check(
-    'first launch: settings window opens with its tabs',
-    (await p.q(`document.querySelectorAll('nav button').length`)) === 6,
+    `first launch: settings window opens with its ${tabCount ?? '(unknown: add it to OLD_TAB_COUNTS)'} tabs`,
+    (await p.q(`document.querySelectorAll('nav button').length`)) === tabCount,
   );
+  const settingsVersion = oldSettingsVersion();
   check(
-    'first launch created the data folder with settings.json and defaults',
+    `first launch created the data folder with settings.json and defaults (settings version ${settingsVersion})`,
     existsSync(join(DATA, 'settings.json')) &&
-      JSON.parse(readFileSync(join(DATA, 'settings.json'), 'utf8')).version === 2,
+      JSON.parse(readFileSync(join(DATA, 'settings.json'), 'utf8')).version === settingsVersion,
   );
   const st0 = (await p.invoke('get_state')).ok;
   check(
