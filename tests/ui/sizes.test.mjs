@@ -33,3 +33,11 @@ test('a long card name is cut with an ellipsis instead of growing the card', () 
   assert.match(cut, /text-overflow:\s*ellipsis/);
   assert.match(cut, /white-space:\s*nowrap/);
 });
+
+test("on WebKit the cards' margins stay inside a line of their own, so the second column starts level with the first", () => {
+  const start = blocksCss.indexOf('@supports (hanging-punctuation: first) {');
+  assert.ok(start >= 0, 'no WebKit-only block for the card columns');
+  const block = blocksCss.slice(start, blocksCss.indexOf('\n}\n', start));
+  assert.match(block, /\.section-grid > \.section-card \{[^}]*display:\s*inline-flex/);
+  assert.match(block, /\.section-grid \{[^}]*margin-bottom:\s*calc\(-1 \* var\(--space-14\)\)/);
+});

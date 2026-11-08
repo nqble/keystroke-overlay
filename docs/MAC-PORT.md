@@ -171,6 +171,15 @@ Checked on the M1 (macOS 26) with a wired mouse, from a development copy:
   scroll). The app reads the system setting for each wheel notch and flips it back, so `WheelUp` is the wheel turned away
   from you in both settings (checked on and off).
 
+## Web view differences
+
+- **Cards in columns:** the settings window's cards flow down CSS columns. WebKit keeps the bottom margin of the last card
+  in a column and starts the next column that much lower, where Chromium (Windows) drops it, so on the General tab the
+  right-hand cards started 14 px below the Connection card. `ui/settings/blocks.css` gives WebKit's web view (a block only
+  WebKit understands) cards that keep their margin inside a line of their own; other web views are untouched. Measured
+  on the M1 with the window's accessibility positions: both columns start at the same height, card sizes and the space
+  under the grid are as before.
+
 ## Not checked yet
 
 - A mouse with back and forward buttons and a wheel that tilts sideways (only left, right and the wheel were tried).
