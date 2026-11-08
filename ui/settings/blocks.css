@@ -73,6 +73,20 @@
   column-span: all;
   max-width: 640px;
 }
+/* WebKit (the web view on a Mac and on Linux) keeps the bottom margin of the last card in a column and starts the next
+   column that much lower; Chromium (Windows) drops it. Cards that sit in a line of their own keep their margin inside
+   it, so nothing spills over. The negative margin takes back the gap this leaves under the whole grid. Only WebKit has
+   `hanging-punctuation`, so the other web views keep the rules above as they are. */
+@supports (hanging-punctuation: first) {
+  .section-grid {
+    margin-bottom: calc(-1 * var(--space-14));
+  }
+  .section-grid > .section-card {
+    display: inline-flex;
+    width: 100%;
+    vertical-align: top;
+  }
+}
 /* A section that opens and closes (General → Advanced): its title is the button */
 .section-toggle {
   display: flex;
