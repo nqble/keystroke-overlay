@@ -130,7 +130,9 @@ keystroke-overlay/
         ├── themes.js      plain logic for the Style tab's theme cards (tested)
         ├── system-fonts.js  the font list for this system (Windows fonts or Mac fonts)
         ├── system-words.js  words that differ per system (what starting with the computer is called, which inspector)
-        ├── text.js        the longer explanations the user reads
+        ├── text.js        texts shared by several screens (group "shared" of locales/en.js)
+        ├── words.js       a file's texts in the chosen language, English for any missing (locales/<code>.js; npm run check:locales checks them)
+        ├── locales/       one file per language, en.js the source (docs/proposals/interface-languages.md)
         ├── debug/         the optional Debug tab, one file per tool; index.js draws it (docs/DEBUGGING.md)
         ├── debug-report.js  the Debug tab's reports as plain logic: scrubbing, settings diff, the bug report text (tested)
         └── tabs/          one file per tab (layout, keys, style, animation, general; the Debug-only tab is debug/; layout-card.js, style-*.js and general-*.js are

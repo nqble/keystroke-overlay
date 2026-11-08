@@ -12,12 +12,9 @@ import { copyUrl } from './preview.js';
 import { render } from './settings.js';
 import { lastUpdate, linkChanged, overlays, paused, serverError, setTab, settings } from './state.js';
 import { openUpdateDialog } from './update-popup.js';
+import { words } from './words.js';
 
-const TEXT = {
-  statusTip: 'OBS URL settings', // the status opens General, where the OBS URL and port live
-  copy: 'Copy OBS URL',
-  update: 'Update ready',
-};
+const TEXT = words('header');
 
 // The same wait as the pause button's: a mouse that only passes over the chip plays nothing.
 const ARROW_DELAY_MS = 150;

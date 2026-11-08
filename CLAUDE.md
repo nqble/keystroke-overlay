@@ -62,7 +62,8 @@ When two principles conflict, the higher one wins.
 - **Descriptive names.** `settings`, not `S`. `selectedKey`, not `selKey`. Single letters only in tiny lambdas (`k => k.code`).
 - **No magic numbers.** Name them as constants (`const MAX_LAYOUTS = 20`), and say where else they must match.
 - **No dead code, no commented-out code, no duplicate helpers.** Search for an existing helper before writing a new one.
-- **User-facing text** goes in the file's `TEXT` block, not inline in the logic. Write it in plain, friendly English.
+- **User-facing text** goes in the file's `TEXT` block, not inline in the logic; files moved to the language files read it
+  with `const TEXT = words('group')` from `ui/settings/locales/en.js`. Write it in plain, friendly English.
 - **Leave it cleaner.** When you change a file, fix the small things you pass in it (a one-letter name, an unnamed number, text
   outside `TEXT`, a function a little over the limit). Don't start a separate cleanup; keep it to the file you are in, and keep the
   keyboard hook, the tray and the Raw Input code to comments, names and constants unless the change is about them.

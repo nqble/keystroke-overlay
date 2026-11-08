@@ -4,10 +4,9 @@
 // =====================================================================================================================
 import { html } from './html.js';
 import { invoke } from './helpers.js';
+import { words } from './words.js';
 
-const TEXT = {
-  name: 'Keystroke Overlay on GitHub', // the tooltip and what a screen reader says
-};
+const TEXT = words('githubLink');
 
 /** GitHub's mark, drawn here (no image from the internet), in the button's text color. */
 const MARK =

@@ -6,13 +6,9 @@
 // =====================================================================================================================
 
 import { iconElement } from './icons.js';
+import { words } from './words.js';
 
-const TEXT = {
-  pauseWord: 'Pause',
-  resumeWord: 'Resume',
-  pauseName: 'Pause overlay',
-  resumeName: 'Resume overlay',
-};
+const TEXT = words('pauseButton');
 
 /** Which word, icon and screen-reader name the button shows. Plain logic, so tests/ui can check it. */
 export function pauseButtonLook(paused) {
