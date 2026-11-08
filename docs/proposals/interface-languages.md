@@ -1,8 +1,8 @@
 # Proposal: the settings window in other languages
 
-Status: **Proposed** (2026-11-08). Not built. Translations come from a dedicated translation model with Microsoft's
-terminology as its glossary (the maintainer's choice, 2026-11-08), not from a coding assistant; native-speaker
-corrections are welcome on top.
+Status: **Proposed** (2026-11-08). Not built. Translations come from translation services, mixed per language (DeepL,
+Microsoft Translator, Index-Translate), with Microsoft's terminology as the glossary (the maintainer's choice,
+2026-11-08), not from a coding assistant; native-speaker corrections are welcome on top.
 
 ## Goal
 
@@ -46,19 +46,29 @@ texts is allowed (they show in English) and the check prints how much is transla
 
 ## Where the translations come from
 
-1. **The texts are translated from English by a dedicated translation model**,
-   [Index-Translate](https://github.com/bilibili/Index-Translate) (bilibili, Apache-2.0, 150 languages; it has a free
-   hosted API, and its weights can run locally). rc-compress already uses it this way ([nqble/rc-compress#31](https://github.com/nqble/rc-compress/pull/31)).
-   A small script, `tools/translate.mjs`, sends each new or changed English text with its glossary terms and writes the
-   result into each language file; it runs by hand, never in the app (the app's only network use stays the update
-   check).
-2. **Microsoft's terminology is the glossary**, so the words match what Windows and its apps say in that language
-   ("Settings", "Pause", "notification area", "Cancel"). It is published as a TBX file for about 100 languages
-   (where to download it goes in `docs/TRANSLATIONS.md`). **Its license (the Microsoft
-   Language Portal Materials License) must be read before any of its terms go into the repository**; until then the
-   script reads a local copy and only the resulting translations are committed. Mac words ("menu bar", "Open at login")
-   are checked against what macOS shows in that language.
-3. **People correct it.** Each language file says at the top how it was made. A native speaker's fix is a one-line
+1. **The texts are translated from English by translation services, a different one per language** (the
+   maintainer's choice, 2026-11-08: mix them, each where it does best). One small table,
+   `tools/translate-engines.json`, says which engine each language uses; adding a language adds a line there and its
+   file:
+
+   | Engine | Used for | Why |
+   |---|---|---|
+   | [DeepL API](https://www.deepl.com/pro-api) | German, French, Spanish, Italian, Portuguese, Polish, Dutch and the other European languages it covers | Usually the most natural wording for these |
+   | [Microsoft Translator](https://learn.microsoft.com/azure/ai-services/translator/) (Azure AI Translator) | Japanese, Korean, Chinese, Hindi, and any language DeepL lacks | Wide coverage, and its wording follows Microsoft's own terminology |
+   | [Index-Translate](https://github.com/bilibili/Index-Translate) (bilibili, Apache-2.0) | Any language, as the fallback that needs no account | Free hosted API, no key; rc-compress already uses it ([nqble/rc-compress#31](https://github.com/nqble/rc-compress/pull/31)) |
+
+   A small script, `tools/translate.mjs`, sends each new or changed English text with its glossary terms to that
+   language's engine and writes the result into the language file; it runs by hand, never in the app (the app's only
+   network use stays the update check). The DeepL and Microsoft keys are the maintainer's, kept in environment
+   variables on the computer that runs the script, never in the repository.
+2. **Microsoft's terminology is the glossary** for every engine (DeepL and Microsoft Translator both take a glossary;
+   Index-Translate takes the terms in its request), so the words match what Windows and its apps say in that language
+   ("Settings", "Pause", "notification area", "Cancel"). It is published as a TBX file for about 100 languages (where
+   to download it goes in `docs/TRANSLATIONS.md`). **Its license (the Microsoft Language Portal Materials License) must
+   be read before any of its terms go into the repository**; until then the script reads a local copy and only the
+   resulting translations are committed. Mac words ("menu bar", "Open at login") are checked against what macOS shows
+   in that language.
+3. **People correct it.** Each language file says at the top which engine made it. A native speaker's fix is a one-line
    pull request; the script never overwrites a text a person has corrected (it keeps a list of reviewed ids).
 
 ## Steps
@@ -68,7 +78,8 @@ Each its own pull request, in this order:
 1. `words.js`, `ui/locales/en.json` and the check, with every `TEXT` block moved over. English only, no visible change
    (the screenshots stay identical, `npm run test:visual`).
 2. The Language setting and the tray/native texts.
-3. `tools/translate.mjs`, the glossary step and `docs/TRANSLATIONS.md`.
+3. `tools/translate.mjs` with the three engines and the glossary step, `tools/translate-engines.json` and
+   `docs/TRANSLATIONS.md`. Needs the maintainer's DeepL and Microsoft (Azure) API keys.
 4. The first languages (the maintainer chooses which), each checked by the screenshot test for text that no longer
    fits: German and Russian run longer than English, so tight buttons and cards get a look.
 
