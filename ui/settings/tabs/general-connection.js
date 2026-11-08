@@ -10,24 +10,9 @@ import { copyUrl, frame, previewSrc, sizeText, updateObs } from '../preview.js';
 import { render } from '../settings.js';
 import { obsUrl, setObsUrl, settings } from '../state.js';
 import { TEXT } from '../text.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Connection',
-  link: 'OBS URL',
-  copy: 'Copy',
-  port: 'Port',
-  apply: 'Apply',
-  portChanged: 'Port changed: copy the OBS URL into OBS again.',
-  secure: 'Secure my OBS URL',
-  copySecure: 'Copy secure link',
-  newKey: 'Make a new key',
-  secureOn: 'Secure link on: copy the new OBS URL into OBS.',
-  secureOff: 'Secure link off.',
-  newKeyMade: 'New key made: copy the new OBS URL into OBS.',
-  firstRun: 'First run setup',
-  serverDetail: (port) => `Local server on 127.0.0.1:${port}`,
-  keyDetail: '128-bit key, checked in constant time on /api, /ws, /fonts and /user.',
-};
+const WORDS = words('generalConnection');
 
 /** The new link takes effect everywhere: the link box, the header, and the live preview (it reloads with the link). */
 function useLink(url) {

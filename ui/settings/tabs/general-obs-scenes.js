@@ -9,14 +9,9 @@ import { html, useRef, useState } from '../html.js';
 import { editScenes } from '../obs-scenes-popup.js';
 import { changed } from '../preview.js';
 import { settings } from '../state.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'OBS scenes',
-  enabled: 'Change the overlay per OBS scene',
-  note: 'Hide the overlay or show another layout in the scenes you list. The live preview always shows your chosen layout.',
-  count: (count) => (count === 0 ? 'No scenes yet' : count === 1 ? '1 scene set' : `${count} scenes set`),
-  edit: 'Edit scenes…',
-};
+const WORDS = words('generalObsScenes');
 
 const scenesSettings = () => settings.obs?.scenes ?? { enabled: false, rules: [] };
 

@@ -12,6 +12,15 @@ const PLACEHOLDER = /\{([A-Za-z]+)\}/g;
 
 /** @type {Record<string, any>} The chosen language's texts (step 2 of the plan adds the choice; English until then). */
 let chosen = english;
+/** The chosen language's code, for its plural rules (`Intl.PluralRules`). */
+let chosenCode = 'en';
+
+/**
+ * A text that depends on a count is an object of plural forms (`{ one: '1 scene set', other: '{count} scenes set' }`),
+ * the forms of `Intl.PluralRules` (zero, one, two, few, many, other) plus an optional `none` for a count of 0. Each
+ * language gives the forms its own grammar needs; `other` is always required.
+ */
+const PLURAL_FORMS = ['none', 'zero', 'one', 'two', 'few', 'many', 'other'];
 
 /**
  * The texts of one group, in the chosen language. A text with placeholders becomes a function, called with the values
@@ -24,10 +33,22 @@ export function words(group) {
   return build(english[group], chosen[group] ?? {});
 }
 
-/** For tests: show another language's texts (null goes back to English). @param {Record<string, any> | null} texts */
-export function useLanguage(texts) {
+/**
+ * Show another language's texts (null goes back to English); used by tests now, by the Language setting later.
+ * @param {Record<string, any> | null} texts @param {string} [code]
+ */
+export function useLanguage(texts, code = 'en') {
   chosen = texts ?? english;
+  chosenCode = texts ? code : 'en';
 }
+
+/** Whether a value is a text with plural forms rather than a group of texts. @param {unknown} value */
+export function isPlural(value) {
+  return Boolean(value && typeof value === 'object' && 'other' in value);
+}
+
+/** The plural forms a language may use (for the language check). */
+export const pluralForms = PLURAL_FORMS;
 
 /** The names of a text's placeholders, each once, in the order they first appear. @param {string} text */
 export function placeholders(text) {
@@ -41,7 +62,9 @@ function build(source, translated) {
   const result = {};
   for (const [id, value] of Object.entries(source)) {
     const translation = translated[id];
-    result[id] = typeof value === 'string' ? text(value, translation) : build(value, translation ?? {});
+    if (typeof value === 'string') result[id] = text(value, translation);
+    else if (isPlural(value)) result[id] = plural(value, translation);
+    else result[id] = build(value, translation ?? {});
   }
   return result;
 }
@@ -60,4 +83,20 @@ function fill(template, names, values) {
     const index = names.indexOf(name);
     return index === -1 ? match : String(values[index]);
   });
+}
+
+/**
+ * A text with plural forms: a function whose first value is the count (`{count}`); any other placeholders follow, in
+ * the order the English `other` form uses them. The language's own forms are used when it has them.
+ * @param {Record<string, string>} source @param {unknown} translation
+ */
+function plural(source, translation) {
+  const forms = isPlural(translation) ? /** @type {Record<string, string>} */ (translation) : source;
+  const names = ['count', ...placeholders(source.other).filter((name) => name !== 'count')];
+  const rules = new Intl.PluralRules(forms === source ? 'en' : chosenCode);
+  return (/** @type {number} */ count, /** @type {unknown[]} */ ...rest) => {
+    const form = count === 0 && forms.none !== undefined ? 'none' : rules.select(count);
+    const template = forms[form] ?? forms.other;
+    return fill(template, names, [count, ...rest]);
+  };
 }

@@ -11,24 +11,9 @@ import { changed } from '../preview.js';
 import { appVersion, lastUpdate, settings } from '../state.js';
 import { TEXT } from '../text.js';
 import { openUpdateDialog, paintProgress, setUpdate } from '../update-popup.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Updates',
-  version: 'Version',
-  notes: 'Release notes',
-  channel: 'Update channel',
-  stable: 'Stable',
-  latest: 'Latest',
-  auto: 'Check automatically',
-  check: 'Check now',
-  checking: 'Checking…',
-  install: 'Install update',
-  manualInstall: 'Open GitHub installer',
-  upToDate: (version) => `Up to date (version ${version})`,
-  available: (version) => `Version ${version} is available`,
-  manual: (version) => `Version ${version} is available: install it by hand`,
-  detail: (channel) => `Manifest: ${channel}.json on GitHub · signature checked before install`,
-};
+const WORDS = words('generalUpdates');
 
 const CHANNELS = [
   { value: 'stable', text: WORDS.stable },

@@ -8,7 +8,7 @@
 import { readdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { join, resolve } from 'node:path';
-import { placeholders } from '../ui/settings/words.js';
+import { isPlural, placeholders, pluralForms } from '../ui/settings/words.js';
 
 const DIR = resolve('ui/settings/locales');
 const SOURCE = 'en.js';
@@ -17,7 +17,7 @@ const SOURCE = 'en.js';
 export function flatten(texts, prefix = '', out = new Map()) {
   for (const [id, value] of Object.entries(texts)) {
     const path = prefix ? `${prefix}.${id}` : id;
-    if (value && typeof value === 'object') flatten(value, path, out);
+    if (value && typeof value === 'object' && !isPlural(value)) flatten(value, path, out);
     else out.set(path, value);
   }
   return out;
@@ -31,13 +31,36 @@ export function problemsOf(english, language) {
       problems.push(`${path}: not in English (renamed or removed there?)`);
       continue;
     }
+    const source = english.get(path);
+    if (isPlural(source)) {
+      problems.push(...pluralProblems(path, source, value));
+      continue;
+    }
     if (typeof value !== 'string') {
       problems.push(`${path}: not a text`);
       continue;
     }
-    const wanted = placeholders(english.get(path)).sort().join(', ');
+    const wanted = placeholders(source).sort().join(', ');
     const got = placeholders(value).sort().join(', ');
     if (wanted !== got) problems.push(`${path}: placeholders {${got}} but English has {${wanted}}`);
+  }
+  return problems;
+}
+
+/**
+ * The problems of a translated plural text: known forms only, `other` present, each form a text using only English's
+ * placeholders (a form may leave `{count}` out, as in "one scene").
+ * @param {string} path @param {Record<string, string>} source @param {unknown} value
+ */
+function pluralProblems(path, source, value) {
+  if (!isPlural(value)) return [`${path}: needs plural forms with at least "other"`];
+  const allowed = new Set(placeholders(source.other));
+  const problems = [];
+  for (const [form, text] of Object.entries(/** @type {Record<string, unknown>} */ (value))) {
+    if (!pluralForms.includes(form)) problems.push(`${path}.${form}: not a plural form (${pluralForms.join(', ')})`);
+    else if (typeof text !== 'string') problems.push(`${path}.${form}: not a text`);
+    else if (placeholders(text).some((name) => !allowed.has(name)))
+      problems.push(`${path}.${form}: unknown placeholder`);
   }
   return problems;
 }

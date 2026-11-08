@@ -74,4 +74,119 @@ export default {
   githubLink: {
     name: 'Keystroke Overlay on GitHub', // the tooltip and what a screen reader says
   },
+  // the General tab: general.js (ui/settings/tabs/)
+  general: {
+    title: 'General',
+    input: 'Keyboard input',
+    standard: 'Standard',
+    compatibility: 'Compatibility',
+    standardNote: 'Works with nearly every game.',
+    compatibilityNote: 'For games where keys don’t light up with Standard.',
+    adminNote: 'If a game runs as administrator, start Keystroke Overlay as administrator too.',
+    inputDetail: {
+      rawinput: 'Compatibility = Raw Input (RIDEV_INPUTSINK, message-only window)',
+    },
+    inputChanged: 'Keyboard input: {name}',
+    startup: 'Startup',
+    openOnLaunch: 'Open this window on launch',
+    advanced: 'Advanced',
+    debugMode: 'Debug mode (for developers)',
+    devLook: 'Devbuild look: keep the purple logo',
+    devLookNote: 'Turn off to see the logo in the theme’s colors. The DEV badge stays.',
+    restart: 'Restart server',
+    restarted: 'Server restarted',
+    dataFolder: 'Open data folder',
+    reset: 'Reset all settings…',
+    quit: 'Quit app',
+  },
+
+  // the General tab: general-connection.js (ui/settings/tabs/)
+  generalConnection: {
+    title: 'Connection',
+    link: 'OBS URL',
+    copy: 'Copy',
+    port: 'Port',
+    apply: 'Apply',
+    portChanged: 'Port changed: copy the OBS URL into OBS again.',
+    secure: 'Secure my OBS URL',
+    copySecure: 'Copy secure link',
+    newKey: 'Make a new key',
+    secureOn: 'Secure link on: copy the new OBS URL into OBS.',
+    secureOff: 'Secure link off.',
+    newKeyMade: 'New key made: copy the new OBS URL into OBS.',
+    firstRun: 'First run setup',
+    serverDetail: 'Local server on 127.0.0.1:{port}',
+    keyDetail: '128-bit key, checked in constant time on /api, /ws, /fonts and /user.',
+  },
+
+  // the General tab: general-hotkey.js (ui/settings/tabs/)
+  generalHotkey: {
+    title: 'Pause shortcut',
+    enabled: 'Pause with a shortcut',
+    note: 'Works from any app, even in a game.',
+    none: 'No shortcut yet',
+    choose: 'Choose shortcut',
+    listening: 'Press the keys… (Esc to cancel)',
+    needsModifier: 'Add {modifiers} to that key.',
+    clear: 'Clear',
+    saved: 'Pause shortcut: {name}',
+    openTitle: 'Open settings shortcut',
+    openNote: 'Opens this window from any app. Off until you choose keys, for example {example}.',
+    openSaved: 'Open settings shortcut: {name}',
+  },
+
+  // the General tab: general-mouse.js (ui/settings/tabs/)
+  generalMouse: {
+    title: 'Mouse',
+    switch: 'Show my mouse',
+    note: 'Shows your mouse buttons and wheel in layouts that have a mouse. Add WASD + mouse from Other layouts on the Layout tab. The app never sees where your pointer is.',
+  },
+
+  // the General tab: general-obs-scenes.js (ui/settings/tabs/)
+  generalObsScenes: {
+    title: 'OBS scenes',
+    enabled: 'Change the overlay per OBS scene',
+    note: 'Hide the overlay or show another layout in the scenes you list. The live preview always shows your chosen layout.',
+    count: { none: 'No scenes yet', one: '1 scene set', other: '{count} scenes set' },
+    edit: 'Edit scenes…',
+  },
+
+  // the General tab: general-updates.js (ui/settings/tabs/)
+  generalUpdates: {
+    title: 'Updates',
+    version: 'Version',
+    notes: 'Release notes',
+    channel: 'Update channel',
+    stable: 'Stable',
+    latest: 'Latest',
+    auto: 'Check automatically',
+    check: 'Check now',
+    checking: 'Checking…',
+    install: 'Install update',
+    manualInstall: 'Open GitHub installer',
+    upToDate: 'Up to date (version {version})',
+    available: 'Version {version} is available',
+    manual: 'Version {version} is available: install it by hand',
+    detail: 'Manifest: {channel}.json on GitHub · signature checked before install',
+  },
+
+  // the General tab: general-appearance.js (ui/settings/tabs/)
+  generalAppearance: {
+    title: 'Appearance',
+    help: 'The look of this window. It doesn’t change the overlay in OBS (that’s the Style tab).',
+    keycaps: 'keycaps',
+    add: '+ New theme',
+    addTip: 'Start from the theme you use now and change its colors',
+    import: 'Import…',
+    imported: 'Imported “{name}”',
+    limit: 'You have {max} themes of your own, the most allowed. Delete one to add another.',
+    more: 'More for {name}',
+    edit: 'Edit',
+    export: 'Export…',
+    exported: 'Theme exported',
+    delete: 'Delete…',
+    deleteTitle: 'Delete “{name}”?',
+    deleteBody: 'The theme is removed from this computer. An exported copy stays where you saved it.',
+    deleteConfirm: 'Delete theme',
+  },
 };
