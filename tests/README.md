@@ -196,7 +196,7 @@ The live preview frame is a different page (the real overlay); the tests keep us
 
 ## Clean install and upgrade test
 
-`node tests/install/run.mjs` builds an older release (v1.1.2 by default; `INSTALL_OLD=name:commit:version` picks another) and the current code as **real installers** under a throwaway identity
+`node tests/install/run.mjs` builds an older release (v1.1.2 by default; `INSTALL_OLD=name:commit:version` picks another, e.g. `INSTALL_OLD=v2.0.1:3223d0e:2.0.1`; a release not yet in `OLD_TAB_COUNTS` at the top of `run.mjs` needs its tab count added there) and the current code as **real installers** under a throwaway identity
 (`KOTest`, `com.keyoverlay.test`), so an installed Keystroke Overlay is never touched. It then installs v1.1.2 on a clean slate, checks the first launch,
 creates user data, installs the current version over it (an upgrade) and checks that settings, layouts and key edits survived and the
 What's new popup appeared, uses the new features, and finally uninstalls (program and uninstall entry gone, your data folder kept).
