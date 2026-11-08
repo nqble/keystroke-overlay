@@ -13,6 +13,7 @@ import {
   cleanLegend,
   layoutFromKle,
   layoutName,
+  unlitCodes,
   placeTurned,
 } from '../../ui/settings/kle-layout.js';
 
@@ -252,4 +253,9 @@ test('keys far from the origin are moved no further than a layout may hold them'
   for (const key of result.keys) {
     assert.ok(key.x <= 100 && key.y <= 100);
   }
+});
+
+test('only placeholders are drawn dashed before an import; mouse buttons and the wheel light up', () => {
+  const keys = [{ code: 'KeyA' }, { code: 'Unlinked1' }, { code: 'MouseLeft' }, { code: 'WheelUp' }];
+  assert.deepEqual([...unlitCodes(keys)], ['Unlinked1']);
 });
