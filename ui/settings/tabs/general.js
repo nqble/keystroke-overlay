@@ -20,31 +20,9 @@ import { OpenSettingsShortcut, PauseShortcut } from './general-hotkey.js';
 import { MouseInput } from './general-mouse.js';
 import { ObsScenes } from './general-obs-scenes.js';
 import { Updates } from './general-updates.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'General',
-  input: 'Keyboard input',
-  standard: 'Standard',
-  compatibility: 'Compatibility',
-  standardNote: 'Works with nearly every game.',
-  compatibilityNote: 'For games where keys don’t light up with Standard.',
-  adminNote: 'If a game runs as administrator, start Keystroke Overlay as administrator too.',
-  inputDetail: {
-    rawinput: 'Compatibility = Raw Input (RIDEV_INPUTSINK, message-only window)',
-  },
-  inputChanged: (name) => `Keyboard input: ${name}`,
-  startup: 'Startup',
-  openOnLaunch: 'Open this window on launch',
-  advanced: 'Advanced',
-  debugMode: 'Debug mode (for developers)',
-  devLook: 'Devbuild look: keep the purple logo',
-  devLookNote: 'Turn off to see the logo in the theme’s colors. The DEV badge stays.',
-  restart: 'Restart server',
-  restarted: 'Server restarted',
-  dataFolder: 'Open data folder',
-  reset: 'Reset all settings…',
-  quit: 'Quit app',
-};
+const WORDS = words('general');
 
 const ALL_INPUT_METHODS = [
   { value: 'hook', text: WORDS.standard },

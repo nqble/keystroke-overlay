@@ -13,25 +13,9 @@ import { html, useEffect, useState } from '../html.js';
 import { changed } from '../preview.js';
 import { settings } from '../state.js';
 import { openThemeEditor } from '../theme-edit-bar.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Appearance',
-  help: 'The look of this window. It doesn’t change the overlay in OBS (that’s the Style tab).',
-  keycaps: 'keycaps',
-  add: '+ New theme',
-  addTip: 'Start from the theme you use now and change its colors',
-  import: 'Import…',
-  imported: (name) => `Imported “${name}”`,
-  limit: `You have ${MAX_CUSTOM_THEMES} themes of your own, the most allowed. Delete one to add another.`,
-  more: (name) => `More for ${name}`,
-  edit: 'Edit',
-  export: 'Export…',
-  exported: 'Theme exported',
-  delete: 'Delete…',
-  deleteTitle: (name) => `Delete “${name}”?`,
-  deleteBody: 'The theme is removed from this computer. An exported copy stays where you saved it.',
-  deleteConfirm: 'Delete theme',
-};
+const WORDS = words('generalAppearance');
 
 export function Appearance() {
   const [builtIns, setBuiltIns] = useState([]);
@@ -85,13 +69,13 @@ function choose(theme) {
 const atLimit = () => settings.appearance.custom.length >= MAX_CUSTOM_THEMES;
 
 function newTheme(builtIns) {
-  if (atLimit()) return toast(WORDS.limit, true);
+  if (atLimit()) return toast(WORDS.limit(MAX_CUSTOM_THEMES), true);
   const start = findAppTheme(builtIns, settings.appearance.theme) ?? builtIns[0];
   openThemeEditor(start, { isNew: true });
 }
 
 async function importTheme() {
-  if (atLimit()) return toast(WORDS.limit, true);
+  if (atLimit()) return toast(WORDS.limit(MAX_CUSTOM_THEMES), true);
   const theme = await call('import_app_theme');
   if (!theme) return;
   const imported = { ...theme, id: newThemeId() };

@@ -8,12 +8,9 @@ import { Note, Section, Switch } from '../blocks.js';
 import { invoke, toast } from '../helpers.js';
 import { html, useState } from '../html.js';
 import { settings } from '../state.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Mouse',
-  switch: 'Show my mouse',
-  note: 'Shows your mouse buttons and wheel in layouts that have a mouse. Add WASD + mouse from Other layouts on the Layout tab. The app never sees where your pointer is.',
-};
+const WORDS = words('generalMouse');
 
 /** Is the mouse input on, as saved? */
 const mouseOn = () => settings.inputs?.mouse?.enabled === true;

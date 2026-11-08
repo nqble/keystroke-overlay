@@ -10,21 +10,9 @@ import { html, useState } from '../html.js';
 import { platform, settings } from '../state.js';
 import { shortcutFromKey, shortcutName, toggleListening } from '../shortcut.js';
 import { systemWord } from '../system-words.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Pause shortcut',
-  enabled: 'Pause with a shortcut',
-  note: 'Works from any app, even in a game.',
-  none: 'No shortcut yet',
-  choose: 'Choose shortcut',
-  listening: 'Press the keys… (Esc to cancel)',
-  needsModifier: (modifiers) => `Add ${modifiers} to that key.`,
-  clear: 'Clear',
-  saved: (name) => `Pause shortcut: ${name}`,
-  openTitle: 'Open settings shortcut',
-  openNote: (example) => `Opens this window from any app. Off until you choose keys, for example ${example}.`,
-  openSaved: (name) => `Open settings shortcut: ${name}`,
-};
+const WORDS = words('generalHotkey');
 
 /** A suggestion that no common app uses for itself (a plain ⌘, or Ctrl+, opens other apps' own settings). */
 const OPEN_SETTINGS_EXAMPLE = { macos: 'Super+Alt+Comma', other: 'Ctrl+Alt+Comma' }; // per-system: key names, shown through shortcutName

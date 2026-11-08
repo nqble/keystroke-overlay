@@ -54,3 +54,48 @@ test('the language check catches renamed texts, lost placeholders and non-texts'
   assert.ok(problems.some((p) => p.startsWith('pauseButton.pauseWord: not a text')));
   assert.equal(problems.length, 3);
 });
+
+test('a plural text picks its form by count, "none" for 0 when given', () => {
+  const count = words('generalObsScenes').count;
+  assert.equal(count(0), 'No scenes yet');
+  assert.equal(count(1), '1 scene set');
+  assert.equal(count(3), '3 scenes set');
+});
+
+test('a language uses its own plural forms (Polish has "few" and "many")', () => {
+  useLanguage(
+    {
+      generalObsScenes: {
+        count: {
+          none: 'Brak scen',
+          one: '1 scena',
+          few: '{count} sceny',
+          many: '{count} scen',
+          other: '{count} sceny',
+        },
+      },
+    },
+    'pl',
+  );
+  try {
+    const count = words('generalObsScenes').count;
+    assert.equal(count(0), 'Brak scen');
+    assert.equal(count(3), '3 sceny');
+    assert.equal(count(5), '5 scen');
+  } finally {
+    useLanguage(null);
+  }
+});
+
+test('the language check knows plural forms', () => {
+  const source = flatten(english);
+  const ok = flatten({ generalObsScenes: { count: { one: '1 scena', few: '{count} sceny', other: '{count} scen' } } });
+  assert.deepEqual(problemsOf(source, ok), []);
+  const bad = flatten({ generalObsScenes: { count: { one: '1', lots: 'x', other: '{total}' } } });
+  const problems = problemsOf(source, bad);
+  assert.ok(problems.some((p) => p.includes('count.lots: not a plural form')));
+  assert.ok(problems.some((p) => p.includes('count.other: unknown placeholder')));
+  assert.ok(
+    problemsOf(source, flatten({ generalObsScenes: { count: 'just text' } }))[0].includes('needs plural forms'),
+  );
+});
