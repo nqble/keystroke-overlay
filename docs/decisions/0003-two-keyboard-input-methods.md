@@ -16,7 +16,9 @@ Switching is live, with no restart, and a key held during a switch is released r
 ## Why
 - One method cannot cover every game, and users cannot diagnose anti-cheat behavior themselves, so a visible switch is the
   honest answer.
-- Both methods measured the same on CPU use, so Standard stays the default because it is the one proven in the field.
+- Both methods cost about the same CPU, so Standard stays the default because it is the one proven in the field. Measured on Windows
+  (`tests/e2e/suites/input-methods.mjs`, three runs, 8000 key events): 0% idle for both; during the flood Standard used 1.0 to 3.1% of one core
+  (median 2.4%) and Compatibility 1.7 to 2.6% (median 2.2%). The runs overlap, so neither is cheaper.
 
 ## Consequences
 - On Linux (from v1.4.0, built from source; no Linux release yet), Standard is X11 XInput2 raw events (`keyboard/x11.rs`); Compatibility is

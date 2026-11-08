@@ -16,8 +16,11 @@ const manifest = {
   pub_date: new Date().toISOString(),
   platforms: { 'windows-x86_64': { signature: sig, url: `http://localhost:7999/setup-${version}.exe` } },
 };
+const userAgents = []; // what each request called itself; GET /__user-agents lists them (the privacy test reads it)
 http
   .createServer((q, r) => {
+    if (q.url === '/__user-agents') return r.end(JSON.stringify(userAgents));
+    userAgents.push(q.headers['user-agent'] ?? '');
     if (q.url === '/stable.json' || q.url === '/latest.json') {
       r.setHeader('content-type', 'application/json');
       return r.end(JSON.stringify(manifest));
