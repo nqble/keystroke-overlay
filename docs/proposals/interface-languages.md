@@ -1,6 +1,8 @@
 # Proposal: the settings window in other languages
 
-Status: **Proposed** (2026-11-08). Not built. Translations come from translation services, mixed per language (DeepL,
+Status: **Approved, being built** (2026-11-08): step 1 started (the base: `words.js`, `ui/settings/locales/en.js`,
+`npm run check:locales`, the shared texts). First languages chosen by the maintainer: Spanish, Portuguese (Brazil),
+German, French (DeepL), Japanese and Simplified Chinese (Microsoft Translator). Translations come from translation services, mixed per language (DeepL,
 Microsoft Translator, Index-Translate), with Microsoft's terminology as the glossary (the maintainer's choice,
 2026-11-08), not from a coding assistant; native-speaker corrections are welcome on top.
 
@@ -17,9 +19,10 @@ Adding a language is **one file** and nothing else (principle 4): no list to edi
 
 ## How it works
 
-**One file per language.** `ui/locales/en.json` holds every text the person reads, each under a short id
+**One file per language.** The files are small JavaScript modules (`export default { … }`), not JSON: the window has
+no build step, and loading JSON as a module needs a webview feature older Mac and Linux webviews lack.  `ui/settings/locales/en.js` holds every text the person reads, each under a short id
 (`keys.noKeySelected`), grouped by screen. Another language is the same file with the texts translated:
-`ui/locales/de.json`. The app lists the files it finds (as it lists layouts), and the Language setting shows each in its
+`ui/settings/locales/de.js`. The app lists the files it finds (as it lists layouts), and the Language setting shows each in its
 own name, from the browser's `Intl.DisplayNames` ("Deutsch", "日本語").
 
 **The code reads texts by id.** Each file's `TEXT` block becomes `const TEXT = words('keys')`, the same names as today,
@@ -75,7 +78,7 @@ texts is allowed (they show in English) and the check prints how much is transla
 
 Each its own pull request, in this order:
 
-1. `words.js`, `ui/locales/en.json` and the check, with every `TEXT` block moved over. English only, no visible change
+1. `words.js`, `ui/settings/locales/en.js` and the check, with every `TEXT` block moved over. English only, no visible change
    (the screenshots stay identical, `npm run test:visual`).
 2. The Language setting and the tray/native texts.
 3. `tools/translate.mjs` with the three engines and the glossary step, `tools/translate-engines.json` and
@@ -85,8 +88,11 @@ Each its own pull request, in this order:
 
 ## Costs and risks
 
-- **Step 1 touches about 17 files** (every `TEXT` block) and is a refactor: the maintainer approves the plan first.
-  The e2e suites that check a sentence word for word (secure link, keyboard input) read it from `en.json` instead.
+- **Step 1 is larger than the `TEXT` blocks alone:** besides about 17 files with `TEXT` blocks, roughly 300 more texts
+  sit in about 42 files (tab screens, the settings list, dialogs). It is split into small pull requests by area, each
+  with no visible change: the base and shared texts, General, Keys, Layout and Style, popups and dialogs. The Debug tab
+  stays English (a developer tool; the maintainer's choice, 2026-11-08).
+  The e2e suites that check a sentence word for word (secure link, keyboard input) read it from `en.js` instead.
 - **Longer text** in other languages can wrap or overflow; the screenshot test and a look per language catch it.
 - **Machine translation mistakes** are expected now and then; the source of each file is stated so they can be fixed.
 

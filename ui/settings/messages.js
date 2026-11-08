@@ -26,6 +26,7 @@ import {
   setTab,
   setUpdateProgress,
 } from './state.js';
+import { words } from './words.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 9. Messages from the app (tray actions, update results, download progress)
@@ -33,11 +34,7 @@ import {
 const BYTES_PER_MEGABYTE = 1024 * 1024;
 const megabytes = (bytes) => (bytes / BYTES_PER_MEGABYTE).toFixed(1) + ' MB';
 
-const TEXT = {
-  downloading: (done) => `Downloading… ${done}`,
-  downloadingOf: (done, total, percent) => `Downloading… ${done} of ${total} (${percent}%)`,
-  installing: 'Installing… the app will restart.',
-};
+const TEXT = words('messages');
 
 tauriEvent.listen('update-progress', (e) => {
   const { done, total } = e.payload;

@@ -10,11 +10,9 @@ import { iconElement } from './icons.js';
 import { changed } from './preview.js';
 import { hiddenInputs, inputEnabled, toggledInputs } from './input-choice.js';
 import { settings } from './state.js';
+import { words } from './words.js';
 
-const TEXT = {
-  button: 'What the overlay shows',
-  show: { keyboard: 'Show the keyboard', mouse: 'Show the mouse', controller: 'Show the controller' },
-};
+const TEXT = words('eyeButton');
 
 /** Show or hide one input on the selected layout, save, and repaint. */
 function toggleInput(input) {
