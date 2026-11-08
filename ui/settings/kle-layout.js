@@ -32,6 +32,11 @@ export const MAX_NAME_LENGTH = 30;
 /** The start of a placeholder code: a key that is drawn but linked to no key of the keyboard. */
 export const PLACEHOLDER_PREFIX = 'Unlinked';
 
+/** The codes of an imported layout's keys that can't light up, drawn dashed before it is made: its placeholders (mouse
+ *  buttons and the wheel can, with Show my mouse). */
+export const unlitCodes = (keys) =>
+  new Set(keys.filter((key) => key.code.startsWith(PLACEHOLDER_PREFIX)).map((key) => key.code));
+
 const EDGE_TOLERANCE = 0.05; // keys this close (in keys) count as touching
 const LOWEST_ROW_TOLERANCE = 0.5; // keys whose tops are this close to the lowest top are in the lowest row
 const SPACE_BAR_MIN_WIDTH = 3; // a blank key at least this wide in the lowest row is the space bar

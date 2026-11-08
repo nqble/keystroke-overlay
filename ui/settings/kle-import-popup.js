@@ -9,8 +9,8 @@
 import { addLayoutDialog } from './dialogs.js';
 import { call, el, invoke, plural, toast } from './helpers.js';
 import { html, render as drawPreact } from './html.js';
-import { MAX_LAYOUT_KEYS, MAX_NAME_LENGTH, PLACEHOLDER_PREFIX, layoutFromKle } from './kle-layout.js';
-import { isMouseCode, layoutFromNohBoard } from './nohboard-layout.js';
+import { MAX_LAYOUT_KEYS, MAX_NAME_LENGTH, PLACEHOLDER_PREFIX, layoutFromKle, unlitCodes } from './kle-layout.js';
+import { layoutFromNohBoard } from './nohboard-layout.js';
 import { dialog } from './popup.js';
 import { render } from './settings.js';
 import { settings, setLayouts, setSelectedKey, setTab } from './state.js';
@@ -37,8 +37,8 @@ const TEXT = {
   leftOut: (count) => `${plural(count, 'key')} left out: decorations and extra layout choices.`,
   leftOutNohBoard: (count) =>
     `${plural(count, 'element')} left out: the mouse speed indicator and anything unreadable.`,
-  // Mouse buttons and wheel keep the names mouse support will use, so they light up by themselves once it exists.
-  mouse: (count) => `${plural(count, 'mouse button')} (drawn dashed) will light up once the app supports the mouse.`,
+  // Mouse buttons and wheel keep the mouse's names (MouseLeft, WheelUp…), so they light up with Show my mouse.
+  mouse: (count) => `${plural(count, 'mouse button')} light up when Show my mouse is on (General → Mouse).`,
   back: 'Back',
   create: 'Create layout',
   created: 'Layout created',
@@ -175,12 +175,6 @@ function reportLines(report, kind) {
   if (report.leftOut) lines.push(KINDS[kind].leftOut(report.leftOut));
   return lines;
 }
-
-/** The keys drawn dashed: placeholders, and mouse buttons until the app supports the mouse. */
-const unlitCodes = (keys) =>
-  new Set(
-    keys.filter((key) => key.code.startsWith(PLACEHOLDER_PREFIX) || isMouseCode(key.code)).map((key) => key.code),
-  );
 
 function ImportSummary({ layout, kind, nameField }) {
   const unlit = unlitCodes(layout.keys);

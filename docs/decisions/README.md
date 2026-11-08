@@ -22,6 +22,7 @@ Plans for things not built yet are in [../proposals/](../proposals/README.md).
 | [0013](0013-preact-with-htm-for-the-settings-window.md) | Preact with htm for the settings window (v2.0) | Accepted |
 | [0014](0014-the-repository-is-written-for-everyone.md) | The repository is written for everyone; working notes live elsewhere | Accepted |
 | [0015](0015-settings-theme-colors-in-javascript.md) | Settings window theme colors are worked out in JavaScript | Accepted |
+| [0016](0016-mouse-capture-uses-raw-input-and-never-the-pointer.md) | Mouse capture uses Raw Input on Windows and never reads the pointer | Accepted |
 
 ## How to add one
 

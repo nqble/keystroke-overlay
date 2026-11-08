@@ -4,7 +4,7 @@
 //  polygons in pixels and names each by its Windows virtual key; this file turns pixels into keys (the most common key
 //  width plus the most common gap is one key) and virtual keys into codes (key-names.js, with the typing keys asked
 //  from Windows by the caller, because they depend on the keyboard language). Mouse buttons and wheel get the names
-//  mouse support will use (docs/design/future-inputs.md), so they light up by themselves once it exists. Windows only;
+//  the mouse capture uses (docs/design/future-inputs.md), so they light up with Show my mouse. Windows only;
 //  the format and the plan are in docs/FILE-FORMATS.md. Plain logic, tested by tests/ui/nohboard-layout.test.mjs.
 // =====================================================================================================================
 import { parseLenientJson } from './json-lenient.js';
@@ -16,13 +16,13 @@ const TEXT = {
   defaultName: 'NohBoard keyboard',
 };
 
-/** NohBoard's mouse elements, by their key code (0, 1, ...), → the names mouse support reserves. */
+/** NohBoard's mouse elements, by their key code (0, 1, ...), → the mouse capture's names. */
 export const MOUSE_CODES = {
   MouseKey: ['MouseLeft', 'MouseRight', 'MouseMiddle', 'MouseBack', 'MouseForward'],
   MouseScroll: ['WheelUp', 'WheelDown', 'WheelRight', 'WheelLeft'],
 };
 const ALL_MOUSE_CODES = new Set(Object.values(MOUSE_CODES).flat());
-/** True for a mouse button or wheel name: drawn now, lights up once the app sees the mouse. */
+/** True for a mouse button or wheel name, which lights up with Show my mouse. */
 export const isMouseCode = (code) => ALL_MOUSE_CODES.has(code);
 
 // A file with far more elements than a layout may hold is refused before any key is placed (as kle-layout.js does).

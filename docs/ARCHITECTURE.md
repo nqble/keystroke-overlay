@@ -10,7 +10,7 @@ loads, and the settings window). No bundler and no build step: the settings wind
 keystroke-overlay/
 ├── README.md  PRIVACY.md  LICENSE  SECURITY.md  CONTRIBUTING.md  CODE_OF_CONDUCT.md  CHANGELOG.md  app.config.json (the app's name, repository, identifiers)
 ├── .claude/            for Claude Code sessions: skills copied from other projects (skills/, each with its SOURCE.txt and
-│                       LICENSE) and two git hooks turned on in settings.json (commit-message format, no push to main)
+│                       LICENSE) and two Claude Code hooks turned on in settings.json (commit-message format, no push to main)
 ├── .github/            workflows: CI, one-click Release, E2E (Windows), Mac app build, Linux app build and Linux tests, CodeQL, security scan; issue + PR templates, dependabot
 ├── docs/               you are here; README.md is the index. decisions/ explains why things are the way they are;
 │                       design/ holds approved designs; proposals/ holds plans for things not built yet;
@@ -41,12 +41,13 @@ keystroke-overlay/
 │       │   ├── macos_keys.rs macOS: key codes -> the same DOM "code" names, plus the repeat and stuck-key filter
 │       │   └── macos_labels.rs macOS: what each typing key prints on the user's keyboard (key labels for other languages)
 │       ├── linux_poll.rs   Linux: what both device readers (keyboard and mouse) share: the device folder, opening read-only, poll() with a wake pipe
-│       ├── mouse/          mouse buttons and wheel (plan: docs/proposals/mouse-input.md); off by default (inputs.mouse.enabled); the Windows and Linux methods work, macOS comes later
+│       ├── mouse/          mouse buttons and wheel (plan: docs/proposals/mouse-input.md); off by default (inputs.mouse.enabled); the Windows, Linux and macOS methods work
 │       │   ├── names.rs      every system's button and wheel codes -> our names (Windows, X11, evdev, macOS; tested everywhere)
 │       │   ├── wheel.rs      wheel turns -> whole notches, and one press per direction per MIN_TAP_MS (tested everywhere)
 │       │   ├── rawinput.rs   the Windows method: Raw Input (started by Bus::set_mouse, the command set_mouse_input)
 │       │   ├── x11.rs        the Linux X11 method: XInput2 raw button events (shares the keyboard's X connection code)
-│       │   └── linux_devices.rs the Linux Wayland method: the mice in /dev/input, read-only, movement masked out (EVIOCSMASK)
+│       │   ├── linux_devices.rs the Linux Wayland method: the mice in /dev/input, read-only, movement masked out (EVIOCSMASK)
+│       │   └── macos.rs      the macOS method: a second listen-only event tap, buttons and wheel only (needs Input Monitoring, like the keyboard)
 │       ├── server.rs       local web server (127.0.0.1) + WebSocket
 │       ├── layout_order.rs which layouts show and in what order (layout.order, DEFAULT_ORDER); the tray uses it, ui/settings/layout-order.js mirrors it
 │       ├── obs_scenes.rs   cleans the OBS scene rules (obs.scenes); the overlay follows them inside OBS (ui/overlay/obs-source.js)
