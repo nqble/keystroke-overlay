@@ -13,6 +13,8 @@ use tauri_plugin_updater::UpdaterExt as _;
 /// How often the background check runs, and how long a result is reused when the settings window opens.
 use std::time::Duration;
 
+/// Sent on every request to GitHub (update check, update download, release notes): the app's name and version, nothing else.
+const USER_AGENT: &str = concat!("KeystrokeOverlay/", env!("CARGO_PKG_VERSION"));
 const CHECK_EVERY_SECS: u64 = 3600;
 
 /// Where each channel's update manifest lives:
@@ -39,6 +41,8 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
         .parse()
         .map_err(|_| "Bad update address".to_string())?;
     app.updater_builder()
+        .header("User-Agent", USER_AGENT)
+        .map_err(|e| e.to_string())?
         .endpoints(vec![url])
         .map_err(|e| e.to_string())?
         .timeout(Duration::from_secs(CHECK_TIMEOUT_SECS))
@@ -305,7 +309,7 @@ pub async fn get_release_notes(version: Option<String>) -> Result<Value, String>
         return Err("Bad version".into());
     }
     let client = reqwest::Client::builder()
-        .user_agent(concat!("KeystrokeOverlay/", env!("CARGO_PKG_VERSION")))
+        .user_agent(USER_AGENT)
         .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
         .build()
         .map_err(|e| e.to_string())?;

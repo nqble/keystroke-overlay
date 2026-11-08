@@ -186,6 +186,14 @@ check(
   cu.available === true && cu.version === '1.1.4' && cu.channel === 'stable',
   JSON.stringify(cu).slice(0, 100),
 );
+// PRIVACY.md promises one user-agent on every request to GitHub: the app's name and version.
+const appVersion = (await inv('get_state')).ok.version;
+const uas = await fetch('http://127.0.0.1:7999/__user-agents').then((r) => r.json());
+check(
+  'the update check calls itself KeystrokeOverlay/<version> (as PRIVACY.md says)',
+  uas.length > 0 && uas.every((u) => u === `KeystrokeOverlay/${appVersion}`),
+  JSON.stringify(uas),
+);
 check(
   'open_release_page blocks links outside this project',
   /Blocked/.test((await inv('open_release_page', { url: 'https://evil.example' })).err || ''),
