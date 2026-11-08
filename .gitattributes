@@ -8,6 +8,7 @@
 # Never touch binary files.
 *.png binary
 *.ico binary
+tools/linux/AppRun-* binary
 *.icns binary
 *.exe binary
 *.woff binary

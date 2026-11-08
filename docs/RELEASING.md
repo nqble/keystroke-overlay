@@ -93,6 +93,12 @@ cache), and `linux-publish` attaches both files to the same release and signs th
 try it without releasing: Actions → **Linux app** → Run workflow, and download the `linux-app` artifact.
 
 What to know:
+- **The AppImage's start-up program (`AppRun`) is kept in the repository**, in `tools/linux/` with its SHA-256 checksum,
+  and put where Tauri's bundler looks before it would download it. Builds then don't depend on that download (it failed
+  for hours once, stopping every Linux build), and a changed file stops the build. It comes from the AppImage project
+  (MIT), mirrored by Tauri at `tauri-apps/binary-releases`, release `apprun-old`. To update it (only when a Tauri
+  upgrade needs a newer one): download the new file from that release, replace `tools/linux/AppRun-x86_64`, write its
+  `sha256sum` into `AppRun-x86_64.sha256`, and let the Linux app workflow prove it builds.
 - Key capture works on **X11 desktops**, and on **Wayland desktops** for users in the `input` group ([LINUX-PORT.md](LINUX-PORT.md)).
 - **In-app updates on Linux (AppImage only).** After attaching the files, `linux-publish` signs the AppImage with the
   update key and adds `linux-x86_64-appimage` and `linux-x86_64` entries (the same signature and download link) to `latest.json` and, for a Stable release,
