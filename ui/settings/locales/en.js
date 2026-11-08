@@ -189,4 +189,89 @@ export default {
     deleteBody: 'The theme is removed from this computer. An exported copy stays where you saved it.',
     deleteConfirm: 'Delete theme',
   },
+
+  // the Keys tab: keys.js (ui/settings/tabs/)
+  keys: {
+    heading: 'Keys — {name}',
+    layoutStyle: 'Layout style',
+    styleShape: 'Keyboard shape',
+    styleGrid: 'Even grid',
+    or: 'or', // between two key caps in the hint line
+    nudgeTip: 'Arrow keys move the selected keys a quarter key',
+    nudge: 'nudge',
+    shiftChip: 'Shift',
+    wholeKeyTip: 'Shift + arrow moves a whole key',
+    wholeKey: 'whole key',
+    hide: 'hide',
+    zoom: 'zoom',
+    pan: 'pan',
+  },
+
+  // the Keys tab's toolbar: keys-toolbar.js (ui/settings/tabs/)
+  keysToolbar: {
+    history: 'History',
+    view: 'View',
+    tidy: 'Tidy',
+    undo: 'Undo',
+    redo: 'Redo',
+    nothingToUndo: 'Nothing to undo',
+    nothingToRedo: 'Nothing to redo',
+    snap: 'Snap',
+    grid: 'Grid',
+    hiddenKeys: 'Hidden keys',
+    closeGaps: 'Close gaps',
+    reset: 'Reset',
+    putSelectedBack: 'Put selected keys back',
+    putAllBack: 'Put all keys back',
+    showAllHidden: 'Show all hidden keys',
+    resetAllLabels: 'Reset all labels',
+    resetCompletely: 'Reset this layout completely',
+    resetTitle: 'Reset this layout?',
+    resetConfirm: 'Reset layout',
+    layoutReset: '{name} reset',
+    status: '{moved} moved · {hidden} hidden', // tests/e2e keys-editor checks this shape
+    overlap: { one: '{count} key overlap', other: '{count} keys overlap' },
+  },
+
+  // the Keys tab's inspector: keys-inspector.js (ui/settings/tabs/)
+  keysInspector: {
+    panel: 'Selected keys',
+    show: 'Show',
+    keyTitle: 'Key: {code}',
+    blankKey: 'Blank key',
+    cantLightUp: "can't light up",
+    label: 'Label',
+    reset: 'Reset',
+    width: 'Width in keys',
+    height: 'Height in keys',
+    angle: 'Angle in degrees',
+    position: 'Position',
+    x: 'X',
+    y: 'Y',
+    putBack: 'Put back where it was',
+    selected: { one: '{count} key selected', other: '{count} keys selected' }, // tests/e2e keys-editor checks this
+    putTheseBack: 'Put these back',
+    putTheseBackTip: 'Put back where the layout has them',
+    clearSelection: 'Clear selection',
+  },
+
+  // the keyboard editor: editor.js, arrange-bar.js and view.js (ui/settings/editor/)
+  editor: {
+    boardName: 'Keyboard layout {name}',
+    arrangeName: 'Arrange the selected keys',
+    needMore: 'Select at least {count} keys first',
+    arrange: {
+      left: { label: 'Left', tip: 'Align left edges' },
+      center: { label: 'Center', tip: 'Align centers (vertical)' },
+      right: { label: 'Right', tip: 'Align right edges' },
+      top: { label: 'Top', tip: 'Align top edges' },
+      middle: { label: 'Middle', tip: 'Align middles (horizontal)' },
+      bottom: { label: 'Bottom', tip: 'Align bottom edges' },
+      across: { label: 'Across', tip: 'Equal gaps, left to right' },
+      down: { label: 'Down', tip: 'Equal gaps, top to bottom' },
+    },
+    resetZoom: 'Reset zoom',
+    zoomOut: 'Zoom out',
+    zoomIn: 'Zoom in',
+  },
 };

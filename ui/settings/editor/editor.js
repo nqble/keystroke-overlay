@@ -18,6 +18,7 @@ import { gridShown, round2, showHiddenKeys } from '../profiles.js';
 import { render } from '../settings.js';
 import { selectedKeys, setSelectedKeys } from '../state.js';
 import { TEXT } from '../text.js';
+import { words } from '../words.js';
 import { boardFrame, overlappingCodes } from '../tabs/keys-board.js';
 import { buildArrangeBar, placeArrangeBar } from './arrange-bar.js';
 import { isAdditive } from './context.js';
@@ -26,6 +27,8 @@ import { startMarquee } from './marquee.js';
 import { updateHandles } from './resize.js';
 import { coveredBox, layoutBoxesFor, placeKeys, turnedBox } from './places.js';
 import { bindViewGestures, buildZoomControls, firstView, refit, setView } from './view.js';
+
+const WORDS = words('editor');
 
 let editor = null;
 
@@ -156,7 +159,7 @@ function sizeBoard(ctx) {
   ctx.canvas.dataset.boardH = String(ctx.board.h);
   ctx.canvas.dataset.originX = String(ctx.frame.originX);
   ctx.canvas.dataset.originY = String(ctx.frame.originY);
-  ctx.box.setAttribute('aria-label', `Keyboard layout ${ctx.layout.name}`);
+  ctx.box.setAttribute('aria-label', WORDS.boardName(ctx.layout.name));
 }
 
 /**

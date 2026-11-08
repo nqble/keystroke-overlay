@@ -7,18 +7,22 @@ import { changed } from '../preview.js';
 import { selectedKeys } from '../state.js';
 import { alignPositions, boundsOf, distributePositions } from '../tabs/keys-arrange.js';
 import { toScreen } from '../tabs/keys-view.js';
+import { words } from '../words.js';
 import { ARRANGE_GAP, UNIT, saveAt, selectedBoardBoxes } from './context.js';
 
-// The arrange bar: [hook name, label, tooltip, kind, how many keys it needs]. It floats above two or more selected keys.
+const WORDS = words('editor');
+
+// The arrange bar: [hook name, kind, which way, how many keys it needs]; the label and tooltip are WORDS.arrange[which way].
+// It floats above two or more selected keys.
 const ARRANGE_BUTTONS = [
-  ['key-align-left', 'Left', 'Align left edges', 'align', 'left', 2],
-  ['key-align-center', 'Center', 'Align centers (vertical)', 'align', 'center', 2],
-  ['key-align-right', 'Right', 'Align right edges', 'align', 'right', 2],
-  ['key-align-top', 'Top', 'Align top edges', 'align', 'top', 2],
-  ['key-align-middle', 'Middle', 'Align middles (horizontal)', 'align', 'middle', 2],
-  ['key-align-bottom', 'Bottom', 'Align bottom edges', 'align', 'bottom', 2],
-  ['key-distribute-across', 'Across', 'Equal gaps, left to right', 'distribute', 'across', 3],
-  ['key-distribute-down', 'Down', 'Equal gaps, top to bottom', 'distribute', 'down', 3],
+  ['key-align-left', 'align', 'left', 2],
+  ['key-align-center', 'align', 'center', 2],
+  ['key-align-right', 'align', 'right', 2],
+  ['key-align-top', 'align', 'top', 2],
+  ['key-align-middle', 'align', 'middle', 2],
+  ['key-align-bottom', 'align', 'bottom', 2],
+  ['key-distribute-across', 'distribute', 'across', 3],
+  ['key-distribute-down', 'distribute', 'down', 3],
 ];
 
 /** Build the bar (hidden until two keys are selected) and put it in the context. */
@@ -27,11 +31,12 @@ export function buildArrangeBar(ctx) {
   const arrangeBar = el('div', { className: 'arrange-bar', test: 'key-arrange-bar' });
   arrangeBar.hidden = true;
   arrangeBar.setAttribute('role', 'toolbar');
-  arrangeBar.setAttribute('aria-label', 'Arrange the selected keys');
-  for (const [hook, label, tooltip, kind, how, needed] of ARRANGE_BUTTONS) {
-    const arrangeButton = button(String(label), () => arrange(ctx, String(kind), String(how)), 'arrange', String(hook));
+  arrangeBar.setAttribute('aria-label', WORDS.arrangeName);
+  for (const [hook, kind, how, needed] of ARRANGE_BUTTONS) {
+    const { label, tip } = WORDS.arrange[how];
+    const arrangeButton = button(label, () => arrange(ctx, String(kind), String(how)), 'arrange', String(hook));
     arrangeButton.dataset.needed = String(needed);
-    arrangeButton.dataset.tooltip = String(tooltip);
+    arrangeButton.dataset.tooltip = tip;
     arrangeBar.append(arrangeButton);
   }
   ctx.arrangeBar = arrangeBar;
@@ -63,9 +68,7 @@ export function placeArrangeBar(ctx) {
   )) {
     const enough = count >= Number(arrangeButton.dataset.needed);
     arrangeButton.disabled = !enough;
-    arrangeButton.title = enough
-      ? arrangeButton.dataset.tooltip
-      : `Select at least ${arrangeButton.dataset.needed} keys first`;
+    arrangeButton.title = enough ? arrangeButton.dataset.tooltip : WORDS.needMore(arrangeButton.dataset.needed);
   }
   const boxes = selectedBoardBoxes(ctx);
   if (!boxes.length) return;

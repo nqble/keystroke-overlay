@@ -4,7 +4,7 @@
 //  editor/arrange-bar.js (the bar that floats above the selection); the maths is in keys-arrange.js.
 // =====================================================================================================================
 import { MenuButton } from '../blocks.js';
-import { plural, toast } from '../helpers.js';
+import { toast } from '../helpers.js';
 import { html } from '../html.js';
 import { changed } from '../preview.js';
 import {
@@ -25,10 +25,13 @@ import {
 import { confirmDialog } from '../dialogs.js';
 import { selectedKeys, setSelectedKey, setSelectedKeys, settings } from '../state.js';
 import { TEXT } from '../text.js';
+import { words } from '../words.js';
 import { clampMove, movedPositions } from './keys-arrange.js';
 import { canRedo, canUndo, redo, undo } from './keys-history.js';
 import { boardFor, placedBoxesFor, selectedBoxes } from '../editor/places.js';
 import { closeGapsPositions } from './keys-board.js';
+
+const WORDS = words('keysToolbar');
 
 /** Save new positions ({ code: { x, y } }) for keys of this layout, then redraw. */
 function applyPositions(layout, positions) {
@@ -118,15 +121,15 @@ function resetAllLabels() {
 }
 function resetLayoutCompletely(layout) {
   confirmDialog({
-    title: 'Reset this layout?',
+    title: WORDS.resetTitle,
     body: TEXT.resetLayoutBody,
-    confirmLabel: 'Reset layout',
+    confirmLabel: WORDS.resetConfirm,
     test: 'dialog-reset-layout-confirm',
     onConfirm: () => {
       delete settings.layout.profiles[layout.id];
       setSelectedKey(null);
       changed(true);
-      toast(layout.name + ' reset');
+      toast(WORDS.layoutReset(layout.name));
       return true;
     },
   });
@@ -137,32 +140,32 @@ function resetMenuItems(layout, profile) {
   const edited = editedCodes(profile);
   return [
     {
-      label: 'Put selected keys back',
+      label: WORDS.putSelectedBack,
       test: 'keys-put-selected-back',
       disabled: !selectedCodes.some((code) => edited.has(code)),
       run: () => putSelectedBack(selectedCodes),
     },
     {
-      label: 'Put all keys back',
+      label: WORDS.putAllBack,
       test: 'keys-reset-positions',
       disabled: !Object.keys(profile.positions).length && !Object.keys(profile.sizes).length,
       run: putAllBack,
     },
     {
-      label: 'Show all hidden keys',
+      label: WORDS.showAllHidden,
       test: 'keys-enable-all',
       disabled: !profile.disabledKeys.length,
       run: showAllHidden,
     },
     {
-      label: 'Reset all labels',
+      label: WORDS.resetAllLabels,
       test: 'keys-reset-labels',
       disabled: !Object.keys(profile.labels).length,
       run: resetAllLabels,
     },
     { separator: true },
     {
-      label: 'Reset this layout completely',
+      label: WORDS.resetCompletely,
       test: 'keys-revert',
       danger: true,
       disabled: !isCustom(layout.id),
@@ -214,68 +217,77 @@ function HistoryButtons({ layout }) {
       type="button"
       data-test="key-undo"
       disabled=${!canUndo()}
-      title=${canUndo() ? 'Undo' : 'Nothing to undo'}
+      title=${canUndo() ? WORDS.undo : WORDS.nothingToUndo}
       onClick=${() => undoLastChange(layout)}
     >
-      Undo
+      ${WORDS.undo}
     </button>
     <button
       type="button"
       data-test="key-redo"
       disabled=${!canRedo()}
-      title=${canRedo() ? 'Redo' : 'Nothing to redo'}
+      title=${canRedo() ? WORDS.redo : WORDS.nothingToRedo}
       onClick=${() => redoLastChange(layout)}
     >
-      Redo
+      ${WORDS.redo}
     </button>`;
 }
 
 /** The line at the far right of the toolbar: how many keys are moved or hidden, and how many overlap. */
 function StatusLine({ profile, overlapCount }) {
   const moved = editedCodes(profile).size;
-  const overlap =
-    overlapCount > 0 ? html` · <span class="danger-text">${plural(overlapCount, 'key')} overlap</span>` : null;
+  const overlap = overlapCount > 0 ? html` · <span class="danger-text">${WORDS.overlap(overlapCount)}</span>` : null;
   // aria-live: read out after a change
   return html`<p class="keystatus" data-test="key-status" aria-live="polite">
-    ${moved} moved · ${profile.disabledKeys.length} hidden${overlap}
+    ${WORDS.status(moved, profile.disabledKeys.length)}${overlap}
   </p>`;
+}
+
+/** The View group: the Snap, Grid and Hidden keys switches. */
+function ViewToggles({ profile }) {
+  const snapOn = snapStep() > 0;
+  const gridOn = gridShown();
+  const hiddenOn = showHiddenKeys();
+  return html`<${ToolGroup} label=${WORDS.view}>
+    <${Toggle}
+      label=${WORDS.snap}
+      on=${snapOn}
+      tip=${TEXT.snapHelp}
+      test="key-snap"
+      onClick=${() => setEditorChoice('snap', snapOn ? 0 : SNAP)}
+    />
+    <${Toggle}
+      label=${WORDS.grid}
+      on=${gridOn}
+      tip=${TEXT.gridHelp}
+      test="key-grid"
+      onClick=${() => setEditorChoice('grid', !gridOn)}
+    />
+    <${Toggle}
+      label=${WORDS.hiddenKeys}
+      on=${hiddenOn}
+      tip=${TEXT.showHiddenHelp}
+      test="key-show-hidden"
+      onClick=${() => toggleHiddenKeys(profile, hiddenOn)}
+    />
+  <//>`;
 }
 
 /** The toolbar above the keyboard: undo and redo, the Snap, Grid and Hidden keys switches, tidying, and the status line. */
 export function KeysToolbar({ layout, profile, overlapCount }) {
-  const snapOn = snapStep() > 0;
-  const gridOn = gridShown();
-  const hiddenOn = showHiddenKeys();
   return html`<div class="keytools" data-test="key-toolbar">
-    <${ToolGroup} label="History"><${HistoryButtons} layout=${layout} /><//>
-    <${ToolGroup} label="View">
-      <${Toggle}
-        label="Snap"
-        on=${snapOn}
-        tip=${TEXT.snapHelp}
-        test="key-snap"
-        onClick=${() => setEditorChoice('snap', snapOn ? 0 : SNAP)}
-      />
-      <${Toggle}
-        label="Grid"
-        on=${gridOn}
-        tip=${TEXT.gridHelp}
-        test="key-grid"
-        onClick=${() => setEditorChoice('grid', !gridOn)}
-      />
-      <${Toggle}
-        label="Hidden keys"
-        on=${hiddenOn}
-        tip=${TEXT.showHiddenHelp}
-        test="key-show-hidden"
-        onClick=${() => toggleHiddenKeys(profile, hiddenOn)}
-      />
-    <//>
-    <${ToolGroup} label="Tidy">
+    <${ToolGroup} label=${WORDS.history}><${HistoryButtons} layout=${layout} /><//>
+    <${ViewToggles} profile=${profile} />
+    <${ToolGroup} label=${WORDS.tidy}>
       <button type="button" data-test="keys-tidy" title=${TEXT.closeGapsHelp} onClick=${() => closeGaps(layout)}>
-        Close gaps
+        ${WORDS.closeGaps}
       </button>
-      <${MenuButton} label="Reset" text="Reset" items=${resetMenuItems(layout, profile)} test="keys-reset-menu" />
+      <${MenuButton}
+        label=${WORDS.reset}
+        text=${WORDS.reset}
+        items=${resetMenuItems(layout, profile)}
+        test="keys-reset-menu"
+      />
     <//>
     <${StatusLine} profile=${profile} overlapCount=${overlapCount} />
   </div>`;

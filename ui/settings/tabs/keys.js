@@ -17,10 +17,13 @@ import { systemWord } from '../system-words.js';
 import { KeysToolbar, hideSelection, nudgeSelection, redoLastChange, undoLastChange } from './keys-toolbar.js';
 import { placeKeys, turnedBox } from '../editor/places.js';
 import { platform, selectedKeys, setSelectedKey, setSelectedKeys, tab } from '../state.js';
+import { words } from '../words.js';
+
+const WORDS = words('keys');
 
 const LAYOUT_STYLES = [
-  { value: 'shape', text: 'Keyboard shape', test: 'layout-style-shape' },
-  { value: 'grid', text: 'Even grid', test: 'layout-style-grid' },
+  { value: 'shape', text: WORDS.styleShape, test: 'layout-style-shape' },
+  { value: 'grid', text: WORDS.styleGrid, test: 'layout-style-grid' },
 ];
 
 // ---- The tab ------------------------------------------------------------------------------------------------------
@@ -53,11 +56,11 @@ function KeysTab({ layout, profile, editorElement }) {
   };
   return html`<div>
     <div class="keys-head">
-      <h2 data-test="section-heading">Keys — ${layout.name}</h2>
+      <h2 data-test="section-heading">${WORDS.heading(layout.name)}</h2>
       <div class="style-switch">
-        <span>Layout style</span>
+        <span>${WORDS.layoutStyle}</span>
         <${Segmented}
-          label="Layout style"
+          label=${WORDS.layoutStyle}
           choices=${LAYOUT_STYLES}
           value=${profile.layoutStyle}
           onChange=${pickStyle}
@@ -91,7 +94,7 @@ function EditorHost({ element }) {
 /** One pair in the hint line: its key caps (several are joined by "or") and the word they mean. */
 function HintItem({ chips, word }) {
   const parts = chips.map(
-    ({ chip, tip }, index) => html`${index ? html`<span>or</span>` : null}<kbd title=${tip}>${chip}</kbd>`,
+    ({ chip, tip }, index) => html`${index ? html`<span>${WORDS.or}</span>` : null}<kbd title=${tip}>${chip}</kbd>`,
   );
   return html`<span class="hintitem">${parts}<span>${word}</span></span>`;
 }
@@ -102,14 +105,17 @@ function HintLine() {
   return html`<p class="keyhint" data-test="keys-shortcut-hint">
     <span>${systemWord('dragHint', platform)}</span>
     <span class="chips">
-      <${HintItem} chips=${single('← ↑ ↓ →', 'Arrow keys move the selected keys a quarter key')} word="nudge" />
-      <${HintItem} chips=${single('Shift', 'Shift + arrow moves a whole key')} word="whole key" />
+      <${HintItem} chips=${single('← ↑ ↓ →', WORDS.nudgeTip)} word=${WORDS.nudge} />
+      <${HintItem} chips=${single(WORDS.shiftChip, WORDS.wholeKeyTip)} word=${WORDS.wholeKey} />
       <${HintItem}
         chips=${single(systemWord('deleteKey', platform), systemWord('deleteKeyTip', platform))}
-        word="hide"
+        word=${WORDS.hide}
       />
-      <${HintItem} chips=${single(systemWord('zoomChip', platform), systemWord('zoomTip', platform))} word="zoom" />
-      <${HintItem} chips=${systemWord('panHints', platform)} word="pan" />
+      <${HintItem}
+        chips=${single(systemWord('zoomChip', platform), systemWord('zoomTip', platform))}
+        word=${WORDS.zoom}
+      />
+      <${HintItem} chips=${systemWord('panHints', platform)} word=${WORDS.pan} />
     </span>
   </p>`;
 }
