@@ -143,6 +143,28 @@ for (const toolFile of LOCAL_TOOLS) {
   });
   if (!/const HOST = '127\.0\.0\.1';/.test(toolText)) bad(toolFile, 1, "HOST must be exactly '127.0.0.1'");
 }
+// The translation tool (npm run translate, docs/TRANSLATIONS.md) is run by hand on the maintainer's computer and is never
+// part of the app. It sends only the window's English texts, and only to the three translation services: no other
+// address, and only translate-engines.mjs makes requests.
+const TRANSLATE_TOOLS = ['tools/translate.mjs', 'tools/translate-engines.mjs', 'tools/translate-text.mjs'];
+const TRANSLATE_HOSTS = [
+  'api-free.deepl.com',
+  'api.deepl.com',
+  'api.cognitive.microsofttranslator.com',
+  'index-translate.bilibili.com',
+];
+for (const toolFile of TRANSLATE_TOOLS) {
+  const toolText = strip(readFileSync(toolFile, 'utf8'));
+  scan(toolFile, toolText, /\bhttps?:\/\//, (n, l) => {
+    for (const [, host] of l.matchAll(/\bhttps?:\/\/([^/'"`\s]+)/g))
+      if (!TRANSLATE_HOSTS.includes(host))
+        bad(toolFile, n, `the translation tool may only talk to the translation services, not ${host}`);
+  });
+  if (toolFile === 'tools/translate-engines.mjs') continue;
+  scan(toolFile, toolText, PREVIEW_NETWORK_CLIENT, (n) =>
+    bad(toolFile, n, 'only tools/translate-engines.mjs may make requests for the translation tool'),
+  );
+}
 // The sandbox's fake app runs in the browser: it may only ask its own sandbox server (relative addresses).
 const fakeAppFile = 'tools/sandbox/fake-app.js';
 scan(fakeAppFile, strip(readFileSync(fakeAppFile, 'utf8')), /\bfetch\(\s*['"`](?!\/__sandbox__\/)/, (n) =>
@@ -158,5 +180,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/mouse/server code, no pointer position or movement, macOS capture listen-only, Linux capture read-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1',
+  'privacy check passed: network only in commands/updates.rs, server bound to 127.0.0.1, no file writes in keyboard/mouse/server code, no pointer position or movement, macOS capture listen-only, Linux capture read-only, no logging, no external UI requests, global shortcuts only in hotkeys.rs, copied libraries unchanged, and local dev tools (preview, UI sandbox) that only listen on 127.0.0.1, and a translation tool that only talks to the translation services',
 );
