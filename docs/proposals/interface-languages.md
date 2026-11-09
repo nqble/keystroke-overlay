@@ -92,9 +92,10 @@ the window's code loads, and a change must reach screens that already read their
 - **The setting:** `general.language`, `""` for "Same as this computer" (the default, so nothing changes for anyone
   until a second file exists), else a language code, checked against the list in `sanitize.rs`. It sits under
   General → Appearance, with the window's theme: both are about this window, not the overlay.
-- **The tray menu** (Rust) gets its words from the window through a `set_native_texts` command after start, kept in
-  memory. Open question: until the window has opened once in a session the tray is English; saving the tray's words
-  with the settings would make it right from the start, at the cost of a second copy of a few texts.
+- **The tray menu** (Rust) gets its words from the window through a `set_native_texts` command after start, and the
+  app saves them with the settings (the maintainer's choice, 2026-11-09), so the tray is in the chosen language from
+  the next launch on, even when the window never opens. The saved copy is replaced each time the window opens, so
+  after an update changes a tray word the old wording lasts only until then. Before any are saved, the tray is English.
 - **Still English:** the Debug tab, log lines, and the words written into `index.html` until `start.js` sets them.
 
 ## Steps
