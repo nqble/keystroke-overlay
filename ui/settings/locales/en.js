@@ -597,4 +597,20 @@ export default {
     manualInstall: 'Open GitHub installer',
     starting: 'Starting download…',
   },
+
+  // the tray menu (the menu bar menu on a Mac), built by the app: sent there after the window starts and saved, so the
+  // tray uses them from the next launch on (src-tauri/src/tray_words.rs; its English must match these)
+  appMenu: {
+    open: 'Open settings',
+    copy: 'Copy OBS URL',
+    pause: 'Pause overlay',
+    show: 'Show',
+    keyboard: 'Keyboard',
+    mouse: 'Mouse',
+    controller: 'Controller',
+    layout: 'Layout',
+    restart: 'Restart server',
+    quit: 'Quit',
+    update: 'Update available',
+  },
 };

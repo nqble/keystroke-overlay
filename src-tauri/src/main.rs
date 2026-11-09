@@ -26,6 +26,7 @@ mod server;
 mod settings;
 mod state;
 mod tray;
+mod tray_words;
 mod window;
 
 use serde_json::json;
@@ -110,6 +111,7 @@ fn main() {
             commands::updates::open_kle_site,
             commands::appearance::list_app_themes,
             commands::language::get_language,
+            tray_words::set_tray_words,
             commands::appearance::export_app_theme,
             commands::appearance::import_app_theme,
             commands::updates::ack_whats_new,
