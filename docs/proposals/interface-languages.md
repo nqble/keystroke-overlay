@@ -74,6 +74,29 @@ texts is allowed (they show in English) and the check prints how much is transla
 3. **People correct it.** Each language file says at the top which engine made it. A native speaker's fix is a one-line
    pull request; the script never overwrites a text a person has corrected (it keeps a list of reviewed ids).
 
+## Step 2 in detail (proposed 2026-11-09, waiting for the maintainer)
+
+Every file reads its words once, when it loads (`const TEXT = words('keys')`), so the language must be known before
+the window's code loads, and a change must reach screens that already read theirs.
+
+- **Choosing before anything loads.** `index.html` loads a small `ui/settings/start.js` instead of `settings.js`. It
+  asks the app for the saved language and the list of language files, picks one (the saved one, or for "Same as this
+  computer" the closest match to `navigator.languages`, else English), imports that file, calls `useLanguage`, and
+  only then imports `settings.js`. One extra step at start, no timers.
+- **Changing it reloads the window.** Picking another language saves the setting and reloads the settings window, on
+  the same tab. Simpler than teaching every screen to redraw its words, and the window is rebuilt on every open
+  anyway (principle 3).
+- **The list of languages is the files.** The app lists `ui/settings/locales/*.js` from the files it ships (Tauri's
+  asset resolver; the sandbox reads the folder), so adding a language stays one file. Each shows in its own name
+  (`Intl.DisplayNames`).
+- **The setting:** `general.language`, `""` for "Same as this computer" (the default, so nothing changes for anyone
+  until a second file exists), else a language code, checked against the list in `sanitize.rs`. It sits under
+  General → Appearance, with the window's theme: both are about this window, not the overlay.
+- **The tray menu** (Rust) gets its words from the window through a `set_native_texts` command after start, kept in
+  memory. Open question: until the window has opened once in a session the tray is English; saving the tray's words
+  with the settings would make it right from the start, at the cost of a second copy of a few texts.
+- **Still English:** the Debug tab, log lines, and the words written into `index.html` until `start.js` sets them.
+
 ## Steps
 
 Each its own pull request, in this order:
