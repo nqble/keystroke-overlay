@@ -4,7 +4,7 @@
 // Run with: node --test tests/ui/words.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { placeholders, useLanguage, words } from '../../ui/settings/words.js';
+import { pickLanguage, placeholders, useLanguage, words } from '../../ui/settings/words.js';
 import { flatten, problemsOf } from '../../tools/check-locales.mjs';
 import english from '../../ui/settings/locales/en.js';
 
@@ -120,4 +120,19 @@ test('every control in controls.js has its label in the language file', async ()
   assert.equal(named.length, controlCount, 'each control names its label as WORDS.labels.<name>');
   const missing = named.filter((name) => typeof english.controls.labels[name] !== 'string');
   assert.deepEqual(missing, []);
+});
+
+test('the saved language wins when there is a file for it', () => {
+  assert.equal(pickLanguage('de', ['de', 'en', 'fr'], ['fr-FR']), 'de');
+  assert.equal(pickLanguage('it', ['de', 'en'], ['de-DE']), 'de', 'a choice with no file falls back to the computer');
+});
+
+test('"Same as this computer" finds the closest file, in the order the computer lists its languages', () => {
+  const files = ['de', 'en', 'pt-BR', 'zh-Hans'];
+  assert.equal(pickLanguage('', files, ['pt-BR', 'de']), 'pt-BR', 'the same code');
+  assert.equal(pickLanguage('', files, ['de-AT']), 'de', 'the language without its region');
+  assert.equal(pickLanguage('', files, ['pt-PT']), 'pt-BR', 'the language in another region');
+  assert.equal(pickLanguage('', files, ['ko', 'de']), 'de', 'the first language that has a file');
+  assert.equal(pickLanguage('', files, ['ko']), 'en', 'English when nothing fits');
+  assert.equal(pickLanguage('', ['en'], []), 'en');
 });

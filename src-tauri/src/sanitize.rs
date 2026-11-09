@@ -323,6 +323,7 @@ const TEXT_RULES: &[(&str, TextRule)] = &[
     ("layout.id", is_id),
     ("general.updateChannel", |text| text == "stable" || text == "latest"),
     ("general.inputMethod", |text| text == "hook" || text == "rawinput"),
+    ("general.language", crate::commands::language::is_language_choice),
     ("style.keyLabels", |text| text == "keyboard" || text == "layout"),
     ("general.linkKey", is_link_key),
     ("hotkeys.pause", crate::hotkeys::is_shortcut_text),
