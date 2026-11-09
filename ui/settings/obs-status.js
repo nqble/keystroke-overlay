@@ -5,17 +5,13 @@
 //  connected OBS overlays (server.rs, OverlayCount) only when it changes, so nothing here polls.
 //  A new status is one more rule in obsStatus().
 // =====================================================================================================================
+import { words } from './words.js';
 
-const TEXT = {
-  live: '● Live in OBS',
-  paused: '⏸ Paused',
-  pausedNoObs: '⏸ Paused · OBS not connected',
-  noObs: '○ Not connected to OBS',
-  linkChanged: 'OBS URL changed: copy it again',
-  serverProblem: '⚠ Port in use',
-  debug: (overlays, paused) =>
-    `${overlays} overlay ${overlays === 1 ? 'client' : 'clients'} · paused: ${paused ? 'yes' : 'no'}`,
-};
+const TEXT = words('obsStatus');
+
+/** The tip in Debug mode (the Debug tab and its words stay English, docs/proposals/interface-languages.md). */
+const debugLine = (overlays, paused) =>
+  `${overlays} overlay ${overlays === 1 ? 'client' : 'clients'} · paused: ${paused ? 'yes' : 'no'}`;
 
 /**
  * What the status shows, from the facts the window knows: { paused, overlays, serverError, linkChanged }.
@@ -36,5 +32,5 @@ export function obsStatus({ paused, overlays, serverError = null, linkChanged = 
 
 /** The extra line Debug mode shows next to the status. */
 export function obsStatusDetail(paused, overlays) {
-  return TEXT.debug(overlays, paused);
+  return debugLine(overlays, paused);
 }

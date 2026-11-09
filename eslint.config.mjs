@@ -47,6 +47,8 @@ export default [
       'max-lines': ['error', { max: MAX_FILE_LINES, skipBlankLines: true, skipComments: true }],
     },
   },
+  // The language files are data, one text per line (ui/settings/words.js), so the file limit for code doesn't apply.
+  { files: ['ui/settings/locales/*.js'], rules: { 'max-lines': 'off' } },
   // Pages that run in a browser (the UI, and the sandbox's stand-ins for the app).
   { files: ['ui/**/*.js', 'tools/sandbox/**/*.js'], rules: { 'no-undef': 'off' } },
   {

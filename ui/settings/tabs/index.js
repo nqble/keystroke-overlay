@@ -10,15 +10,18 @@ import { generalTab } from './general.js';
 import { keysTab } from './keys.js';
 import { layoutTab } from './layout.js';
 import { styleTab } from './style.js';
+import { words } from '../words.js';
+
+const WORDS = words('tabs');
 
 const loadDebugTab = async () => (await import('../debug/index.js')).debugTab.render();
 
 export const TABS = [
-  { id: 'layout', name: 'Layout', render: layoutTab },
-  { id: 'keys', name: 'Keys', render: keysTab, hidesPreview: true },
-  { id: 'style', name: 'Style', render: styleTab },
-  { id: 'animation', name: 'Animation', render: animationTab },
-  { id: 'general', name: 'General', render: generalTab },
+  { id: 'layout', name: WORDS.layout, render: layoutTab },
+  { id: 'keys', name: WORDS.keys, render: keysTab, hidesPreview: true },
+  { id: 'style', name: WORDS.style, render: styleTab },
+  { id: 'animation', name: WORDS.animation, render: animationTab },
+  { id: 'general', name: WORDS.general, render: generalTab },
   { id: 'debug', name: 'Debug', render: loadDebugTab, debugOnly: true },
 ];
 

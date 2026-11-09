@@ -23,6 +23,7 @@ export default {
     resetLayoutBody: 'Positions, sizes, hidden keys and labels go back to the layout file. You can undo this.',
     groupInspectorTip: 'Drag to move them together, or use the bar above to line them up.',
     clickToDismiss: 'Click to dismiss',
+    clickAgain: 'Click again to confirm', // a risky button's first click (confirmTwice in helpers.js)
     snapHelp: 'Keys snap to quarter keys and to other keys’ edges.',
     gridHelp: 'Dots every half key (whole key in the Even grid).',
     showHiddenHelp: 'Show hidden keys, dimmed.',
@@ -395,5 +396,199 @@ export default {
     yourFonts: 'Your fonts',
     otherFont: 'Other (type a name)…',
     fontName: 'Font name',
+  },
+
+  // the keyboard access notice above the tabs: access-notice.js
+  accessNotice: {
+    ask: 'Allow keyboard access so the overlay can see your keys. macOS will ask you to switch on Keystroke Overlay in Input Monitoring.',
+    allow: 'Allow keyboard access',
+    restart: 'Access is on. Restart Keystroke Overlay once so macOS starts sending it your keys.',
+    restartAfterAllow:
+      'Did you switch Keystroke Overlay on in Input Monitoring? Restart it once so macOS starts sending it your keys.',
+    restartButton: 'Restart now',
+    inputGroup:
+      'On Wayland, the app needs the input group to read your keyboards. Run this command in a terminal, then log out and back in. Every program you run can then read the keyboards too (see PRIVACY.md).',
+    inputGroupCopied:
+      'Copied. Paste it in a terminal and run it, then log out and back in. Keystroke Overlay sees your keys after that.',
+    copyCommand: 'Copy the command',
+    secure:
+      'macOS is blocking keys while a password field is open (Secure Input). If it stays on, lock and unlock the screen, or quit the app that is holding it.',
+  },
+
+  // first run setup on the Layout tab: first-run.js
+  firstRun: {
+    title: 'Add Keystroke Overlay to OBS',
+    close: 'Close first run setup',
+    copyStep: 'Copy the OBS URL',
+    copy: 'Copy OBS URL',
+    sourceStep: 'Add a Browser source',
+    sourceHow: 'In OBS: Sources → + → Browser',
+    sizeStep: 'Paste and size it',
+    sizeHow: 'Width × height:',
+    pauseStep: 'Set up pause, and try it',
+    pauseHow:
+      'Before typing anything private on stream, pause the overlay: the round button at the top right of the preview. For a shortcut that works in games too:',
+    pauseShortcut: 'Pause shortcut…',
+    waiting: 'Waiting for OBS…',
+    allSet:
+      '✓ You’re all set. OBS is connected. Remember Pause (top right of the preview) before typing anything private.',
+  },
+
+  // the KLE and NohBoard import popup: kle-import-popup.js; fromFileBefore and fromFileAfter go around the site link
+  kleImport: {
+    chooseFile: 'Choose file…',
+    fromFileBefore: 'In ',
+    kleSite: 'keyboard-layout-editor.com',
+    fromFileAfter: ', use Download → Download JSON, then choose that file.',
+    fromNohBoard:
+      "NohBoard keeps each keyboard in its own folder, under the keyboards folder next to NohBoard.exe. Choose the keyboard.json in your keyboard's folder.",
+    title: { kle: 'Import from KLE', nohboard: 'Import from NohBoard' },
+    name: 'Name',
+    // One line: how many keys, how many light up, and by name the ones that can't (drawn dashed in the picture).
+    summary: { one: '{count} key · {linked} light up', other: '{count} keys · {linked} light up' },
+    unlit: " · {count} can't: {names}",
+    // Keys the app can't name (Fn is handled inside the keyboard and never reaches the computer; a second Q can't be told
+    // from the first) are kept, so the board looks like the real one, and said here before the layout is made.
+    unlitWhy:
+      "Dashed keys can't light up, because the app can't tell which key they are (Fn, for example). You can delete them on the Keys tab.",
+    blankKey: 'a blank key',
+    andMore: 'and {count} more',
+    leftOut: {
+      one: '{count} key left out: decorations and extra layout choices.',
+      other: '{count} keys left out: decorations and extra layout choices.',
+    },
+    leftOutNohBoard: {
+      one: '{count} element left out: the mouse speed indicator and anything unreadable.',
+      other: '{count} elements left out: the mouse speed indicator and anything unreadable.',
+    },
+    // Mouse buttons and wheel keep the mouse's names (MouseLeft, WheelUp…), so they light up with Show my mouse.
+    mouse: {
+      one: '{count} mouse button light up when Show my mouse is on (General → Mouse).',
+      other: '{count} mouse buttons light up when Show my mouse is on (General → Mouse).',
+    },
+    back: 'Back',
+    create: 'Create layout',
+    created: 'Layout created',
+    // errors, each a toast
+    notKle: "This file isn't a KLE layout. In KLE, use Download → Download JSON.",
+    noKeys: 'This KLE file has no keys.',
+    tooManyKeys: 'This layout has {count} keys. A layout can have at most {max}.',
+    brokenFile: "This file couldn't be read. Is it the JSON file from KLE?",
+    notNohBoard: "This isn't a NohBoard keyboard file. Choose the keyboard.json in your keyboard's folder.",
+    ourFile: 'This is a Keystroke Overlay file. Use Import… on the Layout tab.',
+    noKeysNohBoard: 'This NohBoard keyboard has no keys.',
+    brokenNohBoard: "This file couldn't be read. Is it a NohBoard keyboard.json?",
+  },
+
+  // a layout made from a KLE file: kle-layout.js
+  kleLayout: {
+    defaultName: 'Imported layout',
+  },
+
+  // a layout made from a NohBoard file: nohboard-layout.js
+  nohboardLayout: {
+    defaultName: 'NohBoard keyboard',
+  },
+
+  // the OBS scenes popup: obs-scenes-popup.js
+  obsScenes: {
+    title: 'OBS scenes',
+    intro: 'Scenes you don’t list show your chosen layout.',
+    sceneHeading: 'Scene',
+    choiceHeading: 'In this scene',
+    placeholder: 'As OBS spells it',
+    hide: 'Hide the overlay',
+    chosenLayout: 'Show your chosen layout',
+    showLayout: 'Show: {name}',
+    remove: 'Remove {scene}',
+    removeUnnamed: 'Remove this scene',
+    problem: { empty: 'Type a scene name.', repeat: 'Already listed above.' },
+    add: '+ Add a scene',
+    atLimit: 'You can list up to {max} scenes.',
+    permission:
+      'Not working until you switch scenes? In the Browser source **Properties**, set **Page permissions** to **Read access to user information**.',
+    cancel: 'Cancel',
+    save: 'Save',
+  },
+
+  // the OBS status in the header: obs-status.js
+  obsStatus: {
+    live: '● Live in OBS',
+    paused: '⏸ Paused',
+    pausedNoObs: '⏸ Paused · OBS not connected',
+    noObs: '○ Not connected to OBS',
+    linkChanged: 'OBS URL changed: copy it again',
+    serverProblem: '⚠ Port in use',
+  },
+
+  // the built-in layouts list in New layout: other-layouts.js
+  otherLayouts: {
+    add: 'Add',
+    addLabel: 'Add {name}',
+  },
+
+  // the theme editor bar: theme-edit-bar.js; `contrast` names what is hard to read (theme-colors.js)
+  themeEditBar: {
+    title: 'Edit theme',
+    name: 'Name',
+    colors: { background: 'Window', panel: 'Panels', text: 'Text', dim: 'Dim text', accent: 'Accent', error: 'Errors' },
+    easyToRead: 'Easy to read',
+    hardToRead: 'Some text is hard to read: {what}, {ratio} : 1',
+    export: 'Export…',
+    exported: 'Theme exported',
+    cancel: 'Cancel',
+    save: 'Save',
+    saved: 'Saved “{name}”',
+    needsName: 'Give the theme a name first',
+    contrast: {
+      textOnWindow: 'text on the window',
+      textOnPanels: 'text on panels',
+      dimOnWindow: 'dim text on the window',
+      dimOnPanels: 'dim text on panels',
+      textOnAccent: 'text on accent buttons',
+      controlBorders: 'control borders',
+    },
+  },
+
+  // the tab bar (tabs/index.js); the Debug tab keeps its English name
+  tabs: {
+    layout: 'Layout',
+    keys: 'Keys',
+    style: 'Style',
+    animation: 'Animation',
+    general: 'General',
+  },
+
+  // the small dialogs: New layout, Rename layout, Reset all settings (dialogs.js)
+  dialogs: {
+    start: {
+      label: 'Start from',
+      blank: 'Blank',
+      builtIn: 'Built-in',
+      kle: 'From a KLE file',
+      nohboard: 'From a NohBoard file',
+      close: 'Close',
+    },
+    newLayout: 'New layout',
+    layoutName: 'Layout name',
+    cancel: 'Cancel',
+    create: 'Create',
+    created: 'Layout created',
+    renameTitle: 'Rename layout',
+    rename: 'Rename',
+    renamed: 'Layout renamed',
+    resetTitle: 'Reset all settings?',
+    resetConfirm: 'Reset everything',
+    resetDone: 'All settings reset',
+  },
+
+  // the update popup (update-popup.js)
+  updatePopup: {
+    current: 'You have v{version} · {channel} channel',
+    latest: 'Latest',
+    stable: 'Stable',
+    install: 'Update now',
+    manualInstall: 'Open GitHub installer',
+    starting: 'Starting download…',
   },
 };

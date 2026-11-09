@@ -3,25 +3,12 @@
 //  with Node; keyboard-access.js draws it. See docs/MAC-PORT.md and docs/LINUX-PORT.md.
 //  A new case is one more rule in accessNotice().
 // =====================================================================================================================
+import { words } from './words.js';
 
 /** Adds the person to the input group, which may read /dev/input. Shown and copied as is; the person runs it. */
 export const INPUT_GROUP_COMMAND = 'sudo usermod -aG input $USER';
 
-const TEXT = {
-  ask: 'Allow keyboard access so the overlay can see your keys. macOS will ask you to switch on Keystroke Overlay in Input Monitoring.',
-  allow: 'Allow keyboard access',
-  restart: 'Access is on. Restart Keystroke Overlay once so macOS starts sending it your keys.',
-  restartAfterAllow:
-    'Did you switch Keystroke Overlay on in Input Monitoring? Restart it once so macOS starts sending it your keys.',
-  restartButton: 'Restart now',
-  inputGroup:
-    'On Wayland, the app needs the input group to read your keyboards. Run this command in a terminal, then log out and back in. Every program you run can then read the keyboards too (see PRIVACY.md).',
-  inputGroupCopied:
-    'Copied. Paste it in a terminal and run it, then log out and back in. Keystroke Overlay sees your keys after that.',
-  copyCommand: 'Copy the command',
-  secure:
-    'macOS is blocking keys while a password field is open (Secure Input). If it stays on, lock and unlock the screen, or quit the app that is holding it.',
-};
+const TEXT = words('accessNotice');
 
 /**
  * The notice to show, or null for none, from { access: {applies, allowed, allowedAtStart, secureInput, captureSeen} | null,

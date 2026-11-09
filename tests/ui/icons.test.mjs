@@ -10,7 +10,18 @@ import { fileURLToPath } from 'node:url';
 
 const SETTINGS = fileURLToPath(new URL('../../ui/settings/', import.meta.url));
 const ICON_CHARACTERS = /[⏸▶✕⋯▾▸]/u;
-const TEXT_ONLY_FILES = new Set(['obs-status.js']);
+// The OBS status in the header is text that starts with a symbol (⏸ Paused), not an icon: its words, the `obsStatus`
+// group of each language file, may use them.
+const STATUS_GROUP = /^ {2}obsStatus: \{$/;
+
+/** The lines (1-based) of a language file's `obsStatus` group; none for any other script. */
+function statusLines(script, lines) {
+  if (!script.startsWith('locales/')) return new Set();
+  const start = lines.findIndex((line) => STATUS_GROUP.test(line));
+  if (start === -1) return new Set();
+  const end = lines.findIndex((line, index) => index > start && line === '  },');
+  return new Set(Array.from({ length: end - start }, (_, offset) => start + offset + 1));
+}
 
 /** Every settings script (not the vendored libraries), as a path relative to ui/settings/. */
 function settingsScripts(folder = '') {
@@ -30,9 +41,10 @@ const isComment = (line) => /^\s*(\/\/|\*|\/\*)/.test(line);
 test('no text characters are used as icons in the settings window', () => {
   const found = [];
   for (const script of settingsScripts()) {
-    if (TEXT_ONLY_FILES.has(script)) continue;
     const lines = readFileSync(join(SETTINGS, script), 'utf8').split('\n');
+    const allowed = statusLines(script, lines);
     lines.forEach((line, index) => {
+      if (allowed.has(index + 1)) return;
       if (!isComment(line) && ICON_CHARACTERS.test(line)) found.push(`${script}:${index + 1}: ${line.trim()}`);
     });
   }

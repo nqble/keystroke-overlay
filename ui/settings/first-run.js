@@ -12,27 +12,12 @@ import { Icon } from './icons.js';
 import { copyUrl, obsSize } from './preview.js';
 import { render } from './settings.js';
 import { overlays, setTab } from './state.js';
+import { words } from './words.js';
 
 // Where General's pause shortcut is (tabs/general-hotkey.js): the first run's fourth step takes the person there.
 const PAUSE_SHORTCUT_SECTION = '[data-test="general-hotkey"]';
 
-const WORDS = {
-  title: 'Add Keystroke Overlay to OBS',
-  close: 'Close first run setup',
-  copyStep: 'Copy the OBS URL',
-  copy: 'Copy OBS URL',
-  sourceStep: 'Add a Browser source',
-  sourceHow: 'In OBS: Sources → + → Browser',
-  sizeStep: 'Paste and size it',
-  sizeHow: 'Width × height:',
-  pauseStep: 'Set up pause, and try it',
-  pauseHow:
-    'Before typing anything private on stream, pause the overlay: the round button at the top right of the preview. For a shortcut that works in games too:',
-  pauseShortcut: 'Pause shortcut…',
-  waiting: 'Waiting for OBS…',
-  allSet:
-    '✓ You’re all set. OBS is connected. Remember Pause (top right of the preview) before typing anything private.',
-};
+const WORDS = words('firstRun');
 
 let open = false; // the screen is showing
 let allSet = false; // it closed because OBS connected: the Layout tab says so

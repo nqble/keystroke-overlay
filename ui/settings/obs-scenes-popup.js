@@ -11,6 +11,7 @@ import { shownLayouts } from './layout-order.js';
 import { HIDE_CHOICE, choiceOf, ruleFromChoice, rowProblem, rulesToSave } from './obs-scene-rules.js';
 import { dialog } from './popup.js';
 import { layouts, settings } from './state.js';
+import { words } from './words.js';
 
 // At most this many rules (must match MAX_SCENE_RULES in src-tauri/src/obs_scenes.rs).
 export const MAX_RULES = 20;
@@ -19,27 +20,7 @@ const MAX_NAME = 100;
 // Rows on screen, saved or not (blank and repeated names aren't saved), so the list can't grow without end.
 const MAX_ROWS = MAX_RULES * 2;
 
-const TEXT = {
-  title: 'OBS scenes',
-  intro: 'Scenes you don’t list show your chosen layout.',
-  sceneHeading: 'Scene',
-  choiceHeading: 'In this scene',
-  placeholder: 'As OBS spells it',
-  hide: 'Hide the overlay',
-  chosenLayout: 'Show your chosen layout',
-  showLayout: (name) => `Show: ${name}`,
-  remove: (scene) => `Remove ${scene || 'this scene'}`,
-  problem: {
-    empty: 'Type a scene name.',
-    repeat: 'Already listed above.',
-  },
-  add: '+ Add a scene',
-  atLimit: `You can list up to ${MAX_RULES} scenes.`,
-  permission:
-    'Not working until you switch scenes? In the Browser source **Properties**, set **Page permissions** to **Read access to user information**.',
-  cancel: 'Cancel',
-  save: 'Save',
-};
+const TEXT = words('obsScenes');
 
 let lastRowId = 0;
 /** A row on screen: a rule plus an id that stays the same for its life (Preact keys), never saved. */
@@ -99,7 +80,7 @@ function SceneList({ start, onRows }) {
     <div class="btns">
       <button type="button" data-test="obs-scene-add" disabled=${full} onClick=${add}>${TEXT.add}</button>
     </div>
-    ${full ? html`<${Note} text=${TEXT.atLimit} />` : null}
+    ${full ? html`<${Note} text=${TEXT.atLimit(MAX_RULES)} />` : null}
     <${Note} text=${TEXT.permission} />
   </div>`;
 }
@@ -148,7 +129,7 @@ function Rule({ row, index, problem, onChange, onRemove }) {
       <button
         type="button"
         class="menu-button"
-        aria-label=${TEXT.remove(row.scene)}
+        aria-label=${row.scene ? TEXT.remove(row.scene) : TEXT.removeUnnamed}
         data-test="obs-scene-remove"
         onClick=${onRemove}
       >

@@ -11,10 +11,9 @@ import { parseLenientJson } from './json-lenient.js';
 import { VIRTUAL_KEY_CODES, isKnownKey } from './key-names.js';
 import { MAX_LABEL_LENGTH, MAX_LAYOUT_KEYS, PLACEHOLDER_PREFIX, layoutName, pickSides } from './kle-layout.js';
 import { round2 } from './profiles.js';
+import { words } from './words.js';
 
-const TEXT = {
-  defaultName: 'NohBoard keyboard',
-};
+const TEXT = words('nohboardLayout');
 
 /** NohBoard's mouse elements, by their key code (0, 1, ...), → the mouse capture's names. */
 export const MOUSE_CODES = {

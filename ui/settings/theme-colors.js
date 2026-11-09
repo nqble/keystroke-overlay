@@ -87,16 +87,19 @@ const BLACK = '#000000';
 export const textOnAccent = (colors) =>
   contrastRatio(WHITE, colors['--color-accent-strong']) >= TEXT_CONTRAST ? WHITE : BLACK;
 
-/** What is hard to read in a theme: [{ what, ratio, needs }], empty when everything passes. */
+/**
+ * What is hard to read in a theme: [{ what, ratio, needs }], empty when everything passes. `what` names the pair of
+ * colors; the words for it are `themeEditBar.contrast` in locales/en.js.
+ */
 export function readabilityProblems(base) {
   const colors = themeColors(base);
   const checks = [
-    ['text on the window', base.text, base.background, TEXT_CONTRAST],
-    ['text on panels', base.text, base.panel, TEXT_CONTRAST],
-    ['dim text on the window', base.dim, base.background, TEXT_CONTRAST],
-    ['dim text on panels', base.dim, base.panel, TEXT_CONTRAST],
-    ['text on accent buttons', textOnAccent(colors), colors['--color-accent-strong'], TEXT_CONTRAST],
-    ['control borders', colors['--color-control-line'], base.panel, CONTROL_LINE_CONTRAST],
+    ['textOnWindow', base.text, base.background, TEXT_CONTRAST],
+    ['textOnPanels', base.text, base.panel, TEXT_CONTRAST],
+    ['dimOnWindow', base.dim, base.background, TEXT_CONTRAST],
+    ['dimOnPanels', base.dim, base.panel, TEXT_CONTRAST],
+    ['textOnAccent', textOnAccent(colors), colors['--color-accent-strong'], TEXT_CONTRAST],
+    ['controlBorders', colors['--color-control-line'], base.panel, CONTROL_LINE_CONTRAST],
   ];
   const problems = [];
   for (const [what, one, other, needs] of checks) {

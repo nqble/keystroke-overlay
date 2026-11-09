@@ -10,6 +10,9 @@ import { saveNow } from './preview.js';
 import { render } from './settings.js';
 import { lastUpdate, setLastUpdate, setUpdateProgress, tab, updateProgress } from './state.js';
 import { TEXT } from './text.js';
+import { words } from './words.js';
+
+const WORDS = words('updatePopup');
 
 let updateBusy = false;
 
@@ -39,14 +42,14 @@ export function openUpdateDialog() {
     ...[
       el('p', {
         className: 'hint',
-        textContent: `You have v${update.current} · ${update.channel === 'latest' ? 'Latest' : 'Stable'} channel`,
+        textContent: WORDS.current(update.current, update.channel === 'latest' ? WORDS.latest : WORDS.stable),
       }),
       update.manual ? el('p', { textContent: TEXT.manualInstall }) : null,
       update.notes ? md(update.notes) : null,
       // replaceChildren would print "null" for empty slots
     ].filter(Boolean),
   );
-  $('#uGo').textContent = update.manual ? 'Open GitHub installer' : 'Update now';
+  $('#uGo').textContent = update.manual ? WORDS.manualInstall : WORDS.install;
   $('#uGo').disabled = $('#uLater').disabled = false;
   updateBusy = false;
   setUpdateProgress(null);
@@ -79,7 +82,7 @@ $('#uGo').onclick = async () => {
   $('#uGo').disabled = $('#uLater').disabled = true;
   // nothing pending when the app restarts
   await saveNow();
-  setUpdateProgress({ pct: 0, text: 'Starting download…' });
+  setUpdateProgress({ pct: 0, text: WORDS.starting });
   paintProgress();
   try {
     // downloads, verifies the signature, installs, restarts

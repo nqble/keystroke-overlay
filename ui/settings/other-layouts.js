@@ -6,11 +6,9 @@
 import { html, useEffect } from './html.js';
 import { refreshFades } from './scroll-fade.js';
 import { LayoutPicture } from './tabs/layout-card.js';
+import { words } from './words.js';
 
-const WORDS = {
-  add: 'Add',
-  addLabel: (name) => `Add ${name}`,
-};
+const WORDS = words('otherLayouts');
 
 export function OtherLayouts({ choices, onAdd }) {
   useEffect(refreshFades, []); // the list's fade needs its height, known once it shows
