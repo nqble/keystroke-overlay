@@ -11,11 +11,9 @@ import { changed } from '../preview.js';
 import { registry, settings } from '../state.js';
 import { TEXT } from '../text.js';
 import { themeKeyVars } from '../themes.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Animation',
-  fineTune: 'Fine-tune',
-};
+const WORDS = words('animation');
 
 // The demo: wait before starting so a pass-over does nothing (ui-design-v2.md, Hover delay), then press, hold, release
 // and rest, over and over, only while the card is hovered or focused. No timer runs otherwise.

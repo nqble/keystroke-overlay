@@ -10,16 +10,9 @@ import { showMenu } from '../menu.js';
 import { placeKeys } from '../editor/places.js';
 import { isCustom, viewProf } from '../profiles.js';
 import { turnedBounds } from './keys-turn.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  customized: 'Customized',
-  more: (name) => `More for ${name}`,
-  rename: 'Rename…',
-  moveLeft: 'Move left',
-  moveRight: 'Move right',
-  hide: 'Hide',
-  remove: 'Delete…',
-};
+const WORDS = words('layoutCard');
 
 // The label size inside a key of the picture, in key units (the picture's viewBox is one unit per key).
 const PICTURE_LABEL_SIZE = 0.3;

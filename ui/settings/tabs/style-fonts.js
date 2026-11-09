@@ -7,17 +7,9 @@ import { html } from '../html.js';
 import { changed } from '../preview.js';
 import { render } from '../settings.js';
 import { customFonts, setCustomFonts, settings } from '../state.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  yours: 'Your fonts',
-  none: 'No fonts added yet.',
-  add: 'Add font file…',
-  folder: 'Open fonts folder',
-  added: (name) => `Added ${name}`,
-  use: 'Use',
-  inUse: 'In use',
-  remove: 'Remove',
-};
+const WORDS = words('styleFonts');
 
 /** A font file's family name: the file name without its extension (how the overlay loads it). */
 const familyOf = (file) => file.replace(/\.[^.]+$/, '');

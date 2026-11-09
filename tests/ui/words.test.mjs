@@ -99,3 +99,25 @@ test('the language check knows plural forms', () => {
     problemsOf(source, flatten({ generalObsScenes: { count: 'just text' } }))[0].includes('needs plural forms'),
   );
 });
+
+test('the layout import messages read as before they moved to the language file', () => {
+  const layoutWords = words('layout');
+  assert.equal(layoutWords.imported(1), 'Imported 1 layout');
+  assert.equal(layoutWords.importedSkipped(3, 2), 'Imported 3 layouts, skipped 2');
+  assert.equal(
+    layoutWords.nothingImportedSkipped(2, 20),
+    'Nothing imported (2 skipped: empty, or the 20-layout limit)',
+  );
+  assert.equal(layoutWords.exported(2), 'Exported 2 layouts');
+  assert.equal(layoutWords.count(4, 20), 'Your layouts: 4 / 20');
+});
+
+test('every control in controls.js has its label in the language file', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../../ui/settings/controls.js', import.meta.url), 'utf8');
+  const named = [...source.matchAll(/label: WORDS\.labels\.(\w+)/g)].map((match) => match[1]);
+  const controlCount = [...source.matchAll(/path: '/g)].length;
+  assert.equal(named.length, controlCount, 'each control names its label as WORDS.labels.<name>');
+  const missing = named.filter((name) => typeof english.controls.labels[name] !== 'string');
+  assert.deepEqual(missing, []);
+});

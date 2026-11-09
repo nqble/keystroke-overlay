@@ -6,7 +6,7 @@
 // =====================================================================================================================
 import { addLayoutDialog, renameLayoutDialog } from '../dialogs.js';
 import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js';
-import { call, el, invoke, plural, toast } from '../helpers.js';
+import { call, el, invoke, toast } from '../helpers.js';
 import { html, useRef, useState } from '../html.js';
 import { createDragPress } from '../drag-press.js';
 import { dropGap, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
@@ -16,25 +16,12 @@ import { changed, saveNow } from '../preview.js';
 import { render } from '../settings.js';
 import { MAX_LAYOUTS, layouts, setLayouts, setSelectedKey, settings } from '../state.js';
 import { LayoutCard } from './layout-card.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Layout',
-  count: (mine) => `Your layouts: ${mine} / ${MAX_LAYOUTS}`,
-  add: '+ New layout',
-  deleteTitle: (name) => `Delete ${name}?`,
-  deleteBody: 'This can’t be undone.',
-  cancel: 'Cancel',
-  remove: 'Delete',
-  deleted: (name) => `${name} deleted`,
-  import: 'Import…',
-  export: 'Export…',
-  importTip: 'Add layouts from a file',
-  exportTip: 'Save your layouts to a file',
-  imported: (added, skipped) => `Imported ${plural(added, 'layout')}` + (skipped ? `, skipped ${skipped}` : ''),
-  nothingImported: (skipped) =>
-    'Nothing imported' + (skipped ? ` (${skipped} skipped: empty, or the ${MAX_LAYOUTS}-layout limit)` : ''),
-  exported: (count) => `Exported ${plural(count, 'layout')}`,
-};
+const WORDS = words('layout');
+
+/** The toast after an import that added layouts; `skipped` were empty or over the limit. */
+const importedMessage = (added, skipped) => (skipped ? WORDS.importedSkipped(added, skipped) : WORDS.imported(added));
 
 export function layoutTab() {
   if (isFirstRunOpen()) return html`<${FirstRun} />`;
@@ -133,7 +120,7 @@ function Layout() {
       <div>
         <h2 data-test="section-heading">${WORDS.title}</h2>
       </div>
-      <span class="note" data-test="layout-count">${WORDS.count(mine)}</span>
+      <span class="note" data-test="layout-count">${WORDS.count(mine, MAX_LAYOUTS)}</span>
     </div>
     ${isAllSet() ? html`<${AllSetLine} />` : null}
     <div class="gallery layout-gallery" data-test="layout-cards" style=${drag.lineStyle}>
@@ -244,8 +231,8 @@ async function importLayouts() {
     const result = await invoke('import_layouts');
     if (!result) return; // the user canceled the file picker
     const [added, skipped] = result;
-    if (added) toast(WORDS.imported(added, skipped));
-    else toast(WORDS.nothingImported(skipped), true);
+    if (added) toast(importedMessage(added, skipped));
+    else toast(skipped ? WORDS.nothingImportedSkipped(skipped, MAX_LAYOUTS) : WORDS.nothingImported, true);
     setLayouts(await call('list_layouts'));
     render();
   } catch (error) {

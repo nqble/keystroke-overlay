@@ -10,17 +10,9 @@ import { html } from '../html.js';
 import { presets, registry, setPresets } from '../state.js';
 import { YourFonts } from './style-fonts.js';
 import { PresetGallery, ThemeGallery, applyLook } from './style-themes.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  title: 'Style',
-  reset: 'Reset',
-  resetLabel: 'Reset the look',
-  resetDefault: 'Back to the default look',
-  colors: 'Colors',
-  shape: 'Shape',
-  text: 'Text',
-  size: 'Size',
-};
+const WORDS = words('style');
 
 // The theme a reset goes back to (ui/overlay/themes/default.js).
 const DEFAULT_THEME = 'default';
