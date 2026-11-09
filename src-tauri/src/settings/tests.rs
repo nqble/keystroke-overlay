@@ -187,6 +187,17 @@ mod load_and_save_tests {
             json!("stable")
         );
     }
+
+    #[test]
+    fn the_language_is_kept_when_it_is_a_code_and_reset_otherwise() {
+        let language =
+            |value: Value| migrate(json!({ "general": { "language": value } }))["general"]["language"].clone();
+        assert_eq!(language(json!("de")), json!("de"));
+        assert_eq!(language(json!("pt-BR")), json!("pt-BR"));
+        assert_eq!(language(json!("../en")), json!(""));
+        assert_eq!(language(json!(5)), json!(""));
+        assert_eq!(migrate(json!({}))["general"]["language"], json!(""));
+    }
     #[test]
     fn input_method_is_limited_to_hook_or_rawinput() {
         assert_eq!(

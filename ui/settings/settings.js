@@ -129,6 +129,9 @@ addEventListener('resize', () => {
   paintAccess();
   // e.g. the tray's "Update available" opens General
   if (state.gotoTab && findTab(state.gotoTab, !!state.settings.general?.debugMode)) setTab(state.gotoTab);
+  // the window reloads on the tab it was on when the language changes (general-appearance.js)
+  const reloadedOn = new URLSearchParams(location.search).get('tab');
+  if (reloadedOn && findTab(reloadedOn, !!state.settings.general?.debugMode)) setTab(reloadedOn);
   paintPause();
   setUpEyeButton();
   updateObs();

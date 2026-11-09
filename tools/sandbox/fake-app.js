@@ -208,6 +208,10 @@
     export_app_theme: () => true, // the sandbox can't show a save dialog: it pretends the file was saved
     import_app_theme: () => null, // ...and that the person cancelled the file picker
     list_app_themes: () => fetch('/__sandbox__/app-themes.json').then((response) => response.json()),
+    get_language: async () => ({
+      chosen: (await loaded)[0].general.language,
+      available: await fetch('/__sandbox__/languages.json').then((response) => response.json()),
+    }),
     // presets live in memory for the visit, so saving, loading and deleting can be tried
     list_presets: () => Object.keys(presets),
     save_preset: ({ name, data }) => {

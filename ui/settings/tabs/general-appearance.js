@@ -7,6 +7,7 @@
 // =====================================================================================================================
 import { applyAppTheme, findAppTheme, loadAppThemes, MAX_CUSTOM_THEMES, newThemeId } from '../app-themes.js';
 import { GalleryCard, Section } from '../blocks.js';
+import { LanguageRow } from './general-language.js';
 import { confirmDialog } from '../dialogs.js';
 import { call, toast } from '../helpers.js';
 import { html, useEffect, useState } from '../html.js';
@@ -24,6 +25,7 @@ export function Appearance() {
   }, []);
   const current = findAppTheme(builtIns, settings.appearance.theme)?.id ?? 'default';
   return html`<${Section} title=${WORDS.title} test="general-appearance">
+    <${LanguageRow} />
     <p class="note">${WORDS.help}</p>
     <div class="gallery" data-test="app-themes">
       ${builtIns.map((theme) => html`<${ThemeCard} theme=${theme} current=${current} />`)}

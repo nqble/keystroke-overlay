@@ -74,11 +74,18 @@ function sendAppThemes(response) {
   send(response, 200, CONTENT_TYPES['.json'], JSON.stringify(files.sort()));
 }
 
+/** The codes of the language files, as the app's get_language command lists them (commands/language.rs). */
+function sendLanguages(response) {
+  const files = readdirSync(join(SETTINGS_DIR, 'locales')).filter((name) => name.endsWith('.js'));
+  send(response, 200, CONTENT_TYPES['.json'], JSON.stringify(files.map((name) => name.slice(0, -'.js'.length)).sort()));
+}
+
 function handleRequest(request, response, overlayPort) {
   const path = new URL(request.url, `http://${HOST}`).pathname;
   if (path === '/' || path === '/index.html') return sendSettingsPage(response, overlayPort);
   if (path === `${SANDBOX_PREFIX}layouts.json`) return sendLayouts(response);
   if (path === `${SANDBOX_PREFIX}app-themes.json`) return sendAppThemes(response);
+  if (path === `${SANDBOX_PREFIX}languages.json`) return sendLanguages(response);
   if (path.startsWith(SANDBOX_PREFIX)) return sendFileFrom(response, SANDBOX_DIR, path.slice(SANDBOX_PREFIX.length));
   return sendFileFrom(response, SETTINGS_DIR, path.slice(1));
 }

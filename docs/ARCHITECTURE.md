@@ -70,6 +70,7 @@ keystroke-overlay/
 │           ├── mod.rs        lists the command files
 │           ├── settings.rs   state, save, port, autostart, input method, secure link, reset, first run, copy, quit
 │           ├── appearance.rs settings window themes: lists the theme files built into the app
+│           ├── language.rs   the settings window's language: lists the language files built into the app, the saved choice
 │           ├── assets.rs     fonts, presets, layouts (create, import, export), opening folders
 │           ├── layout_import.rs  a layout from a keyboard file the user picks (KLE, NohBoard): the file picker, the Windows typing-key table and add_layout (keys cleaned by sanitize.rs)
 │           ├── keyboard_access.rs  macOS: the Input Monitoring permission and Secure Input (the keyboard access notice)
@@ -87,6 +88,7 @@ keystroke-overlay/
         ├── settings.css   the shared look: design tokens (its :root), the page, scrollbar, scroll fade; scripts only
         │                  hand it CSS variables, never inline styles (tools/check-style.mjs enforces both)
         ├── tabs.css, header.css, pause-button.css, popups.css, debug.css, keys.css, keyboard-access.css   one file per part of the window
+        ├── start.js       the page's first script: picks the language file (words.js), then loads settings.js
         ├── settings.js    picks the tab, draws the window, starts everything
         ├── state.js       what the window remembers while open (settings, layouts, current tab, ...)
         ├── helpers.js     small tools: talk to the app, build page elements, toasts (imports only text.js)

@@ -41,7 +41,10 @@ pub fn defaults() -> Value {
             // "stable" = only releases that were promoted to the Stable channel; "latest" = every release.
             "updateChannel": "stable",
             // Last app version the user has seen the "What's new" window for (managed by the app).
-            "lastSeenVersion": ""
+            "lastSeenVersion": "",
+            // The settings window's language: "" = the same as this computer (the default), or a language code with a
+            // file in ui/settings/locales/ (commands/language.rs). Any other text, or a missing file, shows English.
+            "language": ""
         },
         // profiles[layoutId] = { disabledKeys: [...], labels: { code: text }, layoutStyle: "grid" (only when chosen),
         //   styles: { shape: { positions: { code: { x, y } }, sizes: { code: { w } } }, grid: { ... } } }

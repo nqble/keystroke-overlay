@@ -145,6 +145,7 @@
     <!-- The theme edit bar (theme-edit-bar.js), docked along the bottom while a theme is being made or changed -->
     <div id="themeEditBar"></div>
     <div id="toast" data-test="toast" role="status" aria-live="polite" hidden></div>
-    <script type="module" src="settings.js"></script>
+    <!-- start.js picks the language, then loads settings.js (the window's code reads its words when it loads) -->
+    <script type="module" src="start.js"></script>
   </body>
 </html>

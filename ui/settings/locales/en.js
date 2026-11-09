@@ -171,6 +171,12 @@ export default {
     detail: 'Manifest: {channel}.json on GitHub · signature checked before install',
   },
 
+  // the Language row in General → Appearance: general-language.js (ui/settings/tabs/); each language is in its own name
+  generalLanguage: {
+    label: 'Language',
+    sameAsComputer: 'Same as this computer',
+  },
+
   // the General tab: general-appearance.js (ui/settings/tabs/)
   generalAppearance: {
     title: 'Appearance',

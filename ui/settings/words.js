@@ -10,7 +10,7 @@ import english from './locales/en.js';
 /** A placeholder in a text, `{name}`: filled from the arguments, in the order the English text first uses them. */
 const PLACEHOLDER = /\{([A-Za-z]+)\}/g;
 
-/** @type {Record<string, any>} The chosen language's texts (step 2 of the plan adds the choice; English until then). */
+/** @type {Record<string, any>} The chosen language's texts (start.js picks them before the window loads). */
 let chosen = english;
 /** The chosen language's code, for its plural rules (`Intl.PluralRules`). */
 let chosenCode = 'en';
@@ -34,12 +34,29 @@ export function words(group) {
 }
 
 /**
- * Show another language's texts (null goes back to English); used by tests now, by the Language setting later.
+ * Show another language's texts (null goes back to English): start.js, before the window's code loads, and tests.
  * @param {Record<string, any> | null} texts @param {string} [code]
  */
 export function useLanguage(texts, code = 'en') {
   chosen = texts ?? english;
   chosenCode = texts ? code : 'en';
+}
+
+/**
+ * Which language file to show: the saved choice when there is a file for it, else (for "Same as this computer", `""`)
+ * the closest file to the computer's languages, in their order: the same code (`pt-BR`), the same language without
+ * its region (`de-AT` finds `de`), or the language in another region (`pt` finds `pt-BR`). English when nothing fits.
+ * @param {string} chosen @param {string[]} available @param {readonly string[]} wanted
+ */
+export function pickLanguage(chosen, available, wanted) {
+  if (chosen && available.includes(chosen)) return chosen;
+  const base = (/** @type {string} */ code) => code.split('-')[0].toLowerCase();
+  for (const code of wanted) {
+    const exact = available.find((file) => file.toLowerCase() === code.toLowerCase());
+    const sameLanguage = available.find((file) => base(file) === base(code));
+    if (exact ?? sameLanguage) return exact ?? sameLanguage;
+  }
+  return 'en';
 }
 
 /** Whether a value is a text with plural forms rather than a group of texts. @param {unknown} value */

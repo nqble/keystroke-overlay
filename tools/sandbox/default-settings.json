@@ -11,7 +11,8 @@
     "secureLink": false,
     "linkKey": "",
     "updateChannel": "stable",
-    "lastSeenVersion": ""
+    "lastSeenVersion": "",
+    "language": ""
   },
   "layout": {
     "id": "tkl",

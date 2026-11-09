@@ -109,6 +109,7 @@ fn main() {
             commands::updates::open_project_page,
             commands::updates::open_kle_site,
             commands::appearance::list_app_themes,
+            commands::language::get_language,
             commands::appearance::export_app_theme,
             commands::appearance::import_app_theme,
             commands::updates::ack_whats_new,

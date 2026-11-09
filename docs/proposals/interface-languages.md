@@ -1,7 +1,8 @@
 # Proposal: the settings window in other languages
 
-Status: **Approved, being built** (2026-11-08): step 1 started (the base: `words.js`, `ui/settings/locales/en.js`,
-`npm run check:locales`, the shared texts). First languages chosen by the maintainer: Spanish, Portuguese (Brazil),
+Status: **Approved, being built**: step 1 done (every text the window shows is in `ui/settings/locales/en.js`, but for
+the few listed under Costs); step 2's Language setting built (`start.js`, General → Appearance → Language), its tray
+words next. First languages chosen by the maintainer: Spanish, Portuguese (Brazil),
 German, French (DeepL), Japanese and Simplified Chinese (Microsoft Translator). Translations come from translation services, mixed per language (DeepL,
 Microsoft Translator, Index-Translate), with Microsoft's terminology as the glossary (the maintainer's choice,
 2026-11-08), not from a coding assistant; native-speaker corrections are welcome on top.
@@ -90,7 +91,7 @@ the window's code loads, and a change must reach screens that already read their
   asset resolver; the sandbox reads the folder), so adding a language stays one file. Each shows in its own name
   (`Intl.DisplayNames`).
 - **The setting:** `general.language`, `""` for "Same as this computer" (the default, so nothing changes for anyone
-  until a second file exists), else a language code, checked against the list in `sanitize.rs`. It sits under
+  until a second file exists), else a language code (`sanitize.rs` checks its form; a code whose file is gone shows English). It sits under
   General → Appearance, with the window's theme: both are about this window, not the overlay.
 - **The tray menu** (Rust) gets its words from the window through a `set_native_texts` command after start, and the
   app saves them with the settings (the maintainer's choice, 2026-11-09), so the tray is in the chosen language from
