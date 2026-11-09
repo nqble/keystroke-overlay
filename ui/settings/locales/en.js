@@ -274,4 +274,126 @@ export default {
     zoomOut: 'Zoom out',
     zoomIn: 'Zoom in',
   },
+
+  // the layout part of the settings window: layout.js (ui/settings/tabs/)
+  layout: {
+    title: 'Layout',
+    count: 'Your layouts: {mine} / {max}',
+    add: '+ New layout',
+    deleteTitle: 'Delete {name}?',
+    deleteBody: 'This can’t be undone.',
+    cancel: 'Cancel',
+    remove: 'Delete',
+    deleted: '{name} deleted',
+    import: 'Import…',
+    export: 'Export…',
+    importTip: 'Add layouts from a file',
+    exportTip: 'Save your layouts to a file',
+    imported: { one: 'Imported {count} layout', other: 'Imported {count} layouts' },
+    importedSkipped: {
+      one: 'Imported {count} layout, skipped {skipped}',
+      other: 'Imported {count} layouts, skipped {skipped}',
+    },
+    nothingImported: 'Nothing imported',
+    nothingImportedSkipped: 'Nothing imported ({skipped} skipped: empty, or the {max}-layout limit)',
+    exported: { one: 'Exported {count} layout', other: 'Exported {count} layouts' },
+  },
+
+  // the layout card part of the settings window: layout-card.js (ui/settings/tabs/)
+  layoutCard: {
+    customized: 'Customized',
+    more: 'More for {name}',
+    rename: 'Rename…',
+    moveLeft: 'Move left',
+    moveRight: 'Move right',
+    hide: 'Hide',
+    remove: 'Delete…',
+  },
+
+  // the style part of the settings window: style.js (ui/settings/tabs/)
+  style: {
+    title: 'Style',
+    reset: 'Reset',
+    resetLabel: 'Reset the look',
+    resetDefault: 'Back to the default look',
+    colors: 'Colors',
+    shape: 'Shape',
+    text: 'Text',
+    size: 'Size',
+  },
+
+  // the style fonts part of the settings window: style-fonts.js (ui/settings/tabs/)
+  styleFonts: {
+    yours: 'Your fonts',
+    none: 'No fonts added yet.',
+    add: 'Add font file…',
+    folder: 'Open fonts folder',
+    added: 'Added {name}',
+    use: 'Use',
+    inUse: 'In use',
+    remove: 'Remove',
+  },
+
+  // the style themes part of the settings window: style-themes.js (ui/settings/tabs/)
+  styleThemes: {
+    themes: 'Themes',
+    presets: 'My presets',
+    saveLook: '+ Save current look',
+    saveTitle: 'Save current look',
+    saveHelp: 'Saves your colors, shape, text, size and animation.',
+    namePlaceholder: 'Preset name',
+    cancel: 'Cancel',
+    save: 'Save',
+    saved: 'Preset saved',
+    more: 'More for {name}',
+    load: 'Use this look',
+    remove: 'Delete',
+    import: 'Import…',
+    export: 'Export…',
+    imported: 'Imported',
+    exported: 'Exported',
+    importTip: 'Load a look from a file',
+    exportTip: 'Save this look to a file',
+  },
+
+  // the animation part of the settings window: animation.js (ui/settings/tabs/)
+  animation: {
+    title: 'Animation',
+    fineTune: 'Fine-tune',
+  },
+
+  // the Style and Animation sliders, color pickers and dropdowns: controls.js (ui/settings/)
+  controls: {
+    labels: {
+      keyFill: 'Fill (idle)',
+      keyFillPressed: 'Fill (pressed)',
+      borderColor: 'Border (idle)',
+      borderColorPressed: 'Border (pressed)',
+      glowColor: 'Glow color',
+      borderWidth: 'Border thickness',
+      radius: 'Corner radius',
+      glowSize: 'Glow size',
+      fontFamily: 'Font family',
+      keyLabels: 'Key labels',
+      fontSize: 'Font size',
+      fontWeight: 'Font weight',
+      textColor: 'Text (idle)',
+      textColorPressed: 'Text (pressed)',
+      keySize: 'Key size',
+      gap: 'Key spacing',
+      scale: 'Overall scale',
+      opacity: 'Opacity',
+      type: 'Animation',
+      speed: 'Speed',
+      intensity: 'Strength',
+      easing: 'Easing',
+    },
+    myKeyboard: 'My keyboard',
+    layoutFile: 'Layout file',
+    defaultEasing: 'Default',
+    transparency: 'Transparency',
+    yourFonts: 'Your fonts',
+    otherFont: 'Other (type a name)…',
+    fontName: 'Font name',
+  },
 };

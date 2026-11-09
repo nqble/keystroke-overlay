@@ -11,27 +11,9 @@ import { changed } from '../preview.js';
 import { render } from '../settings.js';
 import { registry, setPresets, settings } from '../state.js';
 import { themeKeyVars, themeMatches } from '../themes.js';
+import { words } from '../words.js';
 
-const WORDS = {
-  themes: 'Themes',
-  presets: 'My presets',
-  saveLook: '+ Save current look',
-  saveTitle: 'Save current look',
-  saveHelp: 'Saves your colors, shape, text, size and animation.',
-  namePlaceholder: 'Preset name',
-  cancel: 'Cancel',
-  save: 'Save',
-  saved: 'Preset saved',
-  more: (name) => `More for ${name}`,
-  load: 'Use this look',
-  remove: 'Delete',
-  import: 'Import…',
-  export: 'Export…',
-  imported: 'Imported',
-  exported: 'Exported',
-  importTip: 'Load a look from a file',
-  exportTip: 'Save this look to a file',
-};
+const WORDS = words('styleThemes');
 
 /** A look from a theme, a preset or a shared file replaces the current style and animation. */
 export function applyLook(look) {

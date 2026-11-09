@@ -66,7 +66,7 @@ the theme colors it, and `tests/ui/devices.test.mjs` checks the rest.
 
 ## 5. A setting
 1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus one line in a table in `src-tauri/src/sanitize.rs` if it needs a range or a rule: `RANGES`, `NUMBER_CHOICES`, `TEXT_RULES`, `LIST_RULES`, or `FREE_FORM` for free-form data).
-2. Add a descriptor for its control to `CONTROLS` in `ui/settings/controls.js`.
+2. Add a descriptor for its control to `CONTROLS` in `ui/settings/controls.js`, with `label: WORDS.labels.<name>`, and its words under `controls.labels` in `ui/settings/locales/en.js` (a test in `tests/ui/words.test.mjs` fails if one is missing).
 3. Use it in the overlay (`ui/overlay/overlay.js`).
 4. Copy the new default into `tools/sandbox/default-settings.json` (a Rust test fails until you do).
 5. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump

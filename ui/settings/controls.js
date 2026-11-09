@@ -7,6 +7,9 @@ import { el, get, put, row } from './helpers.js';
 import { changed } from './preview.js';
 import { settings, customFonts, platform, registry } from './state.js';
 import { DEFAULT_FONT, systemFonts } from './system-fonts.js';
+import { words } from './words.js';
+
+const WORDS = words('controls');
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 5. Style / Animation controls
@@ -15,11 +18,23 @@ import { DEFAULT_FONT, systemFonts } from './system-fonts.js';
 //    here). `shownIf` (optional) hides a control while it returns false.
 // ---------------------------------------------------------------------------------------------------------------------
 const CONTROLS = [
-  { tab: 'style', group: 'Key colors', path: 'style.keyFill', type: 'color', label: 'Fill (idle)' },
-  { tab: 'style', group: 'Key colors', path: 'style.keyFillPressed', type: 'color', label: 'Fill (pressed)' },
-  { tab: 'style', group: 'Key colors', path: 'style.borderColor', type: 'color', label: 'Border (idle)' },
-  { tab: 'style', group: 'Key colors', path: 'style.borderColorPressed', type: 'color', label: 'Border (pressed)' },
-  { tab: 'style', group: 'Key colors', path: 'style.glowColor', type: 'color', label: 'Glow color' },
+  { tab: 'style', group: 'Key colors', path: 'style.keyFill', type: 'color', label: WORDS.labels.keyFill },
+  {
+    tab: 'style',
+    group: 'Key colors',
+    path: 'style.keyFillPressed',
+    type: 'color',
+    label: WORDS.labels.keyFillPressed,
+  },
+  { tab: 'style', group: 'Key colors', path: 'style.borderColor', type: 'color', label: WORDS.labels.borderColor },
+  {
+    tab: 'style',
+    group: 'Key colors',
+    path: 'style.borderColorPressed',
+    type: 'color',
+    label: WORDS.labels.borderColorPressed,
+  },
+  { tab: 'style', group: 'Key colors', path: 'style.glowColor', type: 'color', label: WORDS.labels.glowColor },
   {
     tab: 'style',
     group: 'Shape',
@@ -29,7 +44,7 @@ const CONTROLS = [
     max: 10,
     step: 1,
     unit: 'px',
-    label: 'Border thickness',
+    label: WORDS.labels.borderWidth,
   },
   {
     tab: 'style',
@@ -40,7 +55,7 @@ const CONTROLS = [
     max: 40,
     step: 1,
     unit: 'px',
-    label: 'Corner radius',
+    label: WORDS.labels.radius,
   },
   {
     tab: 'style',
@@ -51,9 +66,9 @@ const CONTROLS = [
     max: 60,
     step: 1,
     unit: 'px',
-    label: 'Glow size',
+    label: WORDS.labels.glowSize,
   },
-  { tab: 'style', group: 'Text', path: 'style.fontFamily', type: 'font', label: 'Font family' },
+  { tab: 'style', group: 'Text', path: 'style.fontFamily', type: 'font', label: WORDS.labels.fontFamily },
   {
     tab: 'style',
     group: 'Text',
@@ -61,10 +76,10 @@ const CONTROLS = [
     type: 'segmented',
     // letters follow the user's keyboard (AZERTY, QWERTZ, ...); src-tauri/src/key_labels.rs
     options: () => [
-      ['keyboard', 'My keyboard'],
-      ['layout', 'Layout file'],
+      ['keyboard', WORDS.myKeyboard],
+      ['layout', WORDS.layoutFile],
     ],
-    label: 'Key labels',
+    label: WORDS.labels.keyLabels,
   },
   {
     tab: 'style',
@@ -75,7 +90,7 @@ const CONTROLS = [
     max: 48,
     step: 1,
     unit: 'px',
-    label: 'Font size',
+    label: WORDS.labels.fontSize,
   },
   {
     tab: 'style',
@@ -85,10 +100,10 @@ const CONTROLS = [
     min: 100,
     max: 900,
     step: 100,
-    label: 'Font weight',
+    label: WORDS.labels.fontWeight,
   },
-  { tab: 'style', group: 'Text', path: 'style.textColor', type: 'color', label: 'Text (idle)' },
-  { tab: 'style', group: 'Text', path: 'style.textColorPressed', type: 'color', label: 'Text (pressed)' },
+  { tab: 'style', group: 'Text', path: 'style.textColor', type: 'color', label: WORDS.labels.textColor },
+  { tab: 'style', group: 'Text', path: 'style.textColorPressed', type: 'color', label: WORDS.labels.textColorPressed },
   {
     tab: 'style',
     group: 'Size',
@@ -98,7 +113,7 @@ const CONTROLS = [
     max: 120,
     step: 1,
     unit: 'px',
-    label: 'Key size',
+    label: WORDS.labels.keySize,
   },
   {
     tab: 'style',
@@ -109,7 +124,7 @@ const CONTROLS = [
     max: 24,
     step: 1,
     unit: 'px',
-    label: 'Key spacing',
+    label: WORDS.labels.gap,
   },
   {
     tab: 'style',
@@ -120,16 +135,25 @@ const CONTROLS = [
     max: 3,
     step: 0.05,
     unit: '×',
-    label: 'Overall scale',
+    label: WORDS.labels.scale,
   },
-  { tab: 'style', group: 'Size', path: 'style.opacity', type: 'range', min: 0, max: 1, step: 0.05, label: 'Opacity' },
+  {
+    tab: 'style',
+    group: 'Size',
+    path: 'style.opacity',
+    type: 'range',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    label: WORDS.labels.opacity,
+  },
 
   {
     tab: 'animation',
     group: 'Animation',
     path: 'animation.type',
     type: 'gallery', // the animation cards, tabs/animation.js
-    label: 'Animation',
+    label: WORDS.labels.type,
   },
   {
     tab: 'animation',
@@ -140,7 +164,7 @@ const CONTROLS = [
     max: 600,
     step: 10,
     unit: 'ms',
-    label: 'Speed',
+    label: WORDS.labels.speed,
   },
   {
     tab: 'animation',
@@ -151,7 +175,7 @@ const CONTROLS = [
     max: 2.5,
     step: 0.1,
     unit: '×',
-    label: 'Strength',
+    label: WORDS.labels.intensity,
     shownIf: () => !!currentAnimation()?.usesIntensity,
   },
   {
@@ -159,8 +183,8 @@ const CONTROLS = [
     group: 'Fine-tune',
     path: 'animation.easing',
     type: 'segmented',
-    options: () => [['default', 'Default'], ...registry.easings.map((e) => [e.id, e.name])],
-    label: 'Easing',
+    options: () => [['default', WORDS.defaultEasing], ...registry.easings.map((e) => [e.id, e.name])],
+    label: WORDS.labels.easing,
   },
 ];
 
@@ -186,7 +210,7 @@ function colorCtl(control) {
     max: 255,
     step: 1,
     value: alpha,
-    title: 'Transparency',
+    title: WORDS.transparency,
     test: hook + '-alpha',
   });
   const percent = el('span', { className: 'val', textContent: Math.round(alpha / 2.55) + '%' });
@@ -283,15 +307,15 @@ function fontCtl(control) {
     'select',
     { test: testName('control', control.path) },
     [
-      mine.length ? el('optgroup', { label: 'Your fonts' }, mine.map(fontOption)) : null,
+      mine.length ? el('optgroup', { label: WORDS.yourFonts }, mine.map(fontOption)) : null,
       el('optgroup', { label: system.group }, system.fonts.map(fontOption)),
-      el('option', { value: '__custom', textContent: 'Other (type a name)…' }),
+      el('option', { value: '__custom', textContent: WORDS.otherFont }),
     ].filter(Boolean),
   );
   const typed = el('input', {
     type: 'text',
     value: current,
-    placeholder: 'Font name',
+    placeholder: WORDS.fontName,
     hidden: known.has(current),
     test: testName('control', control.path) + '-name',
   });
