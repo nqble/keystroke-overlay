@@ -7,7 +7,7 @@
 //  How it works for users: docs/USER-GUIDE.md.
 // =====================================================================================================================
 import { addLayoutDialog } from './dialogs.js';
-import { call, el, invoke, plural, toast } from './helpers.js';
+import { call, el, invoke, toast } from './helpers.js';
 import { html, render as drawPreact } from './html.js';
 import { MAX_LAYOUT_KEYS, MAX_NAME_LENGTH, PLACEHOLDER_PREFIX, layoutFromKle, unlitCodes } from './kle-layout.js';
 import { layoutFromNohBoard } from './nohboard-layout.js';
@@ -15,43 +15,9 @@ import { dialog } from './popup.js';
 import { render } from './settings.js';
 import { settings, setLayouts, setSelectedKey, setTab } from './state.js';
 import { LayoutPicture } from './tabs/layout-card.js';
+import { words } from './words.js';
 
-const TEXT = {
-  chooseFile: 'Choose file…',
-  fromFileBefore: 'In ',
-  kleSite: 'keyboard-layout-editor.com', // a link: opens the site in the browser
-  fromFileAfter: ', use Download → Download JSON, then choose that file.',
-  fromNohBoard:
-    "NohBoard keeps each keyboard in its own folder, under the keyboards folder next to NohBoard.exe. Choose the keyboard.json in your keyboard's folder.",
-  title: { kle: 'Import from KLE', nohboard: 'Import from NohBoard' },
-  name: 'Name',
-  // One line: how many keys, how many light up, and by name the ones that can't (drawn dashed in the picture).
-  summary: (keys, linked) => `${plural(keys, 'key')} · ${linked} light up`,
-  unlit: (count, names) => ` · ${count} can't: ${names}`,
-  // Keys the app can't name (Fn is handled inside the keyboard and never reaches the computer; a second Q can't be told
-  // from the first) are kept, so the board looks like the real one, and said here before the layout is made.
-  unlitWhy:
-    "Dashed keys can't light up, because the app can't tell which key they are (Fn, for example). You can delete them on the Keys tab.",
-  blankKey: 'a blank key',
-  andMore: (count) => `and ${count} more`,
-  leftOut: (count) => `${plural(count, 'key')} left out: decorations and extra layout choices.`,
-  leftOutNohBoard: (count) =>
-    `${plural(count, 'element')} left out: the mouse speed indicator and anything unreadable.`,
-  // Mouse buttons and wheel keep the mouse's names (MouseLeft, WheelUp…), so they light up with Show my mouse.
-  mouse: (count) => `${plural(count, 'mouse button')} light up when Show my mouse is on (General → Mouse).`,
-  back: 'Back',
-  create: 'Create layout',
-  created: 'Layout created',
-  // errors, each a toast
-  notKle: "This file isn't a KLE layout. In KLE, use Download → Download JSON.",
-  noKeys: 'This KLE file has no keys.',
-  tooManyKeys: (count, max) => `This layout has ${count} keys. A layout can have at most ${max}.`,
-  brokenFile: "This file couldn't be read. Is it the JSON file from KLE?",
-  notNohBoard: "This isn't a NohBoard keyboard file. Choose the keyboard.json in your keyboard's folder.",
-  ourFile: 'This is a Keystroke Overlay file. Use Import… on the Layout tab.',
-  noKeysNohBoard: 'This NohBoard keyboard has no keys.',
-  brokenNohBoard: "This file couldn't be read. Is it a NohBoard keyboard.json?",
-};
+const TEXT = words('kleImport');
 
 /** What each kind of file needs: its reader and the words that differ. */
 const KINDS = {

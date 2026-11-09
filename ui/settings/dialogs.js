@@ -13,18 +13,15 @@ import { changed, frame, previewSrc, updateObs } from './preview.js';
 import { render } from './settings.js';
 import { MAX_LAYOUTS, platform, settings, layouts, setLayouts, setObsUrl, setSelectedKey, setTab } from './state.js';
 import { TEXT } from './text.js';
+import { words } from './words.js';
 
 // The ways to start a layout, in the order the popup shows them (docs/design/ui-design-v2.md, Layouts). NohBoard is a
 // Windows program, so From a NohBoard file is only offered on Windows.
 const START = { blank: 'blank', builtIn: 'builtIn', kle: 'kle', nohboard: 'nohboard' };
-const START_WORDS = {
-  label: 'Start from',
-  blank: 'Blank',
-  builtIn: 'Built-in',
-  kle: 'From a KLE file',
-  nohboard: 'From a NohBoard file',
-  close: 'Close',
-};
+const WORDS = words('dialogs');
+
+/** The longest layout name the name boxes take (a longer one wouldn't fit on its Layout tab card). */
+const LAYOUT_NAME_MAX = 30;
 
 /**
  * New layout: start Blank (a name, then Create), from a Built-in layout that isn't on the Layout tab (Add puts it back
@@ -45,7 +42,7 @@ export function addLayoutDialog(start = START.blank) {
   };
   const showChoice = (choice, opening = false) => {
     drawPreact(html`<${NewLayout} ...${{ choice, full, builtIns, nameField, addBuiltIn, showChoice }} />`, body);
-    close = dialog({ title: 'New layout', body: [body], buttons: buttonsFor(choice, full, nameField) });
+    close = dialog({ title: WORDS.newLayout, body: [body], buttons: buttonsFor(choice, full, nameField) });
     // popup.js focuses the first control when the popup opens (the Start from choice); a new Blank layout wants the name
     // box, so it takes the focus after that has run. Switching choices later leaves the focus on the choice.
     if (opening && choice === START.blank) queueMicrotask(() => nameField.current?.focus());
@@ -55,15 +52,15 @@ export function addLayoutDialog(start = START.blank) {
 
 /** The buttons at the bottom for each choice: Create for Blank, Choose file… for a file, only Close for Built-in. */
 function buttonsFor(choice, full, nameField) {
-  if (full || choice === START.builtIn) return [{ label: START_WORDS.close, test: 'dialog-cancel' }];
-  const cancel = { label: 'Cancel', test: 'dialog-cancel' };
+  if (full || choice === START.builtIn) return [{ label: WORDS.start.close, test: 'dialog-cancel' }];
+  const cancel = { label: WORDS.cancel, test: 'dialog-cancel' };
   if (choice === START.kle || choice === START.nohboard) {
     const pick = () => pickLayoutFile(choice);
     return [cancel, { label: KLE_WORDS.chooseFile, test: `dialog-from-${choice}`, primary: true, run: pick }];
   }
   return [
     cancel,
-    { label: 'Create', test: 'dialog-create', primary: true, run: () => createBlank(nameField.current.value) },
+    { label: WORDS.create, test: 'dialog-create', primary: true, run: () => createBlank(nameField.current.value) },
   ];
 }
 
@@ -74,7 +71,7 @@ async function createBlank(name) {
     settings.layout.id = id;
     setSelectedKey(null);
     setTab('keys');
-    toast('Layout created');
+    toast(WORDS.created);
     render();
     return true;
   } catch (error) {
@@ -86,11 +83,11 @@ async function createBlank(name) {
 /** The popup's body: the Start from choice (none at the limit), then what that choice needs. */
 function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }) {
   const choices = [
-    { value: START.blank, text: START_WORDS.blank, test: 'new-layout-blank' },
-    ...(builtIns.length ? [{ value: START.builtIn, text: START_WORDS.builtIn, test: 'new-layout-built-in' }] : []),
-    { value: START.kle, text: START_WORDS.kle, test: 'new-layout-kle' },
+    { value: START.blank, text: WORDS.start.blank, test: 'new-layout-blank' },
+    ...(builtIns.length ? [{ value: START.builtIn, text: WORDS.start.builtIn, test: 'new-layout-built-in' }] : []),
+    { value: START.kle, text: WORDS.start.kle, test: 'new-layout-kle' },
     ...(platform === 'windows'
-      ? [{ value: START.nohboard, text: START_WORDS.nohboard, test: 'new-layout-nohboard' }]
+      ? [{ value: START.nohboard, text: WORDS.start.nohboard, test: 'new-layout-nohboard' }]
       : []),
   ];
   return html`<div class="new-layout">
@@ -98,7 +95,7 @@ function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }
       full
         ? html`<p>${TEXT.layoutLimitReached(MAX_LAYOUTS)}</p>`
         : html`<${Segmented}
-            label=${START_WORDS.label}
+            label=${WORDS.start.label}
             choices=${choices}
             value=${choice}
             onChange=${showChoice}
@@ -109,8 +106,8 @@ function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }
       choice === START.blank && !full
         ? html`<input
             type="text"
-            placeholder="Layout name"
-            maxlength="30"
+            placeholder=${WORDS.layoutName}
+            maxlength=${LAYOUT_NAME_MAX}
             data-test="dialog-layout-name"
             ref=${nameField}
           />`
@@ -124,13 +121,18 @@ function NewLayout({ choice, full, builtIns, nameField, addBuiltIn, showChoice }
 
 /** Rename a layout the person made: a name box with the current name, then Rename. The layout keeps its key edits. */
 export function renameLayoutDialog(layout) {
-  const nameBox = el('input', { type: 'text', value: layout.name, maxLength: 30, placeholder: 'Layout name' });
+  const nameBox = el('input', {
+    type: 'text',
+    value: layout.name,
+    maxLength: LAYOUT_NAME_MAX,
+    placeholder: WORDS.layoutName,
+  });
   nameBox.dataset.test = 'dialog-rename-name';
   const rename = async () => {
     try {
       await invoke('rename_layout', { id: layout.id, name: nameBox.value });
       setLayouts(await call('list_layouts'));
-      toast('Layout renamed');
+      toast(WORDS.renamed);
       render();
       return true;
     } catch (error) {
@@ -139,11 +141,11 @@ export function renameLayoutDialog(layout) {
     }
   };
   dialog({
-    title: 'Rename layout',
+    title: WORDS.renameTitle,
     body: [nameBox],
     buttons: [
-      { label: 'Cancel', test: 'dialog-cancel' },
-      { label: 'Rename', test: 'dialog-rename', primary: true, run: rename },
+      { label: WORDS.cancel, test: 'dialog-cancel' },
+      { label: WORDS.rename, test: 'dialog-rename', primary: true, run: rename },
     ],
   });
   queueMicrotask(() => {
@@ -158,7 +160,7 @@ export function confirmDialog({ title, body, confirmLabel, test, onConfirm }) {
     title,
     body: [el('p', { textContent: body })],
     buttons: [
-      { label: 'Cancel', test: 'dialog-cancel' },
+      { label: WORDS.cancel, test: 'dialog-cancel' },
       { label: confirmLabel, test, danger: true, run: onConfirm },
     ],
   });
@@ -170,7 +172,7 @@ export function resetDialog() {
       setObsUrl(await invoke('reset_settings'));
       frame.src = previewSrc();
       updateObs();
-      toast('All settings reset');
+      toast(WORDS.resetDone);
       return true;
     } catch (error) {
       toast(String(error), true);
@@ -178,11 +180,11 @@ export function resetDialog() {
     }
   };
   dialog({
-    title: 'Reset all settings?',
+    title: WORDS.resetTitle,
     body: [el('p', { textContent: TEXT.resetBodyWhatChanges }), el('p', { textContent: TEXT.resetBodyLinkNote })],
     buttons: [
-      { label: 'Cancel', test: 'dialog-cancel' },
-      { label: 'Reset everything', test: 'dialog-reset-confirm', danger: true, run: reset },
+      { label: WORDS.cancel, test: 'dialog-cancel' },
+      { label: WORDS.resetConfirm, test: 'dialog-reset-confirm', danger: true, run: reset },
     ],
   });
 }

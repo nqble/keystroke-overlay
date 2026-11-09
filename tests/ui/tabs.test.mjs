@@ -4,13 +4,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import english from '../../ui/settings/locales/en.js';
 
 const TABS_DIR = new URL('../../ui/settings/tabs/', import.meta.url);
 const index = readFileSync(new URL('index.js', TABS_DIR), 'utf8');
-const entries = [...index.matchAll(/\{ id: '([^']+)', name: '([^']+)', render: (\w+)[ ,}]/g)].map(
-  ([, id, name, render]) => ({
+// A name is in the language file (`name: WORDS.keys`, the `tabs` group), or written out (the Debug tab stays English).
+const entries = [...index.matchAll(/\{ id: '([^']+)', name: (?:WORDS\.(\w+)|'([^']+)'), render: (\w+)[ ,}]/g)].map(
+  ([, id, wordsName, writtenName, render]) => ({
     id,
-    name,
+    name: wordsName ? english.tabs[wordsName] : writtenName,
     render,
   }),
 );
@@ -22,7 +24,7 @@ test('there are tabs, each with an id and a name, and no id twice', () => {
   assert.ok(entries.length >= 5);
   const ids = entries.map((entry) => entry.id);
   assert.equal(new Set(ids).size, ids.length);
-  for (const entry of entries) assert.ok(entry.name.trim(), entry.id);
+  for (const entry of entries) assert.ok(entry.name?.trim(), entry.id);
 });
 
 test("every tab's render function is exported by the file it is imported from", () => {

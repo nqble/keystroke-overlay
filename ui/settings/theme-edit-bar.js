@@ -10,27 +10,9 @@ import { html, render as draw, useState } from './html.js';
 import { changed } from './preview.js';
 import { settings } from './state.js';
 import { readabilityProblems } from './theme-colors.js';
+import { words } from './words.js';
 
-const TEXT = {
-  title: 'Edit theme',
-  name: 'Name',
-  colors: {
-    background: 'Window',
-    panel: 'Panels',
-    text: 'Text',
-    dim: 'Dim text',
-    accent: 'Accent',
-    error: 'Errors',
-  },
-  easyToRead: 'Easy to read',
-  hardToRead: (problem) => `Some text is hard to read: ${problem.what}, ${problem.ratio.toFixed(1)} : 1`,
-  export: 'Export…',
-  exported: 'Theme exported',
-  cancel: 'Cancel',
-  save: 'Save',
-  saved: (name) => `Saved “${name}”`,
-  needsName: 'Give the theme a name first',
-};
+const TEXT = words('themeEditBar');
 
 const host = () => document.getElementById('themeEditBar');
 
@@ -101,7 +83,7 @@ function ReadabilityNote({ colors }) {
     return html`<p class="note theme-edit-note" data-test="theme-edit-readable">${TEXT.easyToRead}</p>`;
   const worst = problems.reduce((one, other) => (other.ratio / other.needs < one.ratio / one.needs ? other : one));
   return html`<p class="note theme-edit-note danger-note" role="status" data-test="theme-edit-hard-to-read">
-    ${TEXT.hardToRead(worst)}
+    ${TEXT.hardToRead(TEXT.contrast[worst.what], worst.ratio.toFixed(1))}
   </p>`;
 }
 

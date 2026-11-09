@@ -96,7 +96,7 @@ export function confirmTwice(btn, normalText, action) {
   let timer = 0;
   btn.onclick = () => {
     if (!timer) {
-      btn.textContent = 'Click again to confirm';
+      btn.textContent = TEXT.clickAgain;
       timer = setTimeout(() => {
         timer = 0;
         btn.textContent = normalText;

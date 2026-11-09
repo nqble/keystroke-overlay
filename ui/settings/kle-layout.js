@@ -12,10 +12,9 @@
 import { readKle, KleFormatError } from './kle.js';
 import { RANK, SIDED_KEYS, iconCode, isKnownKey, legendMatch } from './key-names.js';
 import { MAX_POSITION, MIN_KEY_WIDTH, round2 } from './profiles.js';
+import { words } from './words.js';
 
-const TEXT = {
-  defaultName: 'Imported layout',
-};
+const TEXT = words('kleLayout');
 
 /** The most keys a layout may have. Keep in step with MAX_LAYOUT_KEYS in src-tauri/src/sanitize.rs. */
 export const MAX_LAYOUT_KEYS = 300;
