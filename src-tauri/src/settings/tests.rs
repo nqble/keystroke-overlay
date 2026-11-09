@@ -189,6 +189,13 @@ mod load_and_save_tests {
     }
 
     #[test]
+    fn saved_tray_words_survive_loading_cleaned() {
+        let raw = json!({ "general": { "trayWords": { "quit": "Beenden", "open": "", "nope": "x" } } });
+        assert_eq!(migrate(raw)["general"]["trayWords"], json!({ "quit": "Beenden" }));
+        assert_eq!(migrate(json!({}))["general"]["trayWords"], json!({}));
+    }
+
+    #[test]
     fn the_language_is_kept_when_it_is_a_code_and_reset_otherwise() {
         let language =
             |value: Value| migrate(json!({ "general": { "language": value } }))["general"]["language"].clone();

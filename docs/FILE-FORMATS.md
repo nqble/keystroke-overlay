@@ -17,7 +17,8 @@ The defaults live in `defaults()` in `src-tauri/src/settings.rs`, which is the s
                "autoCheckUpdates": true, "inputMethod": "hook",            // "hook" | "rawinput"
                "secureLink": false, "linkKey": "", "updateChannel": "stable", // "stable" | "latest"
                "debugMode": false, "lastSeenVersion": "",
-               "language": "" },               // "" = same as this computer, or a code with a file in ui/settings/locales/
+               "language": "",                 // "" = same as this computer, or a code with a file in ui/settings/locales/
+               "trayWords": {} },              // the tray menu's words in that language, sent by the window; {} = English
   "layout": { "id": "tkl",
               "profiles": { "<layoutId>": { "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" } } },   // see "Key edits" below
               "editor": { "snap": 0.25, "grid": false, "showHidden": true },   // the Keys tab's choices, see below

@@ -52,6 +52,7 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
             "inputMethod",
             "secureLink",
             "linkKey",
+            "trayWords", // changed only through set_tray_words
         ] {
             new["general"][k] = cur["general"][k].clone();
         }

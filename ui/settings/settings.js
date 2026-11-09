@@ -44,6 +44,7 @@ import {
 // Loaded only for what it does when it starts: it wires up the minimize / maximize / close buttons.
 import './windowbar.js';
 import { findTab, visibleTabs } from './tabs/index.js';
+import { words } from './words.js';
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 8. Drawing the window
@@ -141,6 +142,8 @@ addEventListener('resize', () => {
     setTab('general');
   } else if (state.firstRun) openFirstRun(); // a brand-new install: the steps to add it to OBS and set up pause
   setBooted(true);
+  // the tray's words in this window's language; the app saves them only when they changed (tray_words.rs)
+  invoke('set_tray_words', { words: words('appMenu') }).catch((problem) => console.error('app menu words', problem));
   await render();
   window.__uiReady = performance.timeOrigin + performance.now(); // read by the performance tests
   if (!state.serverError)

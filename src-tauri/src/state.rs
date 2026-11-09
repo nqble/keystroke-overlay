@@ -23,6 +23,8 @@ pub struct TrayItems {
     pub icon: Image<'static>,
     pub icon_badged: Image<'static>,
     pub tray: TrayIcon<tauri::Wry>,
+    /// Every entry with words, by word id, so they follow the settings window's language (tray_words.rs).
+    pub worded: Vec<(&'static str, crate::tray_words::Worded)>,
 }
 
 pub struct AppState {

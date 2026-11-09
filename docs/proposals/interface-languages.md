@@ -1,8 +1,8 @@
 # Proposal: the settings window in other languages
 
 Status: **Approved, being built**: step 1 done (every text the window shows is in `ui/settings/locales/en.js`, but for
-the few listed under Costs); step 2's Language setting built (`start.js`, General → Appearance → Language), its tray
-words next. First languages chosen by the maintainer: Spanish, Portuguese (Brazil),
+the few listed under Costs); step 2 built (`start.js`, General → Appearance → Language, and the tray's words, saved with the
+settings: `tray_words.rs`). Next: step 3, the translate script. First languages chosen by the maintainer: Spanish, Portuguese (Brazil),
 German, French (DeepL), Japanese and Simplified Chinese (Microsoft Translator). Translations come from translation services, mixed per language (DeepL,
 Microsoft Translator, Index-Translate), with Microsoft's terminology as the glossary (the maintainer's choice,
 2026-11-08), not from a coding assistant; native-speaker corrections are welcome on top.

@@ -12,7 +12,8 @@
     "linkKey": "",
     "updateChannel": "stable",
     "lastSeenVersion": "",
-    "language": ""
+    "language": "",
+    "trayWords": {}
   },
   "layout": {
     "id": "tkl",

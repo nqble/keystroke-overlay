@@ -208,6 +208,7 @@
     export_app_theme: () => true, // the sandbox can't show a save dialog: it pretends the file was saved
     import_app_theme: () => null, // ...and that the person cancelled the file picker
     list_app_themes: () => fetch('/__sandbox__/app-themes.json').then((response) => response.json()),
+    set_tray_words: () => {}, // the sandbox has no tray
     get_language: async () => ({
       chosen: (await loaded)[0].general.language,
       available: await fetch('/__sandbox__/languages.json').then((response) => response.json()),

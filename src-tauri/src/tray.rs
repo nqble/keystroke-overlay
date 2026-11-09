@@ -4,8 +4,9 @@
 use crate::server::{self, Shared};
 use crate::settings;
 use crate::state::{announce, obs_url, port_of, sync_tray, AppState, TrayItems};
+use crate::tray_words::{word, Worded};
 use crate::window::{open_settings_async, open_settings_tab};
-use serde_json::json;
+use serde_json::{json, Value};
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tauri::image::Image;
@@ -251,29 +252,72 @@ struct TrayMenu {
     layouts: Vec<(String, CheckMenuItem<tauri::Wry>)>,
     layout_menu: Submenu<tauri::Wry>,
     shown: CheckItems,
+    worded: Vec<(&'static str, Worded)>,
 }
 
 /// Check items by name: the Layout and Show menus.
 type CheckItems = Vec<(String, CheckMenuItem<tauri::Wry>)>;
 
-/// The tray's words for the Show menu, by input name (input_kinds.rs). The same choice as the eye button.
-const SHOW_WORDS: [(&str, &str); 3] = [
-    ("keyboard", "Keyboard"),
-    ("mouse", "Mouse"),
-    ("controller", "Controller"),
-];
+/// The Show menu's inputs (input_kinds.rs), each also the id of its word (tray_words.rs). The same choice as the eye
+/// button.
+const SHOWN_INPUTS: [&str; 3] = ["keyboard", "mouse", "controller"];
 
-/// The right-click menu: Open settings, Copy OBS URL, Pause, the Layout submenu (the current layout ticked), Restart
-/// server and Quit. Plain construction: no lock is held and no thread is started here.
+/// The right-click menu: Open settings, Copy OBS URL, Pause, the Show and Layout submenus, Restart server and Quit, in
+/// the settings window's language (tray_words.rs). Plain construction: no lock is held and no thread is started here.
 fn build_menu(app: &tauri::App, shared: &Shared) -> tauri::Result<TrayMenu> {
-    let cur_layout = shared.settings.read().unwrap()["layout"]["id"]
-        .as_str()
-        .unwrap_or("")
-        .to_string();
-    let pause_item = CheckMenuItemBuilder::with_id("pause", "Pause overlay")
+    let current = shared.settings.read().unwrap().clone();
+    let item = |id: &'static str| MenuItemBuilder::with_id(id, word(&current, id)).build(app);
+    let pause_item = CheckMenuItemBuilder::with_id("pause", word(&current, "pause"))
         .checked(false)
         .build(app)?;
-    let mut layout_items: Vec<(String, CheckMenuItem<tauri::Wry>)> = Vec::new();
+    let (layout_items, layout_menu) = build_layout_menu(app, shared, &current)?;
+    let (shown, show_menu) = build_show_menu(app, &current)?;
+    let (open, copy, restart, quit) = (item("open")?, item("copy")?, item("restart")?, item("quit")?);
+    let menu = MenuBuilder::new(app)
+        .items(&[&open, &copy])
+        .separator()
+        .items(&[
+            &pause_item as &dyn IsMenuItem<tauri::Wry>,
+            &show_menu,
+            &layout_menu,
+            &restart,
+        ])
+        .separator()
+        .item(&quit)
+        .build()?;
+    let mut worded = vec![
+        ("open", Worded::Item(open)),
+        ("copy", Worded::Item(copy)),
+        ("pause", Worded::Check(pause_item.clone())),
+        ("show", Worded::Menu(show_menu)),
+        ("layout", Worded::Menu(layout_menu.clone())),
+        ("restart", Worded::Item(restart)),
+        ("quit", Worded::Item(quit)),
+    ];
+    worded.extend(
+        SHOWN_INPUTS
+            .iter()
+            .zip(&shown)
+            .map(|(id, (_, entry))| (*id, Worded::Check(entry.clone()))),
+    );
+    Ok(TrayMenu {
+        menu,
+        pause: pause_item,
+        layouts: layout_items,
+        layout_menu,
+        shown,
+        worded,
+    })
+}
+
+/// The Layout submenu: every layout by name, the current one ticked.
+fn build_layout_menu(
+    app: &tauri::App,
+    shared: &Shared,
+    current: &Value,
+) -> tauri::Result<(CheckItems, Submenu<tauri::Wry>)> {
+    let cur_layout = current["layout"]["id"].as_str().unwrap_or("").to_string();
+    let mut layout_items: CheckItems = Vec::new();
     for layout in server::layouts(&shared.paths) {
         let id = layout["id"].as_str().unwrap_or("").to_string();
         let name = layout["name"].as_str().unwrap_or(&id).to_string();
@@ -286,43 +330,24 @@ fn build_menu(app: &tauri::App, shared: &Shared) -> tauri::Result<TrayMenu> {
         .iter()
         .map(|(_, i)| i as &dyn IsMenuItem<tauri::Wry>)
         .collect();
-    let layout_menu = SubmenuBuilder::new(app, "Layout").items(&refs).build()?;
-    let (shown, show_menu) = build_show_menu(app, shared)?;
-    let menu = MenuBuilder::new(app)
-        .item(&MenuItemBuilder::with_id("open", "Open settings").build(app)?)
-        .item(&MenuItemBuilder::with_id("copy", "Copy OBS URL").build(app)?)
-        .separator()
-        .item(&pause_item)
-        .item(&show_menu)
-        .item(&layout_menu)
-        .item(&MenuItemBuilder::with_id("restart", "Restart server").build(app)?)
-        .separator()
-        .item(&MenuItemBuilder::with_id("quit", "Quit").build(app)?)
-        .build()?;
-    Ok(TrayMenu {
-        menu,
-        pause: pause_item,
-        layouts: layout_items,
-        layout_menu,
-        shown,
-    })
+    let layout_menu = SubmenuBuilder::new(app, word(current, "layout")).items(&refs).build()?;
+    Ok((layout_items, layout_menu))
 }
 
 /// The Show submenu: Keyboard, Mouse and Controller, ticked while shown on the selected layout, unavailable while that
 /// input is off. sync_tray keeps them current.
-fn build_show_menu(app: &tauri::App, shared: &Shared) -> tauri::Result<(CheckItems, Submenu<tauri::Wry>)> {
-    let current = shared.settings.read().unwrap().clone();
+fn build_show_menu(app: &tauri::App, current: &Value) -> tauri::Result<(CheckItems, Submenu<tauri::Wry>)> {
     let mut items = Vec::new();
-    for (kind, word) in SHOW_WORDS {
-        let enabled = crate::input_kinds::input_enabled(&current, kind);
-        let item = CheckMenuItemBuilder::with_id(format!("show:{kind}"), word)
+    for kind in SHOWN_INPUTS {
+        let enabled = crate::input_kinds::input_enabled(current, kind);
+        let item = CheckMenuItemBuilder::with_id(format!("show:{kind}"), word(current, kind))
             .enabled(enabled)
-            .checked(enabled && crate::input_kinds::input_shown(&current, kind))
+            .checked(enabled && crate::input_kinds::input_shown(current, kind))
             .build(app)?;
         items.push((kind.to_string(), item));
     }
     let refs: Vec<&dyn IsMenuItem<tauri::Wry>> = items.iter().map(|(_, i)| i as &dyn IsMenuItem<tauri::Wry>).collect();
-    let menu = SubmenuBuilder::new(app, "Show").items(&refs).build()?;
+    let menu = SubmenuBuilder::new(app, word(current, "show")).items(&refs).build()?;
     Ok((items, menu))
 }
 
@@ -345,9 +370,12 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         layouts: layout_items,
         layout_menu,
         shown,
+        mut worded,
     } = build_menu(app, &shared)?;
     let (icon, icon_badged) = build_icons(app);
-    let update_item = MenuItemBuilder::with_id("update", "Update available").build(app)?;
+    let update_item =
+        MenuItemBuilder::with_id("update", word(&shared.settings.read().unwrap(), "update")).build(app)?;
+    worded.push(("update", Worded::Item(update_item.clone())));
 
     let tray = TrayIconBuilder::new()
         .icon(crate::platform::tray_icon(&icon))
@@ -408,6 +436,7 @@ pub fn build(app: &tauri::App, shared: Arc<Shared>) -> tauri::Result<()> {
         icon: icon.to_owned(),
         icon_badged,
         tray,
+        worded,
     });
     Ok(())
 }

@@ -44,7 +44,9 @@ pub fn defaults() -> Value {
             "lastSeenVersion": "",
             // The settings window's language: "" = the same as this computer (the default), or a language code with a
             // file in ui/settings/locales/ (commands/language.rs). Any other text, or a missing file, shows English.
-            "language": ""
+            "language": "",
+            // The tray menu's words in that language, sent by the settings window (tray_words.rs); {} = English.
+            "trayWords": {}
         },
         // profiles[layoutId] = { disabledKeys: [...], labels: { code: text }, layoutStyle: "grid" (only when chosen),
         //   styles: { shape: { positions: { code: { x, y } }, sizes: { code: { w } } }, grid: { ... } } }

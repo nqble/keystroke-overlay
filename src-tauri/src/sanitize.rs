@@ -299,7 +299,10 @@ type CleanFreeForm = fn(&Value) -> Value;
 type TextRule = fn(&str) -> bool;
 
 /// Settings whose keys are free-form (not listed in the defaults), each cleaned by its own function.
-const FREE_FORM: &[(&str, CleanFreeForm)] = &[("layout.profiles", clean_profiles)];
+const FREE_FORM: &[(&str, CleanFreeForm)] = &[
+    ("layout.profiles", clean_profiles),
+    ("general.trayWords", crate::tray_words::clean_tray_words),
+];
 
 /// Lists with a rule of their own; any other list is a list of short texts (`clean_strings`).
 const LIST_RULES: &[(&str, CleanFreeForm)] = &[
