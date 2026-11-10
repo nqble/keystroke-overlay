@@ -108,8 +108,9 @@ mod tests {
         group
             .lines()
             .filter_map(|line| {
-                let (id, text) = line.trim().split_once(": '")?;
-                Some((id.to_string(), text.strip_suffix("',")?.to_string()))
+                let (id, rest) = line.trim().split_once(": '")?;
+                let (text, _note) = rest.split_once("',")?; // a `// means:` note may follow
+                Some((id.to_string(), text.to_string()))
             })
             .collect()
     }

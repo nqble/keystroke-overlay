@@ -8,8 +8,10 @@ plan, and why it works this way: [proposals/interface-languages.md](proposals/in
 
 Each language file is made by a translation service, not written by hand or by a coding assistant:
 `npm run translate` sends the English texts to the service `tools/translate-engines.json` names for that language and
-writes what comes back. DeepL does the European languages, Microsoft Translator the others, and Index-Translate
-(bilibili's free service, no account) is there for any language as the fallback. The top of each file says which.
+writes what comes back. DeepL does Spanish, Portuguese, German, French and Japanese, and Index-Translate (bilibili's
+free service, no account) Simplified Chinese and any language as the fallback. Microsoft Translator is still supported
+but no language uses it: it takes no context, and short words came back in the wrong sense ("Quit" as "resign",
+"Show" as a TV show). The top of each file says which service made it.
 
 The script runs by hand, never inside the app: the app's only network use stays its update check (PRIVACY.md), and
 `npm run check:privacy` checks that the script talks to nothing but these three services.
@@ -25,7 +27,19 @@ says how many texts would be sent, and sends nothing. Without `--dry-run` it tra
 
 Only texts that are new, or whose English changed since they were translated, are sent (each file keeps a short
 fingerprint of the English each text came from, in `made.sources`). A text whose placeholder (`{name}`) or bold
-(`**…**`) didn't come back whole is left in English, and the script lists it.
+(`**…**`) didn't come back whole is left in English, and the script lists it. `--all` sends every text again (never a
+reviewed one), for example after the context below improved.
+
+**Context.** A short word on its own is ambiguous ("Keys", "Port", "Apply", "pan"), so every request says what the
+app is and where the text is shown: the comment above its group in `en.js` ("the tray menu", "the Keys tab"). A word
+that could still mean two things gets its own note at the end of its line, starting with `means:`:
+
+```js
+pan: 'pan', // means: one word, to pan (move the view, as on a map)
+```
+
+Other end-of-line comments are for developers and are not sent. When a translation comes back in the wrong sense, the
+fix is a better note or group comment and `--all`, not an edit by hand.
 
 Then run `npm run check:locales` and look at the window in that language (`npm run ui-sandbox` with the browser set to
 it, or the app). German and French run longer than English, so tight buttons and cards get a look, and

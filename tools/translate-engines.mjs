@@ -1,6 +1,7 @@
 // The three translation services `npm run translate` can use (tools/translate.mjs; which language uses which is
-// tools/translate-engines.json). Each takes English texts, already with ⟦0⟧ in place of placeholders, and the glossary
-// terms they contain, and gives back the translations in the same order. The keys come from environment variables on
+// tools/translate-engines.json). Each takes English texts of one group, already with ⟦0⟧ in place of placeholders, the
+// glossary terms they contain and the context (what the app is, where the texts are shown: translate-text.mjs), and
+// gives back the translations in the same order. Short words need that context ("Quit", "Show", "Keys", "Port"). The keys come from environment variables on
 // the computer running the script, never from the repository (docs/TRANSLATIONS.md).
 
 /** The only addresses this script talks to (tools/check-privacy.mjs checks no other appears in tools/translate*.mjs). */
@@ -46,10 +47,12 @@ async function inBatches(/** @type {string[]} */ texts, /** @type {(group: strin
 }
 
 /**
- * DeepL: a glossary made for this run (and deleted after) carries the terms. A free key ends in `:fx`.
- * @param {string[]} texts @param {string} target DeepL's code (`DE`, `PT-BR`) @param {Map<string, string>} terms
+ * DeepL: the context goes in its `context` field (read, not translated), and a glossary made for this run (deleted
+ * after) carries the terms. A free key ends in `:fx`.
+ * @param {string[]} texts @param {string} target DeepL's code (`DE`, `PT-BR`, `JA`) @param {Map<string, string>} terms
+ * @param {string} context
  */
-async function deepl(texts, target, terms) {
+async function deepl(texts, target, terms, context) {
   const apiKey = key('DEEPL_API_KEY');
   const base = apiKey.endsWith(':fx') ? DEEPL_FREE : DEEPL_PRO;
   const headers = { Authorization: `DeepL-Auth-Key ${apiKey}` };
@@ -65,7 +68,7 @@ async function deepl(texts, target, terms) {
     : null;
   try {
     return await inBatches(texts, async (group) => {
-      const body = { text: group, source_lang: 'EN', target_lang: target, glossary_id: glossary?.glossary_id };
+      const body = { text: group, source_lang: 'EN', target_lang: target, context, glossary_id: glossary?.glossary_id };
       return (await post(`${base}/translate`, headers, body)).translations.map((one) => one.text);
     });
   } finally {
@@ -73,7 +76,10 @@ async function deepl(texts, target, terms) {
   }
 }
 
-/** Microsoft Translator: each term is marked in the text with its translation (its "dynamic dictionary"). */
+/**
+ * Microsoft Translator: each term is marked in the text with its translation (its "dynamic dictionary"). It takes no
+ * context, so short words can come back in the wrong sense; no language uses it now (translate-engines.json).
+ */
 async function microsoft(
   /** @type {string[]} */ texts,
   /** @type {string} */ target,
@@ -101,11 +107,12 @@ function markTerms(/** @type {string} */ text, /** @type {Map<string, string>} *
   return marked;
 }
 
-/** Index-Translate (bilibili, no key): one text per request, the terms and the ⟦0⟧ rule in the instruction. */
+/** Index-Translate (bilibili, no key): one text per request, the context, the terms and the ⟦0⟧ rule in the instruction. */
 async function indexTranslate(
   /** @type {string[]} */ texts,
   /** @type {string} */ target,
   /** @type {Map<string, string>} */ terms,
+  /** @type {string} */ context,
 ) {
   const language = new Intl.DisplayNames(['en'], { type: 'language' }).of(target) ?? target;
   const results = [];
@@ -114,7 +121,7 @@ async function indexTranslate(
     const glossary = used.length
       ? ` Translate these terms this way: ${used.map(([a, b]) => `${a} → ${b}`).join('; ')}.`
       : '';
-    const instruction = `Translate the following text into ${language}. Keep every part written like ⟦0⟧ exactly as it is.${glossary} Output only the translation.`;
+    const instruction = `Context (do not translate it): ${context}\n\nTranslate only the following text into ${language}, as it would read in that app, about as short as the English. Keep every part written like ⟦0⟧ exactly as it is.${glossary} Output only the translation.`;
     const answer = await post(
       `${INDEX}/chat/completions`,
       {},

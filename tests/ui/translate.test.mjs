@@ -4,11 +4,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  APP_CONTEXT,
   back,
+  byGroup,
   completePlurals,
+  contextFor,
   fingerprint,
   flatTexts,
   glossaryFromTbx,
+  groupContexts,
+  textNotes,
   languageFile,
   nest,
   protect,
@@ -105,4 +110,52 @@ test('a plural whose "other" form came back broken is left out whole, so it show
   assert.deepEqual([...completePlurals(texts, sources).keys()], []);
   texts.set('kle.leftOut.other', '{count} tasti rimasti');
   assert.equal(completePlurals(texts, sources).size, 3);
+});
+
+test('the comment above each group in en.js is the context its texts are sent with', () => {
+  const source = [
+    'export default {',
+    '  // the tray menu (the menu bar menu on a Mac),',
+    '  // built by the app',
+    '  appMenu: {',
+    "    quit: 'Quit',",
+    '  },',
+    '',
+    '  keys: {',
+    "    hide: 'hide',",
+    '  },',
+    '};',
+  ].join('\n');
+  const contexts = groupContexts(source);
+  assert.deepEqual([...contexts], [['appMenu', 'the tray menu (the menu bar menu on a Mac), built by the app']]);
+  assert.match(contextFor('appMenu.quit', contexts), /shown in: the tray menu \(the menu bar menu on a Mac\), built/);
+  assert.equal(contextFor('keys.hide', contexts), APP_CONTEXT, 'a group without a comment gets the app context');
+  assert.deepEqual(
+    [...byGroup(['a.x', 'b.y', 'a.z'])],
+    [
+      ['a', ['a.x', 'a.z']],
+      ['b', ['b.y']],
+    ],
+  );
+});
+
+test('the real en.js gives most groups a context', async () => {
+  const { readFileSync } = await import('node:fs');
+  const contexts = groupContexts(readFileSync(new URL('../../ui/settings/locales/en.js', import.meta.url), 'utf8'));
+  assert.ok(contexts.size >= 30, `${contexts.size} groups with a comment`);
+  assert.match(contexts.get('appMenu') ?? '', /tray menu/);
+  assert.doesNotMatch(contexts.get('keys') ?? '', /\.js|ui\//, 'file names and paths are left out');
+});
+
+test("a comment at the end of a text line is sent as that text's own note", () => {
+  const source = [
+    '  keys: {',
+    "    pan: 'pan', // means: moving the view by dragging",
+    "    hide: 'hide', // tests check this",
+    '  },',
+  ].join('\n');
+  const notes = textNotes(source);
+  assert.deepEqual([...notes], [['keys.pan', 'moving the view by dragging']]);
+  assert.match(contextFor('keys.pan', new Map(), notes), /This text means: moving the view by dragging\.$/);
+  assert.equal(contextFor('keys.hide', new Map(), notes), APP_CONTEXT);
 });
