@@ -46,7 +46,10 @@ pub fn defaults() -> Value {
             // file in ui/settings/locales/ (commands/language.rs). Any other text, or a missing file, shows English.
             "language": "",
             // The tray menu's words in that language, sent by the settings window (tray_words.rs); {} = English.
-            "trayWords": {}
+            "trayWords": {},
+            // Which version last proved that key capture works (a version number only, never a key): a Mac app needs its
+            // keyboard permission renewed after an update (commands/keyboard_access.rs).
+            "keyboardProvenVersion": ""
         },
         // profiles[layoutId] = { disabledKeys: [...], labels: { code: text }, layoutStyle: "grid" (only when chosen),
         //   styles: { shape: { positions: { code: { x, y } }, sizes: { code: { w } } }, grid: { ... } } }

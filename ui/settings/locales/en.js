@@ -211,7 +211,7 @@ export default {
     wholeKey: 'whole key', // means: move by a whole keyboard key
     hide: 'hide', // means: make the selected keyboard keys invisible
     zoom: 'zoom', // means: make the keyboard picture bigger or smaller
-    pan: 'pan', // means: one word, to pan (move the view, as on a map)
+    pan: 'pan', // means: one short word in this language (never the English "pan") for moving the view around, as when dragging a map
   },
 
   // the Keys tab's toolbar: keys-toolbar.js (ui/settings/tabs/)
@@ -412,6 +412,9 @@ export default {
     restartAfterAllow:
       'Did you switch Keystroke Overlay on in Input Monitoring? Restart it once so macOS starts sending it your keys.',
     restartButton: 'Restart now',
+    renew:
+      'Keys not showing since the update? macOS may need Keystroke Overlay’s keyboard access again. Renew it, switch the app on in Input Monitoring, then restart.',
+    renewButton: 'Renew keyboard access',
     inputGroup:
       'On Wayland, the app needs the input group to read your keyboards. Run this command in a terminal, then log out and back in. Every program you run can then read the keyboards too (see PRIVACY.md).',
     inputGroupCopied:
@@ -522,7 +525,7 @@ export default {
     live: '● Live in OBS',
     paused: '⏸ Paused',
     pausedNoObs: '⏸ Paused · OBS not connected',
-    noObs: '○ Not connected to OBS',
+    noObs: '○ Not connected to OBS', // means: a status label: OBS is not connected right now (not "if")
     linkChanged: 'OBS URL changed: copy it again',
     serverProblem: '⚠ Port in use',
   },
@@ -623,7 +626,7 @@ export default {
     fontGroup: { windows: 'Windows fonts', macos: 'Mac fonts' },
     systemFont: { macos: 'System font (default)' },
     // the General -> Startup switches: starting with the computer, and what minimizing does
-    autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' },
+    autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' }, // means: a switch label: start this app automatically when the computer starts (not "let's begin")
     minimize: { windows: 'Minimize to tray', linux: 'Minimize to tray' }, // not shown on a Mac: see hasMinimizeSetting
     // where the app's icon lives while its window is closed
     trayName: { windows: 'tray', macos: 'menu bar', linux: 'tray' },

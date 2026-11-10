@@ -92,3 +92,12 @@ test('Linux with the input group, or on X11: no notice', () => {
   assert.equal(accessNotice({ access: { ...wayland, allowed: true }, inputError: 'other problem' }), null);
   assert.equal(accessNotice({ access: { ...wayland, applies: false }, inputError: null }), null);
 });
+
+test('after a Mac update with no key yet: renew the permission, then restart', () => {
+  const access = { ...allowed, system: 'macos', renewAfterUpdate: true };
+  const notice = accessNotice({ access });
+  assert.equal(notice?.kind, 'renew');
+  assert.equal(notice?.action, 'renew');
+  assert.equal(accessNotice({ access, asked: true })?.kind, 'restart', 'after Renew: switch it on, then restart');
+  assert.equal(accessNotice({ access: { ...access, captureSeen: true } }), null, 'a key arrived: it works after all');
+});

@@ -21,7 +21,9 @@ const TEXT = words('accessNotice');
  *   1. a key really arrived: capture works, so only the Secure Input hint can apply;
  *   2. the person pressed Allow: they have probably switched it on, and macOS only starts sending keys to an app after
  *      it restarts, so offer the restart;
- *   3. access not given: macOS has to be asked;
+ *   3. just updated, macOS says access is on, but no key has arrived yet: the permission may have to be renewed (an
+ *      ad-hoc signed app is a new program to macOS after an update; docs/MAC-PORT.md); a key arriving clears it;
+ *   3b. access not given: macOS has to be asked;
  *   4. access on but capture not working (it failed, or access was given after the app started): restart;
  *   5. capture running but macOS has Secure Input on: a hint, nothing to click.
  */
@@ -31,6 +33,7 @@ export function accessNotice({ access, inputError, asked = false }) {
   const secure = access.secureInput ? { kind: 'secure', text: TEXT.secure } : null;
   if (access.captureSeen) return secure;
   if (asked) return restartNotice(TEXT.restartAfterAllow);
+  if (access.renewAfterUpdate) return { kind: 'renew', text: TEXT.renew, action: 'renew', button: TEXT.renewButton };
   if (!access.allowed) return { kind: 'ask', text: TEXT.ask, action: 'allow', button: TEXT.allow };
   if (inputError || !access.allowedAtStart) return restartNotice(TEXT.restart);
   return secure;

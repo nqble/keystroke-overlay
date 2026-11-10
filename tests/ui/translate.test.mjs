@@ -159,3 +159,32 @@ test("a comment at the end of a text line is sent as that text's own note", () =
   assert.match(contextFor('keys.pan', new Map(), notes), /This text means: moving the view by dragging\.$/);
   assert.equal(contextFor('keys.hide', new Map(), notes), APP_CONTEXT);
 });
+
+test('a note on a one-line group of texts covers every text in it', () => {
+  const source = [
+    '  systemWords: {',
+    "    autostart: { windows: 'Start with Windows', macos: 'Open at login' }, // means: a switch: start the app with the computer",
+    '  },',
+  ].join('\n');
+  const notes = textNotes(source);
+  assert.deepEqual([...notes.keys()], ['systemWords.autostart']);
+  assert.match(contextFor('systemWords.autostart.windows', new Map(), notes), /means: a switch: start the app/);
+  assert.match(contextFor('systemWords.autostart.macos', new Map(), notes), /means: a switch/);
+});
+
+test('a service that says "too many requests" is asked again after the pause it asks for', async () => {
+  const { post } = await import('../../tools/translate-engines.mjs');
+  const realFetch = globalThis.fetch;
+  const answers = [
+    new Response('slow down', { status: 429, headers: { 'Retry-After': '1' } }),
+    new Response(JSON.stringify({ ok: true }), { status: 200 }),
+  ];
+  let calls = 0;
+  globalThis.fetch = async () => answers[calls++];
+  try {
+    assert.deepEqual(await post('https://api-free.deepl.com/v2/translate', {}, {}), { ok: true });
+    assert.equal(calls, 2);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});

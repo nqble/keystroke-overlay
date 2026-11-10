@@ -25,7 +25,7 @@ pub fn get_state(st: State<AppState>) -> Value {
         "inputError": st.shared.bus.error(),
         "inputActive": st.shared.bus.method().id(),
         "platform": crate::platform::name(),
-        "keyboardAccess": super::keyboard_access::status(&st.shared.bus),
+        "keyboardAccess": super::keyboard_access::status(&st),
         "secureLink": st.shared.settings.read().unwrap()["general"]["secureLink"],
         "gotoTab": st.pending_tab.lock().unwrap().take(),
         "updateBadge": st.tray.lock().unwrap().as_ref().is_some_and(|t| t.update_shown),
@@ -52,7 +52,8 @@ pub fn save_settings(app: AppHandle, st: State<AppState>, settings: Value) -> Re
             "inputMethod",
             "secureLink",
             "linkKey",
-            "trayWords", // changed only through set_tray_words
+            "trayWords",             // changed only through set_tray_words
+            "keyboardProvenVersion", // written by the app itself (keyboard_access.rs)
         ] {
             new["general"][k] = cur["general"][k].clone();
         }

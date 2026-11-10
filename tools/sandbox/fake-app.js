@@ -175,6 +175,7 @@
     get_state: getState,
     get_keyboard_access: async () => (await getState()).keyboardAccess,
     request_keyboard_access: () => {},
+    renew_keyboard_access: () => {},
     restart_app: () => {},
     list_layouts: async () => [...(await loaded)[1], ...ownLayouts],
     // your own layouts live in memory for the visit too, so making and deleting one can be tried
