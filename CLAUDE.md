@@ -100,8 +100,9 @@ When two principles conflict, the higher one wins.
   fallback for other systems (CI builds Windows, Linux and macOS; see `docs/CROSS-PLATFORM.md`).
 - **Every system.** The app ships for Windows and macOS (Linux builds too), so every new text, shortcut, font or feature
   says how it behaves on each system. Words that differ per system (Windows, Ctrl, tray, ⌘, menu bar…) come from
-  `ui/settings/system-words.js`; `npm run check:systems` fails on Windows-only words anywhere else in the settings
-  window. A feature that only works on one system hides or explains itself elsewhere instead of failing.
+  `systemWord()` in `ui/settings/system-words.js` (the words are the `systemWords` group of `ui/settings/locales/en.js`);
+  `npm run check:systems` fails on Windows-only words anywhere else in the settings window. A feature that only works
+  on one system hides or explains itself elsewhere instead of failing.
 - **Mouse, controller, game detection, global hotkeys or an overlay window:** follow `docs/design/future-inputs.md` (names,
   protocol, settings, privacy rules) before building any of them.
 

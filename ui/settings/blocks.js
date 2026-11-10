@@ -14,12 +14,13 @@ import { Icon } from './icons.js';
 import { showMenu } from './menu.js';
 import { md } from './notes.js';
 import { settings } from './state.js';
+import { words } from './words.js';
 
 // How far below the "⋯" button its menu opens, in px.
 const MENU_GAP = 4;
 // How long a ConfirmButton waits for the second click, in ms (the same as confirmTwice in helpers.js).
 const CONFIRM_WINDOW_MS = 3500;
-const CONFIRM_TEXT = 'Click again to confirm';
+const CONFIRM_TEXT = words('shared').clickAgain; // a risky button's first click
 
 let lastId = 0;
 /** An id that stays the same for this component's life, to link a label to its control. */

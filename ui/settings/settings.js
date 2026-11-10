@@ -81,6 +81,7 @@ const scrollOf = new Map(); // where each tab was scrolled to when you left it, 
 export async function render(scroll = null) {
   const debugMode = !!settings?.general?.debugMode;
   if (!findTab(tab, debugMode)) setTab('general'); // e.g. Debug mode was just switched off while on the Debug tab
+  $('#tabs').ariaLabel = words('tabs').barName;
   draw(html`<${TabBar} tabs=${visibleTabs(debugMode)} current=${tab} />`, $('#tabs'));
   const pane = $('#pane');
   if (typeof scroll !== 'number') scroll = pane.scrollTop; // also when called with something else, e.g. an event

@@ -132,7 +132,7 @@ keystroke-overlay/
         ├── shortcut.js    the pause shortcut's text: a key press -> "Ctrl+Shift+KeyP" and back to a friendly name (tested)
         ├── themes.js      plain logic for the Style tab's theme cards (tested)
         ├── system-fonts.js  the font list for this system (Windows fonts or Mac fonts)
-        ├── system-words.js  words that differ per system (what starting with the computer is called, which inspector)
+        ├── system-words.js  words that differ per system (systemWord(); the words are the systemWords group of locales/en.js), which inspector
         ├── text.js        texts shared by several screens (group "shared" of locales/en.js)
         ├── words.js       a file's texts in the chosen language, English for any missing (locales/<code>.js; npm run check:locales checks them)
         ├── locales/       one file per language, en.js the source (docs/proposals/interface-languages.md)

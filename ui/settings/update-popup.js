@@ -50,6 +50,7 @@ export function openUpdateDialog() {
     ].filter(Boolean),
   );
   $('#uGo').textContent = update.manual ? WORDS.manualInstall : WORDS.install;
+  $('#uLater').textContent = WORDS.later;
   $('#uGo').disabled = $('#uLater').disabled = false;
   updateBusy = false;
   setUpdateProgress(null);

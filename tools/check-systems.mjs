@@ -1,7 +1,8 @@
 // Every-system check (runs with npm test): text in the settings window must not name Windows-only things (Windows,
-// Ctrl, tray, Segoe) on its own, because the same window runs on a Mac and on Linux. Such words belong in
-// ui/settings/system-words.js, which has each system's own word. A line that really is for one system only (a step in
-// the Windows instructions, a saved value that is never shown) says so with a "// per-system: why" comment.
+// Ctrl, tray, Segoe) on its own, because the same window runs on a Mac and on Linux. Such words belong in the
+// `systemWords` group of the language files (read through ui/settings/system-words.js), which has each system's own
+// word. A line that really is for one system only (a step in the Windows instructions, a saved value that is never
+// shown) says so with a "// per-system: why" comment.
 // Only text inside quotes is checked, so comments and code names don't count, and joined names like
 // "minimize-to-tray" (a data-test hook) don't either. See CLAUDE.md §4 (Every system).
 //   node tools/check-systems.mjs
@@ -10,7 +11,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = 'ui/settings';
-const SKIP = new Set(['vendor', 'system-words.js']); // vendor: copied libraries; system-words.js: where these words belong
+const SKIP = new Set(['vendor', 'system-words.js']); // vendor: copied libraries; system-words.js: Debug's own (English) ones
 const WINDOWS_WORDS = /(?<![-\w])(Windows|Ctrl|[Tt]ray|Segoe)(?!\w)/; // "-tray" at the end of a hook name is not text
 const QUOTED = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g;
 const PLACEHOLDER = /\$\{[^}]*\}/g;
@@ -39,10 +40,21 @@ function filesUnder(dir, out = []) {
   return out;
 }
 
+/** The lines (0-based) of a language file's `systemWords` group, where each system's own words belong; none elsewhere. */
+function systemWordLines(file, lines) {
+  if (!file.replaceAll('\\', '/').includes('/locales/')) return new Set();
+  const start = lines.findIndex((line) => line === '  systemWords: {');
+  if (start === -1) return new Set();
+  const end = lines.findIndex((line, index) => index > start && line === '  },');
+  return new Set(Array.from({ length: end - start + 1 }, (_, offset) => start + offset));
+}
+
 function problemsIn(file) {
   const lines = readFileSync(file, 'utf8').split('\n');
+  const allowed = systemWordLines(file, lines);
   const problems = [];
   lines.forEach((line, index) => {
+    if (allowed.has(index)) return;
     for (const word of windowsWordsIn(line)) problems.push(`${file}:${index + 1}  "${word}" is a Windows word`);
   });
   return problems;

@@ -142,14 +142,6 @@ export function restoreProfile(id, snapshot) {
 export const SNAP = 0.25; // the default snap step, and the one "Tidy up" always uses (a quarter key)
 export const FINE_STEP = 0.05; // how far the arrow buttons move a key while snapping is off
 
-/** The Snap menu: [step in key widths, label]. 0 means off. Keep in step with SNAP_CHOICES in settings.rs. */
-export const SNAP_CHOICES = [
-  [0, 'Off'],
-  [0.25, 'Quarter key'],
-  [0.5, 'Half key'],
-  [1, 'Whole key'],
-];
-
 /**
  * The snap step in use: the one chosen in the Keys tab (saved in settings.layout.editor), or a whole key in the Even grid
  * layout style (when Snap is on). 0 means Snap is off.

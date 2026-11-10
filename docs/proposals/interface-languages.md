@@ -118,9 +118,10 @@ Each its own pull request, in this order:
   sit in about 42 files (tab screens, the settings list, dialogs). It is split into small pull requests by area, each
   with no visible change: the base and shared texts, General, Keys, Layout and Style, popups and dialogs. The Debug tab
   stays English (a developer tool; the maintainer's choice, 2026-11-08).
-  Left for step 2, because they need the language chosen at start: the few words written into
-  `ui/settings/index.html` (the window buttons, the update popup's Later), the per-system words in
-  `ui/settings/system-words.js`, and the key names in `ui/settings/key-names.js`.
+  The per-system words and the words written into `index.html` moved too (the `systemWords` group; each part of the
+  page sets its own words at start). Still English on purpose: the key names in `ui/settings/key-names.js` (each
+  system names keys its own way in each language: a decision of its own) and the release notes' section names, which
+  must match the English notes on GitHub.
   The e2e suites that check a sentence word for word (secure link, keyboard input) read it from `en.js` instead.
 - **Longer text** in other languages can wrap or overflow; the screenshot test and a look per language catch it.
 - **Machine translation mistakes** are expected now and then; the source of each file is stated so they can be fixed.

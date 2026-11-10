@@ -5,6 +5,9 @@
 import { $, el, invoke } from './helpers.js';
 import { popupKeys } from './popup.js';
 import { headingOf, sectionOf } from './release-notes.js';
+import { words } from './words.js';
+
+const WORDS = words('releaseNotes');
 
 /**
  * A tiny, safe markdown reader: headings, bullets, **bold** and `code`. Everything is inserted as plain text.
@@ -141,7 +144,7 @@ function typeIn(root) {
 const loadingDots = () =>
   el(
     'p',
-    { className: 'dots', role: 'status', ariaLabel: 'Loading release notes' },
+    { className: 'dots', role: 'status', ariaLabel: WORDS.loading },
     el('span', { textContent: '.' }),
     el('span', { textContent: '.' }),
     el('span', { textContent: '.' }),
@@ -149,18 +152,17 @@ const loadingDots = () =>
 
 export async function showNotes(version, title) {
   typingRun++; // cancel any typing still going
-  $('#mTitle').textContent = title || `Release notes — v${version}`;
+  $('#mTitle').textContent = title || WORDS.title(version);
   const body = $('#mBody');
   body.replaceChildren(loadingDots());
   $('#modal').hidden = false;
   popupKeys('#modal', { onEscape: closeModal });
+  $('#mOk').textContent = WORDS.ok;
   $('#mOk').focus();
   try {
     const notes = await invoke('get_release_notes', { version });
     if ($('#modal').hidden) return;
-    body.replaceChildren(
-      notes.body.trim() ? md(notes.body) : el('p', { className: 'hint', textContent: 'No notes for this release.' }),
-    );
+    body.replaceChildren(notes.body.trim() ? md(notes.body) : el('p', { className: 'hint', textContent: WORDS.none }));
     typeIn(body);
   } catch (error) {
     if (!$('#modal').hidden) body.replaceChildren(el('p', { className: 'hint', textContent: String(error) }));

@@ -136,3 +136,16 @@ test('"Same as this computer" finds the closest file, in the order the computer 
   assert.equal(pickLanguage('', files, ['ko']), 'en', 'English when nothing fits');
   assert.equal(pickLanguage('', ['en'], []), 'en');
 });
+
+test('a list of texts stays a list, each entry translated', () => {
+  useLanguage({ systemWords: { panHints: { windows: [{ chip: 'Leertaste + Ziehen' }] } } }, 'de');
+  const hints = words('systemWords').panHints.windows;
+  assert.ok(Array.isArray(hints));
+  assert.equal(hints[0].chip, 'Leertaste + Ziehen');
+  assert.equal(
+    hints[1].tip,
+    'Drag with the middle mouse button (the wheel) to move the view',
+    'English fills the rest',
+  );
+  useLanguage(null);
+});
