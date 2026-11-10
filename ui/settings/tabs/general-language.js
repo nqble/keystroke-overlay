@@ -7,6 +7,7 @@ import { useId } from '../blocks.js';
 import { invoke } from '../helpers.js';
 import { html, useEffect, useState } from '../html.js';
 import { saveNow } from '../preview.js';
+import { hideWindow } from '../reveal.js';
 import { settings } from '../state.js';
 import { words } from '../words.js';
 
@@ -15,10 +16,11 @@ const WORDS = words('generalLanguage');
 /** A language's name in that language ("Deutsch", "日本語"), or its code when the web view doesn't know it. */
 const ownName = (/** @type {string} */ code) => new Intl.DisplayNames([code], { type: 'language' }).of(code) ?? code;
 
-/** Save the choice, then load the window again on General, so every screen reads the new language's words. */
+/** Save the choice, fade the window out, then load it again on General, so every screen reads the new language's words. */
 async function switchLanguage(code) {
   settings.general.language = code;
   await saveNow();
+  await hideWindow(); // fade out first, so the reload is one dark moment, not a page rebuilding itself in view
   const again = new URL(location.href);
   again.searchParams.set('tab', 'general');
   location.replace(again);

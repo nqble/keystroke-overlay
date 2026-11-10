@@ -7,12 +7,21 @@
     <link rel="icon" href="data:," />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
-    <!-- Critical style inline: the very first paint is already dark (no white flash before settings.css loads). -->
+    <!-- Critical style inline: the very first paint is already dark (no white flash before settings.css loads). The
+         page itself stays invisible until the first screen is drawn and the live preview shows its keys (reveal.js),
+         then fades in, so loading never shows half-built frames (empty boxes, a blank preview). -->
     <style>
       html,
       body {
         background: #12141a;
         color: #e6e9f0;
+      }
+      body {
+        opacity: 0;
+        transition: opacity 160ms ease-out;
+      }
+      html[data-ready] body {
+        opacity: 1;
       }
     </style>
     <link rel="stylesheet" href="settings.css" />

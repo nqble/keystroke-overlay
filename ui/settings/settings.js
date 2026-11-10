@@ -22,7 +22,8 @@ import { refreshFades } from './scroll-fade.js';
 import './popup.js'; // keyboard focus for every popup; loaded first so it watches them from the start
 import { showNotes } from './notes.js';
 import { showUpdateResult } from './update-popup.js';
-import { fitPreview, frame, previewSrc, setPreviewHidden, updateObs } from './preview.js';
+import { fitPreview, frame, previewReady, previewSrc, setPreviewHidden, updateObs } from './preview.js';
+import { reveal } from './reveal.js';
 import {
   appVersion,
   registry,
@@ -146,10 +147,16 @@ addEventListener('resize', () => {
   invoke('set_tray_words', { words: words('appMenu') }).catch((problem) => console.error('app menu words', problem));
   await render();
   window.__uiReady = performance.timeOrigin + performance.now(); // read by the performance tests
-  if (!state.serverError)
+  if (state.serverError) reveal();
+  else {
     requestAnimationFrame(() => {
       frame.src = previewSrc();
     });
+    // Show the window once the live preview has drawn its keys, never more than 1.5 s later, so it appears whole.
+    Promise.race([previewReady, new Promise((done) => setTimeout(done, 1500))])
+      .then(() => new Promise((done) => setTimeout(done, 80)))
+      .then(reveal);
+  }
   if (state.whatsNew) {
     // shown once after an update
     // mark as seen right away so it can never repeat
