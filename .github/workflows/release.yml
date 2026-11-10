@@ -15,8 +15,10 @@ name: Release
 # signing request waits for the maintainer's approval there. Until it is set, the release is built unsigned, as before.
 #
 # The Mac app: once the release is published, mac-app.yml builds the Apple Silicon app (no secrets, not signed by Apple)
-# and the last job attaches Keystroke-Overlay_<version>_macOS-arm64.zip to the same release. Mac users are not updated by
-# the app: latest.json has no Mac entry (docs/RELEASING.md, Mac download).
+# and mac-publish attaches Keystroke-Overlay_<version>_macOS-arm64.zip to the same release. Like linux-publish below, it
+# then signs the app's update file (the .app.tar.gz) with the update key, in the "release" environment and in one step
+# only, and adds darwin-aarch64 entries to latest.json and, for a Stable release, to stable.json: Macs update in the app
+# (docs/RELEASING.md, Mac download).
 #
 # The Linux downloads work the same way: linux-app.yml builds the AppImage and the .deb (no secrets) and linux-publish
 # attaches them. linux-publish then signs the AppImage with the update key (it runs in the "release" environment, so it
@@ -193,7 +195,7 @@ jobs:
           gh release upload channel-stable "release/$V/stable.json" --clobber
 
   # ---- The Mac download. Runs only after the Windows release above succeeded (so only for an approved, published
-  # release), builds with no secrets, and attaches the zip to that release.
+  # release), builds with no secrets; mac-publish attaches the zip and adds the signed Mac update.
   mac-app:
     needs: release
     uses: ./.github/workflows/mac-app.yml
@@ -201,20 +203,62 @@ jobs:
   mac-publish:
     needs: mac-app
     runs-on: ubuntu-latest
+    environment: release # the update signing key lives here: this job waits for the maintainer's approval, like the Windows one
+    # linux-publish edits the same latest.json and stable.json: one at a time, so neither overwrites the other's entry
+    concurrency:
+      group: update-manifests-${{ github.run_id }}
+      cancel-in-progress: false
     permissions:
-      contents: write # the only thing this job does: attach the zip to the release
+      contents: write # attach the files to the release and add the Mac entry to the update manifests
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
+      # The signing tool comes from package-lock.json (npm ci), the same pinned one the Windows job uses.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - run: npm ci
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: mac-app
-      - name: Attach the Mac download to the release
+          path: mac-out
+      - name: Attach the Mac download and its update file to the release
         shell: bash
         run: |
+          cd mac-out
           ZIP=$(ls Keystroke-Overlay_*_macOS-arm64.zip)
           V=${ZIP#Keystroke-Overlay_}; V=${V%_macOS-arm64.zip}
-          gh release upload "v$V" "$ZIP" --clobber --repo "${{ github.repository }}"
+          gh release upload "v$V" "$ZIP" "Keystroke-Overlay_${V}_macOS-arm64.app.tar.gz" --clobber --repo "${{ github.repository }}"
+
+      # The key is given to this one step only. The app it signs was built by mac-app.yml, which has no secrets.
+      - name: Sign the Mac update file and add the Mac to the update manifests
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          PROMOTE: ${{ inputs.promote_to_stable }}
+        run: |
+          set -euo pipefail
+          UPDATE=$(cd mac-out && ls Keystroke-Overlay_*_macOS-arm64.app.tar.gz)
+          V=${UPDATE#Keystroke-Overlay_}; V=${V%_macOS-arm64.app.tar.gz}
+          # --app-version puts the version inside the signature, so an old signed app can't be passed off as a new
+          # version (the app has requireSignedVersion on; the AppImage and the Windows installer are signed the same way)
+          npx --no-install tauri signer sign --app-version "$V" "mac-out/$UPDATE" # writes mac-out/<file>.sig
+          SIGNATURE=$(cat "mac-out/$UPDATE.sig")
+          [ -n "$SIGNATURE" ] || { echo "::error::No signature was written. The Mac entry was not added."; exit 1; }
+          URL="https://github.com/${{ github.repository }}/releases/download/v$V/$UPDATE"
+          # add the entry to a manifest, but only to the manifest of THIS version (never to an older Stable)
+          add_mac() { # $1 = release tag that holds the manifest, $2 = manifest file name
+            mkdir -p manifests && gh release download "$1" -p "$2" -D manifests --clobber --repo "${{ github.repository }}"
+            [ "$(jq -r .version "manifests/$2")" = "$V" ] || { echo "::error::$2 is for another version. Left alone."; exit 1; }
+            # two keys with the same file: the updater looks for darwin-aarch64-app first and then darwin-aarch64
+            jq --arg sig "$SIGNATURE" --arg url "$URL" '{signature: $sig, url: $url} as $entry | .platforms["darwin-aarch64-app"] = $entry | .platforms["darwin-aarch64"] = $entry' "manifests/$2" > "manifests/$2.new"
+            mv "manifests/$2.new" "manifests/$2"
+            gh release upload "$1" "manifests/$2" --clobber --repo "${{ github.repository }}"
+          }
+          add_mac "v$V" latest.json
+          if [[ "$V" =~ ^[0-9]+\.[0-9]+\.0$ ]] || [ "$PROMOTE" = "true" ]; then add_mac channel-stable stable.json; fi
 
   # ---- The Linux downloads. Same rules as the Mac: only after the Windows release succeeded, built with no secrets.
   linux-app:
@@ -225,6 +269,10 @@ jobs:
     needs: linux-app
     runs-on: ubuntu-latest
     environment: release # the update signing key lives here: this job waits for the maintainer's approval, like the Windows one
+    # mac-publish edits the same latest.json and stable.json: one at a time, so neither overwrites the other's entry
+    concurrency:
+      group: update-manifests-${{ github.run_id }}
+      cancel-in-progress: false
     permissions:
       contents: write # attach the files to the release and add the Linux entry to the update manifests
     env:

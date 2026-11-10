@@ -40,6 +40,7 @@ function Notice({ notice }) {
     asked = true;
     paintAccess();
     if (notice.action === 'copy') return invoke('copy_text', { text: notice.command });
+    if (notice.action === 'renew') return invoke('renew_keyboard_access'); // clears the stale permission, then asks
     return invoke('request_keyboard_access');
   };
   return html`<span data-test="keyboard-access-text">${notice.text}</span> ${

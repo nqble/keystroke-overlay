@@ -50,16 +50,8 @@ fn updater_for(app: &AppHandle, channel: &str) -> Result<tauri_plugin_updater::U
         .map_err(|e| e.to_string())
 }
 
-/// What the window says when the update check fails. A Mac gets its own words: the update file on GitHub only has entries
-/// the in-app installer can use (Windows and the Linux AppImage), so on a Mac the check always fails, and the honest advice is to download the
-/// new version from the Releases page.
-fn check_failed_text(system: &str, channel: &str, error: &str) -> String {
-    if system == "macos" {
-        return format!(
-            "Couldn't check for updates. On a Mac the app can't install updates by itself yet: get new versions from the Releases page ({}).",
-            releases_url()
-        );
-    }
+/// What the window says when the update check fails (the same on every system: a Mac updates in the app too).
+fn check_failed_text(channel: &str, error: &str) -> String {
     format!("Couldn't check for updates ({error}). You may be offline, or no {channel} release has been published yet.")
 }
 
@@ -102,7 +94,7 @@ async fn do_check(app: &AppHandle) -> Result<Value, String> {
         Ok(None) => json!({ "available": false, "current": env!("CARGO_PKG_VERSION"), "channel": channel }),
         Err(e) => {
             crate::debug::log(format!("update check ({channel}) failed: {e}"));
-            return Err(check_failed_text(platform::name(), &channel, &e.to_string()));
+            return Err(check_failed_text(&channel, &e.to_string()));
         }
     };
     crate::debug::log(format!(
@@ -272,7 +264,9 @@ pub async fn install_update(app: AppHandle, version: String) -> Result<(), Strin
             crate::debug::log(format!("update failed: {e}"));
             format!("Update failed: {e}")
         })?;
-    app.restart();
+    // macOS: Tauri's own restart would leave the app closed (the single-instance guard sends the new copy away)
+    crate::platform::restart_app(&app);
+    Ok(())
 }
 
 // ---------------------------------------------------------------- "What's new"
@@ -371,18 +365,8 @@ mod tests {
     }
 
     #[test]
-    fn a_failed_check_on_a_mac_points_to_the_releases_page() {
-        let text = check_failed_text("macos", "latest", "None of the fallback platforms were found");
-        assert!(text.contains("Releases page"));
-        assert!(
-            !text.contains("fallback platforms"),
-            "no confusing technical error for a Mac user"
-        );
-    }
-
-    #[test]
-    fn a_failed_check_elsewhere_keeps_the_usual_words() {
-        let text = check_failed_text("windows", "stable", "timed out");
+    fn a_failed_check_says_why_on_every_system() {
+        let text = check_failed_text("stable", "timed out");
         assert!(text.contains("timed out") && text.contains("no stable release"));
     }
 

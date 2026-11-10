@@ -102,7 +102,9 @@ Only things you chose, plus two recovery files (below), in the app's data folder
 Windows (and the web view's normal cache in `%LOCALAPPDATA%`), `~/Library/Application Support/com.keyoverlay.app` on a Mac,
 `~/.local/share/com.keyoverlay.app` on Linux:
 
-- `settings.json` (+ `settings.json.bak`, the previous copy): your style, layout choices, hidden keys, custom labels, port, preferences
+- `settings.json` (+ `settings.json.bak`, the previous copy): your style, layout choices, hidden keys, custom labels, port, preferences,
+  and two things the app keeps for itself: the tray menu's words in your language, and the version number that last
+  captured a key (so a Mac can offer to renew its keyboard permission after an update). Never which key
 - from v1.4.0: `settings.vN.json`, a copy kept if the settings were written by a newer version of the app (you went back
   a version). When you go forward to that version again, its settings are put back and the copy is deleted. This works
   between versions from v1.4.0 on; going back to v1.3.0 or earlier still loses the newer settings
@@ -131,7 +133,7 @@ Exactly three things, all with GitHub (`github.com`, `api.github.com`, and GitHu
    Runs when you click *Check now*, and — if you leave *Check automatically* on — 45 seconds after the app
    starts, then about once an hour while it runs (and when the settings window opens). The setting is on by default;
    turn it off and the app **never** checks by itself. A Linux copy installed from the .deb never checks at all (it can't
-   update itself); a Mac checks but finds no Mac entry, so it points you to the Releases page.
+   update itself).
 2. **Update download** — only after you click *Update now*. The download is verified against a signing key built into
    the app; a file that does not match is rejected and never run.
 3. **Release notes** — the "What's new" window / *Release notes* fetches the notes for one version from

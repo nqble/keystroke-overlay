@@ -189,6 +189,21 @@ mod load_and_save_tests {
     }
 
     #[test]
+    fn the_version_that_proved_capture_is_kept_and_junk_is_cleared() {
+        let proven = |value: Value| {
+            migrate(json!({ "general": { "keyboardProvenVersion": value } }))["general"]["keyboardProvenVersion"]
+                .clone()
+        };
+        assert_eq!(proven(json!("2.1.0")), json!("2.1.0"));
+        assert_eq!(
+            proven(json!("a key: W")),
+            json!(""),
+            "only a version number, nothing else"
+        );
+        assert_eq!(migrate(json!({}))["general"]["keyboardProvenVersion"], json!(""));
+    }
+
+    #[test]
     fn saved_tray_words_survive_loading_cleaned() {
         let raw = json!({ "general": { "trayWords": { "quit": "Beenden", "open": "", "nope": "x" } } });
         assert_eq!(migrate(raw)["general"]["trayWords"], json!({ "quit": "Beenden" }));

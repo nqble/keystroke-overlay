@@ -323,6 +323,7 @@ const RESET_WHEN_INVALID: &[&str] = &["general.port"];
 const TEXT_RULES: &[(&str, TextRule)] = &[
     ("style.fontFamily", is_font_name),
     ("general.lastSeenVersion", is_version),
+    ("general.keyboardProvenVersion", is_version),
     ("layout.id", is_id),
     ("general.updateChannel", |text| text == "stable" || text == "latest"),
     ("general.inputMethod", |text| text == "hook" || text == "rawinput"),

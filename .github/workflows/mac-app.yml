@@ -1,7 +1,8 @@
 name: Mac app
 
 # Builds the Mac app (Apple Silicon): "Keystroke Overlay.app" and the third-party notices, zipped as
-# Keystroke-Overlay_<version>_macOS-arm64.zip and handed on as the workflow artifact "mac-app". It is not signed or
+# Keystroke-Overlay_<version>_macOS-arm64.zip, and the same app packed for the in-app updater as
+# Keystroke-Overlay_<version>_macOS-arm64.app.tar.gz, both handed on as the workflow artifact "mac-app". It is not signed or
 # notarized by Apple (docs/MAC-PORT.md, docs/RELEASING.md, Mac download); the build only signs it ad hoc, which Apple
 # Silicon needs to run it at all.
 #
@@ -38,7 +39,8 @@ jobs:
           cargo install cargo-about --version 0.9.2 --locked --features cli
           node tools/notices.mjs --target aarch64-apple-darwin --out build/THIRD-PARTY-NOTICES.html
 
-      # The update signing key is not given to this job: Mac updates are not installed by the app yet.
+      # The update signing key is not given to this job: release.yml's mac-publish signs the update file afterwards, in a
+      # step of its own, as it does for the Linux AppImage. The build's own updater files are off for the same reason.
       - name: Build the app
         run: npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
@@ -60,9 +62,19 @@ jobs:
           ditto -c -k --sequesterRsrc stage "Keystroke-Overlay_${VERSION}_macOS-arm64.zip"
           ls -l Keystroke-Overlay_*_macOS-arm64.zip
 
+      # What the in-app updater downloads on a Mac: the whole app in a .tar.gz, which it unpacks in place of the old one
+      # (Tauri's updater; signed later by release.yml, never here).
+      - name: Pack the app for the in-app updater
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          tar -czf "Keystroke-Overlay_${VERSION}_macOS-arm64.app.tar.gz" -C src-tauri/target/release/bundle/macos "Keystroke Overlay.app"
+          ls -l Keystroke-Overlay_*_macOS-arm64.app.tar.gz
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mac-app
-          path: Keystroke-Overlay_*_macOS-arm64.zip
+          path: |
+            Keystroke-Overlay_*_macOS-arm64.zip
+            Keystroke-Overlay_*_macOS-arm64.app.tar.gz
           if-no-files-found: error
           retention-days: 14
