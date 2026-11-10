@@ -57,9 +57,12 @@ then Restart now; `ui/settings/keyboard-access.js`) until capture really works. 
   another version did (`general.keyboardProvenVersion`, a version number only), the notice says **Renew keyboard
   access** (`renew_keyboard_access`, `platform::reset_keyboard_permission`). If the app isn't in the list after the reset, the **+** button and the app's folder
   add it. Switching the old entry off and on, or removing it, did not help. The user guide gives these steps.
-  Ways around it, none used: a signing certificate that stays the same between builds (a self-signed one kept in CI,
-  or Apple's paid Developer ID), or a signature rule that matches the identifier alone, which would let any program with
-  the same identifier inherit the keyboard permission: a real weakening for this app.
+  The way around it, used for releases from the one after v2.1 ([0017](decisions/0017-macs-update-in-the-app.md)): a
+  signing certificate that stays the same between builds, a self-made one kept as a release secret (`mac-sign` in
+  `release.yml`; how to make it: docs/RELEASING.md). The permission rule then names the certificate, not the build.
+  Not used: Apple's paid Developer ID, and a rule that matches the identifier alone, which would let any program with the
+  same identifier inherit the keyboard permission: a real weakening for this app. Builds from CI and from source stay
+  signed ad hoc.
 
 ## Releases and updates
 
