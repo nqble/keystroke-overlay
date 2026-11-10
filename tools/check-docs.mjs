@@ -92,7 +92,10 @@ const APP_TEXT = ['ui/settings/index.html', 'src-tauri/src/tray.rs'];
 const appScripts = (dir) =>
   readdirSync(dir, { recursive: true })
     .map((name) => join(dir, name).split(sep).join('/'))
-    .filter((path) => path.endsWith('.js') && !path.includes('/vendor/'));
+    // the wording rules are English ones ("write -ize"), so they skip the other languages' files: the French "initialiser"
+    // and "centre" are not mistakes (ui/settings/locales/en.js is still checked)
+    .filter((path) => path.endsWith('.js') && !path.includes('/vendor/') && !OTHER_LANGUAGE.test(path));
+const OTHER_LANGUAGE = /^ui\/settings\/locales\/(?!en\.js$)/;
 const NOT_WORDED = new Set(['CHANGELOG.md', 'docs/DOCS-STYLE.md']);
 const worded = [
   ...files.filter((file) => !NOT_WORDED.has(file) && !file.startsWith(COPIED_SKILLS)),
