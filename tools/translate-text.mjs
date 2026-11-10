@@ -146,3 +146,73 @@ export function termsIn(/** @type {string[]} */ texts, /** @type {Map<string, st
   }
   return used;
 }
+
+/** What every text is part of, sent with each request so a service picks the right sense of a short word. */
+export const APP_CONTEXT =
+  'Keystroke Overlay is a desktop app that shows the keyboard keys and mouse buttons a person presses as an overlay in ' +
+  'OBS, for live streams. The text is from its settings window; "keys" are keyboard keys, "pause" pauses the overlay.';
+
+/**
+ * Each group's comment in en.js (the lines of `// …` just above `  group: {`), by group: it says where the texts are
+ * shown ("the tray menu", "the Keys tab"), which is the context a service needs.
+ * @param {string} source the text of ui/settings/locales/en.js
+ */
+export function groupContexts(source) {
+  const contexts = new Map();
+  let comment = [];
+  for (const line of source.split(/\r?\n/)) {
+    const commentLine = line.match(/^ {2}\/\/ ?(.*)$/);
+    const group = line.match(/^ {2}(\w+): \{$/);
+    if (commentLine) comment.push(commentLine[1]);
+    else if (group && comment.length) contexts.set(group[1], withoutFileNames(comment.join(' ')));
+    if (!commentLine) comment = [];
+  }
+  return contexts;
+}
+
+/**
+ * Each text's own note for translators in en.js: a comment at the end of its line that starts with `means:`
+ * (`    pan: 'pan', // means: moving the view`), by id (`keys.pan`). Other comments are for developers and stay out.
+ * Short words that could mean two things ("pan", "Port", "Show") carry one, so the service picks the right sense. Only
+ * texts directly in a group are read.
+ * @param {string} source the text of ui/settings/locales/en.js
+ */
+export function textNotes(source) {
+  const notes = new Map();
+  let group = '';
+  for (const line of source.split(/\r?\n/)) {
+    const groupStart = line.match(/^ {2}(\w+): \{$/);
+    if (groupStart) group = groupStart[1];
+    const text = line.match(/^ {4}(\w+): (?:'[^']*'|"[^"]*"),\s*\/\/ means: (.+)$/);
+    if (group && text) notes.set(`${group}.${text[1]}`, text[2].trim());
+  }
+  return notes;
+}
+
+/** A comment without the file names and paths it gives for developers ("the Keys tab: keys.js (ui/settings/tabs/)"). */
+function withoutFileNames(/** @type {string} */ comment) {
+  const noPaths = comment.replace(/\s*\((?:ui|src-tauri|tools|docs)\/[^)]*\)/g, '');
+  return noPaths.replace(/:?\s*\b[\w-]+\.(?:js|rs|mjs|md)\b/g, '').trim();
+}
+
+/**
+ * The context sent with a text: what the app is, where in it the text is shown, and the text's own note if it has one.
+ * @param {string} id @param {Map<string, string>} contexts @param {Map<string, string>} [notes]
+ */
+export function contextFor(id, contexts, notes = new Map()) {
+  const where = contexts.get(id.split('.')[0]);
+  const shownIn = where ? ` This text is shown in: ${where}.` : '';
+  const note = notes.get(id);
+  const means = note ? ` This text means: ${note}.` : '';
+  return `${APP_CONTEXT}${shownIn}${means}`;
+}
+
+/** The ids by their top-level group, in order, so each request carries one group's context. */
+export function byGroup(/** @type {string[]} */ ids) {
+  const groups = new Map();
+  for (const id of ids) {
+    const group = id.split('.')[0];
+    groups.set(group, [...(groups.get(group) ?? []), id]);
+  }
+  return groups;
+}

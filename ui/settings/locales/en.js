@@ -88,7 +88,7 @@ export default {
       rawinput: 'Compatibility = Raw Input (RIDEV_INPUTSINK, message-only window)',
     },
     inputChanged: 'Keyboard input: {name}',
-    startup: 'Startup',
+    startup: 'Startup', // means: starting the app when the computer starts
     openOnLaunch: 'Open this window on launch',
     advanced: 'Advanced',
     debugMode: 'Debug mode (for developers)',
@@ -105,9 +105,9 @@ export default {
   generalConnection: {
     title: 'Connection',
     link: 'OBS URL',
-    copy: 'Copy',
-    port: 'Port',
-    apply: 'Apply',
+    copy: 'Copy', // means: a button: copy the OBS URL to the clipboard
+    port: 'Port', // means: the network port number the app's local server uses
+    apply: 'Apply', // means: a button: use the port number just typed
     portChanged: 'Port changed: copy the OBS URL into OBS again.',
     secure: 'Secure my OBS URL',
     copySecure: 'Copy secure link',
@@ -205,28 +205,28 @@ export default {
     styleGrid: 'Even grid',
     or: 'or', // between two key caps in the hint line
     nudgeTip: 'Arrow keys move the selected keys a quarter key',
-    nudge: 'nudge',
-    shiftChip: 'Shift',
+    nudge: 'nudge', // means: move the selected keys a little with the arrow keys
+    shiftChip: 'Shift', // means: the Shift key on the keyboard
     wholeKeyTip: 'Shift + arrow moves a whole key',
-    wholeKey: 'whole key',
-    hide: 'hide',
-    zoom: 'zoom',
-    pan: 'pan',
+    wholeKey: 'whole key', // means: move by a whole keyboard key
+    hide: 'hide', // means: make the selected keyboard keys invisible
+    zoom: 'zoom', // means: make the keyboard picture bigger or smaller
+    pan: 'pan', // means: one word, to pan (move the view, as on a map)
   },
 
   // the Keys tab's toolbar: keys-toolbar.js (ui/settings/tabs/)
   keysToolbar: {
-    history: 'History',
+    history: 'History', // means: undo and redo
     view: 'View',
-    tidy: 'Tidy',
+    tidy: 'Tidy', // means: tidy up the keys
     undo: 'Undo',
     redo: 'Redo',
     nothingToUndo: 'Nothing to undo',
     nothingToRedo: 'Nothing to redo',
-    snap: 'Snap',
-    grid: 'Grid',
-    hiddenKeys: 'Hidden keys',
-    closeGaps: 'Close gaps',
+    snap: 'Snap', // means: keys snap into place when dragged
+    grid: 'Grid', // means: dots of a grid behind the keys
+    hiddenKeys: 'Hidden keys', // means: the keyboard keys that are hidden
+    closeGaps: 'Close gaps', // means: close the empty spaces between keys
     reset: 'Reset',
     putSelectedBack: 'Put selected keys back',
     putAllBack: 'Put all keys back',
@@ -243,7 +243,7 @@ export default {
   // the Keys tab's inspector: keys-inspector.js (ui/settings/tabs/)
   keysInspector: {
     panel: 'Selected keys',
-    show: 'Show',
+    show: 'Show', // means: a checkbox: show this keyboard key
     keyTitle: 'Key: {code}',
     blankKey: 'Blank key',
     cantLightUp: "can't light up",
@@ -313,7 +313,7 @@ export default {
     rename: 'Rename…',
     moveLeft: 'Move left',
     moveRight: 'Move right',
-    hide: 'Hide',
+    hide: 'Hide', // means: a button: hide this layout from the list
     remove: 'Delete…',
   },
 
@@ -559,8 +559,8 @@ export default {
   // the tab bar (tabs/index.js); the Debug tab keeps its English name
   tabs: {
     barName: 'Settings sections', // what a screen reader calls the tab bar
-    layout: 'Layout',
-    keys: 'Keys',
+    layout: 'Layout', // means: a tab: choose the keyboard layout
+    keys: 'Keys', // means: a tab: edit the keys of the keyboard picture
     style: 'Style',
     animation: 'Animation',
     general: 'General',
@@ -603,16 +603,16 @@ export default {
   // the tray menu (the menu bar menu on a Mac), built by the app: sent there after the window starts and saved, so the
   // tray uses them from the next launch on (src-tauri/src/tray_words.rs; its English must match these)
   appMenu: {
-    open: 'Open settings',
-    copy: 'Copy OBS URL',
-    pause: 'Pause overlay',
-    show: 'Show',
+    open: 'Open settings', // means: a menu item: open the settings window
+    copy: 'Copy OBS URL', // means: a menu item: copy the OBS URL to the clipboard
+    pause: 'Pause overlay', // means: a menu item: pause the overlay
+    show: 'Show', // means: a submenu: which devices the overlay shows
     keyboard: 'Keyboard',
     mouse: 'Mouse',
     controller: 'Controller',
-    layout: 'Layout',
-    restart: 'Restart server',
-    quit: 'Quit',
+    layout: 'Layout', // means: a submenu: choose the keyboard layout
+    restart: 'Restart server', // means: a menu item: restart the app's local server
+    quit: 'Quit', // means: a menu item: quit the app
     update: 'Update available',
   },
 
