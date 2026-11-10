@@ -413,7 +413,7 @@ export default {
       'Did you switch Keystroke Overlay on in Input Monitoring? Restart it once so macOS starts sending it your keys.',
     restartButton: 'Restart now',
     renew:
-      'After an update, macOS needs Keystroke Overlay’s keyboard access again. Renew it, switch the app on in Input Monitoring, then restart.',
+      'Keys not showing since the update? macOS may need Keystroke Overlay’s keyboard access again. Renew it, switch the app on in Input Monitoring, then restart.',
     renewButton: 'Renew keyboard access',
     inputGroup:
       'On Wayland, the app needs the input group to read your keyboards. Run this command in a terminal, then log out and back in. Every program you run can then read the keyboards too (see PRIVACY.md).',

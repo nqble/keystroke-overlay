@@ -21,8 +21,8 @@ const TEXT = words('accessNotice');
  *   1. a key really arrived: capture works, so only the Secure Input hint can apply;
  *   2. the person pressed Allow: they have probably switched it on, and macOS only starts sending keys to an app after
  *      it restarts, so offer the restart;
- *   3. just updated, macOS says access is on, but no key has arrived: an ad-hoc signed app is a new program to macOS
- *      after an update, so the old permission must be renewed (docs/MAC-PORT.md); the app clears it and asks again;
+ *   3. just updated, macOS says access is on, but no key has arrived yet: the permission may have to be renewed (an
+ *      ad-hoc signed app is a new program to macOS after an update; docs/MAC-PORT.md); a key arriving clears it;
  *   3b. access not given: macOS has to be asked;
  *   4. access on but capture not working (it failed, or access was given after the app started): restart;
  *   5. capture running but macOS has Secure Input on: a hint, nothing to click.
