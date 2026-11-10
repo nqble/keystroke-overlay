@@ -317,6 +317,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
+    'accessNotice.renew': '97d52c17',
+    'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -897,6 +899,9 @@ export default {
     restartAfterAllow:
       '¿Has activado Keystroke Overlay en «Monitorización de entrada»? Reiníciala una vez para que macOS empiece a enviarte las pulsaciones de teclas.',
     restartButton: 'Reiniciar ahora',
+    renew:
+      '¿No se ven las teclas desde la actualización? Es posible que macOS necesite volver a conceder acceso al teclado a Keystroke Overlay. Renuévalo, activa la aplicación en «Monitorización de entrada» y, a continuación, reinicia el sistema.',
+    renewButton: 'Renovar el acceso al teclado',
     inputGroup:
       'En Wayland, la aplicación necesita el grupo de entrada para leer los teclados. Ejecuta este comando en un terminal y, a continuación, cierra sesión y vuelve a iniciarla. De este modo, todos los programas que ejecutes también podrán leer los teclados (véase PRIVACY.md).',
     inputGroupCopied:

@@ -305,6 +305,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
+    'accessNotice.renew': '97d52c17',
+    'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -520,7 +522,7 @@ export default {
     gapsClosed: '修正済み',
     noGapsToClose: '埋めるべき空白はありません',
     resetLayoutBody:
-      '位置、サイズ、非表示のキー、およびラベルの設定は、レイアウトファイルに保存されます。これらの設定は元に戻すことができます。',
+      '位置、サイズ、非表示のキー、およびラベルの設定は、レイアウトファイルに反映されます。この設定は元に戻すことができます。',
     groupInspectorTip: 'ドラッグしてまとめて移動するか、上部のバーを使って位置を揃えてください。',
     clickToDismiss: 'クリックして閉じる',
     clickAgain: 'もう一度クリックして確定してください',
@@ -535,7 +537,7 @@ export default {
     secureLinkOn:
       '**有効時：** OBSの完全なURLを持つプログラムのみが、ユーザーのキー入力を読み取ることができます。**新しいOBS URLを一度OBSにコピーしてください**。古いURLは機能しなくなります。ストリームには表示しないでください。**新しいキーを作成すると**、古いURLを持っているユーザーはすべて遮断されます。',
     debugModeHelp: '問題の特定に役立つ「デバッグ」タブが追加されました。データは保存も送信もされません。',
-    updateChannelHelp: '安定版をお勧めします。最新版には、あらゆる小さな修正も含まれています。',
+    updateChannelHelp: '「Stable」版をお勧めします。「Latest」版でも、あらゆる小さな修正が反映されています。',
     updatesNote:
       'GitHubで新しいバージョンがあるかどうかのみを確認します。クリックするまでは何もインストールされません。',
   },
@@ -590,10 +592,10 @@ export default {
     newKey: '新しいキーを作成する',
     secureOn: 'セキュアリンク：新しいOBS URLをコピーしてOBSに貼り付けてください。',
     secureOff: 'セキュアリンクはオフです。',
-    newKeyMade: '新しいキーの作成：新しいOBS URLをOBSにコピーします。',
+    newKeyMade: '新しいキーを作成：新しいOBS URLをOBSにコピーします。',
     firstRun: '初回起動時の設定',
     serverDetail: '127.0.0.1上のローカルサーバー：{port}',
-    keyDetail: '128ビットキー。/api、/ws、/fonts、および/userに対して定数時間でチェックされます。',
+    keyDetail: '128ビットの鍵で、/api、/ws、/fonts、および/userに対して定数時間で検証されます。',
   },
   generalHotkey: {
     title: '一時停止のショートカット',
@@ -642,14 +644,14 @@ export default {
   generalLanguage: { label: '言語', sameAsComputer: 'このコンピュータと同じ' },
   generalAppearance: {
     title: '外観',
-    help: 'このウィンドウの外観です。OBS内のオーバーレイ自体は変更されません（オーバーレイの設定は「スタイル」タブで行います）。',
+    help: 'このウィンドウの外観です。OBS内のオーバーレイ自体は変更されません（オーバーレイの変更は「スタイル」タブで行います）。',
     keycaps: 'キーキャップ',
     add: '+ 新しいテーマ',
     addTip: '現在使用しているテーマを基に、その色を変更してください',
     import: 'インポート…',
     imported: 'インポートされた「{name}」',
     limit:
-      '現在、{max}個のテーマを所有しており、これが許可されている最大数です。別のテーマを追加するには、既存のテーマを1つ削除してください。',
+      '現在、{max}個のテーマを所有しています。これは許可されている最大数です。テーマを1つ削除すると、別のテーマを追加できます。',
     more: '{name}に関する詳細',
     edit: '編集',
     export: 'エクスポート…',
@@ -657,7 +659,7 @@ export default {
     delete: '削除…',
     deleteTitle: '「{name}」を削除しますか？',
     deleteBody:
-      'このテーマはこのコンピュータから削除されました。エクスポートしたコピーは、保存した場所にそのまま残ります。',
+      'このテーマはこのコンピュータから削除されました。エクスポートされたコピーは、保存した場所にそのまま残ります。',
     deleteConfirm: 'テーマを削除',
   },
   keys: {
@@ -666,7 +668,7 @@ export default {
     styleShape: 'キーボードの形状',
     styleGrid: 'グリッド均等',
     or: 'または',
-    nudgeTip: '矢印キーは、選択されたキーを1/4キー分移動させます。',
+    nudgeTip: '矢印キーを押すと、選択されたキーが1/4キー分移動します。',
     nudge: '微調整',
     shiftChip: 'Shift',
     wholeKeyTip: 'Shift キーと矢印キーを同時に押すと、キー全体が移動します',
@@ -731,7 +733,7 @@ export default {
       middle: { label: '中央', tip: '中央揃え（水平）' },
       bottom: { label: '下部', tip: '下端を揃える' },
       across: { label: '全体に', tip: '均等な間隔、左から右へ' },
-      down: { label: '下', tip: '上下方向に等間隔' },
+      down: { label: '下へ', tip: '上下方向に等間隔' },
     },
     resetZoom: 'ズームをリセット',
     zoomOut: '縮小表示',
@@ -810,12 +812,12 @@ export default {
   controls: {
     labels: {
       keyFill: '塗りつぶし（アイドル時）',
-      keyFillPressed: 'フィル（押下中）',
+      keyFillPressed: 'フィル（押下時）',
       borderColor: 'ボーダー（アイドル時）',
       borderColorPressed: '境界線（押下時）',
       glowColor: 'グローの色',
       borderWidth: '枠線の太さ',
-      radius: '角の半径',
+      radius: '角の丸み',
       glowSize: 'グローサイズ',
       fontFamily: 'フォントファミリー',
       keyLabels: 'キーラベル',
@@ -848,8 +850,11 @@ export default {
     restartAfterAllow:
       '「入力モニタリング」で Keystroke Overlay を有効にしましたか？macOS がキー入力を送信し始めるよう、一度再起動してください。',
     restartButton: '今すぐ再起動',
+    renew:
+      'アップデート後にキーが表示されなくなりましたか？ macOSでは、Keystroke Overlayのキーボードアクセスを再度許可する必要がある可能性があります。許可を更新し、「入力モニタリング」でアプリを有効にしてから、再起動してください。',
+    renewButton: 'キーボードアクセスの更新',
     inputGroup:
-      'Wayland環境では、このアプリがキーボード入力を読み取るために入力グループが必要です。ターミナルで以下のコマンドを実行し、ログアウトしてから再度ログインしてください。そうすれば、実行するすべてのプログラムでもキーボード入力を読み取れるようになります（PRIVACY.mdを参照）。',
+      'Wayland環境では、このアプリがキーボード入力を読み取るために入力グループが必要です。ターミナルで以下のコマンドを実行し、ログアウトしてから再度ログインしてください。そうすれば、実行するすべてのプログラムがキーボード入力を読み取れるようになります（PRIVACY.mdを参照）。',
     inputGroupCopied:
       'コピーしました。ターミナルに貼り付けて実行し、ログアウトしてから再度ログインしてください。その後、Keystroke Overlayはキー入力を認識するようになります。',
     copyCommand: 'コマンドをコピーする',
@@ -871,7 +876,7 @@ export default {
     pauseShortcut: '一時停止のショートカット…',
     waiting: 'OBSを待機中…',
     allSet:
-      '✓ これで準備は完了です。OBSとの接続が確立されました。プライベートな内容を入力する前に、プレビュー画面の右上にある「一時停止」ボタンを押すことを忘れないでください。',
+      '✓ これで準備は完了です。OBSが接続されました。プライベートな内容を入力する前に、プレビュー画面の右上にある「一時停止」ボタンを押すことを忘れないでください。',
   },
   kleImport: {
     chooseFile: 'ファイルを選択…',
@@ -911,7 +916,7 @@ export default {
   nohboardLayout: { defaultName: 'NohBoard キーボード' },
   obsScenes: {
     title: 'OBSのシーン',
-    intro: 'リストに表示されていないシーンでは、選択したレイアウトが表示されます。',
+    intro: 'リストに表示されていないシーンには、選択したレイアウトが表示されます。',
     sceneHeading: 'シーン',
     choiceHeading: 'このシーンでは',
     placeholder: 'OBSの表記に従うと',
@@ -932,7 +937,7 @@ export default {
     live: '● OBSでのライブ配信',
     paused: '⏸ 一時停止中',
     pausedNoObs: '⏸ 一時停止中 · OBSに接続されていません',
-    noObs: '○ OBSに接続されていない場合',
+    noObs: '○ OBSに接続されていません',
     linkChanged: 'OBSのURLが変更されました：再度コピーしてください',
     serverProblem: '⚠ ポートが使用中です',
   },
@@ -1019,7 +1024,7 @@ export default {
   systemWords: {
     fontGroup: { windows: 'Windowsのフォント', macos: 'Macのフォント' },
     systemFont: { macos: 'システムフォント（デフォルト）' },
-    autostart: { windows: 'Windowsから始める', macos: 'ログイン時に起動', linux: 'ログイン時に起動' },
+    autostart: { windows: 'Windowsで起動', macos: 'ログイン時に起動', linux: 'ログイン時に起動' },
     minimize: { windows: 'トレイに最小化', linux: 'トレイに最小化' },
     trayName: { windows: 'トレイ', macos: 'メニューバー', linux: 'トレイ' },
     modifiers: { windows: 'Ctrl、Alt、または Win', macos: '⌘、⌥、または⌃', linux: 'Ctrl、Alt、または Super' },

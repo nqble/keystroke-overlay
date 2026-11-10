@@ -317,6 +317,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
+    'accessNotice.renew': '97d52c17',
+    'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -891,6 +893,9 @@ export default {
     restartAfterAllow:
       'Você ativou o Keystroke Overlay no Monitoramento de Entrada? Reinicie o aplicativo uma vez para que o macOS comece a enviar as teclas digitadas para ele.',
     restartButton: 'Reiniciar agora',
+    renew:
+      'As teclas não estão aparecendo desde a atualização? O macOS pode precisar do acesso ao teclado do Keystroke Overlay novamente. Renove-o, ative o aplicativo em “Monitoramento de Entrada” e, em seguida, reinicie.',
+    renewButton: 'Atualizar acesso pelo teclado',
     inputGroup:
       'No Wayland, o aplicativo precisa do grupo de entrada para ler seus teclados. Execute este comando em um terminal e, em seguida, faça logout e login novamente. Todos os programas que você executar poderão então ler os teclados também (consulte PRIVACY.md).',
     inputGroupCopied:

@@ -317,6 +317,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
+    'accessNotice.renew': '97d52c17',
+    'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -557,7 +559,7 @@ export default {
     secureLinkOff:
       "**Désactivé (par défaut) :** tout programme installé sur cet ordinateur peut lire vos frappes via l'URL d'OBS. Activez cette option si vous partagez votre ordinateur.",
     secureLinkOn:
-      "**Activé :** seuls les programmes disposant de l'URL OBS complète peuvent lire vos frappes. **Copiez une seule fois la nouvelle URL OBS dans OBS** ; l'ancienne cessera de fonctionner. Ne la diffusez pas dans votre stream. **Créer une nouvelle clé** empêche toute personne disposant de l'ancienne clé d'accéder à l'application.",
+      "**Activé :** seuls les programmes disposant de l'URL OBS complète peuvent lire vos frappes. **Copiez une seule fois la nouvelle URL OBS dans OBS** ; l'ancienne cessera de fonctionner. Ne la diffusez pas dans votre stream. **Créer une nouvelle clé** empêche toute personne disposant de l'ancienne clé d'accéder à la superposition.",
     debugModeHelp:
       "Ajoute un onglet « Debug » pour identifier les problèmes. Aucune donnée n'est enregistrée ni envoyée.",
     updateChannelHelp:
@@ -592,12 +594,12 @@ export default {
     adminNote:
       "Si un jeu s'exécute en tant qu'administrateur, lancez également Keystroke Overlay en tant qu'administrateur.",
     inputDetail: { rawinput: 'Compatibilité = Entrée brute (RIDEV_INPUTSINK, fenêtre « message-only »)' },
-    inputChanged: 'Commande clavier : {name}',
+    inputChanged: 'Saisie au clavier : {name}',
     startup: 'Démarrage',
     openOnLaunch: 'Ouvrir cette fenêtre au démarrage',
     advanced: 'Avancé',
     debugMode: 'Mode débogage (pour les développeurs)',
-    devLook: 'Aspect de la version Devbuild : conserver le logo violet',
+    devLook: 'Apparence de la version Devbuild : conserver le logo violet',
     devLookNote: 'Désactivez cette option pour afficher le logo aux couleurs du thème. Le badge « DEV » reste visible.',
     restart: 'Redémarrer le serveur',
     restarted: 'Redémarrage du serveur',
@@ -705,7 +707,7 @@ export default {
     wholeKey: 'touche entière',
     hide: 'masquer',
     zoom: 'zoom',
-    pan: 'panoramique',
+    pan: 'pan',
   },
   keysToolbar: {
     history: 'Historique',
@@ -760,7 +762,7 @@ export default {
     clearSelection: 'Effacer la sélection',
   },
   editor: {
-    boardName: 'Configuration du clavier {name}',
+    boardName: 'Disposition du clavier {name}',
     arrangeName: 'Organiser les touches sélectionnées',
     needMore: "Sélectionnez d'abord au moins {count} touches",
     arrange: {
@@ -899,6 +901,9 @@ export default {
     restartAfterAllow:
       'Avez-vous activé Keystroke Overlay dans « Surveillance des entrées » ? Redémarrez-le une fois pour que macOS commence à lui transmettre vos frappes.',
     restartButton: 'Redémarrer maintenant',
+    renew:
+      "Les touches ne s'affichent plus depuis la mise à jour ? Il se peut que macOS ait besoin de réactiver l'accès au clavier de Keystroke Overlay. Renouvelez-le, activez l'application dans « Surveillance des entrées », puis redémarrez.",
+    renewButton: "Actualiser l'accès au clavier",
     inputGroup:
       'Sous Wayland, l’application a besoin du groupe d’entrée pour lire vos claviers. Exécutez cette commande dans un terminal, puis déconnectez-vous et reconnectez-vous. Tous les programmes que vous lancerez pourront alors également lire les claviers (voir PRIVACY.md).',
     inputGroupCopied:
@@ -1023,7 +1028,7 @@ export default {
     saved: 'Enregistré « {name} »',
     needsName: 'Commencez par donner un nom au thème',
     contrast: {
-      textOnWindow: 'le texte de la fenêtre',
+      textOnWindow: 'texte affiché dans la fenêtre',
       textOnPanels: 'texte sur les panneaux',
       dimOnWindow: 'texte en gris sur la fenêtre',
       dimOnPanels: 'texte en gris sur les panneaux',
@@ -1085,7 +1090,7 @@ export default {
   systemWords: {
     fontGroup: { windows: 'Polices Windows', macos: 'Polices Mac' },
     systemFont: { macos: 'Police système (par défaut)' },
-    autostart: { windows: 'Commençons par Windows', macos: 'Ouvrir à la connexion', linux: 'Démarrer à la connexion' },
+    autostart: { windows: 'Démarrer avec Windows', macos: 'Ouvrir à la connexion', linux: 'Démarrer à la connexion' },
     minimize: { windows: 'Réduire dans la barre d’état', linux: 'Réduire dans la barre d’état' },
     trayName: { windows: "barre d'état", macos: 'barre de menu', linux: "barre d'état" },
     modifiers: { windows: 'Ctrl, Alt ou Win', macos: '⌘, ⌥ ou ⌃', linux: 'Ctrl, Alt ou Super' },

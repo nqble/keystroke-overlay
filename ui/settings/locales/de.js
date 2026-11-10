@@ -311,6 +311,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
+    'accessNotice.renew': '97d52c17',
+    'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -534,7 +536,7 @@ export default {
     resetLayoutBody:
       'Positionen, Größen, ausgeblendete Tasten und Beschriftungen werden in der Layout-Datei festgelegt. Sie können diese Änderung rückgängig machen.',
     groupInspectorTip:
-      'Ziehen Sie sie, um sie zusammen zu verschieben, oder verwenden Sie die Leiste oben, um sie auszurichten.',
+      'Ziehen Sie sie, um sie zusammenzuverschieben, oder verwenden Sie die Leiste oben, um sie auszurichten.',
     clickToDismiss: 'Zum Schließen anklicken',
     clickAgain: 'Klicken Sie erneut, um zu bestätigen',
     snapHelp: 'Die Tasten richten sich an Vierteltasten und an den Rändern anderer Tasten aus.',
@@ -552,13 +554,13 @@ export default {
     updateChannelHelp:
       'Die stabile Version wird empfohlen. Die neueste Version enthält zudem alle kleinen Fehlerbehebungen.',
     updatesNote:
-      'Es wird ausschließlich GitHub auf neue Versionen überprüft. Es wird nichts installiert, bis Sie darauf klicken.',
+      'Es wird ausschließlich auf GitHub nach neuen Versionen gesucht. Es wird nichts installiert, bis Sie darauf klicken.',
   },
   header: { statusTip: 'OBS-URL-Einstellungen', copy: 'OBS-URL kopieren', update: 'Bereit für das Update' },
   messages: {
     downloading: 'Wird heruntergeladen… {done}',
     downloadingOf: 'Wird heruntergeladen… {done} von {total} ({percent} %)',
-    installing: 'Installation läuft … Die App wird neu gestartet.',
+    installing: 'Wird installiert … Die App wird neu gestartet.',
   },
   pauseButton: {
     pauseWord: 'Pause',
@@ -604,7 +606,7 @@ export default {
     portChanged: 'Port geändert: Kopieren Sie die OBS-URL erneut in OBS.',
     secure: 'Meine OBS-URL sichern',
     copySecure: 'Sicheren Link kopieren',
-    newKey: 'Eine neue Taste erstellen',
+    newKey: 'Neue Taste erstellen',
     secureOn: 'Sicherer Link unter: Kopieren Sie die neue OBS-URL in OBS.',
     secureOff: 'Sicherer Link deaktiviert.',
     newKeyMade: 'Neue Taste erstellt: Kopieren Sie die neue OBS-URL in OBS.',
@@ -619,7 +621,7 @@ export default {
     none: 'Noch kein Tastenkürzel',
     choose: 'Tastenkombination auswählen',
     listening: 'Drücken Sie die Tasten… (Esc zum Abbrechen)',
-    needsModifier: 'Fügen Sie {modifiers} zu dieser Taste hinzu.',
+    needsModifier: 'Fügen Sie dieser Taste {modifiers} hinzu.',
     clear: 'Löschen',
     saved: 'Tastenkombination zum Anhalten: {name}',
     openTitle: 'Verknüpfung zum Öffnen der Einstellungen',
@@ -630,7 +632,7 @@ export default {
   generalMouse: {
     title: 'Maus',
     switch: 'Meine Maus anzeigen',
-    note: 'Zeigt Ihre Maustasten und das Mausrad in Layouts an, die eine Maus enthalten. Fügen Sie „WASD + Maus“ unter „Andere Layouts“ auf der Registerkarte „Layout“ hinzu. Die App erkennt zu keinem Zeitpunkt die Position Ihres Mauszeigers.',
+    note: 'Zeigt Ihre Maustasten und das Mausrad in Layouts an, die eine Maus enthalten. Fügen Sie „WASD + Maus“ über „Andere Layouts“ auf der Registerkarte „Layout“ hinzu. Die App erkennt zu keinem Zeitpunkt die Position Ihres Mauszeigers.',
   },
   generalObsScenes: {
     title: 'OBS-Szenen',
@@ -648,7 +650,7 @@ export default {
     latest: 'Aktuellste Version',
     auto: 'Automatisch aktivieren',
     check: 'Jetzt prüfen',
-    checking: 'Wird geprüft…',
+    checking: 'Wird überprüft…',
     install: 'Update installieren',
     manualInstall: 'GitHub-Installationsprogramm öffnen',
     upToDate: 'Aktuell (Version {version})',
@@ -867,8 +869,11 @@ export default {
     restartAfterAllow:
       'Hast du „Keystroke Overlay“ in der Eingabeüberwachung aktiviert? Starte die App einmal neu, damit macOS beginnt, deine Tastenanschläge an die App zu senden.',
     restartButton: 'Jetzt neu starten',
+    renew:
+      'Werden die Tasten seit dem Update nicht mehr angezeigt? Möglicherweise benötigt macOS erneut den Tastaturzugriff von Keystroke Overlay. Erneuern Sie diesen, aktivieren Sie die App unter „Input Monitoring“ und starten Sie den Computer anschließend neu.',
+    renewButton: 'Tastaturzugriff erneuern',
     inputGroup:
-      'Unter Wayland benötigt die App die Eingabegruppe, um Ihre Tastaturen lesen zu können. Führen Sie diesen Befehl in einem Terminal aus, melden Sie sich anschließend ab und wieder an. Danach kann jedes Programm, das Sie ausführen, ebenfalls die Tastaturen lesen (siehe PRIVACY.md).',
+      'Unter Wayland benötigt die App die Eingabegruppe, um Ihre Tastaturen lesen zu können. Führen Sie diesen Befehl in einem Terminal aus, melden Sie sich anschließend ab und wieder an. Jedes Programm, das Sie starten, kann dann ebenfalls die Tastaturen lesen (siehe PRIVACY.md).',
     inputGroupCopied:
       'Kopiert. Füge ihn in ein Terminal ein und führe ihn aus, melde dich dann ab und wieder an. Danach erkennt Keystroke Overlay deine Tastenanschläge.',
     copyCommand: 'Befehl kopieren',
@@ -912,7 +917,7 @@ export default {
       other: '{count} Tasten wurden weggelassen: Dekorationen und zusätzliche Layout-Optionen.',
     },
     leftOutNohBoard: {
-      one: 'Das Element {count} wurde weggelassen: die Mausgeschwindigkeitsanzeige und alles, was unlesbar ist.',
+      one: '{count} Element weggelassen: die Mausgeschwindigkeitsanzeige und alles, was unlesbar ist.',
       other: '{count} Ausgelassene Elemente: die Mausgeschwindigkeitsanzeige und alles, was unlesbar ist.',
     },
     mouse: {
@@ -975,7 +980,7 @@ export default {
       error: 'Fehler',
     },
     easyToRead: 'Gut lesbar',
-    hardToRead: 'Einige Textstellen sind schwer lesbar: {what}, {ratio} : 1',
+    hardToRead: 'Manche Textstellen sind schwer lesbar: {what}, {ratio} : 1',
     export: 'Exportieren…',
     exported: 'Design exportiert',
     cancel: 'Abbrechen',
@@ -1045,11 +1050,7 @@ export default {
   systemWords: {
     fontGroup: { windows: 'Windows-Schriftarten', macos: 'Mac-Schriftarten' },
     systemFont: { macos: 'Systemschriftart (Standard)' },
-    autostart: {
-      windows: 'Beginnen wir mit Windows',
-      macos: 'Bei der Anmeldung öffnen',
-      linux: 'Start bei der Anmeldung',
-    },
+    autostart: { windows: 'Start mit Windows', macos: 'Bei Anmeldung öffnen', linux: 'Beim Anmelden starten' },
     minimize: { windows: 'In den Infobereich minimieren', linux: 'In den Infobereich minimieren' },
     trayName: { windows: 'Tray', macos: 'Menüleiste', linux: 'Tray' },
     modifiers: { windows: 'Strg, Alt oder Win', macos: '⌘, ⌥ oder ⌃', linux: 'Strg, Alt oder Super' },
@@ -1071,10 +1072,9 @@ export default {
     },
     zoomChip: { windows: 'Scrollen', macos: 'Pinch', linux: 'Scrollen' },
     zoomTip: {
-      windows: 'Fahre mit der Maus über die Tastatur, um sie zu vergrößern',
-      macos:
-        'Zum Zoomen auf dem Trackpad zwei Finger zusammen- oder auseinanderziehen oder ⌘ gedrückt halten und scrollen',
-      linux: 'Fahre mit der Maus über die Tastatur, um sie zu vergrößern',
+      windows: 'Fahre mit der Maus über die Tastatur, um zu zoomen',
+      macos: 'Zum Zoomen auf dem Trackpad zwei Finger zusammenführen oder ⌘ gedrückt halten und scrollen',
+      linux: 'Fahre mit der Maus über die Tastatur, um zu zoomen',
     },
     panHints: {
       windows: {
@@ -1096,7 +1096,7 @@ export default {
         0: { chip: 'Leertaste + Ziehen', tip: 'Halte die Leertaste gedrückt und ziehe, um die Ansicht zu verschieben' },
         1: {
           chip: 'Mittlerer Drag',
-          tip: 'Ziehen Sie mit der mittleren Maustaste (dem Scrollrad), um die Ansicht zu verschieben.',
+          tip: 'Ziehen Sie mit der mittleren Maustaste (dem Scrollrad), um die Ansicht zu verschieben',
         },
       },
     },
