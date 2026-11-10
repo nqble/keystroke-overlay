@@ -15,6 +15,11 @@ const WORDS = words('preview');
 export const frame = $('#preview'); // the live preview: the real overlay page, shown in a frame
 frame.title = WORDS.frameName; // what a screen reader calls the frame (index.html has the English until this runs)
 
+/** @type {(value?: unknown) => void} */
+let previewIsReady = () => {};
+/** Resolves when the live preview page has loaded and said it is ready (the window waits for it before it is shown). */
+export const previewReady = new Promise((done) => (previewIsReady = done));
+
 export let saveTimer = 0;
 
 let previewHidden = false; // true while a tab hides the preview (the Keys tab); nothing is sent to it then
@@ -137,6 +142,7 @@ addEventListener('message', (messageEvent) => {
   if (messageEvent.source !== frame.contentWindow) return;
   const message = messageEvent.data || {};
   if (message.type === 'ready') {
+    previewIsReady();
     push();
     frame.contentWindow.postMessage({ type: 'getRegistry' }, '*');
   }
