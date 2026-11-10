@@ -8,10 +8,19 @@
 // The plan's target for a reused tab is under 50 ms.
 import { connect, check, finish, sleep } from '../lib/cdp.mjs';
 
-const TABS = ['layout', 'keys', 'style', 'animation', 'fonts', 'general'];
+// The tabs whose page is kept between visits; keys and general are always built, so they are only reported.
+const KEPT_TABS = ['layout', 'style', 'animation'];
 const ROUNDS = 9;
 const p = await connect();
 await sleep(3500); // let the first screen, the preview and the idle preloading finish
+// Every tab but Debug, read from the window's tab bar so the list can't go stale when a tab is added or removed
+const TABS = JSON.parse(
+  await p.ev(`
+    const ids = [...document.querySelectorAll('[data-test="tab"]')].map((tab) => tab.dataset.tab);
+    return JSON.stringify(ids.filter((id) => id !== 'debug'));
+  `),
+);
+check('the tab bar lists the tabs to time', TABS.length >= 5 && TABS.includes('general'), TABS.join(', '));
 
 const result = JSON.parse(
   await p.ev(`
@@ -56,7 +65,7 @@ for (const [id, t] of Object.entries(result)) {
 }
 for (const [id, t] of Object.entries(result)) {
   // the tabs that are kept must be fast when reused; keys and general are always built, so they are only reported
-  if (['layout', 'style', 'animation', 'fonts'].includes(id)) {
+  if (KEPT_TABS.includes(id)) {
     check(`${id}: a reused page is on screen in under 50 ms`, t.reusedPaint < 50, `${t.reusedPaint.toFixed(1)} ms`);
     check(
       `${id}: reusing is no slower than building`,
