@@ -147,8 +147,8 @@ export async function connect() {
 }
 
 /**
- * Move keyboard focus: 'app' (the settings window) or 'away' (Notepad). Resolves to true if that window really is in
- * front.
+ * Move keyboard focus: 'app' (the settings window) or 'away' (the window behind it, or the taskbar; focus.ps1).
+ * Resolves to true if the wanted state is really true.
  */
 export const focus = (to) =>
   new Promise((r) => {
@@ -163,10 +163,6 @@ export const focus = (to) =>
     ]);
     c.stdout.on('data', (d) => (out += d));
     c.on('exit', () => r(/True/.test(out)));
-  });
-export const closeNotepad = () =>
-  spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', join(LIB, 'unfocus-cleanup.ps1')], {
-    stdio: 'ignore',
   });
 
 /** Inject real key presses (scenarios are defined in inject.ps1). */
