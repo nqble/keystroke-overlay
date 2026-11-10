@@ -10,6 +10,8 @@ interface Window {
   ko: any;
   /** When the settings window finished its first screen, read by the performance tests (ui/settings/settings.js). */
   __uiReady: number;
+  /** When the window was shown to the person (faded in), on the same clock as __uiReady (ui/settings/reveal.js). */
+  __uiShown?: number;
   /** A few private module functions, reachable by the end-to-end tests and the inspector (ui/settings/settings.js). */
   __ko: any;
   /** OBS Studio's Browser source page API (obs-browser), only inside OBS (ui/overlay/obs-source.js). */

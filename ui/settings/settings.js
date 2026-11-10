@@ -23,7 +23,7 @@ import './popup.js'; // keyboard focus for every popup; loaded first so it watch
 import { showNotes } from './notes.js';
 import { showUpdateResult } from './update-popup.js';
 import { fitPreview, frame, previewReady, previewSrc, setPreviewHidden, updateObs } from './preview.js';
-import { reveal } from './reveal.js';
+import { PREVIEW_DRAW_MS, PREVIEW_WAIT_MS, reveal } from './reveal.js';
 import {
   appVersion,
   registry,
@@ -152,9 +152,9 @@ addEventListener('resize', () => {
     requestAnimationFrame(() => {
       frame.src = previewSrc();
     });
-    // Show the window once the live preview has drawn its keys, never more than 1.5 s later, so it appears whole.
-    Promise.race([previewReady, new Promise((done) => setTimeout(done, 1500))])
-      .then(() => new Promise((done) => setTimeout(done, 80)))
+    // Show the window once the live preview has drawn its keys, never more than PREVIEW_WAIT_MS later, so it appears whole.
+    Promise.race([previewReady, new Promise((done) => setTimeout(done, PREVIEW_WAIT_MS))])
+      .then(() => new Promise((done) => setTimeout(done, PREVIEW_DRAW_MS)))
       .then(reveal);
   }
   if (state.whatsNew) {

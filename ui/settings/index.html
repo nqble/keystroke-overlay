@@ -18,10 +18,15 @@
       }
       body {
         opacity: 0;
-        transition: opacity 160ms ease-out;
+        transition: opacity 160ms ease-out; /* FADE_MS in reveal.js: keep the two equal */
       }
       html[data-ready] body {
         opacity: 1;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        body {
+          transition: none;
+        }
       }
     </style>
     <link rel="stylesheet" href="settings.css" />
