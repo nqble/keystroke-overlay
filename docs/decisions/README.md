@@ -23,6 +23,7 @@ Plans for things not built yet are in [../proposals/](../proposals/README.md).
 | [0014](0014-the-repository-is-written-for-everyone.md) | The repository is written for everyone; working notes live elsewhere | Accepted |
 | [0015](0015-settings-theme-colors-in-javascript.md) | Settings window theme colors are worked out in JavaScript | Accepted |
 | [0016](0016-mouse-capture-uses-raw-input-and-never-the-pointer.md) | Mouse capture uses Raw Input on Windows and never reads the pointer | Accepted |
+| [0017](0017-macs-update-in-the-app.md) | Macs update in the app, and renew their keyboard permission after an update | Accepted |
 
 ## How to add one
 

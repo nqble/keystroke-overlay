@@ -116,6 +116,27 @@ fn app_bundle_of(program: &Path) -> Option<std::path::PathBuf> {
     (is_app_folder && in_macos_folder).then(|| bundle.to_path_buf())
 }
 
+/// macOS: forget this app's keyboard permission (Input Monitoring), so it can be given again. After an update an ad-hoc
+/// signed app is a new program to macOS, and its old entry stays switched on while it delivers no keys; switching it off
+/// and on does not help, a reset does (docs/MAC-PORT.md). `identifier` is the app's own (`com.keyoverlay.app`, or the
+/// dev copy's), so only this app's entry is touched. Nothing to do on other systems.
+pub fn reset_keyboard_permission(identifier: &str) {
+    #[cfg(target_os = "macos")]
+    {
+        let reset = std::process::Command::new("/usr/bin/tccutil")
+            .args(["reset", "ListenEvent", identifier])
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status();
+        if !reset.is_ok_and(|status| status.success()) {
+            crate::debug::log("the keyboard permission could not be reset (tccutil)");
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = identifier;
+}
+
 /// Quit and start the app again. macOS: Tauri's own restart opens the new copy while this one is still running, and the
 /// single-instance guard sends the new copy away, so the app would just disappear. Instead a small helper waits for this
 /// process to be gone, then opens the app. Elsewhere, and for a `tauri dev` build, Tauri's restart is fine.

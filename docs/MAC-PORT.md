@@ -16,7 +16,7 @@ autostart, clipboard, dialog and single-instance plugins. The differences:
 | Data folder | `~/Library/Application Support/com.keyoverlay.app` |
 | Tray | A menu-bar icon with a monochrome "template" picture (`src-tauri/icons/tray-template.png`, made from `assets/logo/logo-tray.svg`). |
 | Autostart | "Open at login", through a LaunchAgent. |
-| Updates | Not installed in the app: see [Releases and updates](#releases-and-updates). |
+| Updates | In the app, like Windows and Linux; afterwards the window offers to renew the keyboard permission ([0017](decisions/0017-macs-update-in-the-app.md)). |
 | `platform.rs` | `process_stats` measures memory (from the Mach kernel) and open files (`/dev/fd`); `trim_memory` does nothing. |
 
 ## Key capture
@@ -53,7 +53,9 @@ then Restart now; `ui/settings/keyboard-access.js`) until capture really works. 
 - **The permission belongs to one exact build.** An ad-hoc signed app's identity is its code hash, which changes with
   every build, so after an update the old Input Monitoring entry still looks on but does nothing (macOS logs "Failed to
   match existing code requirement"). What works: `tccutil reset ListenEvent com.keyoverlay.app`, then Allow keyboard
-  access, switch it on, Restart now. If the app isn't in the list after the reset, the **+** button and the app's folder
+  access, switch it on, Restart now. The window does the reset itself: when this version hasn't captured a key yet and
+  another version did (`general.keyboardProvenVersion`, a version number only), the notice says **Renew keyboard
+  access** (`renew_keyboard_access`, `platform::reset_keyboard_permission`). If the app isn't in the list after the reset, the **+** button and the app's folder
   add it. Switching the old entry off and on, or removing it, did not help. The user guide gives these steps.
   Ways around it, none used: a signing certificate that stays the same between builds (a self-signed one kept in CI,
   or Apple's paid Developer ID), or a signature rule that matches the identifier alone, which would let any program with
@@ -70,8 +72,9 @@ then Restart now; `ui/settings/keyboard-access.js`) until capture really works. 
 
 - `mac-app.yml` builds the ad-hoc signed `.app` (Apple Silicon, identifier `com.keyoverlay.app`) on every change, and
   `release.yml` attaches it to each release. Ad-hoc signing is required to run at all on Apple Silicon.
-- **No in-app updates on a Mac:** the update files (`latest.json`, `stable.json`) have no `darwin` entry on purpose,
-  and a Mac's update check says to download the new version from the Releases page.
+- **In-app updates** (from the release after v2.1, [0017](decisions/0017-macs-update-in-the-app.md)): `mac-app.yml`
+  also packs `Keystroke-Overlay_<version>_macOS-arm64.app.tar.gz`, and `mac-publish` signs it with the update key and
+  adds `darwin-aarch64` entries to `latest.json` and `stable.json`. After installing, the app restarts the Mac way.
 - **Apple Silicon only;** Intel Macs are untested. A universal binary (`--target universal-apple-darwin`) would cover
   both.
 - **macOS 11 or newer:** `tauri.conf.json` sets the bundle's minimum system version to 11.0 (`LSMinimumSystemVersion`),

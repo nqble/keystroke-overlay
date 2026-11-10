@@ -13,7 +13,8 @@
     "updateChannel": "stable",
     "lastSeenVersion": "",
     "language": "",
-    "trayWords": {}
+    "trayWords": {},
+    "keyboardProvenVersion": ""
   },
   "layout": {
     "id": "tkl",

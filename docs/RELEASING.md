@@ -72,9 +72,11 @@ What to know:
   checks that signature. On first launch macOS blocks it; the person clicks **Open Anyway** in System Settings → Privacy &
   Security. Signing and notarizing would need an Apple Developer account (US$99 a year); the project uses the free route,
   so they are not planned.
-- **No in-app updates on a Mac.** `latest.json` and `stable.json` have no `darwin` entries, on purpose, and the app says
-  so when a Mac checks. Mac users download the new zip.
-- After every update the person must allow keyboard access again (clear the old entry first, with `tccutil reset ListenEvent com.keyoverlay.app`): the
+- **In-app updates on a Mac** ([0017](decisions/0017-macs-update-in-the-app.md)). After attaching the zip, `mac-publish`
+  (in the `release` environment, so it waits for your approval like the Windows job) signs
+  `Keystroke-Overlay_<version>_macOS-arm64.app.tar.gz` with the update key and adds `darwin-aarch64` entries to
+  `latest.json` and, for a Stable release, `stable.json`. It and `linux-publish` take turns on the manifests.
+- After every update the person must allow keyboard access again: the window offers **Renew keyboard access**, which clears the old entry (`tccutil reset ListenEvent com.keyoverlay.app`); the
   permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
   are in docs/MAC-PORT.md.
 - **The first release that carries the zip (v2.0):** the workflow builds in CI on every pull request and push to the work branches (green since October 2026), but its release jobs (attaching the zip) first run with this release, so check the release page afterwards (or try it first: Actions →

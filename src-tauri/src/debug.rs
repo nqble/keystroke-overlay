@@ -137,7 +137,7 @@ pub fn debug_info(st: State<AppState>) -> Value {
         "memoryMb": (memory_mb * 10.0).round() / 10.0,
         "handles": handles, // null where the system does not measure it
         "inputLabel": st.shared.bus.method().label(),
-        "keyboardAccess": crate::commands::keyboard_access::status(&st.shared.bus),
+        "keyboardAccess": crate::commands::keyboard_access::status(&st),
         "dataDir": st.shared.paths.root.to_string_lossy(),
         "settingsFile": st.shared.paths.settings().to_string_lossy(),
         "dataWritable": folder_writable(&st.shared.paths.root),
