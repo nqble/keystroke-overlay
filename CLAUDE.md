@@ -14,7 +14,8 @@ before reporting anything as done, systematic-debugging for any bug, and the two
 
 ## Commands
 
-- Run the app: `npm run dev` (Debug mode on, separate data folder and port: `npm run dev:debug`). The settings window in a
+- Run the app: `npm run dev` (uses your real settings and port 7878); a separate copy with Debug mode on, its own
+  data folder and port 7880: `npm run dev:debug` (use it to try anything that changes settings). The settings window in a
   browser, with a fake app: `npm run ui-sandbox` → http://127.0.0.1:7882/?tab=debug (states in `tools/sandbox/fake-app.js`).
 - Before every commit: `npm test` (Rust tests, UI unit tests, privacy and every-system checks), `npm run check:format`,
   `npm run check:types`, `npm run check:lint`, `npm run check:docs`, `npm run check:style`, and
