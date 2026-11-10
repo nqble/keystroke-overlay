@@ -211,7 +211,7 @@ export default {
     wholeKey: 'whole key', // means: move by a whole keyboard key
     hide: 'hide', // means: make the selected keyboard keys invisible
     zoom: 'zoom', // means: make the keyboard picture bigger or smaller
-    pan: 'pan', // means: one short word in this language (never the English "pan") for moving the view around, as when dragging a map
+    pan: 'move view', // means: a hint: drag to move the view around the keyboard picture (to pan), not to move the keys
   },
 
   // the Keys tab's toolbar: keys-toolbar.js (ui/settings/tabs/)
