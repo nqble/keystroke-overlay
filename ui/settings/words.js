@@ -79,11 +79,17 @@ function build(source, translated) {
   const result = {};
   for (const [id, value] of Object.entries(source)) {
     const translation = translated[id];
-    if (typeof value === 'string') result[id] = text(value, translation);
-    else if (isPlural(value)) result[id] = plural(value, translation);
-    else result[id] = build(value, translation ?? {});
+    result[id] = buildOne(value, translation);
   }
   return result;
+}
+
+/** One entry: a text, a plural, a list (each entry built the same way) or a group. @param {any} value @param {any} translation */
+function buildOne(value, translation) {
+  if (typeof value === 'string') return text(value, translation);
+  if (isPlural(value)) return plural(value, translation);
+  if (Array.isArray(value)) return value.map((item, index) => buildOne(item, translation?.[index]));
+  return build(value, translation ?? {});
 }
 
 /** One text: the translation if there is one, filled in when it has placeholders. @param {string} source @param {unknown} translation */

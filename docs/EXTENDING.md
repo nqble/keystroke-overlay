@@ -84,7 +84,7 @@ when it takes more than one, a check or test catches a forgotten one.
 | Words the user reads | `ui/settings/locales/en.js`, in the group of the file that shows them (`const TEXT = words('group')`; shared ones: group `shared`). Files not moved yet still have their own `TEXT` block | 1 |
 | A language for the settings window | one file, `ui/settings/locales/<code>.js` (`de.js`, `pt-BR.js`), made by `npm run translate` from a line in `tools/translate-engines.json` ([TRANSLATIONS.md](TRANSLATIONS.md)): the same groups and ids as `en.js`, translated; a missing text shows in English. The app lists it in General → Language by itself, and `npm run check:locales` checks it against English | 2 |
 | A word in the tray menu | its English in `ENGLISH` in `src-tauri/src/tray_words.rs` and in the `appMenu` group of `ui/settings/locales/en.js` (a Rust test fails until both agree), and the entry in `worded` in `tray.rs` | 3 |
-| Words that differ per system (Windows / Mac / Linux) | one entry in `ui/settings/system-words.js` (`npm run check:systems` catches a Windows word left elsewhere) | 1 |
+| Words that differ per system (Windows / Mac / Linux) | one entry in the `systemWords` group of `ui/settings/locales/en.js`, read with `systemWord()` from `ui/settings/system-words.js` (`npm run check:systems` catches a Windows word left elsewhere) | 1 |
 | The look of one part of the window | its own CSS file next to `settings.css` (`header.css`, `popups.css`, ...; a new part gets a new file and a `<link>` in `index.html`) | 1–2 |
 | A color, size or spacing | the design tokens at the top of `ui/settings/settings.css` (`npm run check:style` refuses raw colors) | 1 |
 | A header status | one rule in `obsStatus()`, `ui/settings/obs-status.js`, plus its test | 1 |

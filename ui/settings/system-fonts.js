@@ -7,6 +7,7 @@
 //  Segoe UI, so there the overlay falls back to the system font (see FONT_FALLBACKS in ui/overlay/overlay.js), and the
 //  Mac list shows that default as "System font (default)". A font a Mac does not have simply falls back the same way.
 // =====================================================================================================================
+import { systemWord } from './system-words.js';
 
 /** The default font's saved name, the same on every system (src-tauri/src/settings.rs). */
 export const DEFAULT_FONT = 'Segoe UI'; // per-system: the saved default on every system, a Windows font name
@@ -67,17 +68,15 @@ const MAC_FONTS = [
   'Comic Sans MS',
 ];
 
-const SYSTEM_FONT_LABEL = 'System font (default)';
-
 const plain = (name) => ({ value: name, label: name });
 
 /** The font group for this system: { group: the group's name, fonts: [{ value, label }] }. Windows is the default. */
 export function systemFonts(platform) {
   if (platform === 'macos') {
     return {
-      group: 'Mac fonts',
-      fonts: [{ value: DEFAULT_FONT, label: SYSTEM_FONT_LABEL }, ...MAC_FONTS.map(plain)],
+      group: systemWord('fontGroup', platform),
+      fonts: [{ value: DEFAULT_FONT, label: systemWord('systemFont', platform) }, ...MAC_FONTS.map(plain)],
     };
   }
-  return { group: 'Windows fonts', fonts: WINDOWS_FONTS.map(plain) }; // per-system: the Windows list
+  return { group: systemWord('fontGroup', 'windows'), fonts: WINDOWS_FONTS.map(plain) }; // Linux gets the Windows list too
 }

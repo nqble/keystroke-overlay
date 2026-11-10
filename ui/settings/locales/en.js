@@ -558,6 +558,7 @@ export default {
 
   // the tab bar (tabs/index.js); the Debug tab keeps its English name
   tabs: {
+    barName: 'Settings sections', // what a screen reader calls the tab bar
     layout: 'Layout',
     keys: 'Keys',
     style: 'Style',
@@ -596,6 +597,7 @@ export default {
     install: 'Update now',
     manualInstall: 'Open GitHub installer',
     starting: 'Starting download…',
+    later: 'Later',
   },
 
   // the tray menu (the menu bar menu on a Mac), built by the app: sent there after the window starts and saved, so the
@@ -612,5 +614,83 @@ export default {
     restart: 'Restart server',
     quit: 'Quit',
     update: 'Update available',
+  },
+
+  // words that differ per system ("windows", "macos", "linux"; Windows' when a system has none), read through
+  // systemWord() in system-words.js; `npm run check:systems` allows Windows words only here
+  systemWords: {
+    // the font list's group for this system's fonts, and the Mac's own font (system-fonts.js)
+    fontGroup: { windows: 'Windows fonts', macos: 'Mac fonts' },
+    systemFont: { macos: 'System font (default)' },
+    // the General -> Startup switches: starting with the computer, and what minimizing does
+    autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' },
+    minimize: { windows: 'Minimize to tray', linux: 'Minimize to tray' }, // not shown on a Mac: see hasMinimizeSetting
+    // where the app's icon lives while its window is closed
+    trayName: { windows: 'tray', macos: 'menu bar', linux: 'tray' },
+    // the modifiers a shortcut needs, in words, for the pause shortcut's hint
+    modifiers: { windows: 'Ctrl, Alt or Win', macos: '⌘, ⌥ or ⌃', linux: 'Ctrl, Alt or Super' },
+    // what the Control, Alt and Meta keys are called, for key names such as "Left Ctrl" (ui/settings/key-names.js)
+    modifierKeys: {
+      windows: { Control: 'Ctrl', Alt: 'Alt', Meta: 'Win' },
+      macos: { Control: '⌃ Control', Alt: '⌥ Option', Meta: '⌘ Command' },
+      linux: { Control: 'Ctrl', Alt: 'Alt', Meta: 'Super' },
+    },
+    // the Keys tab's hint line: how to add a key to the selection, and the key that hides keys (a Mac calls it "delete")
+    dragHint: {
+      windows: 'Ctrl-click to add to the selection.',
+      macos: '⌘-click to add to the selection.',
+      linux: 'Ctrl-click to add to the selection.',
+    },
+    deleteKey: { windows: 'Del', macos: 'delete', linux: 'Del' },
+    deleteKeyTip: {
+      windows: 'Delete or Backspace hides the selected keys',
+      macos: 'The delete key hides the selected keys',
+      linux: 'Delete or Backspace hides the selected keys',
+    },
+    // the Keys tab's hint chips for the view: what zooms and what pans (a Mac trackpad pans with two fingers and pinches)
+    zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' },
+    zoomTip: {
+      windows: 'Scroll over the keyboard to zoom',
+      macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',
+      linux: 'Scroll over the keyboard to zoom',
+    },
+    // what pans, each as { chip, tip }: a Mac pans with a two-finger scroll; Space + drag and a middle-button drag pan everywhere
+    panHints: {
+      windows: [
+        { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
+        { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
+      ],
+      macos: [
+        { chip: 'Scroll', tip: 'Scroll with two fingers to move the view' },
+        { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
+        { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
+      ],
+      linux: [
+        { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
+        { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
+      ],
+    },
+  },
+
+  // the release notes popup (notes.js); the notes themselves come from GitHub, in English
+  releaseNotes: {
+    loading: 'Loading release notes',
+    title: 'Release notes — v{version}',
+    none: 'No notes for this release.',
+    ok: 'OK',
+  },
+
+  // the size line under the OBS URL (preview.js)
+  preview: {
+    sizeInObs: 'Size in OBS: {size}',
+    frameName: 'Live preview', // what a screen reader calls the preview frame
+  },
+
+  // the window's own buttons in the header (windowbar.js)
+  windowbar: {
+    minimize: 'Minimize',
+    maximize: 'Maximize',
+    restore: 'Restore',
+    close: 'Close',
   },
 };

@@ -5,11 +5,15 @@ import { $, call, invoke, toast } from './helpers.js';
 import { paintHeader } from './header.js';
 import { render } from './settings.js';
 import { settings, booted, obsUrl, setLinkChanged, setRegistry, setSize, size, tab } from './state.js';
+import { words } from './words.js';
+
+const WORDS = words('preview');
 
 // ---------------------------------------------------------------------------------------------------------------------
 // 3. Saving and the live preview
 // ---------------------------------------------------------------------------------------------------------------------
 export const frame = $('#preview'); // the live preview: the real overlay page, shown in a frame
+frame.title = WORDS.frameName; // what a screen reader calls the frame (index.html has the English until this runs)
 
 export let saveTimer = 0;
 
@@ -86,7 +90,7 @@ addEventListener('beforeunload', flushPendingSave);
 // ---------------------------------------------------------------------------------------------------------------------
 /** The overlay's size for OBS, "1085 × 403" ("…" until the live preview has measured it). */
 export const obsSize = () => (size ? `${size.w} × ${size.h}` : '…');
-export const sizeText = () => (size ? `Size in OBS: ${obsSize()}` : '');
+export const sizeText = () => (size ? WORDS.sizeInObs(obsSize()) : '');
 
 /** The OBS URL (or its size) changed: show it everywhere it appears, including the header's "copy it again". */
 export function updateObs() {
