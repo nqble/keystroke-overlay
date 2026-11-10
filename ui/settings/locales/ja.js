@@ -148,7 +148,7 @@ export const made = {
     'keys.wholeKey': 'ecccd2c1',
     'keys.hide': '1f5bb979',
     'keys.zoom': 'd21bb537',
-    'keys.pan': '00e37ffa',
+    'keys.pan': '119c080c',
     'keysToolbar.history': '0e769600',
     'keysToolbar.view': 'dcc839a4',
     'keysToolbar.tidy': 'a27b4181',
@@ -675,7 +675,7 @@ export default {
     wholeKey: 'キー全体',
     hide: '非表示',
     zoom: 'ズーム',
-    pan: 'pan',
+    pan: 'ビューを移動',
   },
   keysToolbar: {
     history: '履歴',

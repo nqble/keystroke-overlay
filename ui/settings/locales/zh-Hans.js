@@ -148,7 +148,7 @@ export const made = {
     'keys.wholeKey': 'ecccd2c1',
     'keys.hide': '1f5bb979',
     'keys.zoom': 'd21bb537',
-    'keys.pan': '00e37ffa',
+    'keys.pan': '119c080c',
     'keysToolbar.history': '0e769600',
     'keysToolbar.view': 'dcc839a4',
     'keysToolbar.tidy': 'a27b4181',
@@ -305,6 +305,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
+    'accessNotice.renew': '97d52c17',
+    'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -659,7 +661,7 @@ export default {
     wholeKey: '整键',
     hide: '隐藏',
     zoom: '缩放',
-    pan: '平移',
+    pan: '移动视图',
   },
   keysToolbar: {
     history: '历史记录',
@@ -831,6 +833,9 @@ export default {
     restart: '访问已开启。请重启 Keystroke Overlay，以便 macOS 开始向其发送您的按键信息。',
     restartAfterAllow: '您是否在“输入监视”中启用了“按键叠加”？请重启一次，以便 macOS 开始向其发送您的按键。',
     restartButton: '立即重启',
+    renew:
+      '更新后按键不显示？macOS 可能需要重新授予 Keystroke Overlay 键盘访问权限。请重新授权，在“输入监视”中启用该应用，然后重启。',
+    renewButton: '重新获取键盘访问权限',
     inputGroup:
       '在 Wayland 上，该应用需要输入组才能读取您的键盘。请在终端中运行此命令，然后注销并重新登录。之后您运行的每个程序也都能读取键盘（请参阅 PRIVACY.md）。',
     inputGroupCopied: '已复制。将其粘贴到终端中运行，然后注销并重新登录。之后 Keystroke Overlay 就能识别您的按键了。',
