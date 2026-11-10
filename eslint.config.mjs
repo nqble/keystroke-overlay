@@ -16,6 +16,7 @@ const NODE_GLOBALS = {
   TextEncoder: 'readonly',
   AbortController: 'readonly',
   fetch: 'readonly',
+  Response: 'readonly',
   performance: 'readonly',
   structuredClone: 'readonly',
   setTimeout: 'readonly',

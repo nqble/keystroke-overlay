@@ -132,6 +132,11 @@ h2:first-child {
   min-width: 0;
   max-width: 460px;
 }
+/* A button beside a field keeps its word whole (in Japanese, Copy wrapped mid-word): the field gives up the room. */
+.row .ctl > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .num-field {
   width: 84px;
 }

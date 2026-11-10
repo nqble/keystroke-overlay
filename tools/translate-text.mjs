@@ -183,10 +183,20 @@ export function textNotes(source) {
   for (const line of source.split(/\r?\n/)) {
     const groupStart = line.match(/^ {2}(\w+): \{$/);
     if (groupStart) group = groupStart[1];
-    const text = line.match(/^ {4}(\w+): (?:'[^']*'|"[^"]*"),\s*\/\/ means: (.+)$/);
+    const text = line.match(/^ {4}(\w+): (?:'[^']*'|"[^"]*"|\{.*\}),\s*\/\/ means: (.+)$/); // a text, or a one-line group
     if (group && text) notes.set(`${group}.${text[1]}`, text[2].trim());
   }
   return notes;
+}
+
+/** A text's own note, or the note of the one-line group it is in (`systemWords.autostart` for `…autostart.windows`). */
+export function noteFor(/** @type {string} */ id, /** @type {Map<string, string>} */ notes) {
+  const parts = id.split('.');
+  for (let length = parts.length; length >= 2; length--) {
+    const note = notes.get(parts.slice(0, length).join('.'));
+    if (note) return note;
+  }
+  return undefined;
 }
 
 /** A comment without the file names and paths it gives for developers ("the Keys tab: keys.js (ui/settings/tabs/)"). */
@@ -202,7 +212,7 @@ function withoutFileNames(/** @type {string} */ comment) {
 export function contextFor(id, contexts, notes = new Map()) {
   const where = contexts.get(id.split('.')[0]);
   const shownIn = where ? ` This text is shown in: ${where}.` : '';
-  const note = notes.get(id);
+  const note = noteFor(id, notes);
   const means = note ? ` This text means: ${note}.` : '';
   return `${APP_CONTEXT}${shownIn}${means}`;
 }
