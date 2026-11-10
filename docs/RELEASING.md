@@ -76,6 +76,23 @@ What to know:
   (in the `release` environment, so it waits for your approval like the Windows job) signs
   `Keystroke-Overlay_<version>_macOS-arm64.app.tar.gz` with the update key and adds `darwin-aarch64` entries to
   `latest.json` and, for a Stable release, `stable.json`. It and `linux-publish` take turns on the manifests.
+- **The Mac signing certificate.** Before `mac-publish`, `mac-sign` (also in `release`, on a Mac machine) signs the app
+  with the project's own self-made certificate instead of ad hoc, so macOS sees every update as the same app and keeps
+  its keyboard permission. Until the two secrets below exist, it leaves the app signed ad hoc and says so in a warning.
+  Make the certificate once, on the Mac, in Terminal (it's valid for ten years; Apple's `/usr/bin/openssl`):
+
+  ```bash
+  mkdir ~/ko-signing && cd ~/ko-signing
+  printf '[req]\ndistinguished_name=dn\nx509_extensions=ext\nprompt=no\n[dn]\nCN=Keystroke Overlay Mac signing\n[ext]\nbasicConstraints=critical,CA:false\nkeyUsage=critical,digitalSignature\nextendedKeyUsage=critical,codeSigning\n' > cert.cnf
+  /usr/bin/openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -config cert.cnf -keyout key.pem -out cert.pem
+  /usr/bin/openssl pkcs12 -export -inkey key.pem -in cert.pem -name "Keystroke Overlay Mac signing" -out signing.p12
+  base64 -i signing.p12 | pbcopy
+  ```
+
+  The last but one command asks for a password. Then in GitHub, **Settings → Environments → release → Add environment
+  secret**: `MAC_SIGNING_P12` (paste; the last command copied it) and `MAC_SIGNING_P12_PASSWORD`. Keep `signing.p12`
+  and its password where you keep the update key, then delete the folder. A new certificate later (lost, or after ten
+  years) works too, but Mac users renew the keyboard permission once more.
 - After every update the person must allow keyboard access again: the window offers **Renew keyboard access**, which clears the old entry (`tccutil reset ListenEvent com.keyoverlay.app`); the
   permission belongs to one exact build and every build has a new code hash. The user guide says how; the ways around it
   are in docs/MAC-PORT.md.

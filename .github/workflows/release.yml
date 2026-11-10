@@ -18,7 +18,9 @@ name: Release
 # and mac-publish attaches Keystroke-Overlay_<version>_macOS-arm64.zip to the same release. Like linux-publish below, it
 # then signs the app's update file (the .app.tar.gz) with the update key, in the "release" environment and in one step
 # only, and adds darwin-aarch64 entries to latest.json and, for a Stable release, to stable.json: Macs update in the app
-# (docs/RELEASING.md, Mac download).
+# (docs/RELEASING.md, Mac download). Between the two, mac-sign signs the app with the project's own Mac signing
+# certificate (a self-made one, not Apple's), so macOS sees each update as the same app and keeps its keyboard
+# permission (decision 0017); until the certificate's secrets exist it leaves the app signed ad hoc.
 #
 # The Linux downloads work the same way: linux-app.yml builds the AppImage and the .deb (no secrets) and linux-publish
 # attaches them. linux-publish then signs the AppImage with the update key (it runs in the "release" environment, so it
@@ -200,8 +202,75 @@ jobs:
     needs: release
     uses: ./.github/workflows/mac-app.yml
 
-  mac-publish:
+  # The app is signed with the project's Mac certificate here, not in mac-app.yml: the build keeps using no secrets, and the
+  # certificate is only ever on this job's Mac, in a keychain that lasts for the job (docs/RELEASING.md, Mac download).
+  mac-sign:
     needs: mac-app
+    runs-on: macos-latest
+    environment: release # the certificate lives here, next to the update key: this job waits for the maintainer's approval
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: mac-app
+          path: mac-in
+      - name: Unpack the app
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP=$(cd mac-in && ls Keystroke-Overlay_*_macOS-arm64.zip)
+          echo "ZIP=$ZIP" >> "$GITHUB_ENV"
+          mkdir stage && ditto -x -k "mac-in/$ZIP" stage
+          ls stage
+      # The certificate goes into a keychain made for this job and deleted at its end; only this step sees it.
+      - name: Sign the app with the project's Mac certificate
+        shell: bash
+        env:
+          MAC_SIGNING_P12: ${{ secrets.MAC_SIGNING_P12 }}
+          MAC_SIGNING_P12_PASSWORD: ${{ secrets.MAC_SIGNING_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          APP="stage/Keystroke Overlay.app"
+          if [ -z "${MAC_SIGNING_P12:-}" ]; then
+            echo "::warning::No Mac signing certificate yet (MAC_SIGNING_P12): the app stays signed ad hoc, so Mac users renew the keyboard permission after this update."
+            exit 0
+          fi
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 24)
+          echo "$MAC_SIGNING_P12" | base64 --decode > "$RUNNER_TEMP/signing.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 900 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/signing.p12" -k "$KEYCHAIN" -P "$MAC_SIGNING_P12_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/signing.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          # the certificate's fingerprint, not its name: a self-made certificate isn't trusted, so it isn't listed as "valid"
+          IDENTITY=$(security find-identity -p codesigning "$KEYCHAIN" | awk '/ 1\) /{print $2; exit}')
+          [ -n "$IDENTITY" ] || { echo "::error::No signing identity in MAC_SIGNING_P12."; exit 1; }
+          codesign --force --deep --sign "$IDENTITY" --keychain "$KEYCHAIN" "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign --display --requirements - "$APP" # the rule macOS keeps the permission by: names the certificate
+          security delete-keychain "$KEYCHAIN"
+      - name: Pack the signed app again
+        shell: bash
+        run: |
+          set -euo pipefail
+          V=${ZIP#Keystroke-Overlay_}; V=${V%_macOS-arm64.zip}
+          mkdir out
+          ditto -c -k --sequesterRsrc stage "out/$ZIP"
+          tar -czf "out/Keystroke-Overlay_${V}_macOS-arm64.app.tar.gz" -C stage "Keystroke Overlay.app"
+          ls -l out
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mac-app-signed
+          path: out/*
+          if-no-files-found: error
+          retention-days: 14
+
+  mac-publish:
+    needs: mac-sign
     runs-on: ubuntu-latest
     environment: release # the update signing key lives here: this job waits for the maintainer's approval, like the Windows one
     # linux-publish edits the same latest.json and stable.json: one at a time, so neither overwrites the other's entry
@@ -221,7 +290,7 @@ jobs:
       - run: npm ci
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: mac-app
+          name: mac-app-signed
           path: mac-out
       - name: Attach the Mac download and its update file to the release
         shell: bash

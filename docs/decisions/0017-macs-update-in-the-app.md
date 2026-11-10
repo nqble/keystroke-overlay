@@ -18,14 +18,14 @@ its keyboard permission (Input Monitoring) still looks switched on while it deli
   notice offers **Renew keyboard access**: it resets this app's entry (`tccutil reset ListenEvent <identifier>`) and asks
   again; the person switches the app on and restarts it.
 - After installing, the app restarts the Mac way (`platform::restart_app`), since Tauri's own restart leaves it closed.
+- **Releases are signed with the project's own Mac certificate** (the maintainer's choice, 2026-11-10): self-made,
+  kept as a secret of the `release` environment, used by `mac-sign` in `release.yml`. macOS then keeps the keyboard
+  permission across updates, so the renewal is needed only once (the first update signed this way) or after a new
+  certificate. Gatekeeper still asks for **Open Anyway** on the first download: only Apple's paid Developer ID with
+  notarization removes that ([0012](0012-releases-stay-unsigned-for-now.md) stands).
 
 ## Why
 - Every Mac user stayed on the version they first downloaded unless they noticed a new release by themselves.
 - Updating without renewing the permission would leave the overlay silently empty, which is worse than no update.
 - A file the app downloads itself is not quarantined, so an in-app update avoids the "Open Anyway" step a new download
   needs.
-
-## Not done (yet)
-A signing certificate that stays the same between builds (self-made, kept as a repository secret, or Apple's paid
-Developer ID) would let the permission survive updates, so the renewal would rarely be needed. It needs the maintainer
-to make the certificate; see docs/MAC-PORT.md, "The keyboard permission".
