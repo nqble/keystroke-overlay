@@ -14,12 +14,16 @@ const ICON_CHARACTERS = /[⏸▶✕⋯▾▸]/u;
 // group of each language file, may use them.
 const STATUS_GROUP = /^ {2}obsStatus: \{$/;
 
-/** The lines (1-based) of a language file's `obsStatus` group; none for any other script. */
+/**
+ * The lines (1-based) of a language file's `obsStatus` group; none for any other script. On Windows the path is
+ * `locales\en.js` and a line may end in `\r`, so neither is taken for granted.
+ */
 function statusLines(script, lines) {
-  if (!script.startsWith('locales/')) return new Set();
-  const start = lines.findIndex((line) => STATUS_GROUP.test(line));
+  if (!script.replaceAll('\\', '/').startsWith('locales/')) return new Set();
+  const plain = lines.map((line) => line.trimEnd());
+  const start = plain.findIndex((line) => STATUS_GROUP.test(line));
   if (start === -1) return new Set();
-  const end = lines.findIndex((line, index) => index > start && line === '  },');
+  const end = plain.findIndex((line, index) => index > start && line === '  },');
   return new Set(Array.from({ length: end - start }, (_, offset) => start + offset + 1));
 }
 
@@ -49,4 +53,13 @@ test('no text characters are used as icons in the settings window', () => {
     });
   }
   assert.deepEqual(found, [], 'use an icon from ui/settings/icons.js instead');
+});
+
+test('the status words are allowed whatever the system writes between folders and lines', () => {
+  const lines = ['export default {', '  obsStatus: {', "    paused: '⏸ Paused',", '  },', '};'];
+  assert.deepEqual([...statusLines('locales/en.js', lines)], [2, 3]);
+  assert.deepEqual([...statusLines('locales\\en.js', lines)], [2, 3], 'a Windows path');
+  const windowsLines = lines.map((line) => `${line}\r`);
+  assert.deepEqual([...statusLines('locales/en.js', windowsLines)], [2, 3], 'Windows line endings');
+  assert.equal(statusLines('header.js', lines).size, 0);
 });

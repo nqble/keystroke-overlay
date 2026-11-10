@@ -11,6 +11,9 @@ import { connect, check, finish, sleep } from '../lib/cdp.mjs';
 // The tabs whose page is kept between visits; keys and general are always built, so they are only reported.
 const KEPT_TABS = ['layout', 'style', 'animation'];
 const ROUNDS = 9;
+// Reusing a page may come out a little slower than building it by timer noise alone (0.5 to 0.7 ms on Windows CI, far
+// under one 16 ms frame); a real slowdown is larger than this.
+const NOISE_MS = 2;
 const p = await connect();
 await sleep(3500); // let the first screen, the preview and the idle preloading finish
 // Every tab but Debug, read from the window's tab bar so the list can't go stale when a tab is added or removed
@@ -68,8 +71,8 @@ for (const [id, t] of Object.entries(result)) {
   if (KEPT_TABS.includes(id)) {
     check(`${id}: a reused page is on screen in under 50 ms`, t.reusedPaint < 50, `${t.reusedPaint.toFixed(1)} ms`);
     check(
-      `${id}: reusing is no slower than building`,
-      t.reused <= t.built,
+      `${id}: reusing is no slower than building (within ${NOISE_MS} ms of noise)`,
+      t.reused <= t.built + NOISE_MS,
       `${t.reused.toFixed(2)} vs ${t.built.toFixed(2)} ms`,
     );
   }

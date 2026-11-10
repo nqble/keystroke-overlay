@@ -1,8 +1,32 @@
 {
-  "es": { "engine": "deepl", "target": "ES", "glossary": "es-es" },
-  "pt-BR": { "engine": "deepl", "target": "PT-BR", "glossary": "pt-br" },
-  "de": { "engine": "deepl", "target": "DE", "glossary": "de-de" },
-  "fr": { "engine": "deepl", "target": "FR", "glossary": "fr-fr" },
-  "ja": { "engine": "microsoft", "target": "ja", "glossary": "ja-jp" },
-  "zh-Hans": { "engine": "microsoft", "target": "zh-Hans", "glossary": "zh-cn" }
+  "es": {
+    "engine": "deepl",
+    "target": "ES",
+    "glossary": "es-es"
+  },
+  "pt-BR": {
+    "engine": "deepl",
+    "target": "PT-BR",
+    "glossary": "pt-br"
+  },
+  "de": {
+    "engine": "deepl",
+    "target": "DE",
+    "glossary": "de-de"
+  },
+  "fr": {
+    "engine": "deepl",
+    "target": "FR",
+    "glossary": "fr-fr"
+  },
+  "ja": {
+    "engine": "deepl",
+    "target": "JA",
+    "glossary": "ja-jp"
+  },
+  "zh-Hans": {
+    "engine": "index",
+    "target": "zh-Hans",
+    "glossary": "zh-cn"
+  }
 }

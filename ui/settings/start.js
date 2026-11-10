@@ -4,6 +4,7 @@
 //  that file is loaded, and only then the window itself (settings.js). Plan: docs/proposals/interface-languages.md.
 //  Changing the language reloads the window (general-appearance.js).
 // =====================================================================================================================
+import { reveal, SHOW_ANYWAY_MS } from './reveal.js';
 import { pickLanguage, useLanguage } from './words.js';
 
 const { invoke } = window.__TAURI__.core;
@@ -22,5 +23,13 @@ async function chooseLanguage() {
   }
 }
 
+// settings.js shows the window when it is drawn; if that never happens (an error, a stuck preview) the window still
+// appears after a few seconds, so it can never stay blank.
+setTimeout(reveal, SHOW_ANYWAY_MS);
 await chooseLanguage();
-await import('./settings.js');
+try {
+  await import('./settings.js');
+} catch (problem) {
+  console.error('The window could not start.', problem);
+  reveal();
+}

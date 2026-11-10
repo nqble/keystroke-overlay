@@ -4,7 +4,8 @@ Status: **Approved, being built**: step 1 done (every text the window shows is i
 the few listed under Costs); step 2 built (`start.js`, General → Appearance → Language, and the tray's words, saved with the
 settings: `tray_words.rs`). Step 3 built (`npm run translate`,
 `docs/TRANSLATIONS.md`). Next: step 4, the first six languages, run on the maintainer's computer with the keys. First languages chosen by the maintainer: Spanish, Portuguese (Brazil),
-German, French (DeepL), Japanese and Simplified Chinese (Microsoft Translator). Translations come from translation services, mixed per language (DeepL,
+German, French and Japanese (DeepL), Simplified Chinese (Index-Translate; the maintainer's choice, 2026-11-10, after
+Microsoft Translator, which takes no context, got short words wrong). Translations come from translation services, mixed per language (DeepL,
 Microsoft Translator, Index-Translate), with Microsoft's terminology as the glossary (the maintainer's choice,
 2026-11-08), not from a coding assistant; native-speaker corrections are welcome on top.
 
@@ -87,7 +88,10 @@ the window's code loads, and a change must reach screens that already read their
   only then imports `settings.js`. One extra step at start, no timers.
 - **Changing it reloads the window.** Picking another language saves the setting and reloads the settings window, on
   the same tab. Simpler than teaching every screen to redraw its words, and the window is rebuilt on every open
-  anyway (principle 3).
+  anyway (principle 3). The reload must not look like one: the window fades out, loads again, and stays invisible
+  (the same dark color) until the first screen is drawn and the live preview shows its keys, then fades in
+  (`reveal.js`, with the page's critical style in `index.html`). The same hold-then-fade applies to every start, so
+  loading never shows half-built frames. A 4 s failsafe shows the window if it never reports ready.
 - **The list of languages is the files.** The app lists `ui/settings/locales/*.js` from the files it ships (Tauri's
   asset resolver; the sandbox reads the folder), so adding a language stays one file. Each shows in its own name
   (`Intl.DisplayNames`).
