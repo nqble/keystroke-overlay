@@ -20,6 +20,7 @@ import {
   flatTexts,
   glossaryFromTbx,
   groupContexts,
+  noteFor,
   textNotes,
   languageFile,
   nest,
@@ -71,8 +72,8 @@ async function translateTexts(/** @type {string[]} */ ids, /** @type {Map<string
 function requests(/** @type {string[]} */ ids, setup) {
   const list = [];
   for (const [group, groupIds] of byGroup(ids)) {
-    const plain = groupIds.filter((id) => !setup.notes.has(id));
-    const noted = groupIds.filter((id) => setup.notes.has(id));
+    const plain = groupIds.filter((id) => !noteFor(id, setup.notes));
+    const noted = groupIds.filter((id) => noteFor(id, setup.notes));
     if (plain.length) list.push([plain, contextFor(group, setup.contexts)]);
     for (const id of noted) list.push([[id], contextFor(id, setup.contexts, setup.notes)]);
   }

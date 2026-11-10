@@ -211,7 +211,7 @@ export default {
     wholeKey: 'whole key', // means: move by a whole keyboard key
     hide: 'hide', // means: make the selected keyboard keys invisible
     zoom: 'zoom', // means: make the keyboard picture bigger or smaller
-    pan: 'pan', // means: one word, to pan (move the view, as on a map)
+    pan: 'pan', // means: one short word in this language (never the English "pan") for moving the view around, as when dragging a map
   },
 
   // the Keys tab's toolbar: keys-toolbar.js (ui/settings/tabs/)
@@ -522,7 +522,7 @@ export default {
     live: '● Live in OBS',
     paused: '⏸ Paused',
     pausedNoObs: '⏸ Paused · OBS not connected',
-    noObs: '○ Not connected to OBS',
+    noObs: '○ Not connected to OBS', // means: a status label: OBS is not connected right now (not "if")
     linkChanged: 'OBS URL changed: copy it again',
     serverProblem: '⚠ Port in use',
   },
@@ -623,7 +623,7 @@ export default {
     fontGroup: { windows: 'Windows fonts', macos: 'Mac fonts' },
     systemFont: { macos: 'System font (default)' },
     // the General -> Startup switches: starting with the computer, and what minimizing does
-    autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' },
+    autostart: { windows: 'Start with Windows', macos: 'Open at login', linux: 'Start at login' }, // means: a switch label: start this app automatically when the computer starts (not "let's begin")
     minimize: { windows: 'Minimize to tray', linux: 'Minimize to tray' }, // not shown on a Mac: see hasMinimizeSetting
     // where the app's icon lives while its window is closed
     trayName: { windows: 'tray', macos: 'menu bar', linux: 'tray' },

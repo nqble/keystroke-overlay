@@ -23,19 +23,40 @@ function key(name) {
   return value;
 }
 
-/** POST JSON and return the answer's JSON, or stop with the service's own words. */
-async function post(
+/** How often a "too many requests" answer (429) is tried again, and the first wait; each wait doubles (2, 4, 8, 16 s). */
+const RETRIES = 4;
+const FIRST_WAIT_MS = 2000;
+const wait = (/** @type {number} */ ms) => new Promise((done) => setTimeout(done, ms));
+
+/**
+ * POST JSON and return the answer's JSON, or stop with the service's own words. A service that says "too many
+ * requests" (DeepL does when several languages run in a row) is asked again after a pause, for as long as it says to
+ * wait (`Retry-After`) or a growing pause.
+ */
+export async function post(
   /** @type {string} */ url,
   /** @type {Record<string, string>} */ headers,
   /** @type {unknown} */ body,
 ) {
-  const response = await fetch(url, {
+  let response = await send(url, headers, body);
+  for (let attempt = 0; response.status === 429 && attempt < RETRIES; attempt++) {
+    const asked = Number(response.headers.get('Retry-After')) * 1000;
+    const pause = asked > 0 ? asked : FIRST_WAIT_MS * 2 ** attempt;
+    console.log(`${new URL(url).host} asked to slow down: waiting ${Math.round(pause / 1000)} s`);
+    await wait(pause);
+    response = await send(url, headers, body);
+  }
+  if (!response.ok) throw new Error(`${new URL(url).host} answered ${response.status}: ${await response.text()}`);
+  return response.json();
+}
+
+/** One request. */
+function send(/** @type {string} */ url, /** @type {Record<string, string>} */ headers, /** @type {unknown} */ body) {
+  return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'User-Agent': USER_AGENT, ...headers },
     body: JSON.stringify(body),
   });
-  if (!response.ok) throw new Error(`${new URL(url).host} answered ${response.status}: ${await response.text()}`);
-  return response.json();
 }
 
 /** The texts in groups of BATCH, translated one group at a time. */
