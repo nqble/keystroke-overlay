@@ -282,12 +282,21 @@ Signed releases (Code signing above) build reputation much faster, so these repo
 - **Five minutes on the Mac** (the M1), with the Mac download from the draft or the **Mac app** workflow's artifact:
   1. Install it over the previous version and open it (first time: **Open Anyway** in System Settings → Privacy &
      Security).
-  2. Re-allow keyboard access: `tccutil reset ListenEvent com.keyoverlay.app`, then **Allow keyboard access**, switch it
-     on, **Restart now** (macOS ties the permission to one build).
+  2. Keyboard access: if keys don't show, the notice offers **Renew keyboard access** (or, on a copy it doesn't
+     recognize as updated, **Allow keyboard access**); switch it on, **Restart now**. With the release's signing
+     certificate the permission survives updates, so after the first certificate-signed release this step should be
+     needed only once.
   3. In OBS, press a few keys, including a modifier and an F key with Fn: they light up and let go.
   4. Click through every tab of the settings window: Mac words (⌘, menu bar, Open at login), nothing cut off, no
      Windows-only option.
-  5. If something is wrong, don't publish: note it in docs/MAC-PORT.md and fix it first.
+  5. Switch **General → Appearance → Language** to one other language and back: the window reloads in it, nothing cut
+     off, and the menu bar menu follows.
+  6. If something is wrong, don't publish: note it in docs/MAC-PORT.md and fix it first.
+- **Right after publishing, on the Mac:** with the previous version installed, **Check now**, then **Update now**: it
+  installs and the app opens again by itself (a copy older than v2.2.0 closes instead; open it by hand). Keys show
+  without renewing anything, except once when coming from an ad-hoc signed copy (v2.1 or older): then **Renew keyboard
+  access** must appear and work. `latest.json` on the release must have `darwin-aarch64` entries; if `mac-publish`
+  failed, re-run only it.
 - The latest **Security scan** run (it runs every Monday; Actions → Security scan) is green
 - The full e2e suite passes on your PC (`npm run test:e2e`); the **E2E (Windows)** workflow runs the same suite on GitHub for every pull request and on demand, and becomes a required release step once it has passed reliably there
 - Dependency licenses still compatible with MIT: checked automatically (see Third-party notices)
