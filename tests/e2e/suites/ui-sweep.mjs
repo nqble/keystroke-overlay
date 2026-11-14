@@ -22,6 +22,17 @@ const EVERY_THEME_CARD = byTestStart('theme-card-');
 const EVERY_SLIDER = `input[type=range]${byTestStart('control-')}`;
 const EVERY_ANIMATION_CARD = byTestStart('animation-card-');
 const EVERY_EASING = `${byTest('control-animation-easing')} [role=radio]`;
+// A tab can take longer than tab()'s pause to draw on a slow CI machine; counting too early found zero cards and
+// failed the sweep. So wait for what the check needs, up to this long.
+const TAB_DRAW_TIMEOUT_MS = 5000;
+const TAB_DRAW_POLL_MS = 100;
+const waitForSelector = async (selector) => {
+  const deadline = Date.now() + TAB_DRAW_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    if (await p.q(`document.querySelectorAll('${selector}').length > 0`)) return;
+    await sleep(TAB_DRAW_POLL_MS);
+  }
+};
 
 const TAB_IDS = {
   Layout: 'layout',
@@ -237,6 +248,8 @@ await p.invoke('set_layout', { id: 'tkl' });
 // every theme / animation via the saved settings (what presets and the selects do)
 const st = (await p.invoke('get_state')).ok;
 await tab('animation');
+await waitForSelector(EVERY_ANIMATION_CARD);
+await waitForSelector(EVERY_EASING);
 // animations are cards and easing is a row of choices since v2.0 (ui/settings/tabs/animation.js): click them all
 const animationCards = await p.q(`document.querySelectorAll('${EVERY_ANIMATION_CARD}').length`);
 for (let index = 0; index < animationCards; index++) {
