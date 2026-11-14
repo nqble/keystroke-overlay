@@ -3,6 +3,25 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
+## v2.2.0 — your language, and updates on a Mac
+
+### ✨ New
+- **The settings window in your language.** **General → Appearance → Language** offers Spanish, Portuguese (Brazil), German, French, Japanese and Simplified Chinese, or **Same as this computer** (the default), which picks the closest one to your system's language. The tray menu (the menu bar menu on a Mac) follows the window's language, also when the app starts without the window. The translations are made by translation services and checked by hand for meaning and fit; if a word reads wrong in your language, a correction is very welcome (see [TRANSLATIONS.md](https://github.com/nqble/keystroke-overlay/blob/main/docs/TRANSLATIONS.md)).
+- **Updates on a Mac, in the app.** A Mac now gets the orange update dot and **Update now**, like Windows and Linux. The Mac app is signed with the project's own certificate, so macOS keeps its keyboard access from one update to the next.
+- **Coming from 2.1 on a Mac, once:** after this update the app closes instead of restarting; open it again. If your keys don't show, click **Renew keyboard access** in the notice, switch Keystroke Overlay on in Input Monitoring, then **Restart now**. Later updates won't need either step.
+
+### 🛠 Improved
+- **The window appears whole:** it stays out of sight until it's drawn and the live preview is ready, then fades in, so you no longer see it build itself. Changing the language does the same.
+- **The Keys tab's hint** says **move view** instead of "pan".
+- **On a Mac, the General tab's cards line up** at the top of both columns.
+
+### 🧰 Under the hood
+- **New settings** for the language, the tray menu's words in that language, and the version that last captured a key (so a Mac can tell when its keyboard access needs renewing; a version number, never a key). No settings version change.
+- **`npm run translate`** makes a language file from English with a translation service, sending each text with context so short words keep their meaning ([TRANSLATIONS.md](https://github.com/nqble/keystroke-overlay/blob/main/docs/TRANSLATIONS.md)). It runs by hand, never in the app, and the privacy check allows it to talk only to the translation services.
+- **Update checks name the app and its version** to GitHub (`KeystrokeOverlay/<version>`), as PRIVACY.md describes.
+- **The Linux AppImage's notices** include the license of its start-up program (AppRun), and Linux builds use a copy of it kept in the repository instead of downloading it.
+- **Tests:** fixes for the Windows tests (focus, tab speed, the icon test) and the Linux Wayland tests with newer Rust.
+
 ## v2.1.0 — show your mouse, turn your keys, theme the app
 
 ### ✨ New
