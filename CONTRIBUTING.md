@@ -39,7 +39,7 @@ Useful commands:
 
 | Command | What it does |
 |---|---|
-| `npm test` | Rust unit tests, the UI unit tests (`tests/ui/`), the privacy check and the every-system check |
+| `npm test` | Rust unit tests, the UI unit tests (`tests/ui/`), the privacy, every-system, language-file and docs checks |
 | `npm run check:privacy` | Verifies the promises in [PRIVACY.md](PRIVACY.md) |
 | `npm run format` | Formats all the code (Prettier for web files, rustfmt for Rust, 120 columns). Run it before you commit |
 | `npm run check:format` | Checks the formatting without changing anything (CI runs it) |
