@@ -36,6 +36,8 @@ jobs:
         run: npm run check:config
       - name: Language files (every text known to English, placeholders kept)
         run: npm run check:locales
+      - name: Every system's words (no Windows-only words in the settings window outside systemWords)
+        run: npm run check:systems
       - name: JavaScript types (loose; see jsconfig.json)
         run: npm run check:types
       - name: JavaScript lint (mistakes fail; house-rule warnings are shown; see eslint.config.mjs)
