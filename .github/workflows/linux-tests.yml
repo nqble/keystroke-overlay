@@ -89,10 +89,13 @@ jobs:
       - name: Build the device tests (keyboard/linux_devices.rs and mouse/linux_devices.rs)
         run: |
           npm ci
-          # Cargo names the test program it built: "Executable unittests src/main.rs (src-tauri/target/debug/deps/keyoverlay-<hash>)".
+          # Cargo names the test program it built: "Executable unittests src/main.rs (<path>)". The folder it is in changed
+          # with newer Rust (target/debug/deps/ before, target/debug/build/keyoverlay/<hash>/out/ now), so the path is read
+          # from between the brackets, wherever it is.
           cargo test --manifest-path src-tauri/Cargo.toml --no-run 2>&1 | tee build.log
-          TESTS=$(grep -o 'target/debug/deps/keyoverlay-[0-9a-f]*' build.log | head -1)
-          cp "src-tauri/$TESTS" /tmp/device-tests
+          TESTS=$(sed -n 's/.*unittests src\/main\.rs (\(.*\))$/\1/p' build.log | head -1)
+          [ -f "$TESTS" ] || { echo "::error::No test program found in cargo's output (got '$TESTS')."; exit 1; }
+          cp "$TESTS" /tmp/device-tests
           chmod 755 /tmp/device-tests
       - name: A virtual keyboard, and a test user outside the input group
         run: |

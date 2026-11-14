@@ -4,7 +4,7 @@
 // page's look: src-tauri/about.hbs. For the Mac app: --target aarch64-apple-darwin lists the libraries in that build
 // (about.toml's own target is the Windows one), and --out says where to write. Needs cargo-about: cargo install cargo-about --version 0.9.2 --locked --features cli
 import { execFileSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 const args = process.argv.slice(2);
@@ -19,4 +19,20 @@ execFileSync('cargo', ['about', 'generate', ...targetFlags, 'about.hbs', '-o', N
   cwd: 'src-tauri',
   stdio: 'inherit',
 });
+// The Linux AppImage also carries AppImage's start-up program (tools/linux/AppRun-x86_64, MIT), which is not a Rust
+// library, so cargo-about doesn't know it: its notice is added here, word for word from tools/linux/AppRun.LICENSE.txt.
+if (target?.includes('linux')) addAppRunNotice();
 console.log(`Wrote ${NOTICES}`);
+
+function addAppRunNotice() {
+  const escape = (/** @type {string} */ text) =>
+    text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const license = readFileSync(resolve('tools/linux/AppRun.LICENSE.txt'), 'utf8');
+  const section =
+    "<h2 id='apprun'>AppRun (the AppImage's start-up program)</h2>\n" +
+    "<p>From the AppImage project (<a href='https://github.com/AppImage/AppImageKit'>AppImageKit</a>), in the Linux " +
+    'AppImage only.</p>\n' +
+    `<pre>${escape(license)}</pre>\n`;
+  const page = readFileSync(NOTICES, 'utf8');
+  writeFileSync(NOTICES, page.replace('</body>', `${section}</body>`));
+}
