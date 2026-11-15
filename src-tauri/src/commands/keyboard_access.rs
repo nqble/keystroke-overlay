@@ -21,7 +21,6 @@ pub fn status(st: &AppState) -> Value {
         .to_string();
     let renew = needs_renewal(&Renewal {
         system: crate::platform::name(),
-        allowed: access.allowed,
         capture_seen,
         proven_version: &proven,
         this_version: env!("CARGO_PKG_VERSION"),
@@ -41,7 +40,6 @@ pub fn status(st: &AppState) -> Value {
 /// What `needs_renewal` looks at.
 pub struct Renewal<'a> {
     pub system: &'a str,
-    pub allowed: bool,
     pub capture_seen: bool,
     /// The version that last proved capture worked (`general.keyboardProvenVersion`, "" if none has yet).
     pub proven_version: &'a str,
@@ -50,12 +48,15 @@ pub struct Renewal<'a> {
     pub updated_this_launch: bool,
 }
 
-/// A Mac app signed ad hoc gets a new identity with every build, so after an update macOS keeps showing the keyboard
-/// permission as on while it delivers no keys (docs/MAC-PORT.md, "The permission belongs to one exact build"). The
-/// window then offers to renew it: on a Mac, while macOS says "allowed", no key has arrived yet in this launch, and this
-/// is another version than the one that last proved capture worked (or, before any version has, the app was just updated).
+/// A Mac app signed ad hoc gets a new identity with every build, so after an update the old keyboard permission entry no
+/// longer matches the app (docs/MAC-PORT.md, "The permission belongs to one exact build"). macOS then shows it as on
+/// and delivers no keys, or, when the signer changed (an ad-hoc 2.1 updated to the certificate-signed 2.2), says
+/// "not allowed" while its stale entry keeps Allow from asking. Either way only a reset of the entry helps, so the
+/// window offers to renew it: on a Mac, when no key has arrived yet in this launch and this is another version than the
+/// one that last proved capture worked (or, before any version has, the app was just updated). Whether macOS says
+/// "allowed" doesn't matter here; a first install, with nothing proved and no update, gets the usual Allow notice.
 pub fn needs_renewal(renewal: &Renewal) -> bool {
-    if renewal.system != "macos" || !renewal.allowed || renewal.capture_seen {
+    if renewal.system != "macos" || renewal.capture_seen {
         return false;
     }
     if renewal.proven_version.is_empty() {
@@ -109,7 +110,6 @@ mod tests {
     fn after(proven_version: &str, updated_this_launch: bool) -> Renewal<'_> {
         Renewal {
             system: "macos",
-            allowed: true,
             capture_seen: false,
             proven_version,
             this_version: "2.2.0",
@@ -130,6 +130,17 @@ mod tests {
     }
 
     #[test]
+    fn whether_macos_says_allowed_does_not_matter() {
+        // 2.1 (ad hoc) to 2.2 (the certificate): macOS says "not allowed", and Allow alone never asks again, so the
+        // answer must not depend on it: `Renewal` doesn't even carry it
+        assert!(needs_renewal(&after("2.1.0", true)));
+        assert!(
+            needs_renewal(&after("2.1.0", false)),
+            "still not renewed in a later launch"
+        );
+    }
+
+    #[test]
     fn nothing_to_renew_otherwise() {
         assert!(
             !needs_renewal(&after("2.2.0", false)),
@@ -145,13 +156,6 @@ mod tests {
                 ..after("2.1.0", true)
             }),
             "keys arrive: it works"
-        );
-        assert!(
-            !needs_renewal(&Renewal {
-                allowed: false,
-                ..after("2.1.0", true)
-            }),
-            "not allowed: the Allow notice"
         );
         assert!(!needs_renewal(&Renewal {
             system: "windows",
