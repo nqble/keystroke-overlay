@@ -3,6 +3,11 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
+## v2.2.1 — keyboard access after a Mac update
+
+### 🐛 Fixed
+- **On a Mac, coming from 2.1:** after updating to 2.2.0 the keys could stay silent with no way out in the app. macOS said keyboard access was off, so the window showed **Allow keyboard access**, which only opened System Settings, where the old switch no longer counts. The window now offers **Renew keyboard access** in that case too: click it, switch Keystroke Overlay on in Input Monitoring, then **Restart now**. Already stuck on 2.2.0? Update to 2.2.1 and do the same. Updates from 2.2 onward keep their keyboard access.
+
 ## v2.2.0 — your language, and updates on a Mac
 
 ### ✨ New
