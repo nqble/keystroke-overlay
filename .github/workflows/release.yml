@@ -95,8 +95,10 @@ jobs:
             echo "::error::Tag '$TAG_NAME' does not match the app version v$VERSION. Nothing was released."; exit 1; fi
           if gh release view "v$VERSION" > /dev/null 2>&1; then
             echo "::error::Release v$VERSION already exists. Nothing was released."; exit 1; fi
-          node tools/changelog-section.mjs "$VERSION" > notes.md   # fails if CHANGELOG.md has no entry for this version
-          node tools/download-table.mjs "$VERSION" >> notes.md       # "Which file do I download?", just above the files
+          # the release notes are written outside the repository: `npm test` (next step) runs the docs check, which flags a
+          # markdown file in the repository root
+          node tools/changelog-section.mjs "$VERSION" > "$RUNNER_TEMP/release-notes.md"   # fails if CHANGELOG.md has no entry for this version
+          node tools/download-table.mjs "$VERSION" >> "$RUNNER_TEMP/release-notes.md"       # "Which file do I download?", just above the files
 
       - name: Tests and privacy check
         run: npm test
@@ -185,7 +187,7 @@ jobs:
         run: |
           V='${{ steps.v.outputs.version }}'
           gh release create "v$V" "release/$V/Keystroke-Overlay_${V}_x64-setup.exe" "release/$V/latest.json" release/THIRD-PARTY-NOTICES.html \
-            --title "v$V" --notes-file notes.md --target "${{ github.sha }}"
+            --title "v$V" --notes-file "$RUNNER_TEMP/release-notes.md" --target "${{ github.sha }}"
 
       - name: Promote to the Stable channel (x.y.0 releases, or when you ticked the box)
         if: steps.v.outputs.stable == 'true'
