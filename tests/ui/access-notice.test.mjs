@@ -101,3 +101,8 @@ test('after a Mac update with no key yet: renew the permission, then restart', (
   assert.equal(accessNotice({ access, asked: true })?.kind, 'restart', 'after Renew: switch it on, then restart');
   assert.equal(accessNotice({ access: { ...access, captureSeen: true } }), null, 'a key arrived: it works after all');
 });
+
+test('after a Mac update that macOS calls not allowed: renew too, not the plain Allow', () => {
+  const access = { ...allowed, system: 'macos', allowed: false, renewAfterUpdate: true };
+  assert.equal(accessNotice({ access })?.kind, 'renew');
+});

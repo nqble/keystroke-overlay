@@ -53,8 +53,9 @@ then Restart now; `ui/settings/keyboard-access.js`) until capture really works. 
 - **The permission belongs to one exact build.** An ad-hoc signed app's identity is its code hash, which changes with
   every build, so after an update the old Input Monitoring entry still looks on but does nothing (macOS logs "Failed to
   match existing code requirement"). What works: `tccutil reset ListenEvent com.keyoverlay.app`, then Allow keyboard
-  access, switch it on, Restart now. The window does the reset itself: when this version hasn't captured a key yet and
-  another version did (`general.keyboardProvenVersion`, a version number only), the notice says **Renew keyboard
+  access, switch it on, Restart now. Updating from an ad-hoc signed copy to a certificate-signed one (v2.1 to v2.2) is
+  the same, except that macOS says "not allowed" and Allow only opens System Settings without asking. The window does
+  the reset itself: whatever macOS says, when this version hasn't captured a key yet and another version did (`general.keyboardProvenVersion`, a version number only), the notice says **Renew keyboard
   access** (`renew_keyboard_access`, `platform::reset_keyboard_permission`). If the app isn't in the list after the reset, the **+** button and the app's folder
   add it. Switching the old entry off and on, or removing it, did not help. The user guide gives these steps.
   The way around it, used for releases from the one after v2.1 ([0017](decisions/0017-macs-update-in-the-app.md)): a
