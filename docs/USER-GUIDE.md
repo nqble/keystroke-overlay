@@ -376,8 +376,9 @@ Silicon MacBook Air (M1). From v2.0 each release has an Apple Silicon download o
   Keystroke Overlay, and delete the data folder above if you want your settings gone too. To remove its keyboard
   permission, run `tccutil reset ListenEvent com.keyoverlay.app` in Terminal.
 - **Updates.** The app updates itself, as on Windows: **Update now** when the orange dot shows. Afterwards macOS needs
-  the keyboard permission again: the window says **Renew keyboard access**; click it, switch Keystroke Overlay on in
-  Input Monitoring, then **Restart now**.
+  the keyboard permission again: the window says **Renew keyboard access**; click it, then **Restart now**. After the
+  restart macOS asks for keyboard access: switch Keystroke Overlay on in Input Monitoring (macOS may ask to quit and
+  reopen it). Until the restart, Input Monitoring has no entry for the app; that's expected.
 - **If the build stops** with a linker error that says "malformed file" or "unknown architecture", your Xcode Command Line
   Tools are older than your newest macOS SDK. Update them in System Settings → Software Update, then build again.
 - **Running with `npm run dev`.** macOS may then ask for Input Monitoring for the program that started it, such as

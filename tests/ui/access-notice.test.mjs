@@ -98,7 +98,13 @@ test('after a Mac update with no key yet: renew the permission, then restart', (
   const notice = accessNotice({ access });
   assert.equal(notice?.kind, 'renew');
   assert.equal(notice?.action, 'renew');
-  assert.equal(accessNotice({ access, asked: true })?.kind, 'restart', 'after Renew: switch it on, then restart');
+  const afterRenew = accessNotice({ access, asked: 'renew' });
+  assert.equal(afterRenew?.kind, 'restart', 'after Renew: restart, then macOS asks');
+  assert.notEqual(
+    afterRenew?.text,
+    accessNotice({ access, asked: 'allow' })?.text,
+    'says the list stays empty until then',
+  );
   assert.equal(accessNotice({ access: { ...access, captureSeen: true } }), null, 'a key arrived: it works after all');
 });
 

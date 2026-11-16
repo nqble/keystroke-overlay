@@ -10,7 +10,8 @@ import { html, render as draw } from './html.js';
 import { inputError } from './state.js';
 
 let access = null; // { applies, allowed, allowedAtStart, secureInput, captureSeen } from the app; null before the first answer
-let asked = false; // true once Allow keyboard access (or Copy the command) was pressed: the next step is the restart or log out
+/** @type {false | 'allow' | 'renew' | 'copy'} */
+let asked = false; // the button pressed ('allow', 'renew' or 'copy'): the next step is the restart or log out
 
 export function setKeyboardAccess(value) {
   access = value;
@@ -37,7 +38,7 @@ export async function refreshAccess() {
 function Notice({ notice }) {
   const press = () => {
     if (notice.action === 'restart') return invoke('restart_app');
-    asked = true;
+    asked = notice.action;
     paintAccess();
     if (notice.action === 'copy') return invoke('copy_text', { text: notice.command });
     if (notice.action === 'renew') return invoke('renew_keyboard_access'); // clears the stale permission, then asks
