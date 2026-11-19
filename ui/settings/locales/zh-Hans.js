@@ -732,7 +732,7 @@ export default {
       Delete: '删除',
       Home: 'Home',
       End: 'End',
-      PageUp: '页面上升',
+      PageUp: '向上翻页',
       PageDown: '向下翻页',
       NumLock: 'Num Lock',
       NumpadEnter: '小键盘 Enter',
@@ -925,15 +925,15 @@ export default {
     fontName: '字体名称',
   },
   accessNotice: {
-    ask: '允许键盘访问，以便叠加层能够检测您的按键。macOS 会提示您在“输入监视”中启用 Keystroke Overlay。',
+    ask: '允许键盘访问，以便叠加层能够识别您的按键。macOS 会提示您在“输入监控”中启用 Keystroke Overlay。',
     allow: '允许键盘访问',
     restart: '访问已开启。请重启 Keystroke Overlay，以便 macOS 开始向其发送您的按键信息。',
-    restartAfterAllow: '您是否在“输入监视”中启用了“按键叠加”？请重启一次，以便 macOS 开始向其发送您的按键。',
+    restartAfterAllow: '您是否在“输入监控”中启用了 Keystroke Overlay？请重启一次，以便 macOS 开始向其发送您的按键。',
     restartButton: '立即重启',
     renew:
       '更新后按键不显示？macOS 可能需要重新授予 Keystroke Overlay 键盘访问权限。请重新授权后重启：重启后 macOS 会再次询问。',
     restartAfterRenew:
-      '现在重启 Keystroke Overlay。在此之前，Input Monitoring 仍为空：重启后，macOS 会询问，然后您再为该应用开启权限。',
+      '现在重启 Keystroke Overlay。在此之前，输入监控将保持为空：重启后，macOS 会进行询问，然后您需要为该应用开启权限。',
     renewButton: '重新获取键盘访问权限',
     inputGroup:
       '在 Wayland 上，该应用需要输入组才能读取您的键盘。请在终端中运行此命令，然后注销并重新登录。之后您运行的每个程序也都能读取键盘（请参阅 PRIVACY.md）。',

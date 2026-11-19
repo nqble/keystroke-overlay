@@ -785,7 +785,7 @@ export default {
       Backslash: 'Barra invertida',
       CapsLock: 'Caps Lock',
       Semicolon: 'Ponto-e-vírgula',
-      Quote: 'Apostrofo',
+      Quote: 'Apóstrofo',
       Enter: 'Enter',
       IntlBackslash: 'Tecla ISO ao lado do Shift esquerdo',
       Comma: 'Vírgula',
