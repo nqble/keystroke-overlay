@@ -12,6 +12,7 @@
   "de": {
     "engine": "deepl",
     "target": "DE",
+    "formality": "prefer_more",
     "glossary": "de-de"
   },
   "fr": {

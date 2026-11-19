@@ -94,6 +94,7 @@ async function translateGroup(/** @type {string[]} */ ids, /** @type {Map<string
     setup.target,
     terms,
     setup.context,
+    { formality: setup.formality },
   );
   const kept = new Map();
   const broken = [];
@@ -138,7 +139,7 @@ async function translateLanguage(
   const englishSource = readFileSync(englishFile, 'utf8');
   const contexts = groupContexts(englishSource);
   const notes = textNotes(englishSource);
-  const setup = { engine: line.engine, target: line.target, glossary, contexts, notes };
+  const setup = { engine: line.engine, target: line.target, formality: line.formality, glossary, contexts, notes };
   const { kept, broken } = await translateTexts(ids, sources, setup);
   writeFileSync(file, updatedFile(sources, current, kept, line.engine));
   execFileSync(process.execPath, [resolve('node_modules/prettier/bin/prettier.cjs'), '--write', file], {

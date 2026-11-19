@@ -750,7 +750,7 @@ export default {
       Backslash: '反斜線',
       CapsLock: '大寫鎖定鍵',
       Semicolon: '分號',
-      Quote: '引用',
+      Quote: '引號',
       Enter: 'Enter',
       IntlBackslash: '左 Shift 鍵旁的 ISO 鍵',
       Comma: '逗號',

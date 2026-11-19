@@ -569,7 +569,7 @@ export default {
       'Alle Optionen werden auf ihre Standardwerte zurückgesetzt. Ihre Layouts, Voreinstellungen, Schriftarten und der Port bleiben erhalten.',
     resetBodyLinkNote: 'Falls der sichere Link aktiviert war, kopieren Sie die OBS-URL erneut in OBS.',
     manualInstall:
-      'Installiere diese App manuell: Lade sie von GitHub herunter, beende die App und führe sie anschließend aus.',
+      'Installieren Sie diese Anwendung manuell: Laden Sie sie von GitHub herunter, beenden Sie die Anwendung und führen Sie sie anschließend aus.',
     noKeySelected: 'Keine Taste ausgewählt',
     inspectorTip: 'Klicken Sie auf eine Taste, um sie zu beschriften oder auszublenden.',
     overlapNote: 'Diese Taste überlagert eine andere.',
@@ -764,7 +764,7 @@ export default {
       Home: 'Home',
       End: 'End',
       PageUp: 'Bild auf',
-      PageDown: 'Bild nach unten',
+      PageDown: 'Bild-nach-unten',
       NumLock: 'Num-Lock',
       NumpadEnter: 'Num Enter',
       Escape: 'Esc',
@@ -831,7 +831,7 @@ export default {
     y: 'Y',
     putBack: 'Zurück an die ursprüngliche Stelle',
     selected: { one: 'Taste {count} ausgewählt', other: '{count} Tasten ausgewählt' },
-    putTheseBack: 'Füge diese wieder ein',
+    putTheseBack: 'Bitte fügen Sie diese wieder ein',
     putTheseBackTip: 'Zurück an die Stelle, an der sie im Layout vorgesehen sind',
     clearSelection: 'Auswahl löschen',
   },
@@ -959,22 +959,22 @@ export default {
     fontName: 'Schriftartname',
   },
   accessNotice: {
-    ask: 'Erlaube den Tastaturzugriff, damit das Overlay deine Tasten erkennen kann. macOS fordert dich auf, Keystroke Overlay in der Eingabeüberwachung zu aktivieren.',
+    ask: 'Erlauben Sie den Tastaturzugriff, damit das Overlay Ihre Tasten erkennen kann. macOS fordert Sie auf, „Keystroke Overlay“ in der Eingabeüberwachung zu aktivieren.',
     allow: 'Tastaturzugriff zulassen',
     restart:
-      'Der Zugriff ist aktiviert. Starte Keystroke Overlay einmal neu, damit macOS beginnt, die Tastenanschläge an die App zu senden.',
+      'Der Zugriff ist aktiviert. Starten Sie Keystroke Overlay einmal neu, damit macOS beginnt, die Tastenanschläge an die Anwendung zu übermitteln.',
     restartAfterAllow:
-      'Hast du „Keystroke Overlay“ in der Eingabeüberwachung aktiviert? Starte die App einmal neu, damit macOS beginnt, deine Tastenanschläge an die App zu senden.',
+      'Haben Sie „Keystroke Overlay“ in der Eingabeüberwachung aktiviert? Starten Sie die Anwendung einmal neu, damit macOS beginnt, Ihre Tastenanschläge an die Anwendung zu senden.',
     restartButton: 'Jetzt neu starten',
     renew:
       'Werden die Tasten seit dem Update nicht mehr angezeigt? Möglicherweise benötigt macOS erneut die Tastaturzugriffsberechtigung für Keystroke Overlay. Erneuern Sie diese und starten Sie die App anschließend neu: macOS fragt nach dem Neustart erneut danach.',
     restartAfterRenew:
-      'Starte nun Keystroke Overlay neu. „Input Monitoring“ bleibt bis dahin leer: Nach dem Neustart fragt macOS nach, und du aktivierst die App.',
+      'Starten Sie nun Keystroke Overlay neu. „Input Monitoring“ bleibt bis dahin leer: Nach dem Neustart fragt macOS nach, und Sie aktivieren die App.',
     renewButton: 'Tastaturzugriff erneuern',
     inputGroup:
       'Unter Wayland benötigt die App die Eingabegruppe, um Ihre Tastaturen lesen zu können. Führen Sie diesen Befehl in einem Terminal aus, melden Sie sich anschließend ab und wieder an. Jedes Programm, das Sie starten, kann dann ebenfalls die Tastaturen lesen (siehe PRIVACY.md).',
     inputGroupCopied:
-      'Kopiert. Füge ihn in ein Terminal ein und führe ihn aus, melde dich dann ab und wieder an. Danach erkennt Keystroke Overlay deine Tastenanschläge.',
+      'Kopiert. Fügen Sie ihn in ein Terminal ein und führen Sie ihn aus; melden Sie sich anschließend ab und wieder an. Danach erkennt Keystroke Overlay Ihre Tastenanschläge.',
     copyCommand: 'Befehl kopieren',
     secure:
       'macOS blockiert Tasten, solange ein Passwortfeld geöffnet ist (Secure Input). Bleibt dies so, sperren und entsperren Sie den Bildschirm oder beenden Sie die App, die das Feld geöffnet hält.',
@@ -994,7 +994,7 @@ export default {
     pauseShortcut: 'Tastenkombination zum Anhalten…',
     waiting: 'Warten auf OBS…',
     allSet:
-      '✓ Alles fertig. OBS ist verbunden. Denk daran, auf „Pause“ (oben rechts in der Vorschau) zu klicken, bevor du etwas Privates eingibst.',
+      '✓ Sie sind startklar. OBS ist verbunden. Denken Sie daran, auf „Pause“ (oben rechts in der Vorschau) zu klicken, bevor Sie etwas Privates eingeben.',
   },
   kleImport: {
     chooseFile: 'Datei auswählen…',
@@ -1046,7 +1046,7 @@ export default {
     choiceHeading: 'In dieser Szene',
     placeholder: 'So wie es in OBS geschrieben steht',
     hide: 'Overlay ausblenden',
-    chosenLayout: 'Zeige das von dir gewählte Layout an',
+    chosenLayout: 'Zeigen Sie das von Ihnen gewählte Layout an',
     showLayout: 'Anzeigen: {name}',
     remove: 'Entfernen {scene}',
     removeUnnamed: 'Diese Szene entfernen',

@@ -89,6 +89,8 @@ Two cases always need a person:
 ## Adding a language
 
 1. Add a line to `tools/translate-engines.json`: its code (the file name), the service, the service's own code for
-   the language, and the TBX language for the glossary.
+   the language, and the TBX language for the glossary. Add `"formality": "prefer_more"` (DeepL only; not for
+   Chinese) if the language has a formal and a familiar way of addressing the reader and the file mixed them: German
+   did, with "Sie" and "du" side by side.
 2. `npm run translate -- <code>`, then the checks above.
 3. The app lists the new file in General → Language by itself.

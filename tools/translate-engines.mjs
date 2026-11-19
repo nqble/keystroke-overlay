@@ -69,11 +69,12 @@ async function inBatches(/** @type {string[]} */ texts, /** @type {(group: strin
 
 /**
  * DeepL: the context goes in its `context` field (read, not translated), and a glossary made for this run (deleted
- * after) carries the terms. A free key ends in `:fx`.
+ * after) carries the terms. `options.formality` (`prefer_more`) keeps one way of addressing the reader through a file:
+ * without it DeepL picks "Sie" or "du" text by text. A free key ends in `:fx`.
  * @param {string[]} texts @param {string} target DeepL's code (`DE`, `PT-BR`, `JA`) @param {Map<string, string>} terms
- * @param {string} context
+ * @param {string} context @param {{ formality?: string }} [options]
  */
-async function deepl(texts, target, terms, context) {
+async function deepl(texts, target, terms, context, options = {}) {
   const apiKey = key('DEEPL_API_KEY');
   const base = apiKey.endsWith(':fx') ? DEEPL_FREE : DEEPL_PRO;
   const headers = { Authorization: `DeepL-Auth-Key ${apiKey}` };
@@ -89,7 +90,14 @@ async function deepl(texts, target, terms, context) {
     : null;
   try {
     return await inBatches(texts, async (group) => {
-      const body = { text: group, source_lang: 'EN', target_lang: target, context, glossary_id: glossary?.glossary_id };
+      const body = {
+        text: group,
+        source_lang: 'EN',
+        target_lang: target,
+        context,
+        glossary_id: glossary?.glossary_id,
+        formality: options.formality,
+      };
       return (await post(`${base}/translate`, headers, body)).translations.map((one) => one.text);
     });
   } finally {

@@ -240,14 +240,14 @@ export default {
       Delete: 'Delete', // means: the Delete key
       Home: 'Home', // means: the Home key
       End: 'End', // means: the End key
-      PageUp: 'Page Up', // means: the Page Up key
-      PageDown: 'Page Down', // means: the Page Down key
+      PageUp: 'Page Up', // means: the Page Up key, named as it is on keyboards in this language; the Page Down key next to it is named the same way
+      PageDown: 'Page Down', // means: the Page Down key, named as it is on keyboards in this language; the Page Up key next to it is named the same way
       NumLock: 'Num Lock', // means: the Num Lock key
       NumpadEnter: 'Num Enter', // means: the Enter key on the number pad
       Escape: 'Esc', // means: the Escape key
       Backquote: 'Backquote', // means: the key with the backquote (`) on it
       Minus: 'Minus', // means: the key with the minus sign on it
-      Equal: 'Equal', // means: the key with the equals sign on it
+      Equal: 'Equal', // means: the key with the equals sign (=) on it, named by that sign
       Backspace: 'Backspace', // means: the Backspace key
       Tab: 'Tab', // means: the Tab key
       BracketLeft: 'Left bracket', // means: the key with [ on it
@@ -255,10 +255,10 @@ export default {
       Backslash: 'Backslash', // means: the key with \ on it
       CapsLock: 'Caps Lock', // means: the Caps Lock key
       Semicolon: 'Semicolon', // means: the key with ; on it
-      Quote: 'Quote', // means: the key with ' on it
+      Quote: 'Quote', // means: the key with the apostrophe or single quote mark (') on it, as a keyboard key, not a quotation
       Enter: 'Enter', // means: the Enter key
       IntlBackslash: 'ISO key beside left Shift', // means: the extra key next to the left Shift on European keyboards
-      Comma: 'Comma', // means: the key with , on it
+      Comma: 'Comma', // means: the key with the comma (,) on it, named by that sign, one correctly spelled word
       Period: 'Period', // means: the key with . on it
       Slash: 'Slash', // means: the key with / on it
       Space: 'Space', // means: the space bar
