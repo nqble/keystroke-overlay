@@ -497,8 +497,6 @@ export const made = {
     'systemWords.panHints.macos.0.tip': '068aa4bd',
     'systemWords.panHints.macos.1.chip': 'c3a3fa29',
     'systemWords.panHints.macos.1.tip': '85467627',
-    'systemWords.panHints.macos.2.chip': 'bdd03ee9',
-    'systemWords.panHints.macos.2.tip': 'd0456400',
     'systemWords.panHints.linux.0.chip': 'c3a3fa29',
     'systemWords.panHints.linux.0.tip': '85467627',
     'systemWords.panHints.linux.1.chip': 'bdd03ee9',
@@ -1087,10 +1085,6 @@ export default {
       macos: {
         0: { chip: 'Scrollen', tip: 'Scrolle mit zwei Fingern, um die Ansicht zu verschieben' },
         1: { chip: 'Leertaste + Ziehen', tip: 'Halte die Leertaste gedrückt und ziehe, um die Ansicht zu verschieben' },
-        2: {
-          chip: 'Mittlerer Drag',
-          tip: 'Ziehen Sie mit der mittleren Maustaste (dem Scrollrad), um die Ansicht zu verschieben',
-        },
       },
       linux: {
         0: { chip: 'Leertaste + Ziehen', tip: 'Halte die Leertaste gedrückt und ziehe, um die Ansicht zu verschieben' },

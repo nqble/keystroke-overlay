@@ -659,20 +659,20 @@ export default {
       macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',
       linux: 'Scroll over the keyboard to zoom',
     },
-    // what pans, each as { chip, tip }: a Mac pans with a two-finger scroll; Space + drag and a middle-button drag pan everywhere
+    // what pans, each as { chip, tip }: kept short so the hint line fits one row in the default window (the tip says
+    // the rest). Space + drag and a middle-button drag pan everywhere; a Mac shows its two-finger scroll and Space
     panHints: {
       windows: [
-        { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
-        { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
+        { chip: 'Space', tip: 'Hold Space and drag to move the view' },
+        { chip: 'Middle', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
       ],
       macos: [
         { chip: 'Scroll', tip: 'Scroll with two fingers to move the view' },
-        { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
-        { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
+        { chip: 'Space', tip: 'Hold Space and drag to move the view (or drag with the middle mouse button)' },
       ],
       linux: [
-        { chip: 'Space + drag', tip: 'Hold Space and drag to move the view' },
-        { chip: 'Middle drag', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
+        { chip: 'Space', tip: 'Hold Space and drag to move the view' },
+        { chip: 'Middle', tip: 'Drag with the middle mouse button (the wheel) to move the view' },
       ],
     },
   },
