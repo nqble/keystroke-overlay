@@ -51,9 +51,16 @@ export function useLanguage(texts, code = 'en') {
 export function pickLanguage(chosen, available, wanted) {
   if (chosen && available.includes(chosen)) return chosen;
   const base = (/** @type {string} */ code) => code.split('-')[0].toLowerCase();
+  // Chinese is written in two scripts that people do not read as one language: Traditional (Taiwan, Hong Kong, Macau,
+  // or `zh-Hant`) and Simplified (everywhere else). The same language without its region must not hand a Taiwan computer
+  // the Simplified file when a Traditional one exists, nor the other way round.
+  const traditional = (/** @type {string} */ code) => /^zh-(hant|tw|hk|mo)(-|$)/i.test(code);
   for (const code of wanted) {
     const exact = available.find((file) => file.toLowerCase() === code.toLowerCase());
-    const sameLanguage = available.find((file) => base(file) === base(code));
+    const sameLanguageFiles = available.filter((file) => base(file) === base(code));
+    const sameLanguage =
+      sameLanguageFiles.find((file) => base(file) !== 'zh' || traditional(file) === traditional(code)) ??
+      sameLanguageFiles[0];
     if (exact ?? sameLanguage) return exact ?? sameLanguage;
   }
   return 'en';

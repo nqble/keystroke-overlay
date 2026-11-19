@@ -137,6 +137,24 @@ test('"Same as this computer" finds the closest file, in the order the computer 
   assert.equal(pickLanguage('', ['en'], []), 'en');
 });
 
+test('Chinese: Traditional for Taiwan, Hong Kong and Macau, Simplified for the rest, whichever file is listed first', () => {
+  const both = ['en', 'zh-Hans', 'zh-Hant'];
+  assert.equal(pickLanguage('', both, ['zh-TW']), 'zh-Hant');
+  assert.equal(pickLanguage('', both, ['zh-HK']), 'zh-Hant');
+  assert.equal(pickLanguage('', both, ['zh-Hant-TW']), 'zh-Hant');
+  assert.equal(pickLanguage('', both, ['zh-CN']), 'zh-Hans');
+  assert.equal(pickLanguage('', both, ['zh-SG']), 'zh-Hans');
+  assert.equal(pickLanguage('', both, ['zh-Hans-CN']), 'zh-Hans');
+  assert.equal(pickLanguage('', both, ['zh']), 'zh-Hans', 'no region: the more common Simplified');
+  assert.equal(
+    pickLanguage('', ['en', 'zh-Hant', 'zh-Hans'], ['zh-TW']),
+    'zh-Hant',
+    'the order of the files does not matter',
+  );
+  assert.equal(pickLanguage('', ['en', 'zh-Hans'], ['zh-TW']), 'zh-Hans', 'only one Chinese file: that one');
+  assert.equal(pickLanguage('', ['en', 'zh-Hant'], ['zh-CN']), 'zh-Hant', 'only one Chinese file: that one');
+});
+
 test('a list of texts stays a list, each entry translated', () => {
   useLanguage({ systemWords: { panHints: { windows: [{ chip: 'Leertaste + Ziehen' }] } } }, 'de');
   const hints = words('systemWords').panHints.windows;
