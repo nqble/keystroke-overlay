@@ -507,8 +507,6 @@ export const made = {
     'systemWords.panHints.macos.0.tip': '068aa4bd',
     'systemWords.panHints.macos.1.chip': 'c3a3fa29',
     'systemWords.panHints.macos.1.tip': '85467627',
-    'systemWords.panHints.macos.2.chip': 'bdd03ee9',
-    'systemWords.panHints.macos.2.tip': 'd0456400',
     'systemWords.panHints.linux.0.chip': 'c3a3fa29',
     'systemWords.panHints.linux.0.tip': '85467627',
     'systemWords.panHints.linux.1.chip': 'bdd03ee9',
@@ -1132,10 +1130,6 @@ export default {
         1: {
           chip: 'Espace + glisser',
           tip: 'Maintenez la barre d’espace enfoncée et faites glisser pour déplacer la vue',
-        },
-        2: {
-          chip: 'Glisser au milieu',
-          tip: 'Faites glisser avec le bouton central de la souris (la molette) pour déplacer la vue',
         },
       },
       linux: {

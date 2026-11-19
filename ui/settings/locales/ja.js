@@ -487,8 +487,6 @@ export const made = {
     'systemWords.panHints.macos.0.tip': '068aa4bd',
     'systemWords.panHints.macos.1.chip': 'c3a3fa29',
     'systemWords.panHints.macos.1.tip': '85467627',
-    'systemWords.panHints.macos.2.chip': 'bdd03ee9',
-    'systemWords.panHints.macos.2.tip': 'd0456400',
     'systemWords.panHints.linux.0.chip': 'c3a3fa29',
     'systemWords.panHints.linux.0.tip': '85467627',
     'systemWords.panHints.linux.1.chip': 'bdd03ee9',
@@ -1058,7 +1056,6 @@ export default {
       macos: {
         0: { chip: 'スクロール', tip: '2本の指でスクロールして表示位置を移動してください' },
         1: { chip: 'スペースキー + ドラッグ', tip: 'スペースキーを押したままドラッグすると、表示位置を移動できます' },
-        2: { chip: '中央ドラッグ', tip: 'マウスの中ボタン（ホイール）でドラッグして、表示位置を移動します' },
       },
       linux: {
         0: { chip: 'スペースキー + ドラッグ', tip: 'スペースキーを押したままドラッグすると、表示位置を移動できます' },

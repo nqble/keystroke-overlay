@@ -507,8 +507,6 @@ export const made = {
     'systemWords.panHints.macos.0.tip': '068aa4bd',
     'systemWords.panHints.macos.1.chip': 'c3a3fa29',
     'systemWords.panHints.macos.1.tip': '85467627',
-    'systemWords.panHints.macos.2.chip': 'bdd03ee9',
-    'systemWords.panHints.macos.2.tip': 'd0456400',
     'systemWords.panHints.linux.0.chip': 'c3a3fa29',
     'systemWords.panHints.linux.0.tip': '85467627',
     'systemWords.panHints.linux.1.chip': 'bdd03ee9',
@@ -1124,10 +1122,6 @@ export default {
       macos: {
         0: { chip: 'Desplazarse', tip: 'Desplázate con dos dedos para mover la vista' },
         1: { chip: 'Espacio + arrastrar', tip: 'Mantén pulsada la barra espaciadora y arrastra para mover la vista' },
-        2: {
-          chip: 'Arrastrar por el centro',
-          tip: 'Arrastra con el botón central del ratón (la rueda) para mover la vista',
-        },
       },
       linux: {
         0: { chip: 'Espacio + arrastrar', tip: 'Mantén pulsada la barra espaciadora y arrastra para mover la vista' },

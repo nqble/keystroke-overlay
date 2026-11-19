@@ -58,15 +58,20 @@ test('the Keys tab view hints say what pans and zooms on each system', () => {
   assert.equal(systemWord('zoomChip', 'macos'), 'Pinch');
   assert.deepEqual(
     systemWord('panHints', 'macos').map((hint) => hint.chip),
-    ['Scroll', 'Space + drag', 'Middle drag'],
+    ['Scroll', 'Space'],
   );
   assert.equal(systemWord('zoomChip', 'windows'), 'Scroll');
   assert.deepEqual(
     systemWord('panHints', 'windows').map((hint) => hint.chip),
-    ['Space + drag', 'Middle drag'],
+    ['Space', 'Middle'],
   );
   assert.match(systemWord('panHints', 'macos')[0].tip, /two fingers/);
   assert.match(systemWord('panHints', 'macos')[1].tip, /Space/);
+  assert.match(
+    systemWord('panHints', 'macos')[1].tip,
+    /middle mouse button/,
+    'a Mac still says the middle button pans',
+  );
   assert.match(systemWord('panHints', 'windows')[1].tip, /middle mouse button/);
 });
 

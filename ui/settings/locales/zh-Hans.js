@@ -487,8 +487,6 @@ export const made = {
     'systemWords.panHints.macos.0.tip': '068aa4bd',
     'systemWords.panHints.macos.1.chip': 'c3a3fa29',
     'systemWords.panHints.macos.1.tip': '85467627',
-    'systemWords.panHints.macos.2.chip': 'bdd03ee9',
-    'systemWords.panHints.macos.2.tip': 'd0456400',
     'systemWords.panHints.linux.0.chip': 'c3a3fa29',
     'systemWords.panHints.linux.0.tip': '85467627',
     'systemWords.panHints.linux.1.chip': 'bdd03ee9',
@@ -1021,7 +1019,6 @@ export default {
       macos: {
         0: { chip: '滚动', tip: '双指滚动以移动视图' },
         1: { chip: '空格 + 拖动', tip: '按住空格并拖动以移动视图' },
-        2: { chip: '中间拖动', tip: '用鼠标中键（滚轮）拖动以移动视图' },
       },
       linux: {
         0: { chip: '空格 + 拖动', tip: '按住空格并拖动以移动视图' },
