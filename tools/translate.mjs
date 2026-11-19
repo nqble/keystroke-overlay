@@ -29,18 +29,34 @@ import {
   sourceTexts,
   termsIn,
   toTranslate,
+  fixedTerms,
+  withFixedTerms,
+  withRedo,
 } from './translate-text.mjs';
 
 const LOCALES = resolve('ui/settings/locales');
 const TABLE = JSON.parse(readFileSync(resolve('tools/translate-engines.json'), 'utf8'));
+const FIXED_TERMS = JSON.parse(readFileSync(resolve('tools/translate-terms.json'), 'utf8'));
 
-/** The command line: language codes, and the two options. */
+/** The value after an option (`--glossary <file>`), and its place, so it isn't read as a language code. */
+function optionValue(/** @type {string[]} */ args, /** @type {string} */ name) {
+  const at = args.indexOf(name);
+  return at === -1 ? { value: null, at: -1 } : { value: args[at + 1] ?? null, at: at + 1 };
+}
+
+/** The command line: language codes, and the options. */
 function readArguments(/** @type {string[]} */ args) {
-  const glossaryAt = args.indexOf('--glossary');
-  const glossary = glossaryAt === -1 ? null : args[glossaryAt + 1];
-  const glossaryFile = glossaryAt === -1 ? -1 : glossaryAt + 1; // the file named after --glossary is not a code
-  const codes = args.filter((arg, index) => !arg.startsWith('--') && index !== glossaryFile);
-  return { codes, glossary, dryRun: args.includes('--dry-run'), all: args.includes('--all') };
+  const glossary = optionValue(args, '--glossary');
+  const redo = optionValue(args, '--redo'); // comma-separated ids to send again (keyNames.names.Quote,…)
+  const values = [glossary.at, redo.at];
+  const codes = args.filter((arg, index) => !arg.startsWith('--') && !values.includes(index));
+  return {
+    codes,
+    glossary: glossary.value,
+    redo: redo.value ? redo.value.split(',') : [],
+    dryRun: args.includes('--dry-run'),
+    all: args.includes('--all'),
+  };
 }
 
 /** A module, loaded fresh (an earlier run in this process may have written it). */
@@ -83,17 +99,16 @@ function requests(/** @type {string[]} */ ids, setup) {
 /** One request's texts, with its context. */
 async function translateGroup(/** @type {string[]} */ ids, /** @type {Map<string, string>} */ sources, setup) {
   const sent = ids.map((id) => protect(/** @type {string} */ (sources.get(id))));
-  const terms = setup.glossary
-    ? termsIn(
-        sent.map((one) => one.sent),
-        setup.glossary,
-      )
-    : new Map();
+  const terms = termsIn(
+    sent.map((one) => one.sent),
+    setup.glossary,
+  );
   const answers = await ENGINES[setup.engine](
     sent.map((one) => one.sent),
     setup.target,
     terms,
     setup.context,
+    setup.formality,
   );
   const kept = new Map();
   const broken = [];
@@ -121,7 +136,7 @@ function updatedFile(sources, current, kept, engine) {
 /** One language, from its line in translate-engines.json to its file. */
 async function translateLanguage(
   /** @type {string} */ code,
-  /** @type {{ glossary: string | null, dryRun: boolean, all: boolean }} */ options,
+  /** @type {{ glossary: string | null, redo: string[], dryRun: boolean, all: boolean }} */ options,
 ) {
   const line = TABLE[code];
   if (!line) throw new Error(`${code} has no line in tools/translate-engines.json`);
@@ -131,14 +146,17 @@ async function translateLanguage(
   const current = await currentFile(file);
   // --all: send every text again (but never a reviewed one), as if none had been translated
   const made = options.all ? { ...current.made, sources: {} } : current.made;
-  const ids = toTranslate(sources, current.texts, made);
+  const ids = withRedo(toTranslate(sources, current.texts, made), options.redo, sources, made);
   console.log(`${code}: ${ids.length} of ${sources.size} texts to send to ${line.engine}`);
   if (options.dryRun || !ids.length) return;
-  const glossary = options.glossary ? glossaryFromTbx(readFileSync(options.glossary, 'utf8'), line.glossary) : null;
+  const microsoftTerms = options.glossary
+    ? glossaryFromTbx(readFileSync(options.glossary, 'utf8'), line.glossary)
+    : null;
+  const glossary = withFixedTerms(microsoftTerms, fixedTerms(FIXED_TERMS, code));
   const englishSource = readFileSync(englishFile, 'utf8');
   const contexts = groupContexts(englishSource);
   const notes = textNotes(englishSource);
-  const setup = { engine: line.engine, target: line.target, glossary, contexts, notes };
+  const setup = { engine: line.engine, target: line.target, formality: line.formality, glossary, contexts, notes };
   const { kept, broken } = await translateTexts(ids, sources, setup);
   writeFileSync(file, updatedFile(sources, current, kept, line.engine));
   execFileSync(process.execPath, [resolve('node_modules/prettier/bin/prettier.cjs'), '--write', file], {
