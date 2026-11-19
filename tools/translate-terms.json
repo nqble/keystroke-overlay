@@ -13,9 +13,15 @@
     "fr": "Virgule"
   },
   "Page Up": {
-    "fr": "Page précédente"
+    "fr": "Page précédente",
+    "zh-Hans": "向上翻页"
   },
   "Page Down": {
-    "fr": "Page suivante"
+    "fr": "Page suivante",
+    "zh-Hans": "向下翻页"
+  },
+  "Apostrophe": {
+    "es": "Apóstrofo",
+    "pt-BR": "Apóstrofo"
   }
 }
