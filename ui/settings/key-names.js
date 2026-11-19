@@ -5,20 +5,9 @@
 //  checks every code here against keymap.rs. A key the app learns to see is one more line here and in keymap.rs.
 // =====================================================================================================================
 import { systemWord } from './system-words.js';
+import { words } from './words.js';
 
-const TEXT = {
-  groups: {
-    letters: 'Letters',
-    numbers: 'Numbers',
-    functionKeys: 'Function keys',
-    modifiers: 'Modifiers',
-    navigation: 'Navigation',
-    numberPad: 'Number pad',
-    other: 'Other',
-  },
-  left: (name) => `Left ${name}`,
-  right: (name) => `Right ${name}`,
-};
+const TEXT = words('keyNames');
 
 /** The groups of the key list, in the order a list of keys shows them. */
 export const KEY_GROUPS = Object.keys(TEXT.groups);
@@ -31,59 +20,71 @@ const DIGITS = '1234567890'.split('');
 const FUNCTION_KEY_COUNT = 12; // F1..F12: keymap.rs has no F13 and up
 
 /**
- * Every key the app can see that is not a letter, digit or function key: [code, group, name]. The Control, Alt and Meta
- * keys have no name here: they are called differently on each system (keyName below).
+ * Every key the app can see that is not a letter, digit or function key: [code, group, symbol]. Its name is
+ * TEXT.names[code] (the language files), after the symbol printed on it, if any, which no translation changes. The
+ * Control, Alt and Meta keys have no name here: they are called differently on each system (keyName below).
  */
 const OTHER_KEYS = [
-  ['ShiftLeft', 'modifiers', TEXT.left('Shift')],
-  ['ShiftRight', 'modifiers', TEXT.right('Shift')],
+  ['ShiftLeft', 'modifiers'],
+  ['ShiftRight', 'modifiers'],
   ['ControlLeft', 'modifiers'],
   ['ControlRight', 'modifiers'],
   ['AltLeft', 'modifiers'],
   ['AltRight', 'modifiers'],
   ['MetaLeft', 'modifiers'],
   ['MetaRight', 'modifiers'],
-  ['ArrowUp', 'navigation', '↑ Up'],
-  ['ArrowDown', 'navigation', '↓ Down'],
-  ['ArrowLeft', 'navigation', '← Left'],
-  ['ArrowRight', 'navigation', '→ Right'],
-  ['Insert', 'navigation', 'Insert'],
-  ['Delete', 'navigation', 'Delete'],
-  ['Home', 'navigation', 'Home'],
-  ['End', 'navigation', 'End'],
-  ['PageUp', 'navigation', 'Page Up'],
-  ['PageDown', 'navigation', 'Page Down'],
-  ['NumLock', 'numberPad', 'Num Lock'],
-  ...DIGITS.map((digit) => [`Numpad${digit}`, 'numberPad', `Num ${digit}`]),
-  ['NumpadDecimal', 'numberPad', 'Num .'],
-  ['NumpadAdd', 'numberPad', 'Num +'],
-  ['NumpadSubtract', 'numberPad', 'Num -'],
-  ['NumpadMultiply', 'numberPad', 'Num *'],
-  ['NumpadDivide', 'numberPad', 'Num /'],
-  ['NumpadEnter', 'numberPad', 'Num Enter'],
-  ['Escape', 'other', 'Esc'],
-  ['Backquote', 'other', '` Backquote'],
-  ['Minus', 'other', '- Minus'],
-  ['Equal', 'other', '= Equal'],
-  ['Backspace', 'other', 'Backspace'],
-  ['Tab', 'other', 'Tab'],
-  ['BracketLeft', 'other', '[ Left bracket'],
-  ['BracketRight', 'other', '] Right bracket'],
-  ['Backslash', 'other', '\\ Backslash'],
-  ['CapsLock', 'other', 'Caps Lock'],
-  ['Semicolon', 'other', '; Semicolon'],
-  ['Quote', 'other', "' Quote"],
-  ['Enter', 'other', 'Enter'],
-  ['IntlBackslash', 'other', 'ISO key beside left Shift'],
-  ['Comma', 'other', ', Comma'],
-  ['Period', 'other', '. Period'],
-  ['Slash', 'other', '/ Slash'],
-  ['Space', 'other', 'Space'],
-  ['PrintScreen', 'other', 'Print Screen'],
-  ['ScrollLock', 'other', 'Scroll Lock'],
-  ['Pause', 'other', 'Pause'],
-  ['ContextMenu', 'other', 'Menu'],
+  ['ArrowUp', 'navigation', '↑'],
+  ['ArrowDown', 'navigation', '↓'],
+  ['ArrowLeft', 'navigation', '←'],
+  ['ArrowRight', 'navigation', '→'],
+  ['Insert', 'navigation'],
+  ['Delete', 'navigation'],
+  ['Home', 'navigation'],
+  ['End', 'navigation'],
+  ['PageUp', 'navigation'],
+  ['PageDown', 'navigation'],
+  ['NumLock', 'numberPad'],
+  ['NumpadEnter', 'numberPad'],
+  ['Escape', 'otherKeys'],
+  ['Backquote', 'otherKeys', '`'],
+  ['Minus', 'otherKeys', '-'],
+  ['Equal', 'otherKeys', '='],
+  ['Backspace', 'otherKeys'],
+  ['Tab', 'otherKeys'],
+  ['BracketLeft', 'otherKeys', '['],
+  ['BracketRight', 'otherKeys', ']'],
+  ['Backslash', 'otherKeys', '\\'],
+  ['CapsLock', 'otherKeys'],
+  ['Semicolon', 'otherKeys', ';'],
+  ['Quote', 'otherKeys', "'"],
+  ['Enter', 'otherKeys'],
+  ['IntlBackslash', 'otherKeys'],
+  ['Comma', 'otherKeys', ','],
+  ['Period', 'otherKeys', '.'],
+  ['Slash', 'otherKeys', '/'],
+  ['Space', 'otherKeys'],
+  ['PrintScreen', 'otherKeys'],
+  ['ScrollLock', 'otherKeys'],
+  ['Pause', 'otherKeys'],
+  ['ContextMenu', 'otherKeys'],
 ];
+
+/** The number pad's digits and signs: "Num 1", "Num +" (the word "Num" from the language files) */
+const NUMBER_PAD_SIGNS = [
+  ...DIGITS.map((digit) => [`Numpad${digit}`, digit]),
+  ['NumpadDecimal', '.'],
+  ['NumpadAdd', '+'],
+  ['NumpadSubtract', '-'],
+  ['NumpadMultiply', '*'],
+  ['NumpadDivide', '/'],
+];
+
+/** A key's name: the symbol printed on it (if any), then its words; none for Control, Alt and Meta */
+function otherKeyName(code, symbol) {
+  const name = TEXT.names[code];
+  if (!name) return undefined;
+  return symbol ? `${symbol} ${name}` : name;
+}
 
 /** Every key the app can see: { code, group, name } (name is undefined for Control, Alt and Meta: see keyName). */
 export const KNOWN_KEYS = [
@@ -94,7 +95,8 @@ export const KNOWN_KEYS = [
     group: 'functionKeys',
     name: `F${index + 1}`,
   })),
-  ...OTHER_KEYS.map(([code, group, name]) => ({ code, group, name })),
+  ...OTHER_KEYS.map(([code, group, symbol]) => ({ code, group, name: otherKeyName(code, symbol) })),
+  ...NUMBER_PAD_SIGNS.map(([code, sign]) => ({ code, group: 'numberPad', name: TEXT.numberPadKey(sign) })),
 ];
 const KEY_BY_CODE = new Map(KNOWN_KEYS.map((key) => [key.code, key]));
 
