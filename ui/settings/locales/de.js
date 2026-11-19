@@ -311,7 +311,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
-    'accessNotice.renew': '97d52c17',
+    'accessNotice.renew': 'd44ae06c',
+    'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
@@ -870,7 +871,9 @@ export default {
       'Hast du „Keystroke Overlay“ in der Eingabeüberwachung aktiviert? Starte die App einmal neu, damit macOS beginnt, deine Tastenanschläge an die App zu senden.',
     restartButton: 'Jetzt neu starten',
     renew:
-      'Werden die Tasten seit dem Update nicht mehr angezeigt? Möglicherweise benötigt macOS erneut den Tastaturzugriff von Keystroke Overlay. Erneuern Sie diesen, aktivieren Sie die App unter „Input Monitoring“ und starten Sie den Computer anschließend neu.',
+      'Werden die Tasten seit dem Update nicht mehr angezeigt? Möglicherweise benötigt macOS erneut den Tastaturzugriff von Keystroke Overlay. Erneuern Sie diesen und starten Sie das System anschließend neu: macOS fragt nach dem Neustart erneut danach.',
+    restartAfterRenew:
+      'Starten Sie nun Keystroke Overlay neu. „Input Monitoring“ bleibt bis dahin leer: Nach dem Neustart fragt macOS nach, und Sie schalten die App ein.',
     renewButton: 'Tastaturzugriff erneuern',
     inputGroup:
       'Unter Wayland benötigt die App die Eingabegruppe, um Ihre Tastaturen lesen zu können. Führen Sie diesen Befehl in einem Terminal aus, melden Sie sich anschließend ab und wieder an. Jedes Programm, das Sie starten, kann dann ebenfalls die Tastaturen lesen (siehe PRIVACY.md).',

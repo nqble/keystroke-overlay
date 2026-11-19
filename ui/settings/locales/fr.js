@@ -317,7 +317,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
-    'accessNotice.renew': '97d52c17',
+    'accessNotice.renew': 'd44ae06c',
+    'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
@@ -902,7 +903,9 @@ export default {
       'Avez-vous activé Keystroke Overlay dans « Surveillance des entrées » ? Redémarrez-le une fois pour que macOS commence à lui transmettre vos frappes.',
     restartButton: 'Redémarrer maintenant',
     renew:
-      "Les touches ne s'affichent plus depuis la mise à jour ? Il se peut que macOS ait besoin de réactiver l'accès au clavier de Keystroke Overlay. Renouvelez-le, activez l'application dans « Surveillance des entrées », puis redémarrez.",
+      "Les touches ne s'affichent plus depuis la mise à jour ? Il se peut que macOS ait besoin de renouveler l'autorisation d'accès au clavier accordée à Keystroke Overlay. Renouvelez-la, puis redémarrez : macOS vous le demandera à nouveau après le redémarrage.",
+    restartAfterRenew:
+      'Redémarrez maintenant Keystroke Overlay. La section « Surveillance des entrées » reste vide jusqu’à ce moment-là : après le redémarrage, macOS vous demande votre autorisation et vous activez l’application.',
     renewButton: "Actualiser l'accès au clavier",
     inputGroup:
       'Sous Wayland, l’application a besoin du groupe d’entrée pour lire vos claviers. Exécutez cette commande dans un terminal, puis déconnectez-vous et reconnectez-vous. Tous les programmes que vous lancerez pourront alors également lire les claviers (voir PRIVACY.md).',

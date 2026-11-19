@@ -305,7 +305,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
-    'accessNotice.renew': '97d52c17',
+    'accessNotice.renew': 'd44ae06c',
+    'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
@@ -851,7 +852,9 @@ export default {
       '「入力モニタリング」で Keystroke Overlay を有効にしましたか？macOS がキー入力を送信し始めるよう、一度再起動してください。',
     restartButton: '今すぐ再起動',
     renew:
-      'アップデート後にキーが表示されなくなりましたか？ macOSでは、Keystroke Overlayのキーボードアクセスを再度許可する必要がある可能性があります。許可を更新し、「入力モニタリング」でアプリを有効にしてから、再起動してください。',
+      'アップデート後にキーが表示されなくなりましたか？ macOSでKeystroke Overlayのキーボードアクセス権限を再度付与する必要がある可能性があります。権限を更新してから再起動してください。再起動後、macOSから再度確認のメッセージが表示されます。',
+    restartAfterRenew:
+      'それでは、Keystroke Overlayを再起動してください。再起動するまでは、「Input Monitoring」は空のままです。再起動後、macOSから確認のメッセージが表示されるので、そこでアプリを有効にしてください。',
     renewButton: 'キーボードアクセスの更新',
     inputGroup:
       'Wayland環境では、このアプリがキーボード入力を読み取るために入力グループが必要です。ターミナルで以下のコマンドを実行し、ログアウトしてから再度ログインしてください。そうすれば、実行するすべてのプログラムがキーボード入力を読み取れるようになります（PRIVACY.mdを参照）。',

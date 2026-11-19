@@ -305,7 +305,8 @@ export const made = {
     'accessNotice.restart': '2af54862',
     'accessNotice.restartAfterAllow': 'bbf0d572',
     'accessNotice.restartButton': '09af1002',
-    'accessNotice.renew': '97d52c17',
+    'accessNotice.renew': 'd44ae06c',
+    'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
@@ -834,7 +835,9 @@ export default {
     restartAfterAllow: '您是否在“输入监视”中启用了“按键叠加”？请重启一次，以便 macOS 开始向其发送您的按键。',
     restartButton: '立即重启',
     renew:
-      '更新后按键不显示？macOS 可能需要重新授予 Keystroke Overlay 键盘访问权限。请重新授权，在“输入监视”中启用该应用，然后重启。',
+      '更新后按键不再显示？macOS 可能需要重新授予 Keystroke Overlay 键盘访问权限。请重新授权后重启：重启后 macOS 会再次询问。',
+    restartAfterRenew:
+      '现在重启 Keystroke Overlay。在此之前，输入监控将保持为空：重启后，macOS 会询问，然后请启用该应用。',
     renewButton: '重新获取键盘访问权限',
     inputGroup:
       '在 Wayland 上，该应用需要输入组才能读取您的键盘。请在终端中运行此命令，然后注销并重新登录。之后您运行的每个程序也都能读取键盘（请参阅 PRIVACY.md）。',
