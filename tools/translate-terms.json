@@ -1,0 +1,21 @@
+{
+  "_about": "Names every translation must use, by language: the words macOS (or Windows) shows for its own settings, which the services don't know. Added to each run's glossary (a term here wins over Microsoft's). docs/TRANSLATIONS.md, \"Fixed terms\".",
+  "Input Monitoring": {
+    "es": "Monitorización de entrada",
+    "pt-BR": "Monitoramento de Entrada",
+    "de": "Eingabeüberwachung",
+    "fr": "Surveillance de l’entrée",
+    "ja": "入力監視",
+    "zh-Hans": "输入监控",
+    "zh-Hant": "輸入監控"
+  },
+  "Comma": {
+    "fr": "Virgule"
+  },
+  "Page Up": {
+    "fr": "Page précédente"
+  },
+  "Page Down": {
+    "fr": "Page suivante"
+  }
+}

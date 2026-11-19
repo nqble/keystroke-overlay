@@ -240,27 +240,27 @@ export default {
       Delete: 'Delete', // means: the Delete key
       Home: 'Home', // means: the Home key
       End: 'End', // means: the End key
-      PageUp: 'Page Up', // means: the Page Up key, named as it is on keyboards in this language; the Page Down key next to it is named the same way
-      PageDown: 'Page Down', // means: the Page Down key, named as it is on keyboards in this language; the Page Up key next to it is named the same way
+      PageUp: 'Page Up', // means: the Page Up key, named as keyboards in this language print it
+      PageDown: 'Page Down', // means: the Page Down key, named as keyboards in this language print it (translate it like Page Up)
       NumLock: 'Num Lock', // means: the Num Lock key
       NumpadEnter: 'Num Enter', // means: the Enter key on the number pad
       Escape: 'Esc', // means: the Escape key
-      Backquote: 'Backquote', // means: the key with the backquote (`) on it
-      Minus: 'Minus', // means: the key with the minus sign on it
-      Equal: 'Equal', // means: the key with the equals sign (=) on it, named by that sign
+      Backquote: 'Backquote', // means: the name of the backquote or grave accent key (`)
+      Minus: 'Minus', // means: the name of the minus-sign key (-), i.e. the sign's name
+      Equal: 'Equals sign', // means: the name of the equals-sign key (=), the mark's name
       Backspace: 'Backspace', // means: the Backspace key
       Tab: 'Tab', // means: the Tab key
       BracketLeft: 'Left bracket', // means: the key with [ on it
       BracketRight: 'Right bracket', // means: the key with ] on it
       Backslash: 'Backslash', // means: the key with \ on it
       CapsLock: 'Caps Lock', // means: the Caps Lock key
-      Semicolon: 'Semicolon', // means: the key with ; on it
-      Quote: 'Quote', // means: the key with the apostrophe or single quote mark (') on it, as a keyboard key, not a quotation
+      Semicolon: 'Semicolon', // means: the name of the semicolon key (;), the punctuation mark
+      Quote: 'Apostrophe', // means: the name of the apostrophe key ('), the punctuation mark
       Enter: 'Enter', // means: the Enter key
       IntlBackslash: 'ISO key beside left Shift', // means: the extra key next to the left Shift on European keyboards
-      Comma: 'Comma', // means: the key with the comma (,) on it, named by that sign, one correctly spelled word
-      Period: 'Period', // means: the key with . on it
-      Slash: 'Slash', // means: the key with / on it
+      Comma: 'Comma', // means: the name of the comma key (,), the punctuation mark
+      Period: 'Period', // means: the name of the full stop key (.), the punctuation mark
+      Slash: 'Slash', // means: the name of the slash key (/), the punctuation mark
       Space: 'Space', // means: the space bar
       PrintScreen: 'Print Screen', // means: the Print Screen key
       ScrollLock: 'Scroll Lock', // means: the Scroll Lock key

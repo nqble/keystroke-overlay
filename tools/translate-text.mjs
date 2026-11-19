@@ -137,6 +137,40 @@ export function glossaryFromTbx(tbx, code) {
 }
 
 /** The glossary terms that appear in these texts (whole words, any case), so a request carries only what it needs. */
+/**
+ * The fixed terms of one language (tools/translate-terms.json): English → that language. Entries starting with `_` are
+ * notes, not terms.
+ * @param {Record<string, any>} table @param {string} code
+ */
+export function fixedTerms(table, code) {
+  const terms = new Map();
+  for (const [english, byLanguage] of Object.entries(table)) {
+    if (english.startsWith('_') || !byLanguage[code]) continue;
+    terms.set(english, byLanguage[code]);
+  }
+  return terms;
+}
+
+/** The glossary for a run: Microsoft's terms (if given), with the fixed terms on top (they win). */
+export function withFixedTerms(
+  /** @type {Map<string, string> | null} */ glossary,
+  /** @type {Map<string, string>} */ fixed,
+) {
+  return new Map([...(glossary ?? []), ...fixed]);
+}
+
+/**
+ * The ids to send: the new and changed ones (`toTranslate`), plus the ones `--redo` names, except reviewed texts and ids
+ * English doesn't have.
+ * @param {string[]} ids @param {string[]} redo @param {Map<string, string>} sources
+ * @param {{ reviewed?: string[] }} made
+ */
+export function withRedo(ids, redo, sources, made) {
+  const reviewed = new Set(made.reviewed ?? []);
+  const asked = redo.filter((id) => sources.has(id) && !reviewed.has(id));
+  return [...new Set([...ids, ...asked])];
+}
+
 export function termsIn(/** @type {string[]} */ texts, /** @type {Map<string, string>} */ glossary) {
   const joined = texts.join('\n').toLowerCase();
   const used = new Map();
