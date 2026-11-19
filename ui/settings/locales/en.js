@@ -214,6 +214,61 @@ export default {
     pan: 'move view', // means: a hint: drag to move the view around the keyboard picture (to pan), not to move the keys
   },
 
+  // the names of the keyboard's keys, as the Keys tab lists them: key-names.js. Symbols printed on a key (` [ ↑) are
+  // added by the code before the name, so the name is only the words
+  keyNames: {
+    groups: {
+      letters: 'Letters',
+      numbers: 'Numbers',
+      functionKeys: 'Function keys', // means: the F1 to F12 keys
+      modifiers: 'Modifiers', // means: Shift, Ctrl, Alt and the like
+      navigation: 'Navigation', // means: the arrow keys, Home, End, Page Up and the like
+      numberPad: 'Number pad',
+      otherKeys: 'Other', // means: every other key (named otherKeys: a group called "other" would read as a plural)
+    },
+    left: 'Left {name}', // means: the key on the left side of the keyboard, e.g. Left Ctrl
+    right: 'Right {name}', // means: the key on the right side of the keyboard, e.g. Right Ctrl
+    numberPadKey: 'Num {key}', // means: a key on the number pad, e.g. Num 1, Num +
+    names: {
+      ShiftLeft: 'Left Shift',
+      ShiftRight: 'Right Shift',
+      ArrowUp: 'Up', // means: the up arrow key
+      ArrowDown: 'Down', // means: the down arrow key
+      ArrowLeft: 'Left', // means: the left arrow key
+      ArrowRight: 'Right', // means: the right arrow key
+      Insert: 'Insert', // means: the Insert key
+      Delete: 'Delete', // means: the Delete key
+      Home: 'Home', // means: the Home key
+      End: 'End', // means: the End key
+      PageUp: 'Page Up', // means: the Page Up key
+      PageDown: 'Page Down', // means: the Page Down key
+      NumLock: 'Num Lock', // means: the Num Lock key
+      NumpadEnter: 'Num Enter', // means: the Enter key on the number pad
+      Escape: 'Esc', // means: the Escape key
+      Backquote: 'Backquote', // means: the key with the backquote (`) on it
+      Minus: 'Minus', // means: the key with the minus sign on it
+      Equal: 'Equal', // means: the key with the equals sign on it
+      Backspace: 'Backspace', // means: the Backspace key
+      Tab: 'Tab', // means: the Tab key
+      BracketLeft: 'Left bracket', // means: the key with [ on it
+      BracketRight: 'Right bracket', // means: the key with ] on it
+      Backslash: 'Backslash', // means: the key with \ on it
+      CapsLock: 'Caps Lock', // means: the Caps Lock key
+      Semicolon: 'Semicolon', // means: the key with ; on it
+      Quote: 'Quote', // means: the key with ' on it
+      Enter: 'Enter', // means: the Enter key
+      IntlBackslash: 'ISO key beside left Shift', // means: the extra key next to the left Shift on European keyboards
+      Comma: 'Comma', // means: the key with , on it
+      Period: 'Period', // means: the key with . on it
+      Slash: 'Slash', // means: the key with / on it
+      Space: 'Space', // means: the space bar
+      PrintScreen: 'Print Screen', // means: the Print Screen key
+      ScrollLock: 'Scroll Lock', // means: the Scroll Lock key
+      Pause: 'Pause', // means: the Pause key
+      ContextMenu: 'Menu', // means: the key that opens the context menu
+    },
+  },
+
   // the Keys tab's toolbar: keys-toolbar.js (ui/settings/tabs/)
   keysToolbar: {
     history: 'History', // means: undo and redo
