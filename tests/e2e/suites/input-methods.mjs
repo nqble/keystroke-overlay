@@ -134,14 +134,20 @@ for (const m of ['hook', 'rawinput']) {
     events.length >= 7900,
   );
 }
+// Idle cost: the promise is about 0% CPU while no key is pressed (CLAUDE.md, principle 3). Windows counts a process's
+// CPU time in scheduler ticks of 15.6 ms, so over 15 s the only readings were 0, 0.104, 0.208, 0.313…% and three ticks
+// (one stray wake-up on a shared CI machine) crossed the limit. Over 30 s a tick is 0.052%: the same limit, read finer.
+const IDLE_SETTLE_MS = 2500;
+const IDLE_WINDOW_MS = 30000;
+const IDLE_LIMIT_PERCENT = 0.3;
 for (const m of ['hook', 'rawinput']) {
   await p.invoke('set_input_method', { method: m });
-  await sleep(2500);
+  await sleep(IDLE_SETTLE_MS);
   const a = procStats();
-  await sleep(15000);
+  await sleep(IDLE_WINDOW_MS);
   const b = procStats();
-  const idle = (((b[3] - a[3]) / 15000) * 100).toFixed(3);
-  check(`${m}: idle CPU is ~0`, +idle < 0.3, `${idle}% of one core`);
+  const idle = (((b[3] - a[3]) / IDLE_WINDOW_MS) * 100).toFixed(3);
+  check(`${m}: idle CPU is ~0`, +idle < IDLE_LIMIT_PERCENT, `${idle}% of one core`);
 }
 await p.invoke('set_input_method', { method: 'hook' });
 finish();
