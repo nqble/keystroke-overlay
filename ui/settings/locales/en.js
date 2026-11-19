@@ -247,7 +247,7 @@ export default {
       Escape: 'Esc', // means: the Escape key
       Backquote: 'Backquote', // means: the name of the backquote or grave accent key (`)
       Minus: 'Minus', // means: the name of the minus-sign key (-), i.e. the sign's name
-      Equal: 'Equal', // means: the name of the equals-sign key (=), i.e. the sign's name, not the word for equal
+      Equal: 'Equals sign', // means: the name of the equals-sign key (=), the mark's name
       Backspace: 'Backspace', // means: the Backspace key
       Tab: 'Tab', // means: the Tab key
       BracketLeft: 'Left bracket', // means: the key with [ on it
@@ -255,7 +255,7 @@ export default {
       Backslash: 'Backslash', // means: the key with \ on it
       CapsLock: 'Caps Lock', // means: the Caps Lock key
       Semicolon: 'Semicolon', // means: the name of the semicolon key (;), the punctuation mark
-      Quote: 'Quote', // means: the name of the apostrophe key ('), the punctuation mark, not a quotation
+      Quote: 'Apostrophe', // means: the name of the apostrophe key ('), the punctuation mark
       Enter: 'Enter', // means: the Enter key
       IntlBackslash: 'ISO key beside left Shift', // means: the extra key next to the left Shift on European keyboards
       Comma: 'Comma', // means: the name of the comma key (,), the punctuation mark

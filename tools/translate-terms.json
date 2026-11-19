@@ -8,5 +8,14 @@
     "ja": "入力監視",
     "zh-Hans": "输入监控",
     "zh-Hant": "輸入監控"
+  },
+  "Comma": {
+    "fr": "Virgule"
+  },
+  "Page Up": {
+    "fr": "Page précédente"
+  },
+  "Page Down": {
+    "fr": "Page suivante"
   }
 }

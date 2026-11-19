@@ -76,7 +76,10 @@ Mac words ("menu bar", "Open at login") are checked against what macOS shows in 
 
 **Fixed terms.** Names the services can't know, such as what macOS calls its own settings ("Input Monitoring" is
 "Eingabeüberwachung" in German), are in `tools/translate-terms.json`, by language. They go with every run, with or
-without a TBX file, and win over Microsoft's terms. A new one is one more entry there, spelled as the system shows it.
+without a TBX file, and win over Microsoft's terms. A new one is one more entry there, spelled as the system shows it. A word a service keeps getting wrong in one language (a
+misspelling, the wrong sense) can go there too, but only if it appears nowhere else in the English texts: a fixed term
+applies wherever its word appears. Where a clearer English word fixes it, change the English instead ("Equals sign",
+not "Equal").
 
 **Form of address.** DeepL's languages that have a formal and an informal "you" are set to formal
 (`"formality": "prefer_more"` in `tools/translate-engines.json`): German "Sie", Spanish "usted".
