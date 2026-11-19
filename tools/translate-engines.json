@@ -1,26 +1,31 @@
 {
   "es": {
     "engine": "deepl",
+    "formality": "prefer_more",
     "target": "ES",
     "glossary": "es-es"
   },
   "pt-BR": {
     "engine": "deepl",
+    "formality": "prefer_more",
     "target": "PT-BR",
     "glossary": "pt-br"
   },
   "de": {
     "engine": "deepl",
+    "formality": "prefer_more",
     "target": "DE",
     "glossary": "de-de"
   },
   "fr": {
     "engine": "deepl",
+    "formality": "prefer_more",
     "target": "FR",
     "glossary": "fr-fr"
   },
   "ja": {
     "engine": "deepl",
+    "formality": "prefer_more",
     "target": "JA",
     "glossary": "ja-jp"
   },

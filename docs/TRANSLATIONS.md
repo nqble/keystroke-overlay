@@ -39,7 +39,8 @@ pan: 'pan', // means: one word, to pan (move the view, as on a map)
 ```
 
 Other end-of-line comments are for developers and are not sent. When a translation comes back in the wrong sense, the
-fix is a better note or group comment and `--all`, not an edit by hand.
+fix is a better note or group comment and `--all`, not an edit by hand. To send only some texts again, name them:
+`npm run translate -- fr --redo keyNames.names.Quote,keyNames.names.Comma` (never a reviewed one).
 
 Then run `npm run check:locales` and look at the window in that language (`npm run ui-sandbox` with the browser set to
 it, or the app). German and French run longer than English, so tight buttons and cards get a look, and
@@ -69,9 +70,16 @@ npm run translate -- de --glossary path/to/German.tbx
 
 Only the terms that appear in the texts being sent go with them: as a glossary made for the run and deleted after
 (DeepL), marked in the text (Microsoft), or listed in the request (Index-Translate). **The TBX files stay outside the
-repository** until their license (the Microsoft Language Portal Materials License) has been read; only the resulting
-translations are committed. Mac words ("menu bar", "Open at login") are checked against what macOS shows in that
-language.
+repository**; only the resulting translations are committed. The download comes with no license file; Microsoft
+publishes it for developing localized versions of applications and as a base glossary, which is how it is used here.
+Mac words ("menu bar", "Open at login") are checked against what macOS shows in that language.
+
+**Fixed terms.** Names the services can't know, such as what macOS calls its own settings ("Input Monitoring" is
+"Eingabeüberwachung" in German), are in `tools/translate-terms.json`, by language. They go with every run, with or
+without a TBX file, and win over Microsoft's terms. A new one is one more entry there, spelled as the system shows it.
+
+**Form of address.** DeepL's languages that have a formal and an informal "you" are set to formal
+(`"formality": "prefer_more"` in `tools/translate-engines.json`): German "Sie", Spanish "usted".
 
 ## Corrections
 

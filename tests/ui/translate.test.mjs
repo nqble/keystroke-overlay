@@ -14,6 +14,9 @@ import {
   glossaryFromTbx,
   groupContexts,
   textNotes,
+  fixedTerms,
+  withFixedTerms,
+  withRedo,
   languageFile,
   nest,
   protect,
@@ -210,4 +213,42 @@ test('a service that says "too many requests" is asked again after the pause it 
   } finally {
     globalThis.fetch = realFetch;
   }
+});
+
+test("fixed terms (translate-terms.json) join the glossary and win over Microsoft's", () => {
+  const table = { _about: 'notes', 'Input Monitoring': { de: 'Eingabeüberwachung', ja: '入力監視' } };
+  assert.deepEqual([...fixedTerms(table, 'de')], [['Input Monitoring', 'Eingabeüberwachung']]);
+  assert.equal(fixedTerms(table, 'fr').size, 0, 'a language without the term');
+  const microsoft = new Map([
+    ['Input Monitoring', 'Eingabe-Monitoring'],
+    ['Settings', 'Einstellungen'],
+  ]);
+  const glossary = withFixedTerms(microsoft, fixedTerms(table, 'de'));
+  assert.equal(glossary.get('Input Monitoring'), 'Eingabeüberwachung');
+  assert.equal(glossary.get('Settings'), 'Einstellungen');
+  assert.equal(withFixedTerms(null, fixedTerms(table, 'ja')).get('Input Monitoring'), '入力監視', 'without a TBX file');
+});
+
+test('every fixed term is for a language the script translates', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = (path) => JSON.parse(readFileSync(new URL(`../../tools/${path}`, import.meta.url), 'utf8'));
+  const languages = Object.keys(read('translate-engines.json'));
+  for (const [english, byLanguage] of Object.entries(read('translate-terms.json'))) {
+    if (english.startsWith('_')) continue;
+    for (const code of Object.keys(byLanguage)) assert.ok(languages.includes(code), `${english}: ${code}`);
+  }
+});
+
+test('--redo sends the named texts again, but never a reviewed one or one English lacks', () => {
+  const sources = new Map([
+    ['keys.pan', 'move view'],
+    ['keyNames.names.Quote', 'Quote'],
+    ['keyNames.names.Comma', 'Comma'],
+  ]);
+  const made = { reviewed: ['keyNames.names.Comma'] };
+  assert.deepEqual(
+    withRedo(['keys.pan'], ['keyNames.names.Quote', 'keyNames.names.Comma', 'gone.text'], sources, made),
+    ['keys.pan', 'keyNames.names.Quote'],
+  );
+  assert.deepEqual(withRedo(['keys.pan'], ['keys.pan'], sources, made), ['keys.pan'], 'once only');
 });
