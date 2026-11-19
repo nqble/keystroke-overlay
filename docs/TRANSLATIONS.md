@@ -83,7 +83,8 @@ Two cases always need a person:
 
 - **Plural forms English doesn't have.** Polish, Russian, Arabic and others use more forms than "one" and "other";
   the script fills them with the "other" wording, which is often wrong.
-- **Traditional Chinese.** Until there is a `zh-Hant` file, Chinese in Taiwan and Hong Kong shows the Simplified file.
+- **Traditional Chinese** (`zh-Hant`, by DeepL) and **Simplified** (`zh-Hans`, by Index-Translate) are two files; "Same as this
+  computer" picks Traditional for Taiwan, Hong Kong and Macau and Simplified for the rest (`pickLanguage` in `words.js`).
 
 ## Adding a language
 

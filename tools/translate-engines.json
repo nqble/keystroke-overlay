@@ -28,5 +28,10 @@
     "engine": "index",
     "target": "zh-Hans",
     "glossary": "zh-cn"
+  },
+  "zh-Hant": {
+    "engine": "deepl",
+    "target": "ZH-HANT",
+    "glossary": "zh-tw"
   }
 }
