@@ -790,7 +790,7 @@ export default {
       Backslash: 'Barra invertida',
       CapsLock: 'Bloq Mayús',
       Semicolon: 'Punto y coma',
-      Quote: 'Apostrofo',
+      Quote: 'Apóstrofo',
       Enter: 'Intro',
       IntlBackslash: 'Tecla ISO situada junto a la tecla Mayús izquierda',
       Comma: 'Coma',
