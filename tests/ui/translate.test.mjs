@@ -160,6 +160,29 @@ test("a comment at the end of a text line is sent as that text's own note", () =
   assert.equal(contextFor('keys.hide', new Map(), notes), APP_CONTEXT);
 });
 
+test('a note is read on a text that wraps to the next line, and on texts inside a group of a group', () => {
+  const source = [
+    '  accessNotice: {',
+    '    restartAfterRenew:',
+    "      'Now restart Keystroke Overlay. Input Monitoring stays empty until then.', // means: restart the app, not the computer",
+    "    restartButton: 'Restart now',",
+    '  },',
+    '  keyNames: {',
+    "    left: 'Left {name}', // means: the key on the left side",
+    '    names: {',
+    "      Home: 'Home', // means: the Home key",
+    '    },',
+    "    right: 'Right {name}', // means: the key on the right side",
+    '  },',
+  ].join('\n');
+  assert.deepEqual(Object.fromEntries(textNotes(source)), {
+    'accessNotice.restartAfterRenew': 'restart the app, not the computer',
+    'keyNames.left': 'the key on the left side',
+    'keyNames.names.Home': 'the Home key',
+    'keyNames.right': 'the key on the right side',
+  });
+});
+
 test('a note on a one-line group of texts covers every text in it', () => {
   const source = [
     '  systemWords: {',
