@@ -983,17 +983,17 @@ export default {
     fontName: 'Nome da fonte',
   },
   accessNotice: {
-    ask: 'Permita o acesso ao teclado para que a sobreposição possa detectar suas teclas. O macOS solicitará que você ative o Keystroke Overlay no Monitoramento de Entrada.',
+    ask: 'Permita o acesso ao teclado para que a sobreposição possa detectar suas teclas. O macOS solicitará que você ative o Keystroke Overlay na Monitoração de Entrada.',
     allow: 'Permitir acesso por teclado',
     restart:
       'O acesso está ativado. Reinicie o Keystroke Overlay uma vez para que o macOS comece a enviar as teclas para o aplicativo.',
     restartAfterAllow:
-      'Você ativou o Keystroke Overlay no Monitoramento de Entrada? Reinicie o aplicativo uma vez para que o macOS comece a enviar as teclas digitadas para ele.',
+      'Você ativou o Keystroke Overlay na Monitoração de Entrada? Reinicie-o uma vez para que o macOS comece a enviar as teclas digitadas ao aplicativo.',
     restartButton: 'Reiniciar agora',
     renew:
       'As teclas não estão aparecendo desde a atualização? O macOS pode precisar da autorização de acesso ao teclado do Keystroke Overlay novamente. Renove-a e, em seguida, reinicie: o macOS solicitará novamente após a reinicialização.',
     restartAfterRenew:
-      'Agora reinicie o Keystroke Overlay. O “Monitoramento de Entrada” permanece vazio até então: após a reinicialização, o macOS solicita, e você ativa o aplicativo.',
+      'Agora reinicie o Keystroke Overlay. A Monitoração de Entrada permanece em branco até então: após a reinicialização, o macOS solicita a confirmação, e você ativa o aplicativo.',
     renewButton: 'Atualizar acesso pelo teclado',
     inputGroup:
       'No Wayland, o aplicativo precisa do grupo de entrada para ler seus teclados. Execute este comando em um terminal e, em seguida, faça logout e login novamente. Todos os programas que você executar poderão então ler os teclados também (consulte PRIVACY.md).',
