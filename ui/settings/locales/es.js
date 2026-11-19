@@ -989,17 +989,17 @@ export default {
     fontName: 'Nombre de la fuente',
   },
   accessNotice: {
-    ask: 'Permita el acceso al teclado para que la superposición pueda detectar sus teclas. macOS le pedirá que active Keystroke Overlay en «Monitorización de entrada».',
+    ask: 'Permita el acceso al teclado para que la superposición pueda detectar sus teclas. macOS le pedirá que active Keystroke Overlay en «Monitorización de los dispositivos de entrada».',
     allow: 'Permitir acceso mediante teclado',
     restart:
       'El acceso está activado. Reinicie Keystroke Overlay una vez para que macOS comience a enviarle las pulsaciones de teclas.',
     restartAfterAllow:
-      '¿Ha activado Keystroke Overlay en «Monitorización de entrada»? Reinícela una vez para que macOS comience a enviarle las pulsaciones de teclas.',
+      '¿Ha activado Keystroke Overlay en «Monitorización de los dispositivos de entrada»? Reinícela una vez para que macOS comience a enviarle las pulsaciones de teclas.',
     restartButton: 'Reiniciar ahora',
     renew:
       '¿No se muestran las teclas desde la actualización? Es posible que macOS necesite volver a conceder acceso al teclado a Keystroke Overlay. Renuévelo y, a continuación, reinicie: macOS se lo volverá a solicitar tras el reinicio.',
     restartAfterRenew:
-      'Ahora reinicie Keystroke Overlay. «Monitorización de entrada» permanecerá en blanco hasta entonces: tras el reinicio, macOS le preguntará y usted deberá activar la aplicación.',
+      'Ahora reinicie Keystroke Overlay. «Monitorización de los dispositivos de entrada» permanecerá en blanco hasta entonces: tras el reinicio, macOS le preguntará y usted deberá activar la aplicación.',
     renewButton: 'Renovar el acceso al teclado',
     inputGroup:
       'En Wayland, la aplicación necesita el grupo de entrada para leer su teclado. Ejecute este comando en un terminal y, a continuación, cierre la sesión y vuelva a iniciarla. De este modo, todos los programas que ejecute también podrán leer el teclado (véase PRIVACY.md).',

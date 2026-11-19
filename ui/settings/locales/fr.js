@@ -991,17 +991,17 @@ export default {
     fontName: 'Nom de la police',
   },
   accessNotice: {
-    ask: 'Activez l’accès au clavier pour que la superposition puisse détecter vos touches. macOS vous demandera d’activer Keystroke Overlay dans la section « Surveillance des entrées ».',
+    ask: 'Activez l’accès au clavier afin que la superposition puisse détecter vos touches. macOS vous demandera d’activer Keystroke Overlay dans la section « Surveillance de l’entrée ».',
     allow: "Autoriser l'accès au clavier",
     restart:
       "L'accès est activé. Redémarrez Keystroke Overlay une fois pour que macOS commence à lui envoyer vos frappes.",
     restartAfterAllow:
-      'Avez-vous activé Keystroke Overlay dans « Surveillance des entrées » ? Redémarrez-le une fois pour que macOS commence à lui transmettre vos frappes.',
+      'Avez-vous activé Keystroke Overlay dans la section « Surveillance de l’entrée » ? Redémarrez-le une fois pour que macOS commence à lui transmettre vos frappes.',
     restartButton: 'Redémarrer maintenant',
     renew:
       "Les touches ne s'affichent plus depuis la mise à jour ? Il se peut que macOS ait besoin de renouveler l'autorisation d'accès au clavier de Keystroke Overlay. Renouvelez-la, puis redémarrez : macOS vous le demandera à nouveau après le redémarrage.",
     restartAfterRenew:
-      'Redémarrez maintenant Keystroke Overlay. La section « Surveillance des entrées » reste vide jusqu’à ce moment-là : après le redémarrage, macOS vous le demande et vous activez l’application.',
+      'Redémarrez maintenant Keystroke Overlay. La section « Surveillance de l’entrée » reste vide jusqu’à ce moment-là : après le redémarrage, macOS vous le demande et vous activez l’application.',
     renewButton: "Actualiser l'accès au clavier",
     inputGroup:
       'Sous Wayland, l’application a besoin du groupe d’entrée pour lire vos claviers. Exécutez cette commande dans un terminal, puis déconnectez-vous et reconnectez-vous. Tous les programmes que vous lancerez pourront alors également lire les claviers (voir PRIVACY.md).',
