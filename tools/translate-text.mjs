@@ -170,21 +170,38 @@ export function groupContexts(source) {
   return contexts;
 }
 
+/** One quoted text, or a one-line group of texts (`{ windows: '…', macos: '…' }`) */
+const TEXT_VALUE = String.raw`(?:'[^']*'|"[^"]*"|\{.*\})`;
+const TEXT_WITH_NOTE = new RegExp(String.raw`^( +)(\w+): ${TEXT_VALUE},\s*\/\/ means: (.+)$`);
+const NAME_ALONE = /^( +)(\w+):$/; // a text too long for its name's line: the formatter puts it on the next one
+const WRAPPED_WITH_NOTE = new RegExp(String.raw`^ +${TEXT_VALUE},\s*\/\/ means: (.+)$`);
+const GROUP_START = /^( +)(\w+): \{$/;
+const INDENT = 2; // en.js is indented by two spaces per level (the formatter)
+
 /**
  * Each text's own note for translators in en.js: a comment at the end of its line that starts with `means:`
- * (`    pan: 'pan', // means: moving the view`), by id (`keys.pan`). Other comments are for developers and stay out.
- * Short words that could mean two things ("pan", "Port", "Show") carry one, so the service picks the right sense. Only
- * texts directly in a group are read.
+ * (`    pan: 'pan', // means: moving the view`), by id (`keys.pan`), at any depth (`keyNames.names.Home`). A text too
+ * long for its name's line carries the note on its own line, after the text. Other comments are for developers and
+ * stay out. Short words that could mean two things ("pan", "Port", "Show") carry one, so the service picks the right
+ * sense.
  * @param {string} source the text of ui/settings/locales/en.js
  */
 export function textNotes(source) {
   const notes = new Map();
-  let group = '';
+  /** @type {string[]} the groups the current line is in, outermost first */
+  const groups = [];
+  /** @type {{ depth: number, name: string } | null} a name whose text is on the next line */
+  let waiting = null;
+  const idAt = (depth, name) => [...groups.slice(0, depth - 1), name].join('.');
   for (const line of source.split(/\r?\n/)) {
-    const groupStart = line.match(/^ {2}(\w+): \{$/);
-    if (groupStart) group = groupStart[1];
-    const text = line.match(/^ {4}(\w+): (?:'[^']*'|"[^"]*"|\{.*\}),\s*\/\/ means: (.+)$/); // a text, or a one-line group
-    if (group && text) notes.set(`${group}.${text[1]}`, text[2].trim());
+    const groupStart = line.match(GROUP_START);
+    const text = line.match(TEXT_WITH_NOTE);
+    const nameAlone = line.match(NAME_ALONE);
+    const wrapped = waiting && line.match(WRAPPED_WITH_NOTE);
+    if (groupStart) groups.splice(groupStart[1].length / INDENT - 1, Infinity, groupStart[2]);
+    if (text && groups.length) notes.set(idAt(text[1].length / INDENT, text[2]), text[3].trim());
+    if (wrapped) notes.set(idAt(waiting.depth, waiting.name), wrapped[1].trim());
+    waiting = nameAlone ? { depth: nameAlone[1].length / INDENT, name: nameAlone[2] } : null;
   }
   return notes;
 }

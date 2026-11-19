@@ -413,9 +413,9 @@ export default {
       'Did you switch Keystroke Overlay on in Input Monitoring? Restart it once so macOS starts sending it your keys.',
     restartButton: 'Restart now',
     renew:
-      'Keys not showing since the update? macOS may need Keystroke Overlay’s keyboard access again. Renew it, then restart: macOS asks again after the restart.',
+      'Keys not showing since the update? macOS may need Keystroke Overlay’s keyboard access again. Renew it, then restart: macOS asks again after the restart.', // means: restart the app (Keystroke Overlay), not the computer
     restartAfterRenew:
-      'Now restart Keystroke Overlay. Input Monitoring stays empty until then: after the restart, macOS asks, and you switch the app on.',
+      'Now restart Keystroke Overlay. Input Monitoring stays empty until then: after the restart, macOS asks, and you switch the app on.', // means: restart the app, not the computer; Input Monitoring is the macOS privacy setting, named as macOS names it in this language
     renewButton: 'Renew keyboard access',
     inputGroup:
       'On Wayland, the app needs the input group to read your keyboards. Run this command in a terminal, then log out and back in. Every program you run can then read the keyboards too (see PRIVACY.md).',
