@@ -16,6 +16,7 @@ import {
   unlitCodes,
   placeTurned,
 } from '../../ui/settings/kle-layout.js';
+import { overlappingCodes } from '../../ui/settings/tabs/keys-board.js';
 
 const read = (url) => readFileSync(url, 'utf8');
 const fixture = (name) => read(new URL(`fixtures/kle/${name}`, import.meta.url));
@@ -258,4 +259,20 @@ test('keys far from the origin are moved no further than a layout may hold them'
 test('only placeholders are drawn dashed before an import; mouse buttons and the wheel light up', () => {
   const keys = [{ code: 'KeyA' }, { code: 'Unlinked1' }, { code: 'MouseLeft' }, { code: 'WheelUp' }];
   assert.deepEqual([...unlitCodes(keys)], ['Unlinked1']);
+});
+
+test('keys laid end to end still touch after rounding, so none is marked as overlapping', () => {
+  // twelve function keys 1.0357 wide, as some KLE files draw them: rounding each place and width apiece made them
+  // overlap by 0.01 (1.04 + 1.04 against 2.07)
+  const row = Array.from({ length: 12 }, (_, index) => [{ w: 1.0357 }, `F${index + 1}`]).flat();
+  const keys = [...fromRows([row]).keys].sort((a, b) => a.x - b.x);
+  for (let index = 1; index < keys.length; index++) {
+    const previous = keys[index - 1];
+    assert.ok(
+      Math.abs(previous.x + previous.w - keys[index].x) < 1e-9,
+      `${previous.code} ends where ${keys[index].code} starts`,
+    );
+  }
+  const boxes = keys.map((key) => ({ code: key.code, x: key.x, y: key.y, w: key.w ?? 1, h: key.h ?? 1 }));
+  assert.equal(overlappingCodes(boxes).size, 0);
 });

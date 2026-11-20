@@ -158,17 +158,25 @@ export function placeTurned({ x, y, w, h, r, rx, ry }) {
   return { x: turnedX - w / 2, y: turnedY - h / 2, w, h, r: Math.round(normalAngle(r) * 10) / 10 };
 }
 
-/** Move the keys so the layout's top-left is 0, 0 (like the built-in layouts), rounded to 2 decimals. */
+/**
+ * Move the keys so the layout's top-left is 0, 0 (like the built-in layouts), rounded to 2 decimals. The edges are
+ * rounded, not the position and the size apiece: keys 1.0357 wide laid end to end (as in some KLE files) would
+ * otherwise overlap by 0.01 after rounding (1.04 + 1.04 against 2.07), and the Keys tab would mark them.
+ */
 function moveToOrigin(keys) {
   const left = smallest(keys.map((key) => key.x));
   const top = smallest(keys.map((key) => key.y));
-  return keys.map((key) => ({
-    ...key,
-    x: round2(Math.min(key.x - left, MAX_POSITION)),
-    y: round2(Math.min(key.y - top, MAX_POSITION)),
-    w: round2(key.w),
-    h: round2(key.h),
-  }));
+  return keys.map((key) => {
+    const x = key.x - left;
+    const y = key.y - top;
+    return {
+      ...key,
+      x: round2(Math.min(x, MAX_POSITION)),
+      y: round2(Math.min(y, MAX_POSITION)),
+      w: round2(round2(x + key.w) - round2(x)),
+      h: round2(round2(y + key.h) - round2(y)),
+    };
+  });
 }
 
 // reduce instead of Math.min(...values): spreading thousands of values into one call can overflow the stack
