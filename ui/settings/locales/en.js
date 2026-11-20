@@ -292,7 +292,7 @@ export default {
     resetConfirm: 'Reset layout',
     layoutReset: '{name} reset',
     status: '{moved} moved · {hidden} hidden', // tests/e2e keys-editor checks this shape
-    overlap: { one: '{count} key overlap', other: '{count} keys overlap' },
+    overlap: { one: '{count} key overlaps', other: '{count} keys overlap' }, // means: a count: how many keyboard keys overlap another key, e.g. 6 keys overlap
   },
 
   // the Keys tab's inspector: keys-inspector.js (ui/settings/tabs/)
@@ -708,7 +708,7 @@ export default {
       linux: 'Delete or Backspace hides the selected keys',
     },
     // the Keys tab's hint chips for the view: what zooms and what pans (a Mac trackpad pans with two fingers and pinches)
-    zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' },
+    zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' }, // means: a key cap naming the gesture that zooms: scrolling the mouse wheel, or pinching two fingers on a trackpad
     zoomTip: {
       windows: 'Scroll over the keyboard to zoom',
       macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',
