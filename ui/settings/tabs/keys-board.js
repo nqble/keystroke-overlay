@@ -22,8 +22,11 @@ export const BOARD_MIN_H = 12;
  */
 export const MIN_RESIZE_WIDTH = 1;
 
-// Two edges this close (in keys) count as touching, so rounding never creates a false gap or overlap.
-const EPSILON = 0.01;
+// Two edges this close (in keys) count as touching, so rounding never creates a false gap or overlap. The hair on top
+// keeps floating point from turning a 0.01 step into a hair more (1.04 + 1.04 is 2.0800000000000001).
+const ROUNDING_STEP = 0.01;
+const FLOAT_HAIR = 1e-9;
+const EPSILON = ROUNDING_STEP + FLOAT_HAIR;
 
 /** Width and height of the board for a layout's keys: the layout plus the margins, never smaller than the minimum. */
 function sizeFor(boxes) {

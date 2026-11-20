@@ -73,6 +73,20 @@ test('resizeBox never goes under the minimum or past the board', () => {
   assert.deepEqual(resizeBox(space, 'left', -50, BOARD, 0.25), { x: 0, w: 16.25 });
 });
 
+test('a two-decimal rounding step counts as touching, whatever floating point makes of it', () => {
+  // 1.04 + 1.04 is 2.0800000000000001 in floating point: 0.01 past 2.07 by a hair
+  const rounded = [
+    { code: 'F1', x: 1.04, y: 0, w: 1.04, h: 1 },
+    { code: 'F2', x: 2.07, y: 0, w: 1.04, h: 1 },
+  ];
+  assert.equal(overlappingCodes(rounded).size, 0);
+  const real = [
+    { code: 'ArrowUp', x: 15, y: 4.75, w: 1, h: 0.61 },
+    { code: 'ArrowDown', x: 15, y: 5.25, w: 1, h: 0.61 },
+  ];
+  assert.equal(overlappingCodes(real).size, 2, 'a real overlap (0.11) is still found');
+});
+
 test('overlappingCodes finds overlaps but not keys that only touch', () => {
   const touching = [key('A', 0, 0), key('B', 1, 0)];
   assert.equal(overlappingCodes(touching).size, 0);
