@@ -3,6 +3,23 @@
 All notable changes. Newest first. Performance numbers compare each release with the one before, measured in the same
 run of `tests/bench/run.mjs` on one PC; numbers from different entries come from different runs and aren't comparable.
 
+## v2.3.0 — Traditional Chinese, and every word in your language
+
+### ✨ New
+- **Traditional Chinese.** **General → Appearance → Language** now offers Traditional Chinese next to Simplified. With **Same as this computer**, a computer set to Taiwan, Hong Kong or Macau gets Traditional Chinese, and other Chinese settings get Simplified.
+- **Key names in your language.** The Keys tab's key names ("Left Shift", "Page Up", "Num 1") and key groups ("Function keys", "Number pad") follow the window's language: they were the last words in the settings window that stayed in English. The overlay in OBS still shows what your layout prints on each key.
+
+### 🛠 Improved
+- **Translations read more naturally:** German and Spanish now always use the formal "you" (Sie, usted), and every language uses the names macOS itself shows for its settings, such as Input Monitoring.
+- **Renew keyboard access on a Mac** now says what happens next: restart the app, and macOS asks again after the restart. Until then Input Monitoring has no entry for the app, and that's expected.
+- **The Keys tab's hint line fits on one line** in the default window: the view chips are shorter (**Space** or **Middle** to move the view), and their tooltips still explain each one.
+- **Clearer key names:** the = and ' keys are now "Equals sign" and "Apostrophe".
+
+### 🧰 Under the hood
+- **The translation script** keeps a list of fixed terms (names a translation must use, such as macOS's setting names), sets the form of address per language, reads translator notes on long texts and nested groups, and can resend single texts with `--redo` ([TRANSLATIONS.md](https://github.com/nqble/keystroke-overlay/blob/main/docs/TRANSLATIONS.md)).
+- **Tests:** the idle-CPU check measures over 30 seconds, so one stray Windows timer tick no longer fails it; the Keys tab screenshots follow the shorter hint.
+- **A development tool update:** eslint 10.15.0, which brings minimatch 11 (a security advisory in the old version; the app never shipped it).
+
 ## v2.2.1 — keyboard access after a Mac update
 
 ### 🐛 Fixed
