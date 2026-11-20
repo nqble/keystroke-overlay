@@ -354,6 +354,7 @@ export const made = {
     'accessNotice.renew': 'd44ae06c',
     'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
+    'accessNotice.checkAfterUpdate': '3c2e5db6',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -952,6 +953,8 @@ export default {
     restartAfterRenew:
       'それでは、Keystroke Overlayを再起動してください。再起動するまでは、「入力監視」の欄は空のままです。再起動後、macOSから確認のメッセージが表示されるので、そこでアプリの機能を有効にしてください。',
     renewButton: 'キーボードアクセスの更新',
+    checkAfterUpdate:
+      'アップデートが完了しました。任意のキーを押して、オーバーレイが引き続きキー入力を認識しているかご確認ください。',
     inputGroup:
       'Wayland環境では、このアプリがキーボード入力を読み取るために入力グループが必要です。ターミナルで以下のコマンドを実行し、ログアウトしてから再度ログインしてください。そうすれば、実行するすべてのプログラムがキーボード入力を読み取れるようになります（PRIVACY.mdを参照）。',
     inputGroupCopied:

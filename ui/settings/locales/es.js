@@ -218,7 +218,7 @@ export const made = {
     'keysToolbar.resetConfirm': '2e2a1784',
     'keysToolbar.layoutReset': 'c06aef67',
     'keysToolbar.status': 'ae34b345',
-    'keysToolbar.overlap.one': 'd165c574',
+    'keysToolbar.overlap.one': '5113b232',
     'keysToolbar.overlap.many': '5b13937a',
     'keysToolbar.overlap.other': '5b13937a',
     'keysInspector.panel': '3a2cfdd1',
@@ -366,6 +366,7 @@ export const made = {
     'accessNotice.renew': 'd44ae06c',
     'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
+    'accessNotice.checkAfterUpdate': '3c2e5db6',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -826,9 +827,9 @@ export default {
     layoutReset: '{name} restablecer',
     status: '{moved} movido · {hidden} oculto',
     overlap: {
-      one: 'Superposición de la tecla {count}',
-      many: 'Las teclas {count} se superponen',
-      other: 'Las teclas {count} se superponen',
+      one: 'La tecla {count} se superpone',
+      many: '{count} teclas se superponen',
+      other: '{count} teclas se superponen',
     },
   },
   keysInspector: {
@@ -1001,6 +1002,8 @@ export default {
     restartAfterRenew:
       'Ahora reinicie Keystroke Overlay. «Monitorización de los dispositivos de entrada» permanecerá en blanco hasta entonces: tras el reinicio, macOS le preguntará y usted deberá activar la aplicación.',
     renewButton: 'Renovar el acceso al teclado',
+    checkAfterUpdate:
+      'Acaba de actualizarse. Pulse cualquier tecla para comprobar que la superposición sigue detectando sus teclas.',
     inputGroup:
       'En Wayland, la aplicación necesita el grupo de entrada para leer su teclado. Ejecute este comando en un terminal y, a continuación, cierre la sesión y vuelva a iniciarla. De este modo, todos los programas que ejecute también podrán leer el teclado (véase PRIVACY.md).',
     inputGroupCopied:
@@ -1206,7 +1209,7 @@ export default {
       macos: 'La tecla «Suprimir» oculta las teclas seleccionadas',
       linux: 'Las teclas «Delete» o «Backspace» ocultan las teclas seleccionadas',
     },
-    zoomChip: { windows: 'Desplazarse', macos: 'Pinch', linux: 'Desplazarse' },
+    zoomChip: { windows: 'Desplazarse', macos: 'Pellizcar', linux: 'Desplazarse' },
     zoomTip: {
       windows: 'Desplácese sobre el teclado para ampliar la imagen',
       macos:
