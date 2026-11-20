@@ -218,7 +218,7 @@ export const made = {
     'keysToolbar.resetConfirm': '2e2a1784',
     'keysToolbar.layoutReset': 'c06aef67',
     'keysToolbar.status': 'ae34b345',
-    'keysToolbar.overlap.one': 'd165c574',
+    'keysToolbar.overlap.one': '5113b232',
     'keysToolbar.overlap.many': '5b13937a',
     'keysToolbar.overlap.other': '5b13937a',
     'keysInspector.panel': '3a2cfdd1',
@@ -366,6 +366,7 @@ export const made = {
     'accessNotice.renew': 'd44ae06c',
     'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
+    'accessNotice.checkAfterUpdate': '3c2e5db6',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -829,9 +830,9 @@ export default {
     layoutReset: '{name} réinitialiser',
     status: '{moved} déplacé · {hidden} masqué',
     overlap: {
-      one: 'Superposition de la touche {count}',
-      many: 'Les touches {count} se chevauchent',
-      other: 'Les touches {count} se chevauchent',
+      one: 'La touche {count} se superpose',
+      many: '{count} touches se chevauchent',
+      other: '{count} touches se chevauchent',
     },
   },
   keysInspector: {
@@ -1003,6 +1004,8 @@ export default {
     restartAfterRenew:
       'Redémarrez maintenant Keystroke Overlay. La section « Surveillance de l’entrée » reste vide jusqu’à ce moment-là : après le redémarrage, macOS vous le demande et vous activez l’application.',
     renewButton: "Actualiser l'accès au clavier",
+    checkAfterUpdate:
+      "L'application vient d'être mise à jour. Appuyez sur n'importe quelle touche pour vérifier que la superposition détecte toujours vos frappes.",
     inputGroup:
       'Sous Wayland, l’application a besoin du groupe d’entrée pour lire vos claviers. Exécutez cette commande dans un terminal, puis déconnectez-vous et reconnectez-vous. Tous les programmes que vous lancerez pourront alors également lire les claviers (voir PRIVACY.md).',
     inputGroupCopied:
@@ -1209,7 +1212,7 @@ export default {
       macos: 'La touche Suppr masque les touches sélectionnées',
       linux: 'Les touches « Supprimer » ou « Retour arrière » masquent les touches sélectionnées',
     },
-    zoomChip: { windows: 'Faire défiler', macos: 'Pinch', linux: 'Faire défiler' },
+    zoomChip: { windows: 'Faire défiler', macos: 'Pincement', linux: 'Faire défiler' },
     zoomTip: {
       windows: 'Passez la souris sur le clavier pour zoomer',
       macos: 'Pincez sur le pavé tactile ou maintenez la touche ⌘ enfoncée tout en faisant défiler pour zoomer',

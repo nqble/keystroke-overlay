@@ -218,7 +218,7 @@ export const made = {
     'keysToolbar.resetConfirm': '2e2a1784',
     'keysToolbar.layoutReset': 'c06aef67',
     'keysToolbar.status': 'ae34b345',
-    'keysToolbar.overlap.one': 'd165c574',
+    'keysToolbar.overlap.one': '5113b232',
     'keysToolbar.overlap.many': '5b13937a',
     'keysToolbar.overlap.other': '5b13937a',
     'keysInspector.panel': '3a2cfdd1',
@@ -366,6 +366,7 @@ export const made = {
     'accessNotice.renew': 'd44ae06c',
     'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
+    'accessNotice.checkAfterUpdate': '3c2e5db6',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -821,9 +822,9 @@ export default {
     layoutReset: '{name} reiniciar',
     status: '{moved} movido · {hidden} oculto',
     overlap: {
-      one: 'Sobreposição da tecla {count}',
-      many: 'As teclas {count} se sobrepõem',
-      other: 'As teclas {count} se sobrepõem',
+      one: 'A tecla {count} se sobrepõe',
+      many: '{count} teclas se sobrepõem',
+      other: '{count} teclas se sobrepõem',
     },
   },
   keysInspector: {
@@ -995,6 +996,8 @@ export default {
     restartAfterRenew:
       'Agora reinicie o Keystroke Overlay. A Monitoração de Entrada permanece em branco até então: após a reinicialização, o macOS solicita a confirmação, e você ativa o aplicativo.',
     renewButton: 'Atualizar acesso pelo teclado',
+    checkAfterUpdate:
+      'Acabou de ser atualizado. Pressione qualquer tecla para verificar se a sobreposição ainda está reconhecendo suas teclas.',
     inputGroup:
       'No Wayland, o aplicativo precisa do grupo de entrada para ler seus teclados. Execute este comando em um terminal e, em seguida, faça logout e login novamente. Todos os programas que você executar poderão então ler os teclados também (consulte PRIVACY.md).',
     inputGroupCopied:
@@ -1200,7 +1203,7 @@ export default {
       macos: 'A tecla “delete” oculta as teclas selecionadas',
       linux: 'As teclas Delete ou Backspace ocultam as teclas selecionadas',
     },
-    zoomChip: { windows: 'Rolar', macos: 'Pinch', linux: 'Rolar' },
+    zoomChip: { windows: 'Rolar', macos: 'Aperto', linux: 'Rolar' },
     zoomTip: {
       windows: 'Passe o mouse sobre o teclado para ampliar',
       macos: 'Aperte os dedos no trackpad ou mantenha pressionada a tecla ⌘ e role para ampliar',

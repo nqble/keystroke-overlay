@@ -354,6 +354,7 @@ export const made = {
     'accessNotice.renew': 'd44ae06c',
     'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
+    'accessNotice.checkAfterUpdate': '3c2e5db6',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -939,6 +940,7 @@ export default {
     restartAfterRenew:
       '現在請重新啟動「Keystroke Overlay」。在此之前，「輸入監控」欄位將保持空白：重新啟動後，macOS 會提出詢問，此時您需開啟該應用程式。',
     renewButton: '重新取得鍵盤存取權限',
+    checkAfterUpdate: '剛完成更新。請按任意鍵以確認疊加層是否仍能偵測到您的按鍵。',
     inputGroup:
       '在 Wayland 環境下，此應用程式需要「輸入群組」權限才能讀取您的鍵盤。請在終端機中執行此指令，然後登出並重新登入。如此一來，您所執行的每個程式也能讀取鍵盤（詳見 PRIVACY.md）。',
     inputGroupCopied:
@@ -1110,7 +1112,7 @@ export default {
       macos: '刪除鍵可隱藏已選中的鍵位',
       linux: '按下「刪除」或「退格」鍵可隱藏選取的按鍵',
     },
-    zoomChip: { windows: '捲動', macos: 'Pinch', linux: '捲動' },
+    zoomChip: { windows: '捲動', macos: '捏合', linux: '捲動' },
     zoomTip: {
       windows: '將游標移至鍵盤上即可放大',
       macos: '在觸控板上雙指縮放，或按住 ⌘ 鍵並滾動滑鼠輪，即可調整縮放比例',

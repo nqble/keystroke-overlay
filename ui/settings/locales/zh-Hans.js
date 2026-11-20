@@ -354,6 +354,7 @@ export const made = {
     'accessNotice.renew': 'd44ae06c',
     'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
+    'accessNotice.checkAfterUpdate': '3c2e5db6',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -935,6 +936,7 @@ export default {
     restartAfterRenew:
       '现在重启 Keystroke Overlay。在此之前，输入监控将保持为空：重启后，macOS 会进行询问，然后您需要为该应用开启权限。',
     renewButton: '重新获取键盘访问权限',
+    checkAfterUpdate: '刚更新。按任意键检查叠加层是否仍能识别您的按键。',
     inputGroup:
       '在 Wayland 上，该应用需要输入组才能读取您的键盘。请在终端中运行此命令，然后注销并重新登录。之后您运行的每个程序也都能读取键盘（请参阅 PRIVACY.md）。',
     inputGroupCopied: '已复制。将其粘贴到终端中运行，然后注销并重新登录。之后 Keystroke Overlay 就能识别您的按键了。',

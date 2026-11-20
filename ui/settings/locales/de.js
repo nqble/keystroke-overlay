@@ -217,7 +217,7 @@ export const made = {
     'keysToolbar.resetConfirm': '2e2a1784',
     'keysToolbar.layoutReset': 'c06aef67',
     'keysToolbar.status': 'ae34b345',
-    'keysToolbar.overlap.one': 'd165c574',
+    'keysToolbar.overlap.one': '5113b232',
     'keysToolbar.overlap.other': '5b13937a',
     'keysInspector.panel': '3a2cfdd1',
     'keysInspector.show': '0df6f1ca',
@@ -360,6 +360,7 @@ export const made = {
     'accessNotice.renew': 'd44ae06c',
     'accessNotice.restartAfterRenew': 'f7d85a82',
     'accessNotice.renewButton': '6afa45fa',
+    'accessNotice.checkAfterUpdate': '3c2e5db6',
     'accessNotice.inputGroup': 'efdc86b8',
     'accessNotice.inputGroupCopied': 'a89deaa9',
     'accessNotice.copyCommand': '5a677843',
@@ -814,7 +815,7 @@ export default {
     resetConfirm: 'Layout zurücksetzen',
     layoutReset: '{name} Zurücksetzen',
     status: '{moved} verschoben · {hidden} ausgeblendet',
-    overlap: { one: '{count}-Tasten-Overlay', other: '{count} Tasten überlappen sich' },
+    overlap: { one: 'Die Taste {count} überlagert', other: '{count} Tasten überlappen sich' },
   },
   keysInspector: {
     panel: 'Ausgewählte Tasten',
@@ -972,6 +973,8 @@ export default {
     restartAfterRenew:
       'Starten Sie nun Keystroke Overlay neu. „Eingabeüberwachung“ bleibt bis dahin leer: Nach dem Neustart fragt macOS nach, und Sie aktivieren die App.',
     renewButton: 'Tastaturzugriff erneuern',
+    checkAfterUpdate:
+      'Soeben aktualisiert. Drücken Sie eine beliebige Taste, um zu überprüfen, ob das Overlay Ihre Tasten weiterhin erkennt.',
     inputGroup:
       'Unter Wayland benötigt die App die Eingabegruppe, um Ihre Tastaturen lesen zu können. Führen Sie diesen Befehl in einem Terminal aus, melden Sie sich anschließend ab und wieder an. Jedes Programm, das Sie starten, kann dann ebenfalls die Tastaturen lesen (siehe PRIVACY.md).',
     inputGroupCopied:
@@ -1171,7 +1174,7 @@ export default {
       macos: 'Die Entf-Taste blendet die ausgewählten Tasten aus',
       linux: 'Mit „Delete“ oder „Backspace“ werden die ausgewählten Tasten ausgeblendet',
     },
-    zoomChip: { windows: 'Scrollen', macos: 'Pinch', linux: 'Scrollen' },
+    zoomChip: { windows: 'Scrollen', macos: 'Zwicken', linux: 'Scrollen' },
     zoomTip: {
       windows: 'Fahren Sie mit der Maus über die Tastatur, um zu zoomen',
       macos: 'Zoomen Sie durch Zusammenziehen der Finger auf dem Trackpad oder durch Halten der ⌘-Taste und Scrollen.',
