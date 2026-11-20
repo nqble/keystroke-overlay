@@ -6,7 +6,8 @@
 use crate::keyboard;
 use crate::state::AppState;
 use serde_json::{json, Value};
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, Manager, State};
+use tokio::sync::broadcast::{error::RecvError, Receiver};
 
 /// The answer sent to the window, in get_state and get_keyboard_access. `applies` is false where the window must not show
 /// a notice (Windows, Linux on X11: a capture problem there has its own message in General). `system` picks the wording.
@@ -76,6 +77,40 @@ fn remember_proof(st: &AppState, capture_seen: bool) {
     let _ = crate::settings::save(&st.shared.paths.settings(), &current);
 }
 
+/// Told to the window once the first ordinary key arrives (keyboard-access.js asks again then). Only the moment, never
+/// the key.
+pub const KEYS_ARRIVING_EVENT: &str = "keys-arriving";
+
+/// The keyboard-access notice is asked again when the window gets focus, but after Renew and a restart keys start
+/// arriving while the window already has it, so the notice stayed until the person clicked away and back. This tells
+/// the window when the first ordinary key arrives, then ends. The thread waits for key events (nothing while nobody
+/// types) and only checks that one arrived. Call once the app state exists.
+pub fn tell_window_when_keys_arrive(app: &AppHandle) {
+    let shared = app.state::<AppState>().shared.clone();
+    if shared.bus.has_seen_keys() {
+        return;
+    }
+    let events = shared.bus.tx.subscribe();
+    let app = app.clone();
+    let _ = std::thread::Builder::new().name("keys-arriving".into()).spawn(move || {
+        if wait_for_first_key(events, || shared.bus.has_seen_keys()) {
+            let _ = app.emit(KEYS_ARRIVING_EVENT, ());
+        }
+    });
+}
+
+/// Waits until `has_seen_keys` says an ordinary key arrived (modifiers alone don't count, see `Bus::has_seen_keys`);
+/// false when the key stream ends first.
+fn wait_for_first_key<T: Clone>(mut events: Receiver<T>, has_seen_keys: impl Fn() -> bool) -> bool {
+    loop {
+        match events.blocking_recv() {
+            Ok(_) | Err(RecvError::Lagged(_)) if has_seen_keys() => return true,
+            Ok(_) | Err(RecvError::Lagged(_)) => {}
+            Err(RecvError::Closed) => return false,
+        }
+    }
+}
+
 /// Asked again whenever the window gets focus, so coming back from System Settings shows the new answer at once.
 #[tauri::command]
 pub fn get_keyboard_access(st: State<AppState>) -> Value {
@@ -106,6 +141,28 @@ pub fn restart_app(app: AppHandle) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_window_is_told_once_an_ordinary_key_arrives() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        let (sender, events) = tokio::sync::broadcast::channel(8);
+        let seen = std::sync::Arc::new(AtomicBool::new(false));
+        let flag = seen.clone();
+        let waiting = std::thread::spawn(move || wait_for_first_key(events, || flag.load(Ordering::Relaxed)));
+        sender.send("ShiftLeft").unwrap(); // a modifier alone: not yet
+        std::thread::sleep(std::time::Duration::from_millis(50));
+        assert!(!waiting.is_finished());
+        seen.store(true, Ordering::Relaxed);
+        sender.send("KeyA").unwrap();
+        assert!(waiting.join().unwrap());
+    }
+
+    #[test]
+    fn no_word_when_the_key_stream_ends_first() {
+        let (sender, events) = tokio::sync::broadcast::channel::<&str>(8);
+        drop(sender);
+        assert!(!wait_for_first_key(events, || false));
+    }
 
     fn after(proven_version: &str, updated_this_launch: bool) -> Renewal<'_> {
         Renewal {
