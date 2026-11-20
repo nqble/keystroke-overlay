@@ -93,9 +93,9 @@ test('Linux with the input group, or on X11: no notice', () => {
   assert.equal(accessNotice({ access: { ...wayland, applies: false }, inputError: null }), null);
 });
 
-test('after a Mac update with no key yet: renew the permission, then restart', () => {
+test('after a Mac update with no key yet (and the wait over): renew the permission, then restart', () => {
   const access = { ...allowed, system: 'macos', renewAfterUpdate: true };
-  const notice = accessNotice({ access });
+  const notice = accessNotice({ access, waited: true });
   assert.equal(notice?.kind, 'renew');
   assert.equal(notice?.action, 'renew');
   const afterRenew = accessNotice({ access, asked: 'renew' });
@@ -111,4 +111,18 @@ test('after a Mac update with no key yet: renew the permission, then restart', (
 test('after a Mac update that macOS calls not allowed: renew too, not the plain Allow', () => {
   const access = { ...allowed, system: 'macos', allowed: false, renewAfterUpdate: true };
   assert.equal(accessNotice({ access })?.kind, 'renew');
+});
+
+test('right after an update with access on: ask for a key first, Renew only after waiting', () => {
+  const access = { ...allowed, system: 'macos', allowed: true, renewAfterUpdate: true };
+  const first = accessNotice({ access });
+  assert.equal(first?.kind, 'checking');
+  assert.equal(first?.action, undefined, 'no button that could reset a working permission');
+  assert.equal(accessNotice({ access, waited: true })?.kind, 'renew', 'no key after the wait: offer Renew');
+  assert.equal(accessNotice({ access: { ...access, captureSeen: true } }), null, 'a key arrived: nothing to say');
+  assert.equal(
+    accessNotice({ access: { ...access, allowed: false } })?.kind,
+    'renew',
+    'macOS says access is off (a changed signer): Renew at once',
+  );
 });
