@@ -292,7 +292,7 @@ export default {
     resetConfirm: 'Reset layout',
     layoutReset: '{name} reset',
     status: '{moved} moved · {hidden} hidden', // tests/e2e keys-editor checks this shape
-    overlap: { one: '{count} key overlap', other: '{count} keys overlap' },
+    overlap: { one: '{count} key overlaps', other: '{count} keys overlap' }, // means: a count: how many keyboard keys overlap another key, e.g. 6 keys overlap
   },
 
   // the Keys tab's inspector: keys-inspector.js (ui/settings/tabs/)
@@ -472,6 +472,7 @@ export default {
     restartAfterRenew:
       'Now restart Keystroke Overlay. Input Monitoring stays empty until then: after the restart, macOS asks, and you switch the app on.', // means: restart the app, not the computer; Input Monitoring is the macOS privacy setting, named as macOS names it in this language
     renewButton: 'Renew keyboard access',
+    checkAfterUpdate: 'Just updated. Press any key to check that the overlay still sees your keys.', // means: a notice on a Mac right after the app updated itself
     inputGroup:
       'On Wayland, the app needs the input group to read your keyboards. Run this command in a terminal, then log out and back in. Every program you run can then read the keyboards too (see PRIVACY.md).',
     inputGroupCopied:
@@ -708,7 +709,7 @@ export default {
       linux: 'Delete or Backspace hides the selected keys',
     },
     // the Keys tab's hint chips for the view: what zooms and what pans (a Mac trackpad pans with two fingers and pinches)
-    zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' },
+    zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' }, // means: a key cap naming the gesture that zooms: scrolling the mouse wheel, or pinching two fingers on a trackpad
     zoomTip: {
       windows: 'Scroll over the keyboard to zoom',
       macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',

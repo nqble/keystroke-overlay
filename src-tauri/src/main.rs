@@ -187,6 +187,7 @@ fn start_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     });
 
     key_labels::follow_switch_keys(app.handle()); // Windows: a layout switch inside one window
+    commands::keyboard_access::tell_window_when_keys_arrive(app.handle()); // the access notice, once keys arrive
     state::forward_overlay_count(app.handle().clone(), &shared);
     tray::build(app, shared.clone())?;
     if let Err(problem) = hotkeys::apply(app.handle(), &shared.settings.read().unwrap()) {

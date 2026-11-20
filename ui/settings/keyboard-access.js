@@ -2,10 +2,11 @@
 //  The keyboard access notice under the header: on macOS "Allow keyboard access", "Restart", or the Secure Input hint;
 //  on Linux Wayland the input-group command with a Copy button.
 //  What it says is plain logic in access-notice.js. It is asked again when the window gets focus, which is when the
-//  person comes back from System Settings, so nothing polls. Rust side: src-tauri/src/commands/keyboard_access.rs.
+//  person comes back from System Settings, and once when the first key arrives (after Renew and a restart the window
+//  already has focus), so nothing polls. Rust side: src-tauri/src/commands/keyboard_access.rs.
 // =====================================================================================================================
-import { accessNotice } from './access-notice.js';
-import { $, invoke } from './helpers.js';
+import { RENEW_AFTER_SECONDS, accessNotice } from './access-notice.js';
+import { $, invoke, tauriEvent } from './helpers.js';
 import { html, render as draw } from './html.js';
 import { inputError } from './state.js';
 
@@ -17,13 +18,32 @@ export function setKeyboardAccess(value) {
   access = value;
 }
 
+let waited = false; // true once the window has waited RENEW_AFTER_SECONDS for a key after an update
+let waiting = null; // the one-shot timer for that wait, while the "press any key" notice shows
+
+/**
+ * The "press any key" notice after an update gives way to Renew if no key arrives in time: one timer, started when
+ * that notice first shows and never repeated, so nothing runs while idle otherwise.
+ */
+function waitForKeys(notice) {
+  if (notice?.kind !== 'checking' || waiting) return;
+  waiting = setTimeout(() => {
+    waited = true;
+    paintAccess();
+  }, RENEW_AFTER_SECONDS * 1000);
+}
+
 /** Draw the notice for the current state. Cheap to call often. */
 export function paintAccess() {
-  const notice = accessNotice({ access, inputError, asked });
+  const notice = accessNotice({ access, inputError, asked, waited });
+  waitForKeys(notice);
   const banner = $('#accessBanner');
   banner.hidden = !notice;
   draw(notice ? html`<${Notice} notice=${notice} />` : null, banner);
 }
+
+/** Must match KEYS_ARRIVING_EVENT in src-tauri/src/commands/keyboard_access.rs */
+const KEYS_ARRIVING_EVENT = 'keys-arriving';
 
 /** Ask the app again: coming back from System Settings shows the new answer at once. */
 export async function refreshAccess() {
@@ -56,3 +76,5 @@ function Notice({ notice }) {
 }
 
 addEventListener('focus', refreshAccess);
+
+tauriEvent.listen(KEYS_ARRIVING_EVENT, refreshAccess);
