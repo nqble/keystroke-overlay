@@ -712,7 +712,7 @@ export default {
     zoomChip: { windows: 'Scroll', macos: 'Pinch', linux: 'Scroll' }, // means: a key cap naming the gesture that zooms: scrolling the mouse wheel, or pinching two fingers on a trackpad
     zoomTip: {
       windows: 'Scroll over the keyboard to zoom',
-      macos: 'Pinch on the trackpad, or hold ⌘ and scroll, to zoom',
+      macos: 'Move two fingers apart or together on the trackpad, or hold ⌘ and scroll, to zoom',
       linux: 'Scroll over the keyboard to zoom',
     },
     // what pans, each as { chip, tip }: kept short so the hint line fits one row in the default window (the tip says
