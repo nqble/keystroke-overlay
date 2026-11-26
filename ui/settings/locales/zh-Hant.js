@@ -525,7 +525,7 @@ export const made = {
     'systemWords.zoomChip.macos': '4ed61f6a',
     'systemWords.zoomChip.linux': '291873e3',
     'systemWords.zoomTip.windows': '0812dcb5',
-    'systemWords.zoomTip.macos': '92c17871',
+    'systemWords.zoomTip.macos': '924322a5',
     'systemWords.zoomTip.linux': '0812dcb5',
     'systemWords.panHints.windows.0.chip': '20eac5aa',
     'systemWords.panHints.windows.0.tip': '85467627',
@@ -1115,7 +1115,7 @@ export default {
     zoomChip: { windows: '捲動', macos: '分開/靠攏', linux: '捲動' },
     zoomTip: {
       windows: '將游標移至鍵盤上即可放大',
-      macos: '在觸控板上分開/靠攏手指，或按住 ⌘ 鍵並滾動滑鼠輪，即可調整縮放比例',
+      macos: '在觸控板上用兩根手指分開或併攏，或按住 ⌘ 鍵並滾動滑鼠，即可進行縮放',
       linux: '將游標移至鍵盤上即可放大',
     },
     panHints: {

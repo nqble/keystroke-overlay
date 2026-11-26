@@ -525,7 +525,7 @@ export const made = {
     'systemWords.zoomChip.macos': '4ed61f6a',
     'systemWords.zoomChip.linux': '291873e3',
     'systemWords.zoomTip.windows': '0812dcb5',
-    'systemWords.zoomTip.macos': '92c17871',
+    'systemWords.zoomTip.macos': '924322a5',
     'systemWords.zoomTip.linux': '0812dcb5',
     'systemWords.panHints.windows.0.chip': '20eac5aa',
     'systemWords.panHints.windows.0.tip': '85467627',
@@ -1149,7 +1149,8 @@ export default {
     zoomChip: { windows: 'スクロール', macos: 'ピンチ', linux: 'スクロール' },
     zoomTip: {
       windows: 'キーボードの上にカーソルを合わせると拡大表示されます',
-      macos: 'トラックパッドでピンチ操作を行うか、⌘キーを押しながらスクロールして、ズームしてください。',
+      macos:
+        'トラックパッド上で2本の指を広げたり寄せたりするか、⌘キーを押しながらスクロールして、ズームを行ってください。',
       linux: 'キーボードの上にカーソルを合わせると拡大表示されます',
     },
     panHints: {
