@@ -23,5 +23,14 @@
   "Apostrophe": {
     "es": "Apóstrofo",
     "pt-BR": "Apóstrofo"
+  },
+  "Pinch": {
+    "de": "Auf-/Zuziehen",
+    "es": "Separar/juntar",
+    "pt-BR": "Separar/juntar",
+    "fr": "Pincer",
+    "ja": "ピンチ",
+    "zh-Hans": "捏合",
+    "zh-Hant": "分開/靠攏"
   }
 }
