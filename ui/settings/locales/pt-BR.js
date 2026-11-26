@@ -1203,10 +1203,10 @@ export default {
       macos: 'A tecla “delete” oculta as teclas selecionadas',
       linux: 'As teclas Delete ou Backspace ocultam as teclas selecionadas',
     },
-    zoomChip: { windows: 'Rolar', macos: 'Aperto', linux: 'Rolar' },
+    zoomChip: { windows: 'Rolar', macos: 'Separar/juntar', linux: 'Rolar' },
     zoomTip: {
       windows: 'Passe o mouse sobre o teclado para ampliar',
-      macos: 'Aperte os dedos no trackpad ou mantenha pressionada a tecla ⌘ e role para ampliar',
+      macos: 'Separar/juntar os dedos no trackpad ou mantenha pressionada a tecla ⌘ e role para ampliar',
       linux: 'Passe o mouse sobre o teclado para ampliar',
     },
     panHints: {
