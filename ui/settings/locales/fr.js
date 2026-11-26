@@ -1212,7 +1212,7 @@ export default {
       macos: 'La touche Suppr masque les touches sélectionnées',
       linux: 'Les touches « Supprimer » ou « Retour arrière » masquent les touches sélectionnées',
     },
-    zoomChip: { windows: 'Faire défiler', macos: 'Pincement', linux: 'Faire défiler' },
+    zoomChip: { windows: 'Faire défiler', macos: 'Pincer', linux: 'Faire défiler' },
     zoomTip: {
       windows: 'Passez la souris sur le clavier pour zoomer',
       macos: 'Pincez sur le pavé tactile ou maintenez la touche ⌘ enfoncée tout en faisant défiler pour zoomer',

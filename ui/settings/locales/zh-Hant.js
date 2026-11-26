@@ -1112,10 +1112,10 @@ export default {
       macos: '刪除鍵可隱藏已選中的鍵位',
       linux: '按下「刪除」或「退格」鍵可隱藏選取的按鍵',
     },
-    zoomChip: { windows: '捲動', macos: '捏合', linux: '捲動' },
+    zoomChip: { windows: '捲動', macos: '分開/靠攏', linux: '捲動' },
     zoomTip: {
       windows: '將游標移至鍵盤上即可放大',
-      macos: '在觸控板上雙指縮放，或按住 ⌘ 鍵並滾動滑鼠輪，即可調整縮放比例',
+      macos: '在觸控板上分開/靠攏手指，或按住 ⌘ 鍵並滾動滑鼠輪，即可調整縮放比例',
       linux: '將游標移至鍵盤上即可放大',
     },
     panHints: {

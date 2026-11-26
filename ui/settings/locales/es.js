@@ -1209,11 +1209,11 @@ export default {
       macos: 'La tecla «Suprimir» oculta las teclas seleccionadas',
       linux: 'Las teclas «Delete» o «Backspace» ocultan las teclas seleccionadas',
     },
-    zoomChip: { windows: 'Desplazarse', macos: 'Pellizcar', linux: 'Desplazarse' },
+    zoomChip: { windows: 'Desplazarse', macos: 'Separar/juntar', linux: 'Desplazarse' },
     zoomTip: {
       windows: 'Desplácese sobre el teclado para ampliar la imagen',
       macos:
-        'Haga un pellizco en el trackpad o mantenga pulsada la tecla ⌘ y desplace el ratón para ampliar o reducir la imagen',
+        'Separar/juntar el trackpad o mantener pulsada la tecla ⌘ y desplace el ratón para ampliar o reducir la imagen',
       linux: 'Desplácese sobre el teclado para ampliar la imagen',
     },
     panHints: {

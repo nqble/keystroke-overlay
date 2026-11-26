@@ -1111,7 +1111,7 @@ export default {
     zoomChip: { windows: '滚动', macos: '捏合', linux: '滚动' },
     zoomTip: {
       windows: '将键盘悬停于上方以缩放',
-      macos: '在触控板上轻捏，或按住 ⌘ 并滚动以缩放',
+      macos: '在触控板上捏合，或按住 ⌘ 并滚动以缩放',
       linux: '将键盘悬停于上方以缩放',
     },
     panHints: {

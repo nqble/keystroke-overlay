@@ -1174,10 +1174,10 @@ export default {
       macos: 'Die Entf-Taste blendet die ausgewählten Tasten aus',
       linux: 'Mit „Delete“ oder „Backspace“ werden die ausgewählten Tasten ausgeblendet',
     },
-    zoomChip: { windows: 'Scrollen', macos: 'Zwicken', linux: 'Scrollen' },
+    zoomChip: { windows: 'Scrollen', macos: 'Auf-/Zuziehen', linux: 'Scrollen' },
     zoomTip: {
       windows: 'Fahren Sie mit der Maus über die Tastatur, um zu zoomen',
-      macos: 'Zoomen Sie durch Zusammenziehen der Finger auf dem Trackpad oder durch Halten der ⌘-Taste und Scrollen.',
+      macos: 'Zoomen Sie durch Auf-/Zuziehen der Finger auf dem Trackpad oder durch Halten der ⌘-Taste und Scrollen.',
       linux: 'Fahren Sie mit der Maus über die Tastatur, um zu zoomen',
     },
     panHints: {
