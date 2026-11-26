@@ -545,7 +545,7 @@ export const made = {
     'systemWords.zoomChip.macos': '4ed61f6a',
     'systemWords.zoomChip.linux': '291873e3',
     'systemWords.zoomTip.windows': '0812dcb5',
-    'systemWords.zoomTip.macos': '92c17871',
+    'systemWords.zoomTip.macos': '924322a5',
     'systemWords.zoomTip.linux': '0812dcb5',
     'systemWords.panHints.windows.0.chip': '20eac5aa',
     'systemWords.panHints.windows.0.tip': '85467627',
@@ -1213,7 +1213,7 @@ export default {
     zoomTip: {
       windows: 'Desplácese sobre el teclado para ampliar la imagen',
       macos:
-        'Separar/juntar el trackpad o mantener pulsada la tecla ⌘ y desplace el ratón para ampliar o reducir la imagen',
+        'Separe o junte dos dedos en el trackpad, o mantenga pulsada la tecla ⌘ y desplace el ratón, para ampliar o reducir la imagen',
       linux: 'Desplácese sobre el teclado para ampliar la imagen',
     },
     panHints: {
