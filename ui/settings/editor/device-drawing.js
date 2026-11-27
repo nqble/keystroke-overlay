@@ -1,6 +1,6 @@
 // =====================================================================================================================
 //  A drawn device (a mouse, a controller) on the Keys tab's board, drawn as the device itself
-//  (docs/proposals/mouse-shape.md). It shows the same file OBS shows, ui/overlay/devices/<id>.svg, which the Rust side
+//  (docs/design/future-inputs.md §2). It shows the same file OBS shows, ui/overlay/devices/<id>.svg, which the Rust side
 //  hands over (the device_drawing command), so the Keys tab and the overlay always agree. The block is still moved,
 //  resized and turned like a key by editor.js; this file only fills it. The overlay's own copy of this is
 //  ui/overlay/devices.js (the settings window can't import from the overlay): keep the fallbacks and the list of

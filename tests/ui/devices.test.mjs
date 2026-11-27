@@ -84,7 +84,7 @@ test('the Keys tab and the overlay use the same fallbacks and take out the same 
   assert.ok(unsafeInKeysTab && overlaySource.includes(`querySelectorAll('${unsafeInKeysTab}')`));
 });
 
-// ---- Geometry: every part sits inside the body with a gap, so no border runs into the outline (mouse-shape.md)
+// ---- Geometry: every part sits inside the body with a gap, so no border runs into the outline (future-inputs.md §2)
 /**
  * The smallest gap, in drawing units, between a part and the body's outline. With both outlines' line widths, the old
  * drawing's 2.5 read as touching on screen; 4 leaves a visible gap.
@@ -184,7 +184,7 @@ test('every mouse part sits inside the body, at least MIN_GAP from its outline',
   }
 });
 
-// ---- Extra buttons (data-slot): buttons the system doesn't report, lit by a key the person assigns (mouse-shape.md)
+// ---- Extra buttons (data-slot): buttons the system doesn't report, lit by a key the person assigns (future-inputs.md §2)
 const slotsIn = (text) => [...text.matchAll(/data-slot="([^"]*)"/g)].map((match) => match[1]);
 
 test('extra buttons have plain, unique slot names that device_keys.rs keeps', () => {

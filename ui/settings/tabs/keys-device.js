@@ -1,5 +1,5 @@
 // =====================================================================================================================
-//  The side panel's controls for a drawn mouse or controller on the Keys tab (docs/proposals/mouse-shape.md): its
+//  The side panel's controls for a drawn mouse or controller on the Keys tab (docs/design/future-inputs.md §2): its
 //  Shape (which drawing it shows), and for a drawing with extra buttons, the key each one lights up with. An extra
 //  button is a button the system doesn't report as a mouse button; the mouse's own software sends it as a key (often
 //  F13-F24), so you press that key here. Both are saved with the layout's edits (deviceDrawings, deviceKeys;

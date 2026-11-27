@@ -1,4 +1,4 @@
-//! A layout's choices for its drawn devices (docs/proposals/mouse-shape.md), kept with the layout's other edits in
+//! A layout's choices for its drawn devices (docs/design/future-inputs.md §2), kept with the layout's other edits in
 //! `settings.layout.profiles[id]`:
 //! - `deviceDrawings`: which drawing a device block shows, e.g. `{ "Mouse": "mouse-gaming" }`, so a built-in layout,
 //!   whose file can't be changed, can still show another shape;

@@ -34,6 +34,17 @@ their prefix, and never collide with keyboard names (DOM `KeyboardEvent.code`).
 | Drawn devices (reserved) | `Mouse`, `Controller`: a layout entry drawn as the device itself, its parts named as above ([proposals/drawn-devices.md](../proposals/drawn-devices.md)); no capture source may produce them |
 | Placeholders (reserved) | `Unlinked1`, `Unlinked2`, …: a layout key that is drawn but linked to nothing (Import from KLE); no capture source may produce a name starting with `Unlinked` |
 
+**Extra mouse buttons.** Every system reports only left, right, middle, back and forward as mouse buttons (Windows
+reports no more), plus the wheel's four directions. A gaming mouse's other buttons reach the computer the way the
+mouse's own software sets them, usually as keys such as F13–F24 (the app captures F13–F24; macOS has F13–F20), or not at
+all. So a drawing has two kinds of parts: **mouse parts** with a name from the table (`data-code="MouseBack"`), which
+light up by themselves, and **extra buttons** (`data-slot="side3"`), which light up with the key the person assigns in
+the Keys tab (`deviceKeys`, docs/FILE-FORMATS.md). An extra button with no key is left out of the overlay and dashed in
+the Keys tab. A layout's drawing can be swapped for another one (`deviceDrawings`: Standard or Gaming mouse). Nothing
+reads which mouse is plugged in: drawing every model by hand isn't feasible, so a model's drawing is a file a
+contributor can add and people pick themselves (docs/EXTENDING.md §4). Every part sits inside the drawing's outline
+with a gap; `tests/ui/devices.test.mjs` checks it.
+
 Several controllers: the first one connected uses the names above. A second one adds a number (`Pad2A`, …). Only
 add that when it's actually needed.
 

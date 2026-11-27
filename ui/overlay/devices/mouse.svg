@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160">
-  <!-- The standard mouse (docs/proposals/mouse-shape.md). Every part that lights up has a data-code from
+  <!-- The standard mouse (docs/design/future-inputs.md §2). Every part that lights up has a data-code from
        docs/design/future-inputs.md §2 and sits inside the body with a gap (tests/ui/devices.test.mjs checks it); the
        wheel's arrows sit inside its slot. Colors come from the theme (ui/overlay/overlay.css, .device-body and .part). -->
   <path class="device-body" d="M50 3C79 3 96 23 96 60V112C96 140 76 157 50 157C24 157 4 140 4 112V60C4 23 21 3 50 3Z" />
