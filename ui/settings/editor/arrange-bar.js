@@ -3,6 +3,7 @@
 //  scale with the zoom). The movement maths is in tabs/keys-arrange.js.
 // =====================================================================================================================
 import { button, el } from '../helpers.js';
+import { iconElement } from '../icons.js';
 import { changed } from '../preview.js';
 import { selectedKeys } from '../state.js';
 import { alignPositions, boundsOf, distributePositions } from '../tabs/keys-arrange.js';
@@ -12,17 +13,17 @@ import { ARRANGE_GAP, UNIT, saveAt, selectedBoardBoxes } from './context.js';
 
 const WORDS = words('editor');
 
-// The arrange bar: [hook name, kind, which way, how many keys it needs]; the label and tooltip are WORDS.arrange[which way].
-// It floats above two or more selected keys.
+// The arrange bar: [hook name, kind, which way, how many keys it needs, icon in icons.js]. The button's name and tooltip
+// are WORDS.arrange[which way]. It floats above two or more selected keys.
 const ARRANGE_BUTTONS = [
-  ['key-align-left', 'align', 'left', 2],
-  ['key-align-center', 'align', 'center', 2],
-  ['key-align-right', 'align', 'right', 2],
-  ['key-align-top', 'align', 'top', 2],
-  ['key-align-middle', 'align', 'middle', 2],
-  ['key-align-bottom', 'align', 'bottom', 2],
-  ['key-distribute-across', 'distribute', 'across', 3],
-  ['key-distribute-down', 'distribute', 'down', 3],
+  ['key-align-left', 'align', 'left', 2, 'alignLeft'],
+  ['key-align-center', 'align', 'center', 2, 'alignCenter'],
+  ['key-align-right', 'align', 'right', 2, 'alignRight'],
+  ['key-align-top', 'align', 'top', 2, 'alignTop'],
+  ['key-align-middle', 'align', 'middle', 2, 'alignMiddle'],
+  ['key-align-bottom', 'align', 'bottom', 2, 'alignBottom'],
+  ['key-distribute-across', 'distribute', 'across', 3, 'spaceAcross'],
+  ['key-distribute-down', 'distribute', 'down', 3, 'spaceDown'],
 ];
 
 /** Build the bar (hidden until two keys are selected) and put it in the context. */
@@ -32,11 +33,14 @@ export function buildArrangeBar(ctx) {
   arrangeBar.hidden = true;
   arrangeBar.setAttribute('role', 'toolbar');
   arrangeBar.setAttribute('aria-label', WORDS.arrangeName);
-  for (const [hook, kind, how, needed] of ARRANGE_BUTTONS) {
-    const { label, tip } = WORDS.arrange[how];
-    const arrangeButton = button(label, () => arrange(ctx, String(kind), String(how)), 'arrange', String(hook));
+  for (const [hook, kind, how, needed, icon] of ARRANGE_BUTTONS) {
+    const name = WORDS.arrange[how];
+    const arrangeButton = button('', () => arrange(ctx, String(kind), String(how)), 'arrange', String(hook));
+    arrangeButton.replaceChildren(iconElement(String(icon)));
+    // the name stays the same while the tooltip may say why the button is off (placeArrangeBar)
+    arrangeButton.setAttribute('aria-label', name);
     arrangeButton.dataset.needed = String(needed);
-    arrangeButton.dataset.tooltip = tip;
+    arrangeButton.dataset.tooltip = name;
     arrangeBar.append(arrangeButton);
   }
   ctx.arrangeBar = arrangeBar;
