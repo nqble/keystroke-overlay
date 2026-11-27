@@ -14,6 +14,7 @@ the top and a line in this list.
 |---|---|---|
 | [key-rotation.md](key-rotation.md) | Turn single keys in the Keys tab and in layout files (KLE angles kept) | Built, ships in v2.1.0 (the plan goes once it's out) |
 | [drawn-devices.md](drawn-devices.md) | A drawn mouse and controller on the overlay, Add ▾ in the Keys tab, the Inputs card and the eye button (show or hide each input) | Being built: the eye button and the tray's Show menu done; devices next |
+| [mouse-shape.md](mouse-shape.md) | The mouse drawn as a real mouse in the Keys tab, a cleaner drawing, a Gaming shape, and extra buttons you assign to keys (F13–F24) | Proposed |
 | [mouse-input.md](mouse-input.md) | Mouse buttons and wheel on the overlay (never the pointer's position) | Built (all eleven steps; Windows, Linux and macOS); kept for the reasoning until the maintainer deletes it, as built proposals are |
 | [interface-languages.md](interface-languages.md) | The settings window, tray menu and first-run setup in other languages: one file per language, translated by DeepL, Microsoft Translator or Index-Translate per language, with Microsoft's terminology | Approved; step 1 being built |
 | [controllers-gilrs.md](controllers-gilrs.md) | Game controller input, with the gilrs library compared to our own code | Proposed; common gamepads first, idle improvements in drawn-devices.md |
