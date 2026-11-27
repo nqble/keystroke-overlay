@@ -44,6 +44,27 @@ Working notes for your own setup (queues, drafts, handoffs) live outside the rep
 - Say what to do and what happens, not how hard or easy it is (no "simply", "just", "easily").
 - Name things by what the person sees (the button's words), not by the code (`set_layout`), except in developer docs.
 
+## App text: say it once
+
+The settings window, the tray menu and the overlay's messages are read at a glance, so every word has to earn its
+place. Before adding or changing a text in `ui/settings/locales/en.js`, cut it down:
+
+- **Say each thing once.** A description doesn't repeat its title, a button doesn't repeat its row, and a hint doesn't
+  restate what the screen already shows. "Show my mouse" with "Shows your mouse buttons on the overlay" says it twice:
+  the description says only what the title can't ("Clicks and the wheel; never where the pointer is").
+- **The shortest wording that's still clear.** Prefer the shorter word and sentence: "to" not "in order to", "now" not
+  "at this time", "can't" not "is not able to". No filler: "please", "simply", "just", "basically", "note that", "make
+  sure to".
+- **One sentence where one will do;** two at most for a description. A longer explanation belongs in the user guide,
+  linked if needed.
+- **Name the result, not the mechanism.** "Keys show in OBS" rather than "The app sends key events to the overlay page".
+- **Buttons are a verb and an object** ("Copy OBS URL", "Renew keyboard access"), never "OK" for an action with a
+  consequence or "Click here".
+- **Every language follows English:** a shorter English text is retranslated (`npm run translate`), so cut in English
+  first.
+
+When you touch a screen, trim its texts by these rules in the same change (CLAUDE.md, "Leave it cleaner").
+
 ## Shape
 
 - Each document starts with one or two lines saying what it is for. Proposals in `docs/proposals/` also have a **Status**

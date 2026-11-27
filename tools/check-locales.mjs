@@ -1,7 +1,8 @@
 // =====================================================================================================================
 //  Checks the settings window's language files (ui/settings/locales/<code>.js) against English (en.js): every text a
 //  language has must exist in English, keep the same {placeholders}, and be text; a language may leave texts out
-//  (they show in English), and the check prints how much each language has. Run by `npm test` and CI.
+//  (they show in English), and the check prints how much each language has. English itself is checked for filler words
+//  (docs/DOCS-STYLE.md, "App text: say it once"). Run by `npm test` and CI.
 //  The plan: docs/proposals/interface-languages.md. Exits 1 on a problem.
 // =====================================================================================================================
 
@@ -65,11 +66,27 @@ function pluralProblems(path, source, value) {
   return problems;
 }
 
+/**
+ * Words that add nothing to a text (docs/DOCS-STYLE.md, "App text: say it once"). Not "just": "Just updated" means
+ * recently there.
+ */
+const FILLER = /\b(please|simply|basically|easily|note that|in order to|make sure to|click here)\b/i;
+
+/** The English texts that use a filler word. @param {Map<string, string>} english */
+export function fillerProblems(english) {
+  const problems = [];
+  for (const [path, text] of english) {
+    const filler = typeof text === 'string' ? text.match(FILLER) : null;
+    if (filler) problems.push(`${path}: "${filler[0]}" adds nothing; say it shorter`);
+  }
+  return problems;
+}
+
 async function main() {
   const load = async (/** @type {string} */ name) =>
     flatten((await import(pathToFileURL(join(DIR, name)).href)).default);
   const english = await load(SOURCE);
-  const problems = [];
+  const problems = fillerProblems(english).map((problem) => `${SOURCE}: ${problem}`);
   for (const name of readdirSync(DIR).filter((file) => file.endsWith('.js') && file !== SOURCE)) {
     const language = await load(name);
     for (const problem of problemsOf(english, language)) problems.push(`${name}: ${problem}`);
