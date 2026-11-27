@@ -47,6 +47,8 @@ when chosen), and keeps each style's edits under `styles`:
   "disabledKeys": ["KeyW"], "labels": { "Space": "Jump" },        // shared by both styles
   "layoutStyle": "grid",                                           // omitted for the default "shape"
   "hiddenInputs": ["keyboard"],                                    // whole inputs hidden on the overlay (the eye button); omitted when none
+  "deviceDrawings": { "Mouse": "mouse-gaming" },                   // the drawing a device block shows instead of the layout file's; omitted when none
+  "deviceKeys": { "side3": "F13" },                                // the key each extra button (a drawing's data-slot) lights up with; omitted when none
   "styles": {
     "shape": { "positions": { "KeyW": { "x": 1.25, "y": 0 } },     // where keys were dragged to, in key units
                "sizes":     { "Space": { "w": 4.5 }, "KeyW": { "h": 2 } },   // how wide and tall keys were made (w, h or both), in key sizes

@@ -152,6 +152,9 @@ function profileOf(nextSettings, layout) {
     sizes: edits.sizes ?? {},
     rotations: edits.rotations ?? {},
     hiddenInputs: [...hiddenInputsOf(savedProfile)], // a list, not a Set, so structureKey sees a change
+    // a drawn device's chosen drawing and its extra buttons' keys (src-tauri/src/device_keys.rs)
+    deviceDrawings: savedProfile.deviceDrawings ?? {},
+    deviceKeys: savedProfile.deviceKeys ?? {},
   };
 }
 
@@ -264,7 +267,10 @@ function build(nextSettings, layout) {
     if (layoutKey.device) devices.push([el, layoutKey]);
   }
   stage.appendChild(frag);
-  for (const [el, layoutKey] of devices) drawDevice(el, layoutKey, getText, lightableParts);
+  for (const [el, layoutKey] of devices) {
+    const shown = { ...layoutKey, device: prof.deviceDrawings[layoutKey.code] ?? layoutKey.device };
+    drawDevice(el, shown, getText, prof.deviceKeys, lightableParts);
+  }
   stage.style.width = bounds.width + 'px';
   stage.style.height = bounds.height + 'px';
   reportSize(bounds.width, bounds.height);
