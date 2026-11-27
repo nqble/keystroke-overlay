@@ -249,8 +249,9 @@
   margin: var(--space-4) var(--space-22) 0;
   max-width: none;
 }
+/* Room under the progress line, so it never sits on the divider above Later / Update now */
 #uText {
-  padding: var(--space-6) var(--space-22) 0;
+  padding: var(--space-6) var(--space-22) var(--space-14);
   min-height: 18px;
 }
 #updModal .mfoot,
