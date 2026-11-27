@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SETTINGS_DIR = join(ROOT, 'ui', 'settings');
 const LAYOUTS_DIR = join(ROOT, 'ui', 'overlay', 'layouts');
+const DEVICES_DIR = join(ROOT, 'ui', 'overlay', 'devices');
 const SANDBOX_DIR = join(ROOT, 'tools', 'sandbox');
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 7882; // not the app's 7878, the preview's 7880 or a devbuild's 7881, so all can run at once
@@ -86,6 +87,8 @@ function handleRequest(request, response, overlayPort) {
   if (path === `${SANDBOX_PREFIX}layouts.json`) return sendLayouts(response);
   if (path === `${SANDBOX_PREFIX}app-themes.json`) return sendAppThemes(response);
   if (path === `${SANDBOX_PREFIX}languages.json`) return sendLanguages(response);
+  if (path.startsWith(`${SANDBOX_PREFIX}devices/`))
+    return sendFileFrom(response, DEVICES_DIR, path.slice(SANDBOX_PREFIX.length + 'devices/'.length));
   if (path.startsWith(SANDBOX_PREFIX)) return sendFileFrom(response, SANDBOX_DIR, path.slice(SANDBOX_PREFIX.length));
   return sendFileFrom(response, SETTINGS_DIR, path.slice(1));
 }

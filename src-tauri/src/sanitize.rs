@@ -155,7 +155,7 @@ const MAX_CODE_LENGTH: usize = 40;
 
 /// A key code is ASCII letters and digits only ("KeyA", "Numpad7", "Unlinked3"): a file from outside can't slip markup,
 /// spaces or control characters into a code that the overlay later uses as a name.
-fn is_key_code(code: &str) -> bool {
+pub(crate) fn is_key_code(code: &str) -> bool {
     !code.is_empty() && code.len() <= MAX_CODE_LENGTH && code.chars().all(|c| c.is_ascii_alphanumeric())
 }
 
@@ -190,7 +190,7 @@ const DEVICE_CODES: [&str; 2] = ["Mouse", "Controller"];
 /// A drawn device's drawing (`ui/overlay/devices/<drawing>.svg`), kept only on a Mouse or Controller block and only as a
 /// short lower-case name, so it can only ever name a file in that folder. The overlay draws the device's own drawing
 /// when the named one doesn't exist.
-fn clean_device(code: &str, raw: &Value) -> Option<String> {
+pub(crate) fn clean_device(code: &str, raw: &Value) -> Option<String> {
     let drawing = raw.as_str()?;
     let plain = !drawing.is_empty()
         && drawing.len() <= MAX_CODE_LENGTH
@@ -247,6 +247,8 @@ pub fn clean_profiles(raw_profiles: &Value) -> Value {
             if !hidden_inputs.is_empty() {
                 cleaned.insert("hiddenInputs".into(), Value::Array(hidden_inputs));
             }
+            // the drawn devices' shapes and extra buttons' keys (device_keys.rs); written only when chosen
+            crate::device_keys::add_device_choices(&mut cleaned, profile);
             // "shape" is the default style and is not written; only a chosen "grid" is
             if profile.get("layoutStyle").and_then(Value::as_str) == Some("grid") {
                 cleaned.insert("layoutStyle".into(), json!("grid"));

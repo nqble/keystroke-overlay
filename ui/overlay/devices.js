@@ -42,12 +42,29 @@ function wrapPart(part) {
   group.append(part, pressed);
 }
 
+/**
+ * An extra button (a part with a data-slot, docs/proposals/mouse-shape.md) lights up with the key assigned to it in
+ * `deviceKeys` ({ side3: 'F13' }), so it takes that key's code; one with no key yet is left out of the overlay.
+ */
+export function assignExtraButtons(svg, deviceKeys) {
+  for (const extra of svg.querySelectorAll('[data-slot]')) {
+    const code = deviceKeys[extra.getAttribute('data-slot')];
+    if (!code) {
+      extra.remove();
+      continue;
+    }
+    extra.setAttribute('data-code', code);
+    extra.removeAttribute('data-slot');
+  }
+}
+
 /** Puts the drawing in `shell` and returns its parts by code (the first part with a code wins). Scripts, outside
  *  pictures and anything that could run code are taken out first: a drawing is only shapes. */
-function insertDrawing(shell, text) {
+function insertDrawing(shell, text, deviceKeys) {
   const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
   if (svg.nodeName !== 'svg') return new Map();
   for (const unsafe of svg.querySelectorAll('script, foreignObject, image, use, a')) unsafe.remove();
+  assignExtraButtons(svg, deviceKeys);
   for (const part of svg.querySelectorAll('[data-code]')) wrapPart(part);
   shell.append(document.importNode(svg, true));
   const parts = new Map();
@@ -59,12 +76,13 @@ function insertDrawing(shell, text) {
 }
 
 /**
- * Fills a device block with its drawing and calls `onParts(parts)` with its parts by code, once loaded. Nothing
- * happens when the block was replaced meanwhile (the overlay rebuilt its keys).
+ * Fills a device block with its drawing and calls `onParts(parts)` with its parts by code, once loaded; `deviceKeys`
+ * says which key each extra button follows. Nothing happens when the block was replaced meanwhile (the overlay rebuilt
+ * its keys).
  */
-export async function drawDevice(shell, layoutKey, getText, onParts) {
+export async function drawDevice(shell, layoutKey, getText, deviceKeys, onParts) {
   const [own, fallback] = drawingPaths(layoutKey);
   const text = (await drawingText(own, getText)) ?? (await drawingText(fallback, getText));
   if (!text || !shell.isConnected) return;
-  onParts(insertDrawing(shell, text));
+  onParts(insertDrawing(shell, text, deviceKeys));
 }

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160">
+  <!-- The gaming mouse (docs/proposals/mouse-shape.md): the standard mouse's body, a wider wheel slot with its up, down
+       and tilt arrows inside, two top buttons behind the wheel, five side buttons on the left (back, forward and three
+       more) and three on the right. Parts with a data-code light up by themselves; parts with a data-slot are extra
+       buttons that light up with the key assigned to them (deviceKeys), and stay hidden on the overlay until one is.
+       Every part sits inside the body with a gap (tests/ui/devices.test.mjs checks it). -->
+  <path class="device-body" d="M50 3C79 3 96 23 96 60V112C96 140 76 157 50 157C24 157 4 140 4 112V60C4 23 21 3 50 3Z" />
+  <path data-code="MouseLeft" d="M41 9C25 11 12 25 10 56V64H41Z" />
+  <path data-code="MouseRight" d="M59 9C75 11 88 25 90 56V64H59Z" />
+  <rect data-code="MouseMiddle" x="44" y="13" width="12" height="34" rx="6" />
+  <path data-code="WheelUp" d="M50 17 53 22H47Z" />
+  <path data-code="WheelDown" d="M50 43 47 38H53Z" />
+  <path data-code="WheelLeft" d="M45.8 30 48.2 27.8V32.2Z" />
+  <path data-code="WheelRight" d="M54.2 30 51.8 27.8V32.2Z" />
+  <rect data-slot="top1" x="45" y="51" width="10" height="5" rx="2.5" />
+  <rect data-slot="top2" x="45" y="59" width="10" height="5" rx="2.5" />
+  <rect data-code="MouseForward" x="10" y="70" width="5" height="9" rx="2.5" />
+  <rect data-code="MouseBack" x="10" y="82" width="5" height="9" rx="2.5" />
+  <rect data-slot="side3" x="10" y="94" width="5" height="9" rx="2.5" />
+  <rect data-slot="side4" x="10" y="106" width="5" height="9" rx="2.5" />
+  <rect data-slot="side5" x="10" y="118" width="5" height="9" rx="2.5" />
+  <rect data-slot="right1" x="85" y="70" width="5" height="9" rx="2.5" />
+  <rect data-slot="right2" x="85" y="82" width="5" height="9" rx="2.5" />
+  <rect data-slot="right3" x="85" y="94" width="5" height="9" rx="2.5" />
+</svg>

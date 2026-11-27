@@ -64,8 +64,9 @@
   opacity: 0;
   transform: translateX(40px);
   pointer-events: none;
+  /* closing: the toggles fade out first, then the pill closes over where they were */
   transition:
-    opacity 120ms ease-out 150ms,
+    opacity 100ms ease-in 150ms,
     transform 260ms ease-in-out 150ms;
 }
 .eye-box:not(.shut):hover .eye-cap-left,
@@ -84,11 +85,19 @@
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
+  /* opening: the toggles fade in as the pill finishes opening (150 ms wait + most of its 260 ms), so they never show
+     outside it while it grows */
+  transition:
+    opacity 120ms ease-out 330ms,
+    transform 260ms ease-in-out 150ms;
 }
 .eye-box:focus-within .eye-cap,
-.eye-box:focus-within .eye-mid,
-.eye-box:focus-within .eye-options {
+.eye-box:focus-within .eye-mid {
   transition-delay: 0ms;
+}
+/* the keyboard opens it at once; the toggles still wait for most of the pill's 260 ms (opacity, then transform) */
+.eye-box:focus-within .eye-options {
+  transition-delay: 180ms, 0ms;
 }
 /* One toggle: filled while its input shows, dim with a slash while hidden, grayed out while its input is off. */
 .eye-option {

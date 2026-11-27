@@ -294,6 +294,15 @@ pub fn layouts(paths: &Paths) -> Vec<Value> {
     }
     out
 }
+/// A drawn device's picture (`ui/overlay/devices/<id>.svg`), for the Keys tab, which draws the same file OBS shows.
+/// Only a plain file name reaches the folder; there are no user drawings yet, so only built-in ones are found.
+pub fn device_drawing(id: &str) -> Option<String> {
+    if !is_plain_file_name(id) {
+        return None;
+    }
+    let file = OVERLAY.get_file(format!("devices/{id}.svg"))?;
+    String::from_utf8(file.contents().to_vec()).ok()
+}
 pub fn font_files(paths: &Paths) -> Vec<String> {
     let mut names: Vec<String> = std::fs::read_dir(paths.fonts())
         .into_iter()
@@ -542,5 +551,14 @@ mod tests {
         for path in ["/", "/overlay/overlay.js", "/overlay/animations/glow.js"] {
             assert!(!is_protected(path), "{path}");
         }
+    }
+
+    #[test]
+    fn device_drawings_are_found_by_plain_name_only() {
+        assert!(device_drawing("mouse").is_some_and(|svg| svg.contains("device-body")));
+        assert!(device_drawing("controller").is_some());
+        assert!(device_drawing("no-such-drawing").is_none());
+        assert!(device_drawing("../layouts/full").is_none());
+        assert!(device_drawing("").is_none());
     }
 }

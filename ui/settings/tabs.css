@@ -505,6 +505,28 @@ button:disabled:hover {
   cursor: pointer;
   overflow: hidden;
 }
+/* A drawn device (editor/device-drawing.js): the block is only a faint frame, the drawing inside is the device, in
+   the key colors. It keeps its selection outline and handles like any key. */
+.kmk.device {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--color-line);
+}
+.device-drawing {
+  width: 100%;
+  height: 100%;
+  padding: var(--space-2);
+  box-sizing: border-box;
+}
+.device-drawing .device-body,
+.device-drawing [data-code] {
+  fill: var(--color-key-fill);
+  stroke: var(--color-key-line);
+  stroke-width: 1.5;
+}
+.device-drawing [data-code] {
+  fill: var(--color-panel);
+}
 .kmk[hidden],
 .handles[hidden] {
   display: none;
