@@ -98,6 +98,19 @@ pub fn code_name(evdev_code: u32) -> Option<&'static str> {
         86 => "IntlBackslash", // KEY_102ND: the extra key next to left Shift on ISO keyboards
         87 => "F11",
         88 => "F12",
+        // KEY_F13-KEY_F24: mouse software can send them for extra mouse buttons
+        183 => "F13",
+        184 => "F14",
+        185 => "F15",
+        186 => "F16",
+        187 => "F17",
+        188 => "F18",
+        189 => "F19",
+        190 => "F20",
+        191 => "F21",
+        192 => "F22",
+        193 => "F23",
+        194 => "F24",
         96 => "NumpadEnter",
         97 => "ControlRight",
         98 => "NumpadDivide",
@@ -178,6 +191,13 @@ mod tests {
             .filter_map(|&(code, down)| filter.handle(0, code, down))
             .map(|event| (event.down, event.code))
             .collect()
+    }
+
+    #[test]
+    fn f13_to_f24_have_names_for_extra_mouse_buttons() {
+        assert_eq!(code_name(183), Some("F13"));
+        assert_eq!(code_name(194), Some("F24"));
+        assert_eq!(code_name(195), None);
     }
 
     #[test]

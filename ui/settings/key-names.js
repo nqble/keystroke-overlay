@@ -17,7 +17,9 @@ export const groupName = (group) => TEXT.groups[group];
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const DIGITS = '1234567890'.split('');
-const FUNCTION_KEY_COUNT = 12; // F1..F12: keymap.rs has no F13 and up
+// F1..F24, as keymap.rs and linux_keys.rs see them (macos_keys.rs stops at F20: macOS has no F21-F24). F13 and up are
+// on few keyboards; mouse software sends them for extra mouse buttons.
+const FUNCTION_KEY_COUNT = 24;
 
 /**
  * Every key the app can see that is not a letter, digit or function key: [code, group, symbol]. Its name is

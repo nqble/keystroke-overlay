@@ -1,6 +1,12 @@
 //! Key naming: maps (virtual key, scancode, extended flag) to DOM `KeyboardEvent.code` names (used by layouts).
 //! Shared by every capture method, so they all name keys identically.
 
+/// Windows' virtual key for F13; F14-F24 follow it in order.
+const VK_F13: u32 = 0x7C;
+const HIGH_FUNCTION_KEYS: [&str; 12] = [
+    "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24",
+];
+
 /// Map a key event (virtual key, scancode, extended flag) to a DOM `KeyboardEvent.code`-style name (used by layouts).
 pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
     if vk == 0x13 {
@@ -8,6 +14,13 @@ pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
     }
     if vk == 0x90 {
         return Some("NumLock");
+    }
+    // F13-F24 by virtual key: mouse software that sends them for extra buttons often leaves the scancode at 0
+    if let Some(name) = vk
+        .checked_sub(VK_F13)
+        .and_then(|index| HIGH_FUNCTION_KEYS.get(index as usize))
+    {
+        return Some(name);
     }
     let sc = sc as u8;
     Some(match (sc, ext) {
@@ -111,6 +124,19 @@ pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
         (0x56, _) => "IntlBackslash", // the extra key next to left Shift on ISO keyboards (UK, German, ...)
         (0x57, _) => "F11",
         (0x58, _) => "F12",
+        // F13-F24: few keyboards have them, but mouse software can send them for extra mouse buttons
+        (0x64, _) => "F13",
+        (0x65, _) => "F14",
+        (0x66, _) => "F15",
+        (0x67, _) => "F16",
+        (0x68, _) => "F17",
+        (0x69, _) => "F18",
+        (0x6A, _) => "F19",
+        (0x6B, _) => "F20",
+        (0x6C, _) => "F21",
+        (0x6D, _) => "F22",
+        (0x6E, _) => "F23",
+        (0x76, _) => "F24",
         (0x5B, _) => "MetaLeft",
         (0x5C, _) => "MetaRight",
         (0x5D, _) => "ContextMenu",
@@ -166,6 +192,18 @@ pub const TYPING_KEYS: &[(&str, u32)] = &[
 #[cfg(test)]
 mod tests {
     use super::{code_name, TYPING_KEYS};
+    #[test]
+    fn f13_to_f24_have_names_for_extra_mouse_buttons() {
+        assert_eq!(code_name(0x7C, 0x64, false), Some("F13"));
+        assert_eq!(code_name(0x83, 0x6B, false), Some("F20"));
+        assert_eq!(code_name(0x87, 0x76, false), Some("F24"));
+        assert_eq!(
+            code_name(0x7C, 0, false),
+            Some("F13"),
+            "sent by software, with no scancode"
+        );
+        assert_eq!(code_name(0x88, 0, false), None);
+    }
     #[test]
     fn maps_plain_and_extended_keys() {
         assert_eq!(code_name(0x57, 0x11, false), Some("KeyW"));

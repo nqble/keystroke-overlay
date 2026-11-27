@@ -34,7 +34,8 @@ test('the known keys are exactly the keys keymap.rs names', () => {
   assert.equal(new Set(known).size, known.length, 'no code twice');
   assert.deepEqual(new Set(known), keymapCodes);
   for (const code of keymapCodes) assert.ok(isKnownKey(code), code);
-  assert.equal(isKnownKey('F13'), false);
+  assert.equal(isKnownKey('F24'), true, 'F13-F24: mouse software sends them for extra mouse buttons');
+  assert.equal(isKnownKey('F25'), false);
   assert.equal(isKnownKey('Unlinked1'), false);
 });
 
@@ -85,7 +86,8 @@ test('the legend table names keys as the plan says', () => {
   assert.equal(legendMatch('pgdn').code, 'PageDown');
   assert.equal(legendMatch('num lock').code, 'NumLock');
   assert.equal(legendMatch('fn'), null, 'Fn is never a key the computer sees');
-  assert.equal(legendMatch('f13'), null);
+  assert.deepEqual(legendMatch('f13'), { code: 'F13', rank: RANK.OWN_NAME });
+  assert.equal(legendMatch('f25'), null);
   assert.equal(legendMatch('vol+'), null);
 });
 
@@ -105,5 +107,7 @@ test('every Windows virtual key names a key keymap.rs produces, or a modifier wh
   assert.equal(VIRTUAL_KEY_CODES[105], 'Numpad9');
   assert.equal(VIRTUAL_KEY_CODES[123], 'F12');
   assert.equal(VIRTUAL_KEY_CODES[1025], 'NumpadEnter');
-  assert.equal(VIRTUAL_KEY_CODES[124], undefined, 'F13 is not a key the app can see');
+  assert.equal(VIRTUAL_KEY_CODES[124], 'F13');
+  assert.equal(VIRTUAL_KEY_CODES[135], 'F24');
+  assert.equal(VIRTUAL_KEY_CODES[136], undefined, 'there is no F25');
 });

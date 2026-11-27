@@ -98,6 +98,15 @@ pub fn code_name(mac_keycode: u16) -> Option<&'static str> {
         109 => "F10",
         110 => "ContextMenu",
         111 => "F12",
+        // F13-F20 (macOS has no F21-F24): mouse software can send them for extra mouse buttons
+        105 => "F13",
+        107 => "F14",
+        113 => "F15",
+        106 => "F16",
+        64 => "F17",
+        79 => "F18",
+        80 => "F19",
+        90 => "F20",
         114 => "Insert", // the "help" key on old Apple keyboards
         115 => "Home",
         116 => "PageUp",
