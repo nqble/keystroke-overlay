@@ -202,7 +202,7 @@ CHANGELOG.md uses `### ✨ New`-style headings; `release-notes.js` (`NOTE_SECTIO
 - **"Your layouts: N / 20"** counts only your own; built-in layouts never count.
 - **Order:** drag, the "⋯" menu (Move left / Move right) or Alt+← / Alt+→ (focus stays on the moved card). The tray's
   Layout menu uses the same order. A card drops only **between** cards: a line shows in the gap nearest the pointer (over
-  a card, the side its half is on), and never right beside the dragged card, where nothing would move. While dragging, the card's own spot
+  a card, the side its half is on), and never right beside the dragged card, where nothing would move; at a row break it shows in the pointer's row. While dragging, the card's own spot
   is a faint dashed placeholder (opacity 0.35) with no selection ring.
 - The **"+ New layout"** card is always last and says only that. With 20 of your own, its popup says so in place of
   the Start from choice and shows Built-in, which can still be added.

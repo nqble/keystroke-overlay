@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   dropGap,
+  dropLinePlace,
   isDragStart,
   isSamePlace,
   moveBy,
@@ -100,4 +101,15 @@ test('the drop line never shows beside the dragged card, where nothing would mov
   assert.equal(isSamePlace(2, 1), true);
   assert.equal(isSamePlace(0, 1), false);
   assert.equal(isSamePlace(3, 1), false);
+});
+
+test('at a row break the drop line shows in the row the pointer is in', () => {
+  // two rows of two cards, 100 px wide with 12 px gaps; gap 2 is both "after card 1" and "before card 2"
+  const row = (top) => [0, 112].map((left) => ({ left, right: left + 100, top, bottom: top + 80 }));
+  const boxes = [...row(0), ...row(92)];
+  assert.equal(dropGap(300, 40, boxes), 2); // past the end of row 1
+  assert.deepEqual(dropLinePlace(2, boxes, 40), { x: 212, box: boxes[1] }, 'after the last card of row 1');
+  assert.deepEqual(dropLinePlace(2, boxes, 130), { x: 0, box: boxes[2] }, 'before the first card of row 2');
+  assert.deepEqual(dropLinePlace(1, boxes, 40), { x: 112, box: boxes[1] }, 'inside a row: before the next card');
+  assert.deepEqual(dropLinePlace(4, boxes, 130), { x: 212, box: boxes[3] }, 'after the very last card');
 });
