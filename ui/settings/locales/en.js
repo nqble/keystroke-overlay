@@ -8,7 +8,7 @@
 export default {
   // shared by several screens (formerly ui/settings/text.js)
   shared: {
-    layoutLimitReached: 'You have {max} layouts, the most allowed. Delete one to add another.',
+    layoutLimitReached: '{max} layouts is the most allowed. Delete one to add another.',
     resetBodyWhatChanges: 'Every option goes back to its default. Your layouts, presets, fonts and port are kept.',
     resetBodyLinkNote: 'If the secure link was on, copy the OBS URL into OBS again.',
     manualInstall: 'Install this one by hand: download it from GitHub, quit the app, then run it.',
@@ -132,7 +132,7 @@ export default {
     clear: 'Clear',
     saved: 'Pause shortcut: {name}',
     openTitle: 'Open settings shortcut',
-    openNote: 'Opens this window from any app. Off until you choose keys, for example {example}.',
+    openNote: 'Works in any app. Off until you choose keys, for example {example}.',
     openSaved: 'Open settings shortcut: {name}',
   },
 
@@ -140,7 +140,7 @@ export default {
   generalMouse: {
     title: 'Mouse',
     switch: 'Show my mouse',
-    note: 'Shows your mouse buttons and wheel in layouts that have a mouse. Add WASD + mouse from Other layouts on the Layout tab. The app never sees where your pointer is.',
+    note: 'Clicks and the wheel, in layouts with a mouse (add WASD + mouse from Other layouts on the Layout tab). The app never sees where your pointer is.',
   },
 
   // the General tab: general-obs-scenes.js (ui/settings/tabs/)
@@ -180,13 +180,13 @@ export default {
   // the General tab: general-appearance.js (ui/settings/tabs/)
   generalAppearance: {
     title: 'Appearance',
-    help: 'The look of this window. It doesn’t change the overlay in OBS (that’s the Style tab).',
+    help: 'This window’s look, not the overlay’s (that’s the Style tab).',
     keycaps: 'keycaps',
     add: '+ New theme',
     addTip: 'Start from the theme you use now and change its colors',
     import: 'Import…',
     imported: 'Imported “{name}”',
-    limit: 'You have {max} themes of your own, the most allowed. Delete one to add another.',
+    limit: '{max} themes of your own is the most allowed. Delete one to add another.',
     more: 'More for {name}',
     edit: 'Edit',
     export: 'Export…',
@@ -313,7 +313,7 @@ export default {
     putBack: 'Put back where it was',
     selected: { one: '{count} key selected', other: '{count} keys selected' }, // tests/e2e keys-editor checks this
     putTheseBack: 'Put these back',
-    putTheseBackTip: 'Put back where the layout has them',
+    putTheseBackTip: 'Back to where the layout has them',
     clearSelection: 'Clear selection',
   },
 
@@ -402,7 +402,7 @@ export default {
     presets: 'My presets',
     saveLook: '+ Save current look',
     saveTitle: 'Save current look',
-    saveHelp: 'Saves your colors, shape, text, size and animation.',
+    saveHelp: 'Your colors, shape, text, size and animation.',
     namePlaceholder: 'Preset name',
     cancel: 'Cancel',
     save: 'Save',
@@ -468,7 +468,7 @@ export default {
       'Did you switch Keystroke Overlay on in Input Monitoring? Restart it once so macOS starts sending it your keys.',
     restartButton: 'Restart now',
     renew:
-      'Keys not showing since the update? macOS may need Keystroke Overlay’s keyboard access again. Renew it, then restart: macOS asks again after the restart.', // means: restart the app (Keystroke Overlay), not the computer
+      'Keys not showing since the update? Renew keyboard access, then restart: macOS asks again after the restart.', // means: restart the app (Keystroke Overlay), not the computer
     restartAfterRenew:
       'Now restart Keystroke Overlay. Input Monitoring stays empty until then: after the restart, macOS asks, and you switch the app on.', // means: restart the app, not the computer; Input Monitoring is the macOS privacy setting, named as macOS names it in this language
     renewButton: 'Renew keyboard access',

@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { pickLanguage, placeholders, useLanguage, words } from '../../ui/settings/words.js';
-import { flatten, problemsOf } from '../../tools/check-locales.mjs';
+import { fillerProblems, flatten, problemsOf } from '../../tools/check-locales.mjs';
 import english from '../../ui/settings/locales/en.js';
 
 test('a group gives its English texts, nested groups included', () => {
@@ -18,7 +18,7 @@ test('a text with placeholders is a function filled in English order', () => {
   assert.equal(words('messages').downloadingOf('1 MB', '4 MB', 25), 'Downloading… 1 MB of 4 MB (25%)');
   assert.equal(
     words('shared').layoutLimitReached(20),
-    'You have 20 layouts, the most allowed. Delete one to add another.',
+    '20 layouts is the most allowed. Delete one to add another.',
   );
 });
 
@@ -166,4 +166,14 @@ test('a list of texts stays a list, each entry translated', () => {
     'English fills the rest',
   );
   useLanguage(null);
+});
+
+test('English texts carry no filler words (DOCS-STYLE.md, App text: say it once)', () => {
+  const texts = new Map([
+    ['a.ok', 'Just updated. Press any key.'],
+    ['a.filler', 'Please simply click here to continue.'],
+  ]);
+  const problems = fillerProblems(texts);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /^a\.filler: "Please"/);
 });
