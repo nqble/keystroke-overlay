@@ -237,3 +237,20 @@ test('an assigned extra button takes its key, and one with no key is left out', 
   assert.equal(assigned.removed, false);
   assert.equal(unassigned.removed, true);
 });
+
+// ---- The Keys tab's Shape choice and extra-button names (ui/settings/tabs/keys-device.js): a new drawing or a new
+// kind of extra button must be offered and named there, or it can't be chosen or reads as its raw slot name.
+test('every drawing is a Shape the Keys tab offers, with a name, and every extra button has a name', async () => {
+  const { default: english } = await import('../../ui/settings/locales/en.js');
+  const keysTabSource = readFileSync(new URL('../../ui/settings/editor/device-drawing.js', import.meta.url), 'utf8');
+  const offered = keysTabSource.match(/export const DEVICE_SHAPES = (\{[^;]*\});/)[1];
+  for (const name of drawings) {
+    const id = name.replace(/\.svg$/, '');
+    assert.ok(offered.includes(`'${id}'`), `${id} is in DEVICE_SHAPES`);
+    assert.ok(english.keysDevice.shapes[id], `${id} has a name in keysDevice.shapes`);
+    for (const slot of slotsIn(readFileSync(new URL(name, FOLDER), 'utf8'))) {
+      const kind = slot.match(/^[a-z]+/)[0];
+      assert.ok(english.keysDevice.slot[kind], `${name}: extra button kind "${kind}" has a name in keysDevice.slot`);
+    }
+  }
+});

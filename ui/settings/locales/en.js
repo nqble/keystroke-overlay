@@ -317,6 +317,18 @@ export default {
     clearSelection: 'Clear selection',
   },
 
+  // a drawn mouse or controller in the Keys tab's side panel: keys-device.js (ui/settings/tabs/)
+  keysDevice: {
+    shape: 'Shape',
+    shapes: { mouse: 'Standard', 'mouse-gaming': 'Gaming', controller: 'Standard' },
+    extraTitle: 'Extra buttons',
+    extraNote: 'Buttons your mouse’s software sends as keys. Choose one, then press the key it sends.',
+    slot: { side: 'Left side {number}', right: 'Right side {number}', top: 'Top {number}' },
+    none: 'Not set',
+    listening: 'Press the key… (Esc cancels, Delete clears)',
+    choose: '{button}: {key}',
+  },
+
   // the keyboard editor: editor.js, arrange-bar.js and view.js (ui/settings/editor/)
   editor: {
     boardName: 'Keyboard layout {name}',

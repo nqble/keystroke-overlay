@@ -146,6 +146,19 @@ label.inline {
 .inspector .row > label {
   width: auto;
 }
+/* the extra buttons of a drawn mouse (tabs/keys-device.js): a name and its key on one line, so the list stays short */
+.extra-buttons {
+  padding-top: var(--space-6);
+}
+.extra-buttons .row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+}
+.extra-buttons .row .ctl {
+  flex: none;
+}
 .inspector .row .ctl {
   max-width: none;
 }

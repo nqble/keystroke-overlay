@@ -46,6 +46,9 @@ export const viewProf = (id = curLayout()?.id) => {
     positions: edits.positions ?? {},
     sizes: edits.sizes ?? {},
     rotations: style === 'shape' ? (edits.rotations ?? {}) : {},
+    // a drawn device's chosen drawing and its extra buttons' keys (src-tauri/src/device_keys.rs, tabs/keys-device.js)
+    deviceDrawings: profile?.deviceDrawings ?? {},
+    deviceKeys: profile?.deviceKeys ?? {},
   };
 };
 
@@ -87,6 +90,8 @@ function hasEdits(profile) {
     profile.disabledKeys?.length > 0 ||
     Object.keys(profile.labels ?? {}).length > 0 ||
     profile.layoutStyle === 'grid' ||
+    Object.keys(profile.deviceDrawings ?? {}).length > 0 ||
+    Object.keys(profile.deviceKeys ?? {}).length > 0 ||
     editedStyle
   );
 }

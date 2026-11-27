@@ -62,7 +62,11 @@ A drawn mouse or controller ([proposals/drawn-devices.md](proposals/drawn-device
 example, `controller-xbox.svg`, used by a layout entry with `"device": "controller-xbox"`. Draw it with a `viewBox`, give
 the outline `class="device-body"`, and give each part that lights up a `data-code` with its input name (`MouseLeft`,
 `WheelUp`, `PadA`: [design/future-inputs.md](design/future-inputs.md) §2). Use no colors, scripts, pictures or links:
-the theme colors it, and `tests/ui/devices.test.mjs` checks the rest.
+the theme colors it, and `tests/ui/devices.test.mjs` checks the rest. An extra button, one the system doesn't report
+(a gaming mouse's third side button), gets a `data-slot` instead (`side3`, `right1`, `top1`): the person assigns it a
+key in the Keys tab. To offer the drawing as a **Shape** there, add it to `DEVICE_SHAPES` in
+`ui/settings/editor/device-drawing.js` and its name to `keysDevice.shapes` in `ui/settings/locales/en.js` (a test fails
+when one is missing).
 
 ## 5. A setting
 1. Add it to `defaults()` in `src-tauri/src/settings.rs` (plus one line in a table in `src-tauri/src/sanitize.rs` if it needs a range or a rule: `RANGES`, `NUMBER_CHOICES`, `TEXT_RULES`, `LIST_RULES`, or `FREE_FORM` for free-form data).

@@ -519,13 +519,20 @@ button:disabled:hover {
   box-sizing: border-box;
 }
 .device-drawing .device-body,
-.device-drawing [data-code] {
+.device-drawing [data-code],
+.device-drawing [data-slot] {
   fill: var(--color-key-fill);
   stroke: var(--color-key-line);
   stroke-width: 1.5;
 }
-.device-drawing [data-code] {
+.device-drawing [data-code],
+.device-drawing [data-slot] {
   fill: var(--color-panel);
+}
+/* An extra button with no key yet: dashed, so it can be found and assigned (the overlay leaves it out). */
+.device-drawing .slot-free {
+  fill: transparent;
+  stroke-dasharray: 2 2;
 }
 .kmk[hidden],
 .handles[hidden] {
