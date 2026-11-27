@@ -71,3 +71,103 @@ test('a block asks for its own drawing and falls back on its device', () => {
   ]);
   assert.equal(drawingPaths({ code: 'Controller' })[1], '/overlay/devices/controller.svg');
 });
+
+// ---- Geometry: every part sits inside the body with a gap, so no border runs into the outline (mouse-shape.md)
+/**
+ * The smallest gap, in drawing units, between a part and the body's outline. With both outlines' line widths, the old
+ * drawing's 2.5 read as touching on screen; 4 leaves a visible gap.
+ */
+const MIN_GAP = 4;
+/** Points along a path made of M, L, H, V, C and Z (absolute, as the drawings are written). */
+function pathPoints(d) {
+  const tokens = d.match(/[MLHVCZ]|-?\d*\.?\d+/g);
+  const points = [];
+  let at = [0, 0];
+  let command = '';
+  const take = () => Number(tokens.shift());
+  while (tokens.length) {
+    if (/[MLHVCZ]/.test(tokens[0])) command = tokens.shift();
+    if (command === 'Z') continue;
+    if (command === 'M' || command === 'L') at = [take(), take()];
+    else if (command === 'H') at = [take(), at[1]];
+    else if (command === 'V') at = [at[0], take()];
+    else if (command === 'C') {
+      const [c1, c2, end] = [
+        [take(), take()],
+        [take(), take()],
+        [take(), take()],
+      ];
+      for (let step = 1; step <= 12; step++) {
+        const t = step / 12;
+        const u = 1 - t;
+        const point = (i) => u * u * u * at[i] + 3 * u * u * t * c1[i] + 3 * u * t * t * c2[i] + t * t * t * end[i];
+        points.push([point(0), point(1)]);
+      }
+      at = end;
+      continue;
+    }
+    points.push(at);
+  }
+  return points;
+}
+/** A rounded rectangle's outline points, its corners as arcs (an rx wider than half the box is capped, as SVG does). */
+function rectPoints(attributes) {
+  const [x, y, w, h] = ['x', 'y', 'width', 'height'].map((name) => Number(attributes[name] ?? 0));
+  const r = Math.min(Number(attributes.rx ?? 0), w / 2, h / 2);
+  const corners = [
+    [x + w - r, y + r, -Math.PI / 2],
+    [x + w - r, y + h - r, 0],
+    [x + r, y + h - r, Math.PI / 2],
+    [x + r, y + r, Math.PI],
+  ];
+  const points = [];
+  for (const [cx, cy, start] of corners) {
+    for (let step = 0; step <= 8; step++) {
+      const angle = start + (step / 8) * (Math.PI / 2);
+      points.push([cx + r * Math.cos(angle), cy + r * Math.sin(angle)]);
+    }
+  }
+  return points;
+}
+const attributesOf = (tag) => Object.fromEntries([...tag.matchAll(/([a-z-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+function inside([px, py], polygon) {
+  let hit = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) hit = !hit;
+  }
+  return hit;
+}
+function distanceToEdge([px, py], polygon) {
+  let nearest = Infinity;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [ax, ay] = polygon[j];
+    const [bx, by] = polygon[i];
+    const length = (bx - ax) ** 2 + (by - ay) ** 2 || 1;
+    const t = Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / length));
+    nearest = Math.min(nearest, Math.hypot(px - (ax + t * (bx - ax)), py - (ay + t * (by - ay))));
+  }
+  return nearest;
+}
+
+test('every mouse part sits inside the body, at least MIN_GAP from its outline', () => {
+  for (const name of drawings.filter((file) => kindOf(file) === 'mouse')) {
+    const text = readFileSync(new URL(name, FOLDER), 'utf8');
+    const bodyTag = text.match(/<(path|rect) class="device-body"[^>]*>/)[0];
+    const body = bodyTag.startsWith('<rect') ? rectPoints(attributesOf(bodyTag)) : pathPoints(attributesOf(bodyTag).d);
+    for (const tag of text.match(/<(path|rect) data-(code|slot)="[^"]*"[^>]*>/g)) {
+      const attributes = attributesOf(tag);
+      const points = tag.startsWith('<rect') ? rectPoints(attributes) : pathPoints(attributes.d);
+      const part = attributes['data-code'] ?? attributes['data-slot'];
+      for (const point of points) {
+        assert.ok(inside(point, body), `${name}: ${part} reaches outside the body at ${point}`);
+        const gap = distanceToEdge(point, body);
+        assert.ok(
+          gap >= MIN_GAP,
+          `${name}: ${part} is ${gap.toFixed(1)} from the outline at ${point.map((v) => v.toFixed(1))}`,
+        );
+      }
+    }
+  }
+});
