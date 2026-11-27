@@ -22,6 +22,7 @@ import { words } from '../words.js';
 import { boardFrame, overlappingCodes } from '../tabs/keys-board.js';
 import { buildArrangeBar, placeArrangeBar } from './arrange-bar.js';
 import { isAdditive } from './context.js';
+import { paintDevice } from './device-drawing.js';
 import { dragKeys } from './drag.js';
 import { startMarquee } from './marquee.js';
 import { updateHandles } from './resize.js';
@@ -129,7 +130,10 @@ function paintKey(ctx, node, item, { hidden, clash }) {
   // a drawn device (a mouse, a controller) is one block on the board, named for what it is
   const deviceName = key.device ? TEXT.deviceNames[key.code] : undefined;
   const label = ctx.profile.labels[key.code] ?? key.label ?? deviceName;
-  if (node.textContent !== (label ?? '')) node.textContent = label ?? '';
+  node.classList.toggle('device', Boolean(key.device));
+  if (key.device)
+    paintDevice(node, key); // drawn as the device itself; its name is in aria-label
+  else if (node.textContent !== (label ?? '')) node.textContent = label ?? '';
   node.title = key.code;
   node.hidden = !showHiddenKeys() && hidden.has(key.code); // the Hidden keys switch is off
   node.classList.toggle('off', hidden.has(key.code));

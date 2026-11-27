@@ -128,6 +128,12 @@ pub fn list_layouts(st: State<AppState>) -> Vec<Value> {
     crate::key_labels::layouts_to_show(&st.shared.paths, &st.shared.settings.read().unwrap())
 }
 
+/// A drawn device's picture by its id (`mouse`), for the Keys tab; `None` when there is no such drawing.
+#[tauri::command]
+pub fn device_drawing(id: String) -> Option<String> {
+    crate::server::device_drawing(&id)
+}
+
 #[tauri::command]
 pub fn copy_text(app: AppHandle, text: String) -> Result<(), String> {
     app.clipboard().write_text(text).map_err(|e| e.to_string())

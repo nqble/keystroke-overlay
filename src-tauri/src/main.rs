@@ -65,6 +65,7 @@ fn main() {
             hotkeys::set_pause_hotkey,
             hotkeys::set_open_settings_hotkey,
             commands::settings::list_layouts,
+            commands::settings::device_drawing,
             commands::settings::copy_text,
             commands::settings::quit_app,
             commands::keyboard_access::get_keyboard_access,

@@ -178,6 +178,11 @@
     renew_keyboard_access: () => {},
     restart_app: () => {},
     list_layouts: async () => [...(await loaded)[1], ...ownLayouts],
+    // a drawn device's picture, from ui/overlay/devices/ like the app (null when there is none)
+    device_drawing: async ({ id }) => {
+      const reply = await fetch(`/__sandbox__/devices/${encodeURIComponent(id)}.svg`);
+      return reply.ok ? reply.text() : null;
+    },
     // your own layouts live in memory for the visit too, so making and deleting one can be tried
     create_layout: async ({ name }) => {
       const full = (await loaded)[1].find((layout) => layout.id === 'full');
