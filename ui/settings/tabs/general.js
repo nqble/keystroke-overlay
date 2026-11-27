@@ -1,7 +1,7 @@
 // =====================================================================================================================
 //  The General tab (docs/design/ui-design-v2.md, Tabs): section cards for Connection (general-connection.js), OBS
 //  scenes (general-obs-scenes.js), Keyboard input, Mouse (general-mouse.js), Startup, Pause and Open settings shortcuts
-//  (general-hotkey.js), Updates (general-updates.js) and a collapsed Advanced. Built with Preact and the shared blocks
+//  (general-hotkey.js), Updates (general-updates.js) and a collapsed Advanced; Quit is at the top, by the heading. Built with Preact and the shared blocks
 //  (blocks.js). Plain words by default; Debug mode adds the technical detail lines.
 // =====================================================================================================================
 import { Detail, Note, Section, Segmented, Switch } from '../blocks.js';
@@ -38,8 +38,9 @@ export function generalTab() {
 
 function General() {
   return html`<div class="tab-page">
-    <div class="tab-heading">
+    <div class="tab-heading with-action">
       <h2 data-test="section-heading">${WORDS.title}</h2>
+      <${QuitButton} />
     </div>
     <div class="section-grid">
       <${Connection} />
@@ -158,7 +159,14 @@ async function restartServer() {
   }
 }
 
-/** Advanced's row of buttons: restart the server, open the data folder, reset everything, quit. */
+/** Quit, at the top of the tab: one click, not under Advanced (people quit often, e.g. after a stream). */
+function QuitButton() {
+  return html`<button type="button" class="danger" data-test="general-quit" onClick=${() => call('quit_app')}>
+    ${WORDS.quit}
+  </button>`;
+}
+
+/** Advanced's row of buttons: restart the server, open the data folder, reset everything. */
 function AdvancedButtons() {
   return html`<div class="btns">
     <button type="button" data-test="server-restart" onClick=${restartServer}>${WORDS.restart}</button>
@@ -166,9 +174,6 @@ function AdvancedButtons() {
       ${WORDS.dataFolder}
     </button>
     <button type="button" class="danger" data-test="general-reset" onClick=${resetDialog}>${WORDS.reset}</button>
-    <button type="button" class="danger" data-test="general-quit" onClick=${() => call('quit_app')}>
-      ${WORDS.quit}
-    </button>
   </div>`;
 }
 
