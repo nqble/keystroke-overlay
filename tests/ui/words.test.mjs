@@ -16,10 +16,7 @@ test('a group gives its English texts, nested groups included', () => {
 
 test('a text with placeholders is a function filled in English order', () => {
   assert.equal(words('messages').downloadingOf('1 MB', '4 MB', 25), 'Downloading… 1 MB of 4 MB (25%)');
-  assert.equal(
-    words('shared').layoutLimitReached(20),
-    '20 layouts is the most allowed. Delete one to add another.',
-  );
+  assert.equal(words('shared').layoutLimitReached(20), '20 layouts is the most allowed. Delete one to add another.');
 });
 
 test('a translation may move placeholders; missing texts stay English', () => {
