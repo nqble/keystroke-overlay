@@ -148,7 +148,7 @@ keystroke-overlay/
             key elements survive leaving the tab, and it sets only CSS variables. Its parts are one file each, sharing one
             `ctx` object (context.js): view.js (zoom and pan; the wheel, pinch, Space + drag and middle-button gestures are
             attached by view-gestures.js), drag.js (moving keys), resize.js (the handles), rotate.js (the turning handle), marquee.js (selecting with a box)
-            and arrange-bar.js (align and space evenly). places.js says where the keys are. The geometry is in keys-board.js
+            arrange-bar.js (align and space evenly) and device-drawing.js (a mouse or controller block drawn from the same ui/overlay/devices/ file OBS shows, through the device_drawing command). places.js says where the keys are. The geometry is in keys-board.js
             (board size and limits), keys-view.js (zoom and pan), keys-guides.js (snapping guides), keys-turn.js (turning keys: angles, covered boxes, overlap) and keys-gestures.js (what a
             wheel, pinch or press over the board means, per system), plain functions with unit tests.
 ```
