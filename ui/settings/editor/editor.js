@@ -132,7 +132,7 @@ function paintKey(ctx, node, item, { hidden, clash }) {
   const label = ctx.profile.labels[key.code] ?? key.label ?? deviceName;
   node.classList.toggle('device', Boolean(key.device));
   if (key.device)
-    paintDevice(node, key); // drawn as the device itself; its name is in aria-label
+    paintDevice(node, key, ctx.profile); // drawn as the device itself; its name is in aria-label
   else if (node.textContent !== (label ?? '')) node.textContent = label ?? '';
   node.title = key.code;
   node.hidden = !showHiddenKeys() && hidden.has(key.code); // the Hidden keys switch is off

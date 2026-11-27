@@ -161,6 +161,7 @@ Rules:
 | `keys-reset-menu`, `keys-put-selected-back`, `keys-reset-positions`, `keys-enable-all`, `keys-reset-labels`, `keys-revert`, `dialog-reset-layout-confirm` | The Reset ▾ menu: its button, its items in order, and the confirm button of "Reset this layout completely" |
 | `layout-style`, `layout-style-shape`, `layout-style-grid` | The Layout style switch (Keyboard shape \| Even grid) |
 | `key-inspector-empty` | The inspector while nothing is selected |
+| `device-shape`, `shape-mouse`, `shape-mouse-gaming`; `device-extra-buttons`, `extra-button-<slot>` (`extra-button-side3`) | A drawn mouse's Shape choice and its extra buttons' keys, in the inspector |
 | `key-editor`, `key-editor-title`, `key-show`, `key-label`, `key-label-reset`, `key-width`, `key-height`, `key-angle`, `key-x`, `key-y`, `key-position-reset`, `key-group-put-back`, `key-clear-selection` | The inspector to the right of the editor (one key or several) |
 | `theme-card-<id>` (for example `theme-card-neon`), `style-themes` | Style's theme gallery: one card per theme file (`aria-pressed` on the one in use) |
 | `style-presets`, `preset-new`, `preset-card`, `preset-menu`, `preset-name`, `preset-save` | My presets: the "+ Save current look" card, each preset (click loads it) and its ⋯ menu; the name box and Save in the save popup |

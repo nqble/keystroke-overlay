@@ -63,6 +63,7 @@ keystroke-overlay/
 │       ├── debug.rs        the in-memory event log (important events always, details in Debug mode), health snapshot, test switches (docs/DEBUGGING.md)
 │       ├── crash.rs        the crash note: where the last run crashed, read and deleted at the next start
 │       ├── hotkeys.rs      the optional global pause shortcut (registers only the one the user set)
+│       ├── device_keys.rs  a layout's drawn-device choices: the shape (deviceDrawings) and extra buttons' keys (deviceKeys), cleaned
 │       ├── input_kinds.rs  showing or hiding a whole input per layout (hiddenInputs): cleaning, and the tray's Show menu
 │       ├── key_labels.rs   key labels that follow the user's keyboard language and the system's own key names (style.keyLabels)
 │       ├── key_angles.rs   turned keys: cleaning a layout key's `r` and a profile's `rotations` (key rotation, being built)
@@ -142,7 +143,7 @@ keystroke-overlay/
                            parts of those); index.js lists them in order
             The Keys tab is several files: keys.js (the tab, its heading, hint line and shortcuts), keys-toolbar.js (the
             toolbar: history, Snap, Grid, Hidden keys, Close gaps, Reset; also nudging), keys-inspector.js (the panel on
-            the right: show, label, size and place of the selected keys), keys-arrange.js (the movement maths, plain functions with unit tests)
+            the right: show, label, size and place of the selected keys; keys-device.js adds a drawn mouse's Shape and extra buttons), keys-arrange.js (the movement maths, plain functions with unit tests)
             and keys-history.js (undo and redo). The keyboard itself is the editor in editor/ ([design/key-editor.md](design/key-editor.md)):
             editor.js builds the board once (loaded the first time the Keys tab opens) and keeps it alive, so zoom, pan and the
             key elements survive leaving the tab, and it sets only CSS variables. Its parts are one file each, sharing one

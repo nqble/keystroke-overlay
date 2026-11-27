@@ -32,6 +32,7 @@ import {
   tidyProf,
 } from '../profiles.js';
 import { render } from '../settings.js';
+import { DeviceRows } from './keys-device.js';
 import { selectedKey, selectedKeys, setSelectedKey } from '../state.js';
 import { TEXT } from '../text.js';
 import { words } from '../words.js';
@@ -231,6 +232,7 @@ function KeyInspector({ layoutKey, profile, overlaps }) {
       <${ShowBox} checked=${!profile.disabledKeys.includes(code)} onChange=${(shown) => setShown([code], shown)} />
     </div>
     <${LabelRow} ...${rowProps} />
+    ${layoutKey.device ? html`<${DeviceRows} ...${rowProps} />` : null}
     <${SizeRows} ...${rowProps} />
     ${profile.layoutStyle === 'shape' ? html`<${AngleRow} ...${rowProps} />` : null}
     <${PositionRow} ...${rowProps} />
