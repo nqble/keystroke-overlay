@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { drawingPaths } from '../../ui/overlay/devices.js';
+import { assignExtraButtons, drawingPaths } from '../../ui/overlay/devices.js';
 import { inputKind } from '../../ui/overlay/input-kinds.js';
 
 const FOLDER = new URL('../../ui/overlay/devices/', import.meta.url);
@@ -170,4 +170,58 @@ test('every mouse part sits inside the body, at least MIN_GAP from its outline',
       }
     }
   }
+});
+
+// ---- Extra buttons (data-slot): buttons the system doesn't report, lit by a key the person assigns (mouse-shape.md)
+const slotsIn = (text) => [...text.matchAll(/data-slot="([^"]*)"/g)].map((match) => match[1]);
+
+test('extra buttons have plain, unique slot names that device_keys.rs keeps', () => {
+  for (const name of drawings) {
+    const slots = slotsIn(readFileSync(new URL(name, FOLDER), 'utf8'));
+    assert.equal(new Set(slots).size, slots.length, `${name}: each slot once`);
+    for (const slot of slots) assert.match(slot, /^[a-z0-9]{1,16}$/, `${name}: ${slot}`);
+  }
+});
+
+test('the gaming mouse has every mouse part, wheel tilt, and extra buttons on both sides and on top', () => {
+  const text = readFileSync(new URL('mouse-gaming.svg', FOLDER), 'utf8');
+  const codes = codesIn(text);
+  const mouseParts = ['MouseLeft', 'MouseRight', 'MouseMiddle', 'MouseBack', 'MouseForward'];
+  for (const code of [...mouseParts, 'WheelUp', 'WheelDown', 'WheelLeft', 'WheelRight']) {
+    assert.ok(codes.includes(code), code);
+  }
+  const slots = slotsIn(text);
+  for (const side of ['side', 'right', 'top'])
+    assert.ok(
+      slots.some((slot) => slot.startsWith(side)),
+      side,
+    );
+});
+
+/** A stand-in for a drawing's parts: just enough of an element for assignExtraButtons. */
+function fakeDrawing(slots) {
+  const parts = slots.map((slot) => {
+    const attributes = new Map([['data-slot', slot]]);
+    return {
+      attributes,
+      removed: false,
+      getAttribute: (name) => attributes.get(name) ?? null,
+      setAttribute: (name, value) => attributes.set(name, value),
+      removeAttribute: (name) => attributes.delete(name),
+      remove() {
+        this.removed = true;
+      },
+    };
+  });
+  return { parts, querySelectorAll: () => parts };
+}
+
+test('an assigned extra button takes its key, and one with no key is left out', () => {
+  const drawing = fakeDrawing(['side3', 'side4']);
+  assignExtraButtons(drawing, { side3: 'F13' });
+  const [assigned, unassigned] = drawing.parts;
+  assert.equal(assigned.getAttribute('data-code'), 'F13');
+  assert.equal(assigned.getAttribute('data-slot'), null);
+  assert.equal(assigned.removed, false);
+  assert.equal(unassigned.removed, true);
 });

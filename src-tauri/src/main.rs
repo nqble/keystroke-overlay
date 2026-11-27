@@ -8,6 +8,7 @@ mod app_info;
 mod commands;
 mod crash;
 mod debug;
+mod device_keys;
 mod downgrade;
 mod grid;
 mod hotkeys;

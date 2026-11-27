@@ -66,7 +66,10 @@ only `opacity`, CLAUDE.md) works unchanged.
 
 ### Saved
 
-- The shape is the layout entry's existing `device` field (`"device": "mouse-gaming"`); no new field.
+- The shape is kept with the layout's own edits, `settings.layout.profiles[id].deviceDrawings`, e.g.
+  `{ "Mouse": "mouse-gaming" }`; it replaces the layout entry's `device` field for that layout. (Planned as the
+  layout file's `device` field, but a built-in layout's file can't be changed, so the choice is saved with the
+  layout's edits instead.)
 - The extra buttons' keys go with the layout's own edits: `settings.layout.profiles[id].deviceKeys`, e.g.
   `{ "side3": "F13", "top1": "F14" }`. A downgrade ignores the field; nothing is lost.
 - The keys F13–F24 are added to what the app captures (`keyboard/keymap.rs`, `key-names.js`), on every system, so
@@ -92,7 +95,7 @@ assignment is a setting like a key's label. Nothing reads which mouse is connect
 | `ui/settings/editor/` | Draws a device block with its drawing |
 | `ui/settings/tabs/keys-inspector.js` | **Shape**, and the extra buttons' keys |
 | `src-tauri/src/keyboard/keymap.rs`, `ui/settings/key-names.js` | F13–F24 |
-| `src-tauri/src/settings.rs`, `sanitize.rs` | `deviceKeys` cleaned (known slot names, known key codes) |
+| `src-tauri/src/device_keys.rs` (new), `sanitize.rs` | `deviceDrawings` and `deviceKeys` cleaned (drawing names, slot names, key codes) |
 | `docs/schemas/`, `FILE-FORMATS.md`, `EXTENDING.md`, the user guide | The field, adding a drawing, how to assign |
 
 ## Tests
