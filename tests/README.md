@@ -180,7 +180,8 @@ Rules:
 | `general-hotkey`, `toggle-hotkeys-enabled`, `hotkey-pause-record`, `hotkey-pause-clear` | Pause shortcut: its section, the switch, the button that records a shortcut, and Clear |
 | `general-open-settings-hotkey`, `hotkey-open-settings-record`, `hotkey-open-settings-clear` | Open settings shortcut: its section, the button that records a shortcut, and Clear |
 | `general-obs-scenes`, `toggle-obs-scenes-enabled`, `obs-scenes-count`, `obs-scenes-edit`; in its popup `obs-scene-rule` + `data-index`, `obs-scene-name`, `obs-scene-layout`, `obs-scene-remove`, `obs-scene-problem`, `obs-scene-add`, `obs-scenes-save` | OBS scenes: its section, the switch, the count and **Edit scenes…**; in the popup one rule row with its name box, "In this scene" menu, remove button and problem line, **+ Add a scene** and **Save** |
-| `general-open-folder`, `general-reset`, `general-quit` | Advanced's buttons |
+| `general-open-folder`, `general-reset` | Advanced's buttons |
+| `general-quit` | **Quit app**, at the top of the General tab |
 | `update-channel`, `update-check`, `update-install`, `update-status`, `update-release-notes`, `general-update-progress`, `general-update-progress-text` | Updates (the channel is a segmented choice) |
 | `debug-card` + `data-card`, `debug-card-title` | One box of the Debug tab and its title |
 | `debug-facts`, `debug-open-folder` | "This app" |
