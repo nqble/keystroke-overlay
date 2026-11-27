@@ -92,7 +92,7 @@ test('the number pad Enter (1025) and sides of Shift, Ctrl and Alt by place', ()
 });
 
 test('a key with several codes takes the first that names a key; a repeated code becomes a placeholder', () => {
-  const result = read([key(0, 0, [124, 160, 161], 'Shift'), key(1, 0, [160], 'Shift again'), key(2, 0, [255], 'Fn')]);
+  const result = read([key(0, 0, [7, 160, 161], 'Shift'), key(1, 0, [160], 'Shift again'), key(2, 0, [255], 'Fn')]);
   assert.deepEqual(
     result.keys.map((k) => k.code),
     ['ShiftLeft', 'Unlinked1', 'Unlinked2'],

@@ -103,15 +103,15 @@ test('decorations, ghosts and keys smaller than a quarter key are left out and c
 test('unknown legends and second copies become placeholders, numbered in reading order', () => {
   const result = fromRows([
     ['Fn', 'Q', 'Vol+'],
-    ['Q', 'F13'],
+    ['Q', 'F25'],
   ]);
   assert.deepEqual(codesOf(result), ['Unlinked1', 'KeyQ', 'Unlinked2', 'Unlinked3', 'Unlinked4']);
   assert.deepEqual(
     result.keys.map((key) => key.label),
-    ['Fn', 'Q', 'Vol+', 'Q', 'F13'],
+    ['Fn', 'Q', 'Vol+', 'Q', 'F25'],
   );
   assert.deepEqual([result.report.linked, result.report.notLinked], [1, 4]);
-  assert.deepEqual(result.report.unlit, ['Fn', 'Vol+', 'Q', 'F13']);
+  assert.deepEqual(result.report.unlit, ['Fn', 'Vol+', 'Q', 'F25']);
 });
 
 test('the best-ranked legend wins; on a tie, the first in reading order', () => {

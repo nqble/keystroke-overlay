@@ -75,7 +75,7 @@ only `opacity`, CLAUDE.md) works unchanged.
 ## Every system
 
 Windows, macOS and Linux read the same five buttons and the wheel, and keys the same way, so the shapes and the
-assigning work everywhere. On a Mac, keys F13–F19 exist; F20–F24 don't (listed as not available there).
+assigning work everywhere. On a Mac, keys F13–F20 exist; F21–F24 don't (listed as not available there).
 
 ## Privacy
 
