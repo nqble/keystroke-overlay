@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160">
-  <!-- The gaming mouse (docs/proposals/mouse-shape.md): the standard mouse's body, a wider wheel slot with its up, down
+  <!-- The gaming mouse (docs/design/future-inputs.md §2): the standard mouse's body, a wider wheel slot with its up, down
        and tilt arrows inside, two top buttons behind the wheel, five side buttons on the left (back, forward and three
        more) and three on the right. Parts with a data-code light up by themselves; parts with a data-slot are extra
        buttons that light up with the key assigned to them (deviceKeys), and stay hidden on the overlay until one is.

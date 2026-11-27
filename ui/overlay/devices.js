@@ -43,7 +43,7 @@ function wrapPart(part) {
 }
 
 /**
- * An extra button (a part with a data-slot, docs/proposals/mouse-shape.md) lights up with the key assigned to it in
+ * An extra button (a part with a data-slot, docs/design/future-inputs.md §2) lights up with the key assigned to it in
  * `deviceKeys` ({ side3: 'F13' }), so it takes that key's code; one with no key yet is left out of the overlay.
  */
 export function assignExtraButtons(svg, deviceKeys) {
