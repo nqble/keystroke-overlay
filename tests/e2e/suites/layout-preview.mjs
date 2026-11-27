@@ -107,14 +107,18 @@ const mouseLayout = (
     ],
   })
 ).ok;
+const MOUSE_PARTS = ['MouseLeft', 'MouseRight', 'MouseMiddle', 'WheelUp', 'WheelDown', 'MouseForward', 'MouseBack']
+  .sort()
+  .join();
 const drawnParts = await waitFor(async () => {
   const parts = await p
     .evIn(
       `localhost:${PORT}`,
-      `return [...document.querySelectorAll('g.part')].map(g => g.getAttribute('data-code')).join()`,
+      `return [...document.querySelectorAll('g.part')].map(g => g.getAttribute('data-code')).sort().join()`,
     )
     .catch(() => '');
-  return { ok: parts === 'MouseLeft,MouseRight,WheelUp,MouseMiddle,WheelDown,MouseForward,MouseBack', parts };
+  // sorted: which parts are drawn matters, not the order the drawing lists them in (mouse.svg was redrawn)
+  return { ok: parts === MOUSE_PARTS, parts };
 });
 check('a Mouse block is drawn as a mouse with its buttons and wheel', drawnParts.ok, drawnParts.parts);
 await p.invoke('delete_layout', { id: mouseLayout });
