@@ -1,6 +1,6 @@
 # Proposal: the mouse as a real mouse, cleaner, with more buttons
 
-**Status:** Proposed (2026-11-27), for the maintainer's approval. Builds on [drawn-devices.md](drawn-devices.md) (a
+**Status:** Approved (2026-11-27), being built. Builds on [drawn-devices.md](drawn-devices.md) (a
 device is one block; a drawing is one file) and [mouse-input.md](mouse-input.md) (which buttons the app can read).
 
 Three things the maintainer found with the mouse:
@@ -17,8 +17,8 @@ Three things the maintainer found with the mouse:
    block: moved, resized and turned like a key.
 2. **A cleaner standard mouse:** every part sits inside the body with an even gap, nothing touches the outline, the
    wheel is a slot of its own with its up and down arrows inside it.
-3. **A choice of mouse shapes** in the Keys tab: **Standard** (two side buttons) and **Gaming** (more side buttons, two
-   top buttons, wheel tilt), with room for more drawings later.
+3. **A choice of mouse shapes** in the Keys tab: **Standard** (two side buttons) and **Gaming** (side buttons on both
+   sides, two top buttons, wheel tilt), with room for more drawings later.
 4. **Extra buttons you assign:** a button the system doesn't report as a mouse button can light up with any key you
    choose, the key your mouse's software sends for it.
 
@@ -40,8 +40,9 @@ reach the computer the way the mouse's own software sets them, usually as keys s
 sometimes not at all. So a drawing has two kinds of parts:
 
 - **Mouse parts** with a fixed name (`data-code="MouseBack"`): they light up by themselves.
-- **Extra buttons** (`data-slot="side3"`, dashed while unassigned): you click one in the Keys tab and press the key it
-  should follow; it lights up with that key. Unassigned extra buttons are drawn dim (or hidden, a switch).
+- **Extra buttons** (`data-slot="side3"`): you click one in the Keys tab and press the key it should follow; it lights
+  up with that key. **Unassigned extra buttons are hidden** on the overlay; the Keys tab shows them dashed, so you can
+  find and assign them.
 
 ## The design
 
@@ -58,8 +59,9 @@ sometimes not at all. So a drawing has two kinds of parts:
 
 `mouse.svg` is redrawn (the mockup shared with the maintainer): a mouse body, left and right buttons inset from the
 outline with an even gap, a wheel slot between them with its arrows inside, two side buttons inset on the left.
-`mouse-gaming.svg` is new: the same body, a wheel with tilt arrows, two top buttons behind the wheel, and five side
-buttons (back, forward and three more). Both keep every part a closed shape, so the overlay's pressed look (a fade,
+`mouse-gaming.svg` is new: the same body, a wheel with tilt arrows, two top buttons behind the wheel, side buttons on
+the left (back, forward and three more) and **side buttons on the right** (three, for mice with buttons under the
+ring finger or for left-handed use). Both keep every part a closed shape, so the overlay's pressed look (a fade,
 only `opacity`, CLAUDE.md) works unchanged.
 
 ### Saved
@@ -112,8 +114,8 @@ shape, the overlay with each theme.
 
 About 4–6 working sessions: 1 for step 1, 1–2 for step 2, 1 for step 3, 2 for step 4.
 
-## Open questions for the maintainer
+## Decided with the maintainer (2026-11-27)
 
-1. The two shapes (the mockup): good as a direction?
-2. Unassigned extra buttons: drawn dim (my suggestion), or hidden until assigned?
-3. More shapes now (an ergonomic, a left-handed mirror), or later as contributions?
+1. The two shapes as in the mockup, **with side buttons on the right side too** (Gaming).
+2. **Unassigned extra buttons are hidden** (on the overlay; dashed in the Keys tab so they can be assigned).
+3. **More shapes later** (an ergonomic one, a left-handed mirror), as contributions or a later step.
