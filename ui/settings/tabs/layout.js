@@ -9,7 +9,7 @@ import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js'
 import { call, el, invoke, toast } from '../helpers.js';
 import { html, useRef, useState } from '../html.js';
 import { createDragPress } from '../drag-press.js';
-import { dropGap, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
+import { dropGap, isSamePlace, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
 import { dialog } from '../popup.js';
 import { resync } from '../messages.js';
 import { changed, saveNow } from '../preview.js';
@@ -152,10 +152,14 @@ function Layout() {
  * hook only shows it: while the dragged card is over a gap between cards, a line shows where it will land (CSS
  * variables, blocks.css .drop-line), and letting go there saves the new order.
  */
-/** Where a dragged card would land: the gap under the pointer and the drop line's place (null when none). */
-function dropAt(pointerEvent, gridElement) {
+/**
+ * Where a dragged card would land: the gap under the pointer and the drop line's place (null when none, or when the
+ * card would stay where it is). `from` is the dragged card's place.
+ */
+function dropAt(pointerEvent, gridElement, from) {
   const boxes = [...gridElement.querySelectorAll('[data-layout-item]')].map((item) => item.getBoundingClientRect());
-  const gap = dropGap(pointerEvent.clientX, pointerEvent.clientY, boxes);
+  const under = dropGap(pointerEvent.clientX, pointerEvent.clientY, boxes);
+  const gap = under === null || isSamePlace(under, from) ? null : under;
   return { gap, line: gap === null ? null : lineAt(gap, boxes, gridElement.getBoundingClientRect()) };
 }
 
@@ -183,7 +187,7 @@ function useDrag(shownIds) {
     setDrop({ gap: null, line: null });
   };
   const showGap = (pointerEvent) => {
-    const at = dropAt(pointerEvent, grid.current);
+    const at = dropAt(pointerEvent, grid.current, shownIds.indexOf(tracker.current.dragId));
     tracker.current.setGap(at.gap);
     setDrop(at);
   };

@@ -2,7 +2,15 @@
 // src-tauri/src/layout_order.rs, which the tray uses. Run with: npm run test:ui
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dropGap, isDragStart, moveBy, moveToGap, otherLayouts, shownLayouts } from '../../ui/settings/layout-order.js';
+import {
+  dropGap,
+  isDragStart,
+  isSamePlace,
+  moveBy,
+  moveToGap,
+  otherLayouts,
+  shownLayouts,
+} from '../../ui/settings/layout-order.js';
 
 const layout = (id, user = false) => ({ id, name: id, keys: [], user });
 const ids = (list) => list.map((l) => l.id);
@@ -43,13 +51,14 @@ test('moving one place left or right, and not past either end', () => {
   assert.deepEqual(moveBy(order, 'c', 1), order);
 });
 
-test('drops land only in a gap or close to one, never in the middle of a card', () => {
+test('drops land in the gap nearest the pointer, over a card on the side of its half', () => {
   // one row: cards 100 px wide with 12 px gaps
   const boxes = [0, 112, 224].map((left) => ({ left, right: left + 100, top: 0, bottom: 80 }));
   assert.equal(dropGap(106, 40, boxes), 1); // in the gap between the first two
   assert.equal(dropGap(90, 40, boxes), 1); // near the first card's right edge
   assert.equal(dropGap(120, 40, boxes), 1); // near the second card's left edge
-  assert.equal(dropGap(50, 40, boxes), null); // the middle of the first card
+  assert.equal(dropGap(40, 40, boxes), 0); // the first card's left half: before it
+  assert.equal(dropGap(60, 40, boxes), 1); // its right half: after it
   assert.equal(dropGap(5, 40, boxes), 0); // before the first card
   assert.equal(dropGap(330, 40, boxes), 3); // after the last card
   assert.equal(dropGap(106, 200, boxes), null); // below every row
@@ -84,4 +93,11 @@ test('a press becomes a drag only once the pointer has moved a few pixels, so a 
   assert.equal(isDragStart(start, 102, 51), false, 'a shaky click');
   assert.equal(isDragStart(start, 104, 50), true, 'four pixels across');
   assert.equal(isDragStart(start, 103, 53), true, 'diagonally');
+});
+
+test('the drop line never shows beside the dragged card, where nothing would move', () => {
+  assert.equal(isSamePlace(1, 1), true);
+  assert.equal(isSamePlace(2, 1), true);
+  assert.equal(isSamePlace(0, 1), false);
+  assert.equal(isSamePlace(3, 1), false);
 });
