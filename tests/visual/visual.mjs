@@ -8,7 +8,7 @@
 // the blinking text cursor) is frozen or hidden. A few differing pixels are allowed for anti-aliasing (the smoothing of
 // letter edges). The baselines come from one Windows PC (the maintainer's); they are local, not part of CI.
 // Run through tests/e2e/run.mjs (which builds and starts the test copy of the app); it is not part of the normal "all suites" run.
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pixelmatch from 'pixelmatch';
@@ -17,6 +17,11 @@ import { byTest, check, connect, finish, sleep } from '../e2e/lib/cdp.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BASELINES = join(HERE, 'baselines');
+// every built-in theme gets an overlay picture, read from the folder so a new theme can't be left out
+const THEME_IDS = readdirSync(join(HERE, '..', '..', 'ui', 'overlay', 'themes'))
+  .filter((name) => name.endsWith('.js'))
+  .map((name) => name.replace(/\.js$/, ''))
+  .sort();
 const DIFFS = join(HERE, 'diff'); // written when a screen changed (not saved in git)
 const UPDATE = process.env.VISUAL_UPDATE === '1';
 
@@ -102,11 +107,7 @@ const SCREENS = [
     },
   ],
   // the overlay itself, one picture per built-in theme: the settings window's work must never change these
-  ...['default', 'glass', 'minecraft', 'minimal-light', 'neon'].map((id) => [
-    `overlay-${id}`,
-    overlayWithTheme(id),
-    '#previewBox',
-  ]),
+  ...THEME_IDS.map((id) => [`overlay-${id}`, overlayWithTheme(id), '#previewBox']),
   // last, so its turned key can't show in the pictures above: one key turned with the Angle field (key rotation)
   [
     'keys-turned-key',

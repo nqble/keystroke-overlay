@@ -75,7 +75,7 @@ the privacy, format, style, docs, config and type checks, syntax checks, clippy,
 ## Visual tests (`npm run test:visual`)
 
 A picture of every settings screen (each tab, the Keys tab with one key and with several keys selected, and the New layout
-popup), plus the overlay itself in each built-in theme (default, glass, minecraft, minimal-light, neon) with W and Space held,
+popup), plus the overlay itself in each built-in theme (one picture per file in `ui/overlay/themes/`) with W and Space held,
 compared with the picture saved last time, so a look that changes by accident is caught. The overlay pictures show what OBS
 shows: the settings window's work must never change them, and changing them needs the maintainer's explicit OK, with before and after pictures.
 

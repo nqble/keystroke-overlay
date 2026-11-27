@@ -56,14 +56,14 @@ undo and redo. Edits are saved per layout.
 
 ### Themes and style
 
-Start from a theme, then adjust colors, shape, text and size, or use your own fonts. Save a look as a preset and share
+Start from one of 11 themes (among them High contrast, Outline, Pastel, Graphite, Sunset and Ocean), then adjust colors, shape, text and size, or use your own fonts. Save a look as a preset and share
 it as a file.
 
 ![The Style tab: clicking through the themes while the live preview changes](docs/media/style.webp)
 
 ### Animations
 
-Press down, bounce, glow, fade, scale. Hover a card to see it, then set its speed, strength and easing. Animations use
+Press down, bounce, glow, fade, scale, pop, tilt, squash, jelly and pulse. Hover a card to see it, then set its speed, strength and easing. Animations use
 only the graphics card's cheapest effects, so streams stay smooth.
 
 ![The Animation tab: pointing at each animation card shows it on a key](docs/media/animation.webp)
