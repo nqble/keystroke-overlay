@@ -447,7 +447,40 @@ pub fn open_folder(folder: &Path) {
     let _ = std::process::Command::new(opener()).arg(folder).spawn();
 }
 
+/// Open a web address in the default browser. On Windows the shell opens it directly (ShellExecuteW), which is quicker
+/// than starting `explorer.exe` only to hand the address on (the GitHub button took a moment to react).
+#[cfg(windows)]
+pub fn open_url(url: &str) -> std::io::Result<()> {
+    use windows::core::{w, HSTRING, PCWSTR};
+    use windows::Win32::UI::Shell::ShellExecuteW;
+    use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+    /// ShellExecuteW answers with a value above this on success, an error code otherwise
+    const SHELL_EXECUTE_FAILED_AT_MOST: usize = 32;
+    let address = HSTRING::from(url);
+    // SAFETY: the address lives until the call returns; no parameters or folder, no owner window
+    let result = unsafe {
+        ShellExecuteW(
+            None,
+            w!("open"),
+            &address,
+            PCWSTR::null(),
+            PCWSTR::null(),
+            SW_SHOWNORMAL,
+        )
+    };
+    if result.0 as usize > SHELL_EXECUTE_FAILED_AT_MOST {
+        Ok(())
+    } else {
+        Err(std::io::Error::other(format!(
+            "the browser could not be opened (error {})",
+            result.0 as usize
+        )))
+    }
+}
+
 /// Open a web address in the default browser.
+#[cfg(not(windows))]
 pub fn open_url(url: &str) -> std::io::Result<()> {
     std::process::Command::new(opener()).arg(url).spawn().map(|_| ())
 }
