@@ -473,8 +473,8 @@ button:disabled:hover {
   display: none;
 }
 .arrange-bar button {
-  padding: var(--space-2) var(--space-8);
-  font-size: var(--text-sm);
+  --icon-size: 16px;
+  padding: var(--space-4);
 }
 .zoom-controls {
   position: absolute;

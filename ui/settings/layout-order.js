@@ -7,9 +7,6 @@
 //    - ids of layouts that no longer exist are skipped.
 // =====================================================================================================================
 
-/** How close to a gap between cards, in px, a dragged card counts as dropped into that gap (ui-design-v2.md). */
-export const DROP_EDGE = 28;
-
 /** The layouts to show, in order. `all` is every layout the app has (the user's own have `user: true`). */
 export function shownLayouts(all, order) {
   const byId = new Map(all.map((layout) => [layout.id, layout]));
@@ -43,10 +40,10 @@ export function moveBy(shownIds, id, step) {
 
 /**
  * Which gap a dragged card would drop into, from the pointer and the cards' boxes (in page order; a row's cards left to
- * right): the gap between two cards, or within DROP_EDGE px of it on either card. Over the middle of a card, or away
- * from every row: null, nothing happens.
+ * right): over a card, the gap on the nearer side (its left half: before it; its right half: after it), so the drop
+ * line always follows the pointer instead of showing only near an edge. Away from every row: null, nothing happens.
  */
-export function dropGap(x, y, boxes, edge = DROP_EDGE) {
+export function dropGap(x, y, boxes) {
   // the boxes' fields are read by name: a real DOMRect keeps them on its prototype, so `{ ...box }` would lose them
   const all = boxes.map((box, index) => ({
     left: box.left,
@@ -60,12 +57,16 @@ export function dropGap(x, y, boxes, edge = DROP_EDGE) {
   for (const box of row) {
     if (x < box.left) return box.index; // in the gap just before this card
     if (x > box.right) continue;
-    if (x < box.left + edge) return box.index;
-    if (x > box.right - edge) return box.index + 1;
-    return null; // the middle of a card
+    return x < (box.left + box.right) / 2 ? box.index : box.index + 1;
   }
   return row[row.length - 1].index + 1; // after the row's last card
 }
+
+/**
+ * Whether dropping the card at `from` into `gap` would leave the order as it is: the gaps on either side of the card
+ * itself. The drop line is hidden there, so it only ever shows where the card would really go.
+ */
+export const isSamePlace = (gap, from) => gap === from || gap === from + 1;
 
 /** How far (pixels) a pressed card must move before the press counts as a drag, not a click. */
 export const DRAG_START_DISTANCE = 4;

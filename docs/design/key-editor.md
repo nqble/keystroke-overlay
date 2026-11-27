@@ -142,7 +142,7 @@ over the board, and holding stops when the window loses focus.
   fade exactly as when holding a key. The inspector has Width and Height fields.
 - **Floating arrange bar:** when 2+ keys are selected (and not while dragging or box-selecting), a small toolbar floats
   10px above the selection (below it if there's no room above). Icon buttons with tooltips: align left, align centers,
-  align right | align tops, align bottoms | space evenly across, space evenly down (both disabled under 3 keys).
+  align right | align tops, align middles, align bottoms | space evenly across, space evenly down (both disabled under 3 keys).
 
 ### Keyboard shortcuts (act only while the Keys tab is open, no text field has focus and no popup is open)
 Arrow keys nudge the selection 0.25 key (Shift = 1 key; Even grid always 1) · Delete / Backspace hide the selection ·

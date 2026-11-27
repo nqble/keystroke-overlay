@@ -21,6 +21,16 @@ const SHAPES = {
   plus: { line: 'M3.5 8h9M8 3.5v9' },
   arrowDown: { line: 'M8 2.5v11M3.5 9 8 13.5 12.5 9' },
   chevronDown: { line: 'M3.5 6 8 10.5 12.5 6' }, // turned with CSS for "closed" (.chevron-closed)
+  // the Keys tab's arrange bar (editor/arrange-bar.js): the line is the edge or center the keys line up on, the
+  // filled bars are the keys; where a line crosses a bar it is left out so the bar stays whole
+  alignLeft: { line: 'M2.5 2v12', fill: 'M4.5 4h9v3h-9zM4.5 9h5.5v3H4.5z' },
+  alignCenter: { line: 'M8 2v2M8 7v2M8 12v2', fill: 'M3.5 4h9v3h-9zM5.25 9h5.5v3h-5.5z' },
+  alignRight: { line: 'M13.5 2v12', fill: 'M2.5 4h9v3h-9zM6 9h5.5v3H6z' },
+  alignTop: { line: 'M2 2.5h12', fill: 'M4 4.5h3v9H4zM9 4.5h3V10H9z' },
+  alignMiddle: { line: 'M2 8h2M7 8h2M12 8h2', fill: 'M4 3.5h3v9H4zM9 5.25h3v5.5H9z' },
+  alignBottom: { line: 'M2 13.5h12', fill: 'M4 2.5h3v9H4zM9 6h3v5.5H9z' },
+  spaceAcross: { line: 'M2.5 2v12M13.5 2v12', fill: 'M6.5 4.5h3v7h-3z' },
+  spaceDown: { line: 'M2 2.5h12M2 13.5h12', fill: 'M4.5 6.5h7v3h-7z' },
   // the eye button under the live preview and its three inputs (eye-button.js)
   eye: {
     line: 'M1.75 8C3.2 5.6 5.3 4.3 8 4.3s4.8 1.3 6.25 3.7C12.8 10.4 10.7 11.7 8 11.7S3.2 10.4 1.75 8zM9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0',

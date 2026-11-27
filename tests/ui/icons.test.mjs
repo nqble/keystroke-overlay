@@ -63,3 +63,15 @@ test('the status words are allowed whatever the system writes between folders an
   assert.deepEqual([...statusLines('locales/en.js', windowsLines)], [2, 3], 'Windows line endings');
   assert.equal(statusLines('header.js', lines).size, 0);
 });
+
+// The Keys tab's arrange bar shows only icons (editor/arrange-bar.js), so a button that names an icon icons.js doesn't
+// draw would be an empty square.
+test('every arrange button names an icon that icons.js draws', () => {
+  const iconsSource = readFileSync(join(SETTINGS, 'icons.js'), 'utf8');
+  const drawn = new Set([...iconsSource.matchAll(/^ {2}(\w+): \{/gm)].map((match) => match[1]));
+  const barSource = readFileSync(join(SETTINGS, 'editor', 'arrange-bar.js'), 'utf8');
+  const rows = [...barSource.matchAll(/^ {2}\['key-[\w-]+', '\w+', '\w+', \d, '(\w+)'\],$/gm)];
+  assert.equal(rows.length, 8, 'the eight arrange buttons');
+  const missing = rows.map((row) => row[1]).filter((icon) => !drawn.has(icon));
+  assert.deepEqual(missing, []);
+});
