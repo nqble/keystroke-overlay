@@ -9,7 +9,7 @@ import { AllSetLine, FirstRun, isAllSet, isFirstRunOpen } from '../first-run.js'
 import { call, el, invoke, toast } from '../helpers.js';
 import { html, useRef, useState } from '../html.js';
 import { createDragPress } from '../drag-press.js';
-import { dropGap, isSamePlace, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
+import { dropGap, dropLinePlace, isSamePlace, moveBy, moveToGap, shownLayouts } from '../layout-order.js';
 import { dialog } from '../popup.js';
 import { resync } from '../messages.js';
 import { changed, saveNow } from '../preview.js';
@@ -160,7 +160,8 @@ function dropAt(pointerEvent, gridElement, from) {
   const boxes = [...gridElement.querySelectorAll('[data-layout-item]')].map((item) => item.getBoundingClientRect());
   const under = dropGap(pointerEvent.clientX, pointerEvent.clientY, boxes);
   const gap = under === null || isSamePlace(under, from) ? null : under;
-  return { gap, line: gap === null ? null : lineAt(gap, boxes, gridElement.getBoundingClientRect()) };
+  const grid = gridElement.getBoundingClientRect();
+  return { gap, line: gap === null ? null : lineAt(gap, boxes, grid, pointerEvent.clientY) };
 }
 
 /** A left-button press on a card: remember it, and its card grid, and keep the pointer while it moves. */
@@ -217,12 +218,9 @@ function useDrag(shownIds) {
   };
 }
 
-/** Where the drop line goes for a gap: just left of the card after it, or just right of the last card. */
-function lineAt(gap, boxes, grid) {
-  const after = boxes[gap];
-  const before = boxes[gap - 1];
-  const box = after ?? before;
-  const x = after ? after.left : before.right;
+/** The drop line's place for a gap, as CSS variables (which side of a row break: dropLinePlace). */
+function lineAt(gap, boxes, grid, pointerY) {
+  const { x, box } = dropLinePlace(gap, boxes, pointerY);
   return {
     '--drop-x': `${x - grid.left}px`,
     '--drop-top': `${box.top - grid.top}px`,

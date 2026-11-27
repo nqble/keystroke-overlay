@@ -63,6 +63,20 @@ export function dropGap(x, y, boxes) {
 }
 
 /**
+ * Where on screen the drop line for `gap` goes: `{ x, box }`, the line's x and the card whose row it is drawn in. A gap
+ * between the end of one row and the start of the next is one place in the order but two on screen, so the line goes
+ * in the row the pointer (`y`) is in: after the last card of its row, or before the first card of the next.
+ */
+export function dropLinePlace(gap, boxes, y) {
+  const after = boxes[gap];
+  const before = boxes[gap - 1];
+  const pointerInBeforeRow = before && y >= before.top && y <= before.bottom;
+  const rowsDiffer = after && before && after.top !== before.top;
+  if (!after || (rowsDiffer && pointerInBeforeRow)) return { x: before.right, box: before };
+  return { x: after.left, box: after };
+}
+
+/**
  * Whether dropping the card at `from` into `gap` would leave the order as it is: the gaps on either side of the card
  * itself. The drop line is hidden there, so it only ever shows where the card would really go.
  */
