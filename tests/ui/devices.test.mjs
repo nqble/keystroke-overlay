@@ -72,6 +72,18 @@ test('a block asks for its own drawing and falls back on its device', () => {
   assert.equal(drawingPaths({ code: 'Controller' })[1], '/overlay/devices/controller.svg');
 });
 
+// The Keys tab draws devices too (ui/settings/editor/device-drawing.js), with its own copy of the overlay's fallbacks
+// and of what it takes out of a drawing (the settings window can't import from the overlay): the two must agree.
+test('the Keys tab and the overlay use the same fallbacks and take out the same parts', () => {
+  const overlaySource = readFileSync(new URL('../../ui/overlay/devices.js', import.meta.url), 'utf8');
+  const keysTabSource = readFileSync(new URL('../../ui/settings/editor/device-drawing.js', import.meta.url), 'utf8');
+  const fallbacks = (source) => source.match(/const DEFAULT_DRAWINGS = (\{[^}]*\});/)?.[1];
+  assert.ok(fallbacks(overlaySource), 'the overlay names its fallbacks');
+  assert.equal(fallbacks(keysTabSource), fallbacks(overlaySource));
+  const unsafeInKeysTab = keysTabSource.match(/const UNSAFE_PARTS = '([^']*)';/)?.[1];
+  assert.ok(unsafeInKeysTab && overlaySource.includes(`querySelectorAll('${unsafeInKeysTab}')`));
+});
+
 // ---- Geometry: every part sits inside the body with a gap, so no border runs into the outline (mouse-shape.md)
 /**
  * The smallest gap, in drawing units, between a part and the body's outline. With both outlines' line widths, the old
