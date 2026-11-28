@@ -58,7 +58,7 @@ Animate only `transform` and `opacity`, so the work stays on the graphics card a
 
 ## 4. A device drawing
 A drawn mouse or controller ([proposals/drawn-devices.md](proposals/drawn-devices.md)) is one SVG file in
-`ui/overlay/devices/`, nothing else to register: `mouse.svg` is the neutral mouse; a drawing of one brand is, for
+`ui/overlay/devices/`, all the overlay needs: `mouse.svg` is the neutral mouse; a drawing of one brand is, for
 example, `controller-xbox.svg`, used by a layout entry with `"device": "controller-xbox"`. Draw it with a `viewBox`, give
 the outline `class="device-body"`, and give each part that lights up a `data-code` with its input name (`MouseLeft`,
 `WheelUp`, `PadA`: [design/future-inputs.md](design/future-inputs.md) §2). Use no colors, scripts, pictures or links:

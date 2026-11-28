@@ -17,7 +17,7 @@ const DEFAULT_DRAWINGS = { Mouse: 'mouse', Controller: 'controller' };
 const UNSAFE_PARTS = 'script, foreignObject, image, use, a';
 /**
  * The shapes the Keys tab offers for each device, in order: each is a file in ui/overlay/devices/ (a test checks that
- * every mouse drawing there is listed). Their names are the keysDevice.shapes words.
+ * every drawing there is listed). Their names are the keysDevice.shapes words.
  */
 export const DEVICE_SHAPES = { Mouse: ['mouse', 'mouse-gaming'], Controller: ['controller'] };
 
