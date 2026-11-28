@@ -18,10 +18,10 @@ import { byTest, check, connect, finish, sleep } from '../e2e/lib/cdp.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BASELINES = join(HERE, 'baselines');
 // every built-in theme gets an overlay picture, read from the folder so a new theme can't be left out
-const THEME_IDS = readdirSync(join(HERE, '..', '..', 'ui', 'overlay', 'themes'))
-  .filter((name) => name.endsWith('.js'))
-  .map((name) => name.replace(/\.js$/, ''))
-  .sort();
+const THEME_FILES = readdirSync(join(HERE, '..', '..', 'ui', 'overlay', 'themes')).filter((name) =>
+  name.endsWith('.js'),
+);
+const THEME_IDS = THEME_FILES.map((name) => name.replace(/\.js$/, '')).sort();
 const DIFFS = join(HERE, 'diff'); // written when a screen changed (not saved in git)
 const UPDATE = process.env.VISUAL_UPDATE === '1';
 

@@ -149,8 +149,9 @@ function Layout() {
  * Dragging a card to a new place, with pointer events (mouse, pen or touch). The browser's own drag and drop is not
  * used: each system's web view (WebView2, WebKit) and Tauri's file-drop handling treat it differently, and on some it
  * never delivers the drop. Whether a press is a click or a drag lives in drag-press.js (with its edge cases); this
- * hook only shows it: while the dragged card is over a gap between cards, a line shows where it will land (CSS
- * variables, blocks.css .drop-line), and letting go there saves the new order.
+ * hook only shows it: while a card is dragged, a line shows the gap nearest the pointer, where it will land (none
+ * beside the card itself, where nothing would move; CSS variables, blocks.css .drop-line), and letting go there saves
+ * the new order.
  */
 /**
  * Where a dragged card would land: the gap under the pointer and the drop line's place (null when none, or when the

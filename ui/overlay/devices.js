@@ -1,8 +1,8 @@
 // =====================================================================================================================
 //  Drawn devices on the overlay (docs/proposals/drawn-devices.md): a layout entry with a `device` field, named Mouse or
 //  Controller, is drawn as a picture of that device instead of a key. A drawing is one file, ui/overlay/devices/<id>.svg;
-//  each part that lights up carries a data-code (MouseLeft, WheelUp, PadA), the body the class device-body. Adding a
-//  drawing is adding that one file. overlay.js places the block like a key and lights the parts like keys ('down');
+//  each part that lights up carries a data-code (MouseLeft, WheelUp, PadA), the body the class device-body. The overlay
+//  needs only that file (offering it as a Shape in the Keys tab: docs/EXTENDING.md §4). overlay.js places the block like a key and lights the parts like keys ('down');
 //  the looks are in overlay.css. Plain DOM, no library.
 // =====================================================================================================================
 

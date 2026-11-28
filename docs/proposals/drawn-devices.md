@@ -2,7 +2,7 @@
 
 Status: **Being built** (approved 2026-10-31). Built: the eye button, `hiddenInputs` and the tray's Show menu (step 2);
 the groundwork's `device` entry, the mouse drawing and the overlay drawing it (step 1). Next: the key editor and Add ▾
-with mouse capture (step 3). A drawing turned out to need no registry line: the file name is enough. The mouse comes
+with mouse capture (step 3). The overlay needs only the drawing's file; the Keys tab lists it as a Shape (docs/EXTENDING.md §4). The mouse comes
 first; the controller follows on the same groundwork.
 
 The overlay shows a keyboard as keys. A mouse or a game controller looks wrong as a row of square keys, so this plan
@@ -61,7 +61,8 @@ A layout file gains one kind of entry in its `keys` list, with a `device` field:
 
 ### A drawing is one plain file
 
-`ui/overlay/devices/<id>.svg`, one per drawing; the file name is the drawing's id, so nothing else lists it:
+`ui/overlay/devices/<id>.svg`, one per drawing; the file name is the drawing's id, so the overlay needs nothing else (the Keys tab's Shape
+choice lists it; docs/EXTENDING.md §4):
 
 - Each part that lights up is an element with `data-code`: `data-code="MouseLeft"`, `data-code="PadA"`.
 - Analog parts carry `data-stick="PadStickL"` (moves with the stick) or `data-trigger="PadLT"` (fills with the trigger).

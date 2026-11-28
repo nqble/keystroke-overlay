@@ -54,7 +54,7 @@
   const NO_UPDATE = { available: false, current: '1.4.0', channel: 'stable' };
 
   // A NohBoard keyboard.json (written here, in NohBoard's shape) for New layout → From a NohBoard file: W A S D, Space,
-  // a key NohBoard can show but the app can't (F13), and two mouse buttons, drawn dashed until mouse support exists.
+  // a key NohBoard can show but the app can't (Fn, virtual key 255), and two mouse buttons, which light with Show my mouse.
   const nohBoardKey = (type, keyCode, text, left, top, width = 43) => ({
     __type: type,
     KeyCodes: [keyCode],
@@ -75,7 +75,7 @@
       nohBoardKey('KeyboardKey', 65, 'A', 10, 54),
       nohBoardKey('KeyboardKey', 83, 'S', 54, 54),
       nohBoardKey('KeyboardKey', 68, 'D', 98, 54),
-      nohBoardKey('KeyboardKey', 124, 'F13', 142, 10),
+      nohBoardKey('KeyboardKey', 255, 'Fn', 142, 10),
       nohBoardKey('KeyboardKey', 32, '', 10, 98, 131),
       nohBoardKey('MouseKey', 0, 'LMB', 200, 10),
       nohBoardKey('MouseKey', 1, 'RMB', 244, 10),
