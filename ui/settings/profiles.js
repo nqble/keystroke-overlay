@@ -178,8 +178,11 @@ export function basePosition(key, style, layout = curLayout()) {
   return place ?? { x: key.x, y: key.y };
 }
 
-/** How wide the layout style makes a key before the user resizes it: as the layout file has it, or 1 in the even grid. */
-export const baseWidth = (key, style) => (style === 'grid' ? 1 : (key.w ?? 1));
+/**
+ * How wide the layout style makes a key before the user resizes it: as the layout file has it, or 1 in the even grid.
+ * A drawn device (a mouse) keeps its own width in the grid too, as the overlay draws it (overlay.js placedKey).
+ */
+export const baseWidth = (key, style) => (style === 'grid' && !key.device ? 1 : (key.w ?? 1));
 
 /** Where a key is drawn: its saved position if the user moved it, otherwise where the layout style puts it. */
 export const keyPos = (key, profile, layout = curLayout()) =>
