@@ -108,6 +108,7 @@ keystroke-overlay/
         ├── drag-press.js   one press on a Layout tab card: click or drag, which gap, which click to swallow (tested)
         ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
         ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
+        ├── key-picker.js  what a key press means while an extra button of a drawn mouse listens for its key (tested)
         ├── kle-layout.js  KLE keys → a layout: places (turned keys keep their angle, r), each key's code from its legends, Unlinked<n> placeholders (tested)
         ├── kle-import-popup.js  New layout's From a KLE / NohBoard file choices and the import review popup (picture, name, what was found)
         ├── nohboard-layout.js  a NohBoard keyboard.json → a layout: pixels to keys, virtual keys to codes, mouse names (tested)
