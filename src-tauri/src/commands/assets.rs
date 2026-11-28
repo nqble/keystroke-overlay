@@ -360,6 +360,20 @@ pub async fn export_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
 }
 
 /// Returns None if the user canceled, otherwise (layouts added, layouts skipped).
+/// Whether an imported layout's cleaned profile holds any edit worth keeping. `clean_profiles` always writes
+/// `disabledKeys` and `labels` and writes every other field (moved, resized or turned keys, the layout style, hidden
+/// inputs, a drawn device's shape and keys) only when it has something in it.
+fn profile_has_edits(profile: &Value) -> bool {
+    let Some(fields) = profile.as_object() else {
+        return false;
+    };
+    fields.iter().any(|(name, value)| match name.as_str() {
+        "disabledKeys" => value.as_array().is_some_and(|keys| !keys.is_empty()),
+        "labels" => value.as_object().is_some_and(|labels| !labels.is_empty()),
+        _ => true,
+    })
+}
+
 #[tauri::command]
 pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<Option<(usize, usize)>, String> {
     let Some(picked_file) = app
@@ -384,9 +398,7 @@ pub async fn import_layouts(app: AppHandle, st: State<'_, AppState>) -> Result<O
     {
         let mut current_settings = st.shared.settings.write().unwrap();
         for (id, prof) in &added {
-            let empty = prof["disabledKeys"].as_array().is_none_or(|a| a.is_empty())
-                && prof["labels"].as_object().is_none_or(|o| o.is_empty());
-            if !empty {
+            if profile_has_edits(prof) {
                 current_settings["layout"]["profiles"][id] = prof.clone();
             }
         }
@@ -477,6 +489,24 @@ mod layout_file_tests {
             ])
         );
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn an_imported_profile_with_only_moved_keys_or_device_choices_is_kept() {
+        let empty = json!({ "disabledKeys": [], "labels": {} });
+        assert!(!profile_has_edits(&empty));
+        let moved = json!({ "disabledKeys": [], "labels": {}, "styles": { "shape": { "positions": { "KeyW": { "x": 1, "y": 0 } } } } });
+        assert!(profile_has_edits(&moved), "moved keys");
+        let mouse = json!({ "disabledKeys": [], "labels": {}, "deviceDrawings": { "Mouse": "mouse-gaming" } });
+        assert!(profile_has_edits(&mouse), "a drawn device's shape");
+        assert!(
+            profile_has_edits(&json!({ "disabledKeys": ["KeyQ"], "labels": {} })),
+            "hidden keys"
+        );
+        assert!(
+            profile_has_edits(&json!({ "disabledKeys": [], "labels": {}, "layoutStyle": "grid" })),
+            "Even grid"
+        );
     }
 
     #[test]

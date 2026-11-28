@@ -54,13 +54,14 @@ export function boardSize(layoutBoxes, placedBoxes = []) {
 /**
  * A layout's keys as boxes in Even grid style: every key 1 wide, placed at the column and row the app worked out
  * (`layout.grid`, from src-tauri/src/grid.rs, so the editor and the overlay always agree). A key missing from
- * `layout.grid` keeps its layout-file place.
+ * `layout.grid` keeps its layout-file place; a drawn device (a mouse, never in the grid) also keeps its own width.
  */
 export function evenGridBoxes(layout) {
   const grid = layout.grid ?? {};
   return layout.keys.map((key) => {
     const place = grid[key.code] ?? { x: key.x, y: key.y };
-    return { code: key.code, x: place.x, y: place.y, w: 1, h: key.h ?? 1 };
+    const width = key.device ? (key.w ?? 1) : 1;
+    return { code: key.code, x: place.x, y: place.y, w: width, h: key.h ?? 1 };
   });
 }
 

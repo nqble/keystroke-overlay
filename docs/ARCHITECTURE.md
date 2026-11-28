@@ -83,7 +83,7 @@ keystroke-overlay/
     │   ├── layouts/*.json     one file per keyboard layout
     │   ├── animations/*.js    one file per animation
     │   ├── themes/*.js        one file per built-in theme
-    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), devices.js and devices/*.svg (drawn mice and controllers), taps.js (a tap, such as a wheel notch or PrintScreen, shows for at least 100 ms), obs-source.js (OBS scene rules, inside OBS only)
+    │   └── registry.js, overlay.js, overlay.css, index.html, fit.js (fit in the OBS box), turn.js (turned keys: angle and covered box), structure.js (when the keys are rebuilt), input-kinds.js (which input a key belongs to, for hiding a whole input), devices.js and devices/*.svg (drawn mice and controllers), lit-elements.js (what lights for each key code: a key and any drawn part with that code), taps.js (a tap, such as a wheel notch or PrintScreen, shows for at least 100 ms), obs-source.js (OBS scene rules, inside OBS only)
     ├── globals.d.ts      type hints for npm run check:types (window.__TAURI__ and friends)
     └── settings/         the settings window: plain ES modules, one job per file (settings.js is the entry point)
         ├── index.html     the window's page; logo.png
@@ -108,6 +108,7 @@ keystroke-overlay/
         ├── drag-press.js   one press on a Layout tab card: click or drag, which gap, which click to swallow (tested)
         ├── kle.js         the KLE reader: a keyboard-layout-editor.com file → keys with places, sizes and legends (a port of kle-serial, MIT; tested)
         ├── key-names.js   the keys the app can see (by code, checked against keymap.rs), their friendly names and groups, and the legend table (tested)
+        ├── key-picker.js  what a key press means while an extra button of a drawn mouse listens for its key (tested)
         ├── kle-layout.js  KLE keys → a layout: places (turned keys keep their angle, r), each key's code from its legends, Unlinked<n> placeholders (tested)
         ├── kle-import-popup.js  New layout's From a KLE / NohBoard file choices and the import review popup (picture, name, what was found)
         ├── nohboard-layout.js  a NohBoard keyboard.json → a layout: pixels to keys, virtual keys to codes, mouse names (tested)

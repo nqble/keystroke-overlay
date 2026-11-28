@@ -7,6 +7,13 @@ const HIGH_FUNCTION_KEYS: [&str; 12] = [
     "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24",
 ];
 
+/// F13-F24, which mouse software sends for extra buttons, often with the scancode left at 0. The key tracker gives such
+/// keys their own slots (tracker.rs) and Raw Input lets them through (rawinput.rs), so every capture method sees them.
+pub fn is_high_function_key(vk: u32) -> bool {
+    vk.checked_sub(VK_F13)
+        .is_some_and(|index| (index as usize) < HIGH_FUNCTION_KEYS.len())
+}
+
 /// Map a key event (virtual key, scancode, extended flag) to a DOM `KeyboardEvent.code`-style name (used by layouts).
 pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
     if vk == 0x13 {
@@ -23,6 +30,8 @@ pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
         return Some(name);
     }
     let sc = sc as u8;
+    // A letter or F13-F24 scancode with the extended (E0) flag is another key: the media keys (E0 30 is Volume Up, not
+    // B) and the browser and launch keys (E0 6A is Browser Back, not F19). Those arms match `false` only.
     Some(match (sc, ext) {
         (0x01, _) => "Escape",
         (0x02, _) => "Digit1",
@@ -39,43 +48,43 @@ pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
         (0x0D, _) => "Equal",
         (0x0E, _) => "Backspace",
         (0x0F, _) => "Tab",
-        (0x10, _) => "KeyQ",
-        (0x11, _) => "KeyW",
-        (0x12, _) => "KeyE",
-        (0x13, _) => "KeyR",
-        (0x14, _) => "KeyT",
-        (0x15, _) => "KeyY",
-        (0x16, _) => "KeyU",
-        (0x17, _) => "KeyI",
-        (0x18, _) => "KeyO",
-        (0x19, _) => "KeyP",
+        (0x10, false) => "KeyQ",
+        (0x11, false) => "KeyW",
+        (0x12, false) => "KeyE",
+        (0x13, false) => "KeyR",
+        (0x14, false) => "KeyT",
+        (0x15, false) => "KeyY",
+        (0x16, false) => "KeyU",
+        (0x17, false) => "KeyI",
+        (0x18, false) => "KeyO",
+        (0x19, false) => "KeyP",
         (0x1A, _) => "BracketLeft",
         (0x1B, _) => "BracketRight",
         (0x1C, false) => "Enter",
         (0x1C, true) => "NumpadEnter",
         (0x1D, false) => "ControlLeft",
         (0x1D, true) => "ControlRight",
-        (0x1E, _) => "KeyA",
-        (0x1F, _) => "KeyS",
-        (0x20, _) => "KeyD",
-        (0x21, _) => "KeyF",
-        (0x22, _) => "KeyG",
-        (0x23, _) => "KeyH",
-        (0x24, _) => "KeyJ",
-        (0x25, _) => "KeyK",
-        (0x26, _) => "KeyL",
+        (0x1E, false) => "KeyA",
+        (0x1F, false) => "KeyS",
+        (0x20, false) => "KeyD",
+        (0x21, false) => "KeyF",
+        (0x22, false) => "KeyG",
+        (0x23, false) => "KeyH",
+        (0x24, false) => "KeyJ",
+        (0x25, false) => "KeyK",
+        (0x26, false) => "KeyL",
         (0x27, _) => "Semicolon",
         (0x28, _) => "Quote",
         (0x29, _) => "Backquote",
         (0x2A, _) => "ShiftLeft",
         (0x2B, _) => "Backslash",
-        (0x2C, _) => "KeyZ",
-        (0x2D, _) => "KeyX",
-        (0x2E, _) => "KeyC",
-        (0x2F, _) => "KeyV",
-        (0x30, _) => "KeyB",
-        (0x31, _) => "KeyN",
-        (0x32, _) => "KeyM",
+        (0x2C, false) => "KeyZ",
+        (0x2D, false) => "KeyX",
+        (0x2E, false) => "KeyC",
+        (0x2F, false) => "KeyV",
+        (0x30, false) => "KeyB",
+        (0x31, false) => "KeyN",
+        (0x32, false) => "KeyM",
         (0x33, _) => "Comma",
         (0x34, _) => "Period",
         (0x35, false) => "Slash",
@@ -125,18 +134,18 @@ pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
         (0x57, _) => "F11",
         (0x58, _) => "F12",
         // F13-F24: few keyboards have them, but mouse software can send them for extra mouse buttons
-        (0x64, _) => "F13",
-        (0x65, _) => "F14",
-        (0x66, _) => "F15",
-        (0x67, _) => "F16",
-        (0x68, _) => "F17",
-        (0x69, _) => "F18",
-        (0x6A, _) => "F19",
-        (0x6B, _) => "F20",
-        (0x6C, _) => "F21",
-        (0x6D, _) => "F22",
-        (0x6E, _) => "F23",
-        (0x76, _) => "F24",
+        (0x64, false) => "F13",
+        (0x65, false) => "F14",
+        (0x66, false) => "F15",
+        (0x67, false) => "F16",
+        (0x68, false) => "F17",
+        (0x69, false) => "F18",
+        (0x6A, false) => "F19",
+        (0x6B, false) => "F20",
+        (0x6C, false) => "F21",
+        (0x6D, false) => "F22",
+        (0x6E, false) => "F23",
+        (0x76, false) => "F24",
         (0x5B, _) => "MetaLeft",
         (0x5C, _) => "MetaRight",
         (0x5D, _) => "ContextMenu",
@@ -203,6 +212,22 @@ mod tests {
             "sent by software, with no scancode"
         );
         assert_eq!(code_name(0x88, 0, false), None);
+    }
+    #[test]
+    fn media_and_browser_keys_are_not_letters_or_function_keys() {
+        assert_eq!(code_name(0xAF, 0x30, true), None, "Volume Up is E0 30, not B");
+        assert_eq!(code_name(0xAD, 0x20, true), None, "Mute is E0 20, not D");
+        assert_eq!(code_name(0xA6, 0x6A, true), None, "Browser Back is E0 6A, not F19");
+        assert_eq!(code_name(0xB4, 0x6C, true), None, "Mail is E0 6C, not F21");
+        assert_eq!(code_name(0x42, 0x30, false), Some("KeyB"));
+        assert_eq!(code_name(0x82, 0x6A, false), Some("F19"));
+    }
+    #[test]
+    fn only_f13_to_f24_count_as_high_function_keys() {
+        assert!(super::is_high_function_key(0x7C));
+        assert!(super::is_high_function_key(0x87));
+        assert!(!super::is_high_function_key(0x7B), "F12");
+        assert!(!super::is_high_function_key(0x88));
     }
     #[test]
     fn maps_plain_and_extended_keys() {

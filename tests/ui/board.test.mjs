@@ -194,3 +194,11 @@ test('a key can be resized from the top and bottom too, and the opposite edge st
   assert.equal(resizeBox(tall, 'bottom', 99, BOARD, 0.25).h, BOARD.h - 5, 'stops at the board edge');
   assert.equal(resizeBox(tall, 'top', -99, BOARD, 0.25).h, 6, 'stops at the top edge');
 });
+
+test('in Even grid a drawn device keeps its own width, as the overlay draws it', () => {
+  const mouse = { code: 'Mouse', device: 'mouse', x: 6.25, y: 0, w: 1.875, h: 3 };
+  const layout = { keys: [{ code: 'KeyW', x: 1, y: 0, w: 1.5 }, mouse], grid: { KeyW: { x: 0, y: 0 } } };
+  const [keyW, drawn] = evenGridBoxes(layout);
+  assert.equal(keyW.w, 1, 'a key is one key wide in the grid');
+  assert.deepEqual(drawn, { code: 'Mouse', x: 6.25, y: 0, w: 1.875, h: 3 }, 'the mouse keeps its place and size');
+});

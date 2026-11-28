@@ -113,7 +113,10 @@ export function tidyProf() {
     if (!Object.keys(edits).length) delete profile.styles[style];
   }
   if (profile.styles && !Object.keys(profile.styles).length) delete profile.styles;
-  if (!hasEdits(profile)) delete settings.layout.profiles[id];
+  // the inputs hidden with the eye button (eye-button.js) live in the profile too but aren't an edit of the layout:
+  // they don't make it "customized", and a profile holding them is kept
+  const hidesInputs = profile.hiddenInputs?.length > 0;
+  if (!hasEdits(profile) && !hidesInputs) delete settings.layout.profiles[id];
 }
 
 /** Forget the moved and resized keys of the layout style in use (hidden keys and labels stay). */
@@ -175,8 +178,11 @@ export function basePosition(key, style, layout = curLayout()) {
   return place ?? { x: key.x, y: key.y };
 }
 
-/** How wide the layout style makes a key before the user resizes it: as the layout file has it, or 1 in the even grid. */
-export const baseWidth = (key, style) => (style === 'grid' ? 1 : (key.w ?? 1));
+/**
+ * How wide the layout style makes a key before the user resizes it: as the layout file has it, or 1 in the even grid.
+ * A drawn device (a mouse) keeps its own width in the grid too, as the overlay draws it (overlay.js placedKey).
+ */
+export const baseWidth = (key, style) => (style === 'grid' && !key.device ? 1 : (key.w ?? 1));
 
 /** Where a key is drawn: its saved position if the user moved it, otherwise where the layout style puts it. */
 export const keyPos = (key, profile, layout = curLayout()) =>

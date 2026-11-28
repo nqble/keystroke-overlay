@@ -95,9 +95,15 @@
 .eye-box:focus-within .eye-mid {
   transition-delay: 0ms;
 }
-/* the keyboard opens it at once; the toggles still wait for most of the pill's 260 ms (opacity, then transform) */
-.eye-box:focus-within .eye-options {
+/* the keyboard (and a click, which focuses the eye) opens it at once; the toggles still wait for most of the pill's
+   260 ms (opacity, then transform). The selector has to be as specific as the opening rule above to win over it. */
+.eye-box:not(.shut):focus-within .eye-options {
   transition-delay: 180ms, 0ms;
+}
+/* closing with the focus still inside (a click on the eye, Enter or Space): the pill closes at once, so the toggles
+   fade out at once too instead of showing outside it */
+.eye-box.shut:focus-within .eye-options {
+  transition-delay: 0ms, 0ms;
 }
 /* One toggle: filled while its input shows, dim with a slash while hidden, grayed out while its input is off. */
 .eye-option {

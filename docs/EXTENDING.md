@@ -58,7 +58,7 @@ Animate only `transform` and `opacity`, so the work stays on the graphics card a
 
 ## 4. A device drawing
 A drawn mouse or controller ([proposals/drawn-devices.md](proposals/drawn-devices.md)) is one SVG file in
-`ui/overlay/devices/`, nothing else to register: `mouse.svg` is the neutral mouse; a drawing of one brand is, for
+`ui/overlay/devices/`, all the overlay needs: `mouse.svg` is the neutral mouse; a drawing of one brand is, for
 example, `controller-xbox.svg`, used by a layout entry with `"device": "controller-xbox"`. Draw it with a `viewBox`, give
 the outline `class="device-body"`, and give each part that lights up a `data-code` with its input name (`MouseLeft`,
 `WheelUp`, `PadA`: [design/future-inputs.md](design/future-inputs.md) §2). Use no colors, scripts, pictures or links:
@@ -74,7 +74,8 @@ when one is missing).
 3. Use it in the overlay (`ui/overlay/overlay.js`).
 4. Copy the new default into `tools/sandbox/default-settings.json` (a Rust test fails until you do).
 5. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
-   `CURRENT_VERSION` and add a migration ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
+   `CURRENT_VERSION` and add a migration; the first *new* setting after a release bumps it too, with an empty step, so
+   an older app keeps a copy of the file before dropping what it doesn't know ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
 
 ## Inside the settings window: where each thing lives
 

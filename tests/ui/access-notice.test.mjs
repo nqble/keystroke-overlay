@@ -126,3 +126,13 @@ test('right after an update with access on: ask for a key first, Renew only afte
     'macOS says access is off (a changed signer): Renew at once',
   );
 });
+
+test('after an update, when no key can arrive yet, restart instead of asking for a key', () => {
+  const update = { ...allowed, system: 'macos', renewAfterUpdate: true };
+  const allowedAfterStart = { ...update, allowedAtStart: false };
+  assert.equal(accessNotice({ access: allowedAfterStart })?.kind, 'restart', 'macOS sends keys only after a restart');
+  assert.equal(accessNotice({ access: allowedAfterStart, waited: true })?.kind, 'restart', 'not Renew after the wait');
+  const failed = accessNotice({ access: update, inputError: 'tap failed', waited: true });
+  assert.equal(failed?.kind, 'restart', 'the capture failed to start');
+  assert.equal(accessNotice({ access: update })?.kind, 'checking', 'keys can arrive: ask for one');
+});

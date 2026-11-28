@@ -42,7 +42,10 @@ export function accessNotice({ access, inputError, asked = false, waited = false
   if (access.captureSeen) return secure;
   if (asked === 'renew') return restartNotice(TEXT.restartAfterRenew);
   if (asked) return restartNotice(TEXT.restartAfterAllow);
-  if (access.renewAfterUpdate && access.allowed && !waited) return { kind: 'checking', text: TEXT.checkAfterUpdate };
+  // a key can only arrive once macOS sends them (it does after a restart) and the capture runs
+  const keysCanArrive = access.allowed && access.allowedAtStart && !inputError;
+  if (access.renewAfterUpdate && access.allowed && !keysCanArrive) return restartNotice(TEXT.restart);
+  if (access.renewAfterUpdate && keysCanArrive && !waited) return { kind: 'checking', text: TEXT.checkAfterUpdate };
   if (access.renewAfterUpdate) return { kind: 'renew', text: TEXT.renew, action: 'renew', button: TEXT.renewButton };
   if (!access.allowed) return { kind: 'ask', text: TEXT.ask, action: 'allow', button: TEXT.allow };
   if (inputError || !access.allowedAtStart) return restartNotice(TEXT.restart);
