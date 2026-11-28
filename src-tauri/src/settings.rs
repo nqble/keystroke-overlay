@@ -5,7 +5,9 @@
 //! `defaults()` so newly added settings always have a value, then sanitized.
 //!
 //! HOW TO ADD A SETTING: add it to `defaults()` (and to `CONTROLS` in
-//! ui/settings/controls.js). No migration is needed for purely additive changes. If it needs a rule beyond its
+//! ui/settings/controls.js). No migration code is needed for purely additive changes, but the first new setting
+//! after a release bumps CURRENT_VERSION with an empty step: an older app drops settings it doesn't know when it
+//! saves, and only a newer version number makes it keep a copy first (downgrade.rs). If it needs a rule beyond its
 //! type (a range, a fixed set of choices, a text format), add one line to the tables in sanitize.rs.
 //! HOW TO RENAME/RESTRUCTURE: bump CURRENT_VERSION and add a step to `MIGRATIONS`.
 
@@ -14,11 +16,15 @@ use std::path::{Path, PathBuf};
 
 use crate::sanitize::sanitize;
 
-pub const CURRENT_VERSION: u64 = 5;
+pub const CURRENT_VERSION: u64 = 6;
 /// The settings version v1.4.0 wrote. v1.4.0 drops every setting it doesn't know when it saves, and only a higher
 /// number makes it keep a copy of this version's file first (downgrade.rs), so the build fails if this ever stops holding.
 const VERSION_WRITTEN_BY_V1_4: u64 = 3;
 const _: () = assert!(CURRENT_VERSION > VERSION_WRITTEN_BY_V1_4);
+/// The settings version v2.1.0 to v2.3.x wrote. They drop a profile's `deviceDrawings` and `deviceKeys` when they save,
+/// so this version must stay higher for them to keep a copy first (downgrade.rs).
+const VERSION_WRITTEN_BY_V2_3: u64 = 5;
+const _: () = assert!(CURRENT_VERSION > VERSION_WRITTEN_BY_V2_3);
 
 pub fn defaults() -> Value {
     json!({
@@ -91,7 +97,7 @@ pub fn defaults() -> Value {
 type Migration = fn(&mut Value);
 
 /// MIGRATIONS[i] upgrades a config from version (i+1) to (i+2).
-const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5];
+const MIGRATIONS: &[Migration] = &[v1_to_v2, v2_to_v3, v3_to_v4, v4_to_v5, v5_to_v6];
 
 /// v1 stored one global `layout.disabledKeys` / `layout.labels`.
 /// v2 stores them per layout in `layout.profiles[layoutId]`.
@@ -134,6 +140,11 @@ fn v3_to_v4(_config: &mut Value) {}
 /// The number goes up so that an older app, which drops `rotations` when it saves, keeps a copy of this file first
 /// (downgrade.rs): going back and forward again keeps every angle.
 fn v4_to_v5(_config: &mut Value) {}
+
+/// v6 only adds a drawn device's shape and extra-button keys (`deviceDrawings`, `deviceKeys` in a profile;
+/// device_keys.rs), so nothing moves. The number goes up so that an older app, which drops them when it saves, keeps
+/// a copy of this file first (downgrade.rs): going back and forward again keeps the mouse as it was.
+fn v5_to_v6(_config: &mut Value) {}
 
 pub fn migrate(mut config: Value) -> Value {
     if !config.is_object() {
