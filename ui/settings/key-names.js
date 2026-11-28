@@ -105,6 +105,9 @@ const KEY_BY_CODE = new Map(KNOWN_KEYS.map((key) => [key.code, key]));
 /** True for a code the app can see (and so can light up). */
 export const isKnownKey = (code) => KEY_BY_CODE.has(code);
 
+/** True for Shift, Control, Alt and Meta, either side. */
+export const isModifierKey = (code) => KEY_BY_CODE.get(code)?.group === 'modifiers';
+
 /** The key's friendly name on this system ("Left Ctrl", "Left ⌘ Command"), or null for a code the app can't see. */
 export function keyName(code, platform) {
   const key = KEY_BY_CODE.get(code);

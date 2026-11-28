@@ -7,8 +7,9 @@
 // =====================================================================================================================
 import { Segmented, useId } from '../blocks.js';
 import { DEVICE_SHAPES, drawingId, extraButtonsOf } from '../editor/device-drawing.js';
-import { html, useEffect, useState } from '../html.js';
-import { isKnownKey, keyName } from '../key-names.js';
+import { html, useEffect, useRef, useState } from '../html.js';
+import { keyName } from '../key-names.js';
+import { keyPickerStep, pressedCode } from '../key-picker.js';
 import { changed } from '../preview.js';
 import { editProf, tidyProf } from '../profiles.js';
 import { platform } from '../state.js';
@@ -16,9 +17,6 @@ import { toggleListening } from '../shortcut.js';
 import { words } from '../words.js';
 
 const WORDS = words('keysDevice');
-
-/** Keys that clear an extra button's key instead of choosing one. */
-const CLEAR_KEYS = new Set(['Delete', 'Backspace']);
 
 /** An extra button's name: "side3" → "Left side 3", from its slot name (the drawing's data-slot). */
 export function extraButtonName(slot) {
@@ -69,18 +67,44 @@ function ShapeRow({ layoutKey, profile }) {
   </div>`;
 }
 
-/** One extra button: its name, and a button that shows its key and, clicked, listens for the next key press. */
-function ExtraButtonRow({ slot, code }) {
+/**
+ * Listening for the key of one extra button: the key handlers, and `stop`. While listening, a key goes to the picker
+ * only (key-picker.js decides what it means), not to the Keys tab's own shortcuts.
+ */
+function useKeyListener(slot) {
   const [listening, setListening] = useState(false);
-  const fieldId = useId('extra-button');
-  const shown = code ? keyName(code, platform) : WORDS.none;
+  const waitingModifier = useRef(null); // a modifier pressed while listening, chosen if it is let go on its own
+  const stop = () => {
+    waitingModifier.current = null;
+    setListening(false);
+  };
   const onKeyDown = (event) => {
     event.preventDefault();
-    setListening(false);
-    if (event.code === 'Escape') return;
-    if (CLEAR_KEYS.has(event.code)) return setExtraKey(slot, null);
-    if (isKnownKey(event.code)) setExtraKey(slot, event.code);
+    event.stopPropagation(); // the Keys tab's shortcuts (Esc deselects, Ctrl+Z undoes) must not act on it too
+    const step = keyPickerStep(event);
+    if (step.action === 'wait') {
+      waitingModifier.current = step.code;
+      return;
+    }
+    stop();
+    if (step.action === 'clear') setExtraKey(slot, null);
+    if (step.action === 'choose') setExtraKey(slot, step.code);
   };
+  const onKeyUp = (event) => {
+    if (pressedCode(event) !== waitingModifier.current) return;
+    event.stopPropagation();
+    setExtraKey(slot, waitingModifier.current);
+    stop();
+  };
+  return { listening, setListening, stop, onKeyDown, onKeyUp };
+}
+
+/** One extra button: its name, and a button that shows its key and, clicked, listens for the next key press. */
+function ExtraButtonRow({ slot, code }) {
+  const listener = useKeyListener(slot);
+  const { listening } = listener;
+  const fieldId = useId('extra-button');
+  const shown = code ? keyName(code, platform) : WORDS.none;
   return html`<div class="row">
     <label for=${fieldId}>${extraButtonName(slot)}</label>
     <div class="ctl">
@@ -89,9 +113,10 @@ function ExtraButtonRow({ slot, code }) {
         type="button"
         aria-label=${listening ? WORDS.listening : WORDS.choose(extraButtonName(slot), shown)}
         data-test=${`extra-button-${slot}`}
-        onClick=${(event) => toggleListening(event, listening, setListening)}
-        onKeyDown=${listening ? onKeyDown : null}
-        onBlur=${() => setListening(false)}
+        onClick=${(event) => toggleListening(event, listening, listener.setListening)}
+        onKeyDown=${listening ? listener.onKeyDown : null}
+        onKeyUp=${listening ? listener.onKeyUp : null}
+        onBlur=${listener.stop}
       >
         ${listening ? WORDS.listening : shown}
       </button>
