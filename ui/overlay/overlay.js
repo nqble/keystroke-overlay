@@ -8,6 +8,7 @@ import { sceneView, watchObs } from '/overlay/obs-source.js';
 import { structureKey } from '/overlay/structure.js';
 import { hiddenInputsOf, inputKind } from '/overlay/input-kinds.js';
 import { drawDevice } from '/overlay/devices.js';
+import { createLitElements } from '/overlay/lit-elements.js';
 import { createTaps } from '/overlay/taps.js';
 import { isSettingsWindow } from '/overlay/preview-origin.js';
 
@@ -62,10 +63,10 @@ let settings = null,
 let currentScene = null,
   drawnLayoutId = '',
   sceneHidden = false;
-const keyEls = new Map(); // code -> element
+const keyEls = createLitElements(); // code -> the elements that light for it (lit-elements.js)
 const held = new Set(); // codes currently down (kept across rebuilds)
 // A key that goes down and up in the same moment (a wheel notch, PrintScreen) still shows for MIN_TAP_MS (taps.js).
-const taps = createTaps((code, down) => keyEls.get(code)?.classList.toggle('down', down));
+const taps = createTaps((code, down) => keyEls.light(code, down));
 
 // ------------------------------------------------------------ module loading
 async function loadModules() {
@@ -228,11 +229,10 @@ const getText = async (url) => {
   return response.ok ? response.text() : null;
 };
 
-/** A drawn device's parts light up like keys; a key of the layout with the same code keeps that code. */
+/** A drawn device's parts light up like keys, together with a key of the layout that has the same code. */
 function lightableParts(parts) {
   for (const [code, part] of parts) {
-    if (keyEls.has(code)) continue;
-    keyEls.set(code, part);
+    keyEls.add(code, part);
     if (held.has(code)) part.classList.add('down');
   }
 }
@@ -263,7 +263,7 @@ function build(nextSettings, layout) {
     const el = keyElement(layoutKey, label, nextSettings.style, bounds);
     if (held.has(layoutKey.code)) el.classList.add('down');
     frag.appendChild(el);
-    keyEls.set(layoutKey.code, el);
+    keyEls.add(layoutKey.code, el);
     if (layoutKey.device) devices.push([el, layoutKey]);
   }
   stage.appendChild(frag);
@@ -356,7 +356,7 @@ function releaseAll() {
   // everything goes dark at once (pause, a lost connection): no tap is kept waiting
   held.clear();
   taps.clear();
-  for (const el of keyEls.values()) el.classList.remove('down');
+  keyEls.darkenAll();
 }
 
 // ------------------------------------------------------------ data + socket
