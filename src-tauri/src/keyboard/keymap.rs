@@ -7,6 +7,13 @@ const HIGH_FUNCTION_KEYS: [&str; 12] = [
     "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24",
 ];
 
+/// F13-F24, which mouse software sends for extra buttons, often with the scancode left at 0. The key tracker gives such
+/// keys their own slots (tracker.rs) and Raw Input lets them through (rawinput.rs), so every capture method sees them.
+pub fn is_high_function_key(vk: u32) -> bool {
+    vk.checked_sub(VK_F13)
+        .is_some_and(|index| (index as usize) < HIGH_FUNCTION_KEYS.len())
+}
+
 /// Map a key event (virtual key, scancode, extended flag) to a DOM `KeyboardEvent.code`-style name (used by layouts).
 pub fn code_name(vk: u32, sc: u32, ext: bool) -> Option<&'static str> {
     if vk == 0x13 {
@@ -214,6 +221,13 @@ mod tests {
         assert_eq!(code_name(0xB4, 0x6C, true), None, "Mail is E0 6C, not F21");
         assert_eq!(code_name(0x42, 0x30, false), Some("KeyB"));
         assert_eq!(code_name(0x82, 0x6A, false), Some("F19"));
+    }
+    #[test]
+    fn only_f13_to_f24_count_as_high_function_keys() {
+        assert!(super::is_high_function_key(0x7C));
+        assert!(super::is_high_function_key(0x87));
+        assert!(!super::is_high_function_key(0x7B), "F12");
+        assert!(!super::is_high_function_key(0x88));
     }
     #[test]
     fn maps_plain_and_extended_keys() {

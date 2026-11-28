@@ -5,6 +5,7 @@
 //! delayed or removed by Windows for being slow, and it cannot block or change keys. It runs on its own thread
 //! with a hidden message-only window, and is event-driven: 0% CPU while no keys are pressed.
 
+use super::keymap::is_high_function_key;
 use super::tracker::{DeviceId, KeyTracker, RECONCILE_MS};
 use super::KeyEvent;
 use std::cell::{Cell, RefCell};
@@ -50,8 +51,11 @@ impl Handle {
 
 /// (virtual key, scancode, extended, is_down) from the pieces of a RAWKEYBOARD record, or None for records to skip.
 pub fn decode(vkey: u16, make: u16, flags: u16) -> Option<(u32, u32, bool, bool)> {
-    if make == 0 || make == 0xFF {
-        return None; /* fake or overrun markers, not real keys */
+    // 0xFF marks an overrun. A scancode of 0 is a fake record, except for F13-F24 sent by mouse software, which often
+    // leaves it at 0 (keymap.rs): those are real keys.
+    let fake = make == 0 && !is_high_function_key(vkey as u32);
+    if make == 0xFF || fake {
+        return None;
     }
     Some((
         vkey as u32,
@@ -234,5 +238,11 @@ mod tests {
     fn skips_fake_and_overrun_records() {
         assert_eq!(decode(0xFF, 0, 0), None);
         assert_eq!(decode(0xFF, 0xFF, 0), None);
+        assert_eq!(decode(0x57, 0, 0), None, "a fake record with no scancode");
+        assert_eq!(
+            decode(0x7C, 0, 0),
+            Some((0x7C, 0, false, true)),
+            "F13 sent by mouse software with no scancode"
+        );
     }
 }
