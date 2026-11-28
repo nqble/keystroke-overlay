@@ -47,6 +47,27 @@ fn windows_key_is_down() -> Option<KeyIsDown> {
     None
 }
 
+/// Held keys are kept in slots by scancode: 0x000-0x0FF plain, 0x100-0x1FF extended (E0).
+const EXTENDED_SLOTS: usize = 0x100;
+/// The Pause key sends a multi-part sequence; it gets its own slot so it can't collide with other keys.
+const PAUSE_SLOT: usize = 0x1FF;
+/// Keys that arrive with scancode 0 (F13-F24 sent by mouse software) have no scancode to tell them apart, so they get
+/// a slot by virtual key instead: 0x200-0x2FF.
+const NO_SCANCODE_SLOTS: usize = 0x200;
+/// How many slots the table has: every range above.
+const SLOT_COUNT: usize = 0x300;
+
+/// The slot a key is kept in while it is held.
+fn slot_index(name: &str, virtual_key: u32, scancode: u32, extended: bool) -> usize {
+    if name == "Pause" {
+        return PAUSE_SLOT;
+    }
+    if scancode == 0 {
+        return NO_SCANCODE_SLOTS | (virtual_key as usize & 0xFF);
+    }
+    (scancode as usize & 0xFF) | if extended { EXTENDED_SLOTS } else { 0 }
+}
+
 impl KeyTracker {
     /// `heal`: check the real key state of held keys (on Windows), so a key whose release was missed cannot stay lit.
     pub fn new(heal: bool) -> Self {
@@ -55,7 +76,7 @@ impl KeyTracker {
 
     fn with_key_state(key_is_down: Option<KeyIsDown>) -> Self {
         Self {
-            down: vec![None; 512],
+            down: vec![None; SLOT_COUNT],
             held: Vec::with_capacity(8),
             key_is_down,
         }
@@ -84,12 +105,7 @@ impl KeyTracker {
         let Some(name) = code_name(virtual_key, scancode, extended) else {
             return;
         };
-        // The Pause key sends a multi-part sequence; give it its own slot so it can't collide with other keys.
-        let idx = if name == "Pause" {
-            0x1FF
-        } else {
-            (scancode as usize & 0xFF) | if extended { 0x100 } else { 0 }
-        };
+        let idx = slot_index(name, virtual_key, scancode, extended);
 
         self.release_keys_that_are_really_up(Some(idx), tx);
 
@@ -415,5 +431,21 @@ mod tests {
         state.borrow_mut().insert(A.0);
         tracker.handle(0, A.0, A.1, A.2, true, &tx);
         assert_eq!(sent(&rx), vec![(true, "KeyW"), (false, "KeyW"), (true, "KeyA")]);
+    }
+
+    #[test]
+    fn two_keys_sent_without_a_scancode_are_held_apart() {
+        const F13_NO_SCANCODE: (u32, u32, bool) = (0x7C, 0, false);
+        const F14_NO_SCANCODE: (u32, u32, bool) = (0x7D, 0, false);
+        let events = run(&[
+            (KEYBOARD_1, F13_NO_SCANCODE, true),
+            (KEYBOARD_1, F14_NO_SCANCODE, true),
+            (KEYBOARD_1, F13_NO_SCANCODE, false),
+            (KEYBOARD_1, F14_NO_SCANCODE, false),
+        ]);
+        assert_eq!(
+            events,
+            vec![(true, "F13"), (true, "F14"), (false, "F13"), (false, "F14")]
+        );
     }
 }
