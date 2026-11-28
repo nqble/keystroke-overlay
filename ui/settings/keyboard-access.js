@@ -29,7 +29,7 @@ function waitForKeys(notice) {
   if (notice?.kind !== 'checking' || waiting) return;
   waiting = setTimeout(() => {
     waited = true;
-    paintAccess();
+    refreshAccess(); // ask the app again: keys may have arrived without a keys-arriving event (while paused)
   }, RENEW_AFTER_SECONDS * 1000);
 }
 
@@ -50,7 +50,7 @@ export async function refreshAccess() {
   try {
     access = await invoke('get_keyboard_access');
   } catch {
-    return; // keep the old answer
+    // keep the old answer, but still draw: the wait for a key may have just ended
   }
   paintAccess();
 }
