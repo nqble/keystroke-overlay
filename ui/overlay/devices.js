@@ -58,8 +58,8 @@ export function assignExtraButtons(svg, deviceKeys) {
   }
 }
 
-/** Puts the drawing in `shell` and returns its parts by code (the first part with a code wins). Scripts, outside
- *  pictures and anything that could run code are taken out first: a drawing is only shapes. */
+/** Puts the drawing in `shell` and returns its parts as [code, part] pairs (two extra buttons may share a code).
+ *  Scripts, outside pictures and anything that could run code are taken out first: a drawing is only shapes. */
 function insertDrawing(shell, text, deviceKeys) {
   const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
   if (svg.nodeName !== 'svg') return new Map();
@@ -67,16 +67,12 @@ function insertDrawing(shell, text, deviceKeys) {
   assignExtraButtons(svg, deviceKeys);
   for (const part of svg.querySelectorAll('[data-code]')) wrapPart(part);
   shell.append(document.importNode(svg, true));
-  const parts = new Map();
-  for (const group of shell.querySelectorAll('g.part')) {
-    const code = group.getAttribute('data-code');
-    if (!parts.has(code)) parts.set(code, group);
-  }
-  return parts;
+  const groups = [...shell.querySelectorAll('g.part')];
+  return groups.map((group) => [group.getAttribute('data-code'), group]);
 }
 
 /**
- * Fills a device block with its drawing and calls `onParts(parts)` with its parts by code, once loaded; `deviceKeys`
+ * Fills a device block with its drawing and calls `onParts(parts)` with its [code, part] pairs, once loaded; `deviceKeys`
  * says which key each extra button follows. Nothing happens when the block was replaced meanwhile (the overlay rebuilt
  * its keys).
  */
