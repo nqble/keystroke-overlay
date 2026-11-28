@@ -10,7 +10,7 @@
 //  (a German file's "Z" to KeyY), and linking a key by hand on the Keys tab.
 // =====================================================================================================================
 import { readKle, KleFormatError } from './kle.js';
-import { RANK, SIDED_KEYS, iconCode, isKnownKey, legendMatch } from './key-names.js';
+import { RANK, SIDED_KEYS, canLightOn, iconCode, legendMatch } from './key-names.js';
 import { MAX_POSITION, MIN_KEY_WIDTH, round2 } from './profiles.js';
 import { words } from './words.js';
 
@@ -76,9 +76,10 @@ export const NUMBER_PAD_SYMBOLS = { '*': 'NumpadMultiply', '+': 'NumpadAdd' };
 /**
  * Turn the text of a file the user picked into a layout. Returns { name, keys, report } (report: the counts the popup
  * shows: keys, linked, notLinked, unlit, leftOut), or { problem } when the file can't be used: 'brokenFile' (not
- * JSON), 'notKle', 'noKeys', or 'tooManyKeys' (with `count`).
+ * JSON), 'notKle', 'noKeys', or 'tooManyKeys' (with `count`). `platform` (state.js) makes the keys that system can't
+ * produce, such as F21 on a Mac, placeholders.
  */
-export function layoutFromKle(text, fileName = '') {
+export function layoutFromKle(text, fileName = '', platform = undefined) {
   let rows;
   try {
     rows = JSON.parse(text);
@@ -96,7 +97,7 @@ export function layoutFromKle(text, fileName = '') {
   const { placed, leftOut } = placeKeys(kle.keys);
   if (!placed.length) return { problem: 'noKeys' };
   if (placed.length > MAX_LAYOUT_KEYS) return { problem: 'tooManyKeys', count: placed.length };
-  const keys = linkKeys(placed);
+  const keys = linkKeys(placed, platform);
   const linked = keys.filter((key) => !key.code.startsWith(PLACEHOLDER_PREFIX)).length;
   const unlit = unlitNames(keys);
   const report = { keys: keys.length, linked, notLinked: keys.length - linked, unlit, leftOut };
@@ -221,13 +222,13 @@ export function cleanLegend(raw) {
 
 // ---- Picking each key's code ----------------------------------------------------------------------------------------
 /** Every key gets its code and label: the legend steps, then the place steps, then only known codes, each once. */
-function linkKeys(placed) {
+function linkKeys(placed, platform) {
   const keys = placed.map((key) => ({ ...key, ...bestMatch(key.legends) }));
   useNumberPad(keys);
   pickSides(keys);
   findSpaceBar(keys);
   useIsoPlaces(keys);
-  return finishKeys(keys);
+  return finishKeys(keys, platform);
 }
 
 /**
@@ -334,16 +335,16 @@ function useIsoPlaces(keys) {
 }
 
 /**
- * The last steps: a code the app can't see (F13, a media key, a "Shift" no side was found for) is not used, and a
- * code a key earlier in reading order already has isn't either; such keys get the next placeholder. Then each key gets
+ * The last steps: a code the app can't see on `platform` (a media key, F21 on a Mac, a "Shift" no side was found
+ * for) is not used, and a code a key earlier in reading order already has isn't either; such keys get the next placeholder. Then each key gets
  * its label: the legend that matched, else its first legend, else none.
  */
-function finishKeys(keys) {
+function finishKeys(keys, platform) {
   const used = new Set();
   let placeholders = 0;
   return keys.map((key) => {
     let code = key.code;
-    if (!code || !isKnownKey(code) || used.has(code)) {
+    if (!code || !canLightOn(code, platform) || used.has(code)) {
       placeholders += 1;
       code = `${PLACEHOLDER_PREFIX}${placeholders}`;
     }

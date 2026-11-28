@@ -105,6 +105,12 @@ const KEY_BY_CODE = new Map(KNOWN_KEYS.map((key) => [key.code, key]));
 /** True for a code the app can see (and so can light up). */
 export const isKnownKey = (code) => KEY_BY_CODE.has(code);
 
+/** Function keys macOS doesn't have (macos_keys.rs stops at F20): on a Mac they can never light up. */
+const MISSING_ON_MACOS = new Set(['F21', 'F22', 'F23', 'F24']);
+
+/** True for a code the app can see on `platform` ("windows", "macos", "linux"; any system when it isn't given). */
+export const canLightOn = (code, platform) => isKnownKey(code) && !(platform === 'macos' && MISSING_ON_MACOS.has(code));
+
 /** The key's friendly name on this system ("Left Ctrl", "Left ⌘ Command"), or null for a code the app can't see. */
 export function keyName(code, platform) {
   const key = KEY_BY_CODE.get(code);

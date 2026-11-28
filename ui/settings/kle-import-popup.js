@@ -13,7 +13,7 @@ import { MAX_LAYOUT_KEYS, MAX_NAME_LENGTH, PLACEHOLDER_PREFIX, layoutFromKle, un
 import { layoutFromNohBoard } from './nohboard-layout.js';
 import { dialog } from './popup.js';
 import { render } from './settings.js';
-import { settings, setLayouts, setSelectedKey, setTab } from './state.js';
+import { platform, settings, setLayouts, setSelectedKey, setTab } from './state.js';
 import { LayoutPicture } from './tabs/layout-card.js';
 import { words } from './words.js';
 
@@ -22,12 +22,13 @@ const TEXT = words('kleImport');
 /** What each kind of file needs: its reader and the words that differ. */
 const KINDS = {
   kle: {
-    read: (source) => layoutFromKle(source.text, source.fileName),
+    read: (source) => layoutFromKle(source.text, source.fileName, platform),
     problems: { brokenFile: TEXT.brokenFile, noKeys: TEXT.noKeys },
     leftOut: TEXT.leftOut,
   },
   nohboard: {
-    read: async (source) => layoutFromNohBoard(source.text, source.folderName, await invoke('typing_virtual_keys')),
+    read: async (source) =>
+      layoutFromNohBoard(source.text, source.folderName, await invoke('typing_virtual_keys'), platform),
     problems: { brokenFile: TEXT.brokenNohBoard, noKeys: TEXT.noKeysNohBoard },
     leftOut: TEXT.leftOutNohBoard,
   },
