@@ -54,14 +54,15 @@ function ShapeRow({ layoutKey, profile }) {
   const shapes = DEVICE_SHAPES[layoutKey.code] ?? [];
   if (shapes.length < 2) return null;
   const choices = shapes.map((shape) => ({ value: shape, text: WORDS.shapes[shape] ?? shape, test: `shape-${shape}` }));
+  const shown = drawingId(layoutKey, profile); // clicking the shape already shown changes nothing
   return html`<div class="row">
     <span>${WORDS.shape}</span>
     <div class="ctl">
       <${Segmented}
         label=${WORDS.shape}
         choices=${choices}
-        value=${drawingId(layoutKey, profile)}
-        onChange=${(shape) => setShape(layoutKey.code, shape, layoutKey)}
+        value=${shown}
+        onChange=${(shape) => shape !== shown && setShape(layoutKey.code, shape, layoutKey)}
         test="device-shape"
       />
     </div>
