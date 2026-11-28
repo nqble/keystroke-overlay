@@ -113,7 +113,10 @@ export function tidyProf() {
     if (!Object.keys(edits).length) delete profile.styles[style];
   }
   if (profile.styles && !Object.keys(profile.styles).length) delete profile.styles;
-  if (!hasEdits(profile)) delete settings.layout.profiles[id];
+  // the inputs hidden with the eye button (eye-button.js) live in the profile too but aren't an edit of the layout:
+  // they don't make it "customized", and a profile holding them is kept
+  const hidesInputs = profile.hiddenInputs?.length > 0;
+  if (!hasEdits(profile) && !hidesInputs) delete settings.layout.profiles[id];
 }
 
 /** Forget the moved and resized keys of the layout style in use (hidden keys and labels stay). */
