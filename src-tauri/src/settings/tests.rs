@@ -1051,4 +1051,23 @@ mod layout_key_tests {
         );
         assert_eq!(keys[0]["w"], json!(2.5));
     }
+
+    #[test]
+    fn a_version_5_file_keeps_its_device_choices_on_the_way_up() {
+        let profile = json!({
+            "disabledKeys": [], "labels": {},
+            "deviceDrawings": { "Mouse": "mouse-gaming" }, "deviceKeys": { "side3": "F13" }
+        });
+        let migrated =
+            migrate(json!({ "version": 5, "layout": { "id": "wasd-mouse", "profiles": { "wasd-mouse": profile } } }));
+        assert_eq!(migrated["version"], json!(CURRENT_VERSION));
+        assert_eq!(
+            migrated["layout"]["profiles"]["wasd-mouse"]["deviceDrawings"]["Mouse"],
+            json!("mouse-gaming")
+        );
+        assert_eq!(
+            migrated["layout"]["profiles"]["wasd-mouse"]["deviceKeys"]["side3"],
+            json!("F13")
+        );
+    }
 }

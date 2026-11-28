@@ -74,7 +74,8 @@ when one is missing).
 3. Use it in the overlay (`ui/overlay/overlay.js`).
 4. Copy the new default into `tools/sandbox/default-settings.json` (a Rust test fails until you do).
 5. Add a test, and document it in [FILE-FORMATS.md](FILE-FORMATS.md). If you are *renaming or restructuring* a setting, bump
-   `CURRENT_VERSION` and add a migration ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
+   `CURRENT_VERSION` and add a migration; the first *new* setting after a release bumps it too, with an empty step, so
+   an older app keeps a copy of the file before dropping what it doesn't know ([decision 0007](decisions/0007-versioned-settings-with-migrations.md)).
 
 ## Inside the settings window: where each thing lives
 
