@@ -8,7 +8,7 @@
 //  the format and the plan are in docs/FILE-FORMATS.md. Plain logic, tested by tests/ui/nohboard-layout.test.mjs.
 // =====================================================================================================================
 import { parseLenientJson } from './json-lenient.js';
-import { VIRTUAL_KEY_CODES, isKnownKey } from './key-names.js';
+import { VIRTUAL_KEY_CODES, canLightOn } from './key-names.js';
 import { MAX_LABEL_LENGTH, MAX_LAYOUT_KEYS, PLACEHOLDER_PREFIX, layoutName, pickSides } from './kle-layout.js';
 import { round2 } from './profiles.js';
 import { words } from './words.js';
@@ -34,8 +34,9 @@ const SNAP_TOLERANCE = 0.05; // a size this close to a quarter key is put on it 
  * NohBoard); `typingKeys` is {virtualKey: code} for the typing keys on this PC's keyboard. Returns { name, keys, report }
  * (report: keys, linked, notLinked, unlit, leftOut, mouse) or { problem }: 'brokenFile', 'notNohBoard', 'ourFile',
  * 'noKeys' or 'tooManyKeys' (with `count`).
+ * `platform` (state.js) makes the keys that system can't produce, such as F21 on a Mac, placeholders.
  */
-export function layoutFromNohBoard(text, folderName = '', typingKeys = {}) {
+export function layoutFromNohBoard(text, folderName = '', typingKeys = {}, platform = undefined) {
   let file;
   try {
     file = parseLenientJson(text);
@@ -48,7 +49,7 @@ export function layoutFromNohBoard(text, folderName = '', typingKeys = {}) {
   const leftOut = file.Elements.length - drawn.length;
   if (!drawn.length) return { problem: 'noKeys' };
   if (drawn.length > MAX_LAYOUT_KEYS) return { problem: 'tooManyKeys', count: drawn.length };
-  const keys = finishKeys(placeKeys(drawn), { ...VIRTUAL_KEY_CODES, ...typingKeys });
+  const keys = finishKeys(placeKeys(drawn), { ...VIRTUAL_KEY_CODES, ...typingKeys }, platform);
   const name = layoutName(oneLine(folderName) || TEXT.defaultName, '');
   return { name, keys, report: reportOn(keys, leftOut) };
 }
@@ -189,14 +190,14 @@ function codeOf(element, codeByVirtualKey) {
  * Codes, then labels: a modifier without a side gets one by place; a code the app can't see (and isn't a mouse name),
  * or one an earlier key already has, becomes the next placeholder, which keeps its place but never lights up.
  */
-function finishKeys(placed, codeByVirtualKey) {
+function finishKeys(placed, codeByVirtualKey, platform) {
   for (const key of placed) key.code = codeOf(key.element, codeByVirtualKey);
   pickSides(placed);
   const used = new Set();
   let placeholders = 0;
   return placed.map((key) => {
     let code = key.code;
-    if (!(isKnownKey(code) || isMouseCode(code)) || used.has(code)) {
+    if (!(canLightOn(code, platform) || isMouseCode(code)) || used.has(code)) {
       placeholders += 1;
       code = `${PLACEHOLDER_PREFIX}${placeholders}`;
     }

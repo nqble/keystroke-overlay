@@ -276,3 +276,10 @@ test('keys laid end to end still touch after rounding, so none is marked as over
   const boxes = keys.map((key) => ({ code: key.code, x: key.x, y: key.y, w: key.w ?? 1, h: key.h ?? 1 }));
   assert.equal(overlappingCodes(boxes).size, 0);
 });
+
+test('on a Mac, F21 to F24 can never light up, so they become placeholders; elsewhere they link', () => {
+  const rows = JSON.stringify([['F13', 'F20', 'F21', 'F24']]);
+  assert.deepEqual(codesOf(layoutFromKle(rows, '', 'macos')), ['F13', 'F20', 'Unlinked1', 'Unlinked2']);
+  assert.deepEqual(codesOf(layoutFromKle(rows, '', 'windows')), ['F13', 'F20', 'F21', 'F24']);
+  assert.equal(layoutFromKle(rows, '', 'macos').report.notLinked, 2);
+});
